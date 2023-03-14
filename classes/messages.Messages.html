@@ -41,7 +41,7 @@ that apply the tokens passed into Message.getMessage</p>
 This is because <code>index.js</code> isn&#39;t loaded when tests run like they are when the package is required.
 To allow tests to run, import the message directory in each test (it will only
 do it once) or load the message file the test depends on individually.</p>
-<pre><code class="language-typescript"><span class="hl-9">// Create loader functions for all files in the messages directory</span><br/><span class="hl-2">Messages</span><span class="hl-1">.</span><span class="hl-4">importMessagesDirectory</span><span class="hl-1">(</span><span class="hl-2">__dirname</span><span class="hl-1">);</span><br/><br/><span class="hl-9">// Now you can use the messages from anywhere in your code or file.</span><br/><span class="hl-9">// If using importMessageDirectory, the bundle name is the file name.</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">messages</span><span class="hl-1">: </span><span class="hl-7">Messages</span><span class="hl-1"> = </span><span class="hl-2">Messages</span><span class="hl-1">.</span><span class="hl-4">load</span><span class="hl-1">(</span><span class="hl-2">packageName</span><span class="hl-1">, </span><span class="hl-2">bundleName</span><span class="hl-1">);</span><br/><br/><span class="hl-9">// Messages now contains all the message in the bundleName file.</span><br/><span class="hl-2">messages</span><span class="hl-1">.</span><span class="hl-4">getMessage</span><span class="hl-1">(</span><span class="hl-3">&#39;authInfoCreationError&#39;</span><span class="hl-1">);</span>
+<pre><code class="language-typescript"><span class="hl-9">// Create loader functions for all files in the messages directory</span><br/><span class="hl-2">Messages</span><span class="hl-1">.</span><span class="hl-4">importMessagesDirectory</span><span class="hl-1">(</span><span class="hl-2">__dirname</span><span class="hl-1">);</span><br/><br/><span class="hl-9">// Now you can use the messages from anywhere in your code or file.</span><br/><span class="hl-9">// If using importMessageDirectory, the bundle name is the file name.</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">messages</span><span class="hl-1">: </span><span class="hl-7">Messages</span><span class="hl-1"> = </span><span class="hl-2">Messages</span><span class="hl-1">.</span><span class="hl-4">loadMessages</span><span class="hl-1">(</span><span class="hl-2">packageName</span><span class="hl-1">, </span><span class="hl-2">bundleName</span><span class="hl-1">);</span><br/><br/><span class="hl-9">// Messages now contains all the message in the bundleName file.</span><br/><span class="hl-2">messages</span><span class="hl-1">.</span><span class="hl-4">getMessage</span><span class="hl-1">(</span><span class="hl-3">&#39;authInfoCreationError&#39;</span><span class="hl-1">);</span>
 </code></pre>
 </div></section> 
 <section class="tsd-panel tsd-type-parameters">
@@ -54,7 +54,7 @@ do it once) or load the message file the test depends on individually.</p>
 <ul class="tsd-hierarchy">
 <li><span class="target">Messages</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L183">src/messages.ts:183</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L183">src/messages.ts:183</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -95,7 +95,7 @@ do it once) or load the message file the test depends on individually.</p>
 <li class="tsd-signature tsd-anchor-link" id="constructor.new_Messages">new <wbr/>Messages<span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span>bundleName<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, locale<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, messages<span class="tsd-signature-symbol">: </span><a href="../types/messages.StoredMessageMap.html" class="tsd-signature-type" data-tsd-kind="Type alias">StoredMessageMap</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="messages.Messages.html" class="tsd-signature-type" data-tsd-kind="Class">Messages</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">&gt;</span><a href="#constructor.new_Messages" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Create a new messages bundle.</p>
-<p><strong>Note:</strong> Use {Messages.load} unless you are writing your own loader function.</p>
+<p><strong>Note:</strong> Use {Messages.loadMessages} unless you are writing your own loader function.</p>
 </div>
 <section class="tsd-panel tsd-type-parameters">
 <h4>Type Parameters</h4>
@@ -119,7 +119,7 @@ do it once) or load the message file the test depends on individually.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="messages.Messages.html" class="tsd-signature-type" data-tsd-kind="Class">Messages</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L213">src/messages.ts:213</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L213">src/messages.ts:213</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="bundleName" class="tsd-anchor"></a>
@@ -128,19 +128,19 @@ do it once) or load the message file the test depends on individually.</p>
 <div class="tsd-comment tsd-typography"><p>The bundle name.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L203">src/messages.ts:203</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L203">src/messages.ts:203</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="locale" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>locale</span><a href="#locale" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">locale<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>The locale of the messages in this bundle.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L199">src/messages.ts:199</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L199">src/messages.ts:199</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="messages" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>messages</span><a href="#messages" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">messages<span class="tsd-signature-symbol">:</span> <a href="../types/messages.StoredMessageMap.html" class="tsd-signature-type" data-tsd-kind="Type alias">StoredMessageMap</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L213">src/messages.ts:213</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L213">src/messages.ts:213</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="createError" class="tsd-anchor"></a>
@@ -177,7 +177,7 @@ do it once) or load the message file the test depends on individually.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="sfError.SfError.html" class="tsd-signature-type" data-tsd-kind="Class">SfError</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L529">src/messages.ts:529</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L514">src/messages.ts:514</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="createErrorButPreserveName" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>create<wbr/>Error<wbr/>But<wbr/>Preserve<wbr/>Name</span><a href="#createErrorButPreserveName" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -214,7 +214,7 @@ do it once) or load the message file the test depends on individually.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="sfError.SfError.html" class="tsd-signature-type" data-tsd-kind="Class">SfError</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L558">src/messages.ts:558</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L543">src/messages.ts:543</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="createInfo" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>create<wbr/>Info</span><a href="#createInfo" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -241,7 +241,7 @@ do it once) or load the message file the test depends on individually.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../types/messages.StructuredMessage.html" class="tsd-signature-type" data-tsd-kind="Type alias">StructuredMessage</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L599">src/messages.ts:599</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L584">src/messages.ts:584</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="createWarning" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>create<wbr/>Warning</span><a href="#createWarning" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -268,7 +268,7 @@ do it once) or load the message file the test depends on individually.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../types/messages.StructuredMessage.html" class="tsd-signature-type" data-tsd-kind="Type alias">StructuredMessage</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L585">src/messages.ts:585</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L570">src/messages.ts:570</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getMessage" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Message</span><a href="#getMessage" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -291,7 +291,7 @@ do it once) or load the message file the test depends on individually.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L487">src/messages.ts:487</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L472">src/messages.ts:472</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getMessages" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Messages</span><a href="#getMessages" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -318,7 +318,7 @@ do it once) or load the message file the test depends on individually.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L513">src/messages.ts:513</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L498">src/messages.ts:498</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="generateFileLoaderFunction" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>generate<wbr/>File<wbr/>Loader<wbr/>Function</span><a href="#generateFileLoaderFunction" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -341,7 +341,7 @@ function to <a href="messages.Messages.html#setLoaderFunction">setLoaderFunction
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../types/messages.LoaderFunction.html" class="tsd-signature-type" data-tsd-kind="Type alias">LoaderFunction</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L255">src/messages.ts:255</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L255">src/messages.ts:255</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="getLocale" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>get<wbr/>Locale</span><a href="#getLocale" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -352,7 +352,7 @@ machine&#39;s locale in the future.</p>
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L232">src/messages.ts:232</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L232">src/messages.ts:232</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="importMessageFile" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>import<wbr/>Message<wbr/>File</span><a href="#importMessageFile" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -374,14 +374,14 @@ The loader will only be added if the bundle name is not already taken.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L295">src/messages.ts:295</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L295">src/messages.ts:295</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="importMessagesDirectory" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>import<wbr/>Messages<wbr/>Directory</span><a href="#importMessagesDirectory" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
 <li class="tsd-signature tsd-anchor-link" id="importMessagesDirectory.importMessagesDirectory-1">import<wbr/>Messages<wbr/>Directory<span class="tsd-signature-symbol">(</span>moduleDirectoryPath<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, truncateToProjectPath<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span>, packageName<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#importMessagesDirectory.importMessagesDirectory-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Import all json and js files in a messages directory. Use the file name as the bundle key when
-<a href="messages.Messages.html#load">load</a> is called. By default, we&#39;re assuming the moduleDirectoryPart is a
+<a href="messages.Messages.html#loadMessages">loadMessages</a> is called. By default, we&#39;re assuming the moduleDirectoryPart is a
 typescript project and will truncate to root path (where the package.json file is). If your messages
 directory is in another spot or you are not using typescript, pass in false for truncateToProjectPath.</p>
 <pre><code><span class="hl-9">// e.g. If your message directory is in the project root, you would do:</span><br/><span class="hl-2">Messages</span><span class="hl-1">.</span><span class="hl-4">importMessagesDirectory</span><span class="hl-1">(</span><span class="hl-2">__dirname</span><span class="hl-1">);</span>
@@ -405,7 +405,7 @@ i.e., the module is typescript and the messages folder is in the top level of th
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L319">src/messages.ts:319</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L319">src/messages.ts:319</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="isCached" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>is<wbr/>Cached</span><a href="#isCached" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -426,18 +426,14 @@ i.e., the module is typescript and the messages folder is in the top level of th
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L473">src/messages.ts:473</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L458">src/messages.ts:458</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="load" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>load</span><a href="#load" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
 <li class="tsd-signature tsd-anchor-link" id="load.load-1">load<span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span>packageName<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, bundleName<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, keys<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">...</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="messages.Messages.html" class="tsd-signature-type" data-tsd-kind="Class">Messages</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">&gt;</span><a href="#load.load-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Load messages for a given package and bundle. If the bundle is not already cached, use the loader function
-created from <a href="messages.Messages.html#setLoaderFunction">setLoaderFunction</a> or <a href="messages.Messages.html#importMessagesDirectory">importMessagesDirectory</a>.</p>
-<p>The message keys that will be used must be passed in for validation. This prevents runtime errors if messages are used but not defined.</p>
-<p><strong>NOTE: This should be defined at the top of the file so validation is done at load time rather than runtime.</strong></p>
-<pre><code class="language-typescript"><span class="hl-2">Messages</span><span class="hl-1">.</span><span class="hl-4">importMessagesDirectory</span><span class="hl-1">(</span><span class="hl-2">__dirname</span><span class="hl-1">);</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">messages</span><span class="hl-1"> = </span><span class="hl-2">Messages</span><span class="hl-1">.</span><span class="hl-4">load</span><span class="hl-1">(</span><span class="hl-3">&#39;packageName&#39;</span><span class="hl-1">, </span><span class="hl-3">&#39;bundleName&#39;</span><span class="hl-1">, [</span><br/><span class="hl-1">  </span><span class="hl-3">&#39;messageKey1&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-3">&#39;messageKey2&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">]);</span>
-</code></pre>
+<div class="tsd-comment tsd-typography">
+<h3>Deprecated</h3><p>Use <a href="messages.Messages.html#loadMessages">loadMessages</a> instead.</p>
 </div>
 <section class="tsd-panel tsd-type-parameters">
 <h4>Type Parameters</h4>
@@ -461,7 +457,7 @@ created from <a href="messages.Messages.html#setLoaderFunction">setLoaderFunctio
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="messages.Messages.html" class="tsd-signature-type" data-tsd-kind="Class">Messages</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L431">src/messages.ts:431</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L416">src/messages.ts:416</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="loadMessages" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>load<wbr/>Messages</span><a href="#loadMessages" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -469,8 +465,7 @@ created from <a href="messages.Messages.html#setLoaderFunction">setLoaderFunctio
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Load messages for a given package and bundle. If the bundle is not already cached, use the loader function
 created from <a href="messages.Messages.html#setLoaderFunction">setLoaderFunction</a> or <a href="messages.Messages.html#importMessagesDirectory">importMessagesDirectory</a>.</p>
-<p><strong>NOTE: Use <a href="messages.Messages.html#load">load</a> instead for safe message validation and usage.</strong></p>
-<pre><code class="language-typescript"><span class="hl-2">Messages</span><span class="hl-1">.</span><span class="hl-4">importMessagesDirectory</span><span class="hl-1">(</span><span class="hl-2">__dirname</span><span class="hl-1">);</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">messages</span><span class="hl-1"> = </span><span class="hl-2">Messages</span><span class="hl-1">.</span><span class="hl-4">load</span><span class="hl-1">(</span><span class="hl-3">&#39;packageName&#39;</span><span class="hl-1">, </span><span class="hl-3">&#39;bundleName&#39;</span><span class="hl-1">);</span>
+<pre><code class="language-typescript"><span class="hl-2">Messages</span><span class="hl-1">.</span><span class="hl-4">importMessagesDirectory</span><span class="hl-1">(</span><span class="hl-2">__dirname</span><span class="hl-1">);</span><br/><span class="hl-5">const</span><span class="hl-1"> </span><span class="hl-6">messages</span><span class="hl-1"> = </span><span class="hl-2">Messages</span><span class="hl-1">.</span><span class="hl-4">loadMessages</span><span class="hl-1">(</span><span class="hl-3">&#39;packageName&#39;</span><span class="hl-1">, </span><span class="hl-3">&#39;bundleName&#39;</span><span class="hl-1">);</span>
 </code></pre>
 </div>
 <div class="tsd-parameters">
@@ -486,13 +481,13 @@ created from <a href="messages.Messages.html#setLoaderFunction">setLoaderFunctio
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="messages.Messages.html" class="tsd-signature-type" data-tsd-kind="Class">Messages</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L388">src/messages.ts:388</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L386">src/messages.ts:386</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="setLoaderFunction" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>set<wbr/>Loader<wbr/>Function</span><a href="#setLoaderFunction" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
 <li class="tsd-signature tsd-anchor-link" id="setLoaderFunction.setLoaderFunction-1">set<wbr/>Loader<wbr/>Function<span class="tsd-signature-symbol">(</span>packageName<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, bundle<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, loader<span class="tsd-signature-symbol">: </span><a href="../types/messages.LoaderFunction.html" class="tsd-signature-type" data-tsd-kind="Type alias">LoaderFunction</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#setLoaderFunction.setLoaderFunction-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Set a custom loader function for a package and bundle that will be called on <a href="messages.Messages.html#load">load</a>.</p>
+<div class="tsd-comment tsd-typography"><p>Set a custom loader function for a package and bundle that will be called on <a href="messages.Messages.html#loadMessages">loadMessages</a>.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -511,7 +506,7 @@ created from <a href="messages.Messages.html#setLoaderFunction">setLoaderFunctio
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/a59323be/src/messages.ts#L243">src/messages.ts:243</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/5e6c2d83/src/messages.ts#L243">src/messages.ts:243</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
