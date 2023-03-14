@@ -27,7 +27,7 @@ describe('TTLConfig', () => {
         rootFolder: $$.rootPathRetrieverSync(isGlobal, TestConfig.testId),
         isGlobal,
         isState: true,
-        filename: filename || TestConfig.getFileName(),
+        filename: filename ?? TestConfig.getFileName(),
         stateFolder: Global.SFDX_STATE_FOLDER,
         ttl: Duration.days(1),
       };

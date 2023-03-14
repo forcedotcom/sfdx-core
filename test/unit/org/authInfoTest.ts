@@ -1850,8 +1850,8 @@ describe('AuthInfo', () => {
 
       const getDevHubAuthInfosSpy = spyMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos');
       const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg').resolves({
-        totalSize: 1,
-        records: [{ Id: '123', ExpirationDate: '2020-01-01' }],
+        Id: '123',
+        ExpirationDate: '2020-01-01',
       });
       const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
       await AuthInfo.identifyPossibleScratchOrgs(authInfo.getFields(), authInfo);
