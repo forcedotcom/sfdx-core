@@ -45,12 +45,8 @@ export class TTLConfig<T extends TTLConfig.Options, P extends JsonMap> extends C
 
   protected async init(): Promise<void> {
     const contents = await this.read(this.options.throwOnNotFound);
-    const purged = {} as TTLConfig.Contents<P>;
     const date = new Date().getTime();
-    for (const [key, opts] of Object.entries(contents)) {
-      if (!this.isExpired(date, opts)) purged[key] = opts;
-    }
-    this.setContents(purged);
+    this.setContents(Object.fromEntries(Object.entries(contents).filter(([, value]) => !this.isExpired(date, value))));
   }
 
   // eslint-disable-next-line class-methods-use-this
