@@ -1,3 +1,12 @@
+# [3.34.0](https://github.com/forcedotcom/sfdx-core/compare/3.33.9...3.34.0) (2023-03-14)
+
+
+### Features
+
+* deprecate messages.load and docs ([3229f74](https://github.com/forcedotcom/sfdx-core/commit/3229f742f6ee2d99729e55abb8021cf5f3639b9f))
+
+
+
 ## [3.33.9](https://github.com/forcedotcom/sfdx-core/compare/3.33.8...3.33.9) (2023-03-14)
 
 
