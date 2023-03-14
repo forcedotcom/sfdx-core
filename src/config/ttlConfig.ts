@@ -45,26 +45,17 @@ export class TTLConfig<T extends TTLConfig.Options, P extends JsonMap> extends C
 
   protected async init(): Promise<void> {
     const contents = await this.read(this.options.throwOnNotFound);
-    if (contents && this.hasExpiredEntries(contents)) {
-      this.setContents(this.removeExpiredEntries(contents));
-      await this.write();
-    } else {
-      this.setContents(contents);
+    const purged = {} as TTLConfig.Contents<P>;
+    const date = new Date().getTime();
+    for (const [key, opts] of Object.entries(contents)) {
+      if (!this.isExpired(date, opts)) purged[key] = opts;
     }
+    this.setContents(purged);
   }
 
   // eslint-disable-next-line class-methods-use-this
   private timestamp(value: Partial<TTLConfig.Entry<P>>): TTLConfig.Entry<P> {
     return { ...value, timestamp: new Date().toISOString() } as TTLConfig.Entry<P>;
-  }
-
-  private hasExpiredEntries(contents: TTLConfig.Contents<P>): boolean {
-    const date = new Date().getTime();
-    return Object.entries(this.getContents()).some(([, value]) => !this.isExpired(date, value));
-  }
-  private removeExpiredEntries(contents: TTLConfig.Contents<P>): TTLConfig.Contents<P> {
-    const date = new Date().getTime();
-    return Object.fromEntries(Object.entries(this.getContents()).filter(([, value]) => !this.isExpired(date, value)));
   }
 }
 

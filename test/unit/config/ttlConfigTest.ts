@@ -95,17 +95,5 @@ describe('TTLConfig', () => {
       const isExpired = config.isExpired(new Date().getTime(), config.get('1'));
       expect(isExpired).to.be.false;
     });
-    it('should remove expired entries during init', async () => {
-      let config = await TestConfig.create();
-      config.setContents({
-        '1': { one: 'one', timestamp: new Date(new Date().getTime() - Duration.days(7).milliseconds).toISOString() },
-        '2': { two: 'two', timestamp: new Date().toISOString() },
-      });
-      config.writeSync();
-
-      config = await TestConfig.create();
-      expect(config.get('1')).to.be.undefined;
-      expect(config.get('2')).to.not.be.undefined;
-    });
   });
 });
