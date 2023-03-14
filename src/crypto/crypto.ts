@@ -30,12 +30,7 @@ const KEY_NAME = 'sfdx';
 const ACCOUNT = 'local';
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
-const messages = Messages.load('@salesforce/core', 'encryption', [
-  'keychainPasswordCreationError',
-  'invalidEncryptedFormatError',
-  'authDecryptError',
-  'macKeychainOutOfSync',
-]);
+const messages = Messages.loadMessages('@salesforce/core', 'encryption');
 
 interface CredType {
   username: string;

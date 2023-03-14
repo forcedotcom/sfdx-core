@@ -11,7 +11,7 @@ import { Messages } from '../messages';
 import { KeyChain, keyChainImpl } from './keyChainImpl';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'encryption', ['unsupportedOperatingSystemError']);
+const messages = Messages.loadMessages('@salesforce/core', 'encryption');
 
 /**
  * Gets the os level keychain impl.

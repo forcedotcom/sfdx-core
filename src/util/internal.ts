@@ -12,7 +12,7 @@ import { Messages } from '../messages';
 import { SfError } from '../sfError';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'config', ['invalidProjectWorkspace']);
+const messages = Messages.loadMessages('@salesforce/core', 'config');
 
 /**
  * The name of the project config file.

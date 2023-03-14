@@ -30,13 +30,7 @@ import { ScratchOrgCache } from './scratchOrgCache';
 import { validateScratchOrgInfoForResume } from './scratchOrgErrorCodes';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'scratchOrgCreate', [
-  'DurationDaysValidationMaxError',
-  'DurationDaysValidationMinError',
-  'RetryNotIntError',
-  'DurationDaysNotIntError',
-  'CacheMissError',
-]);
+const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgCreate');
 
 export const DEFAULT_STREAM_TIMEOUT_MINUTES = 6;
 

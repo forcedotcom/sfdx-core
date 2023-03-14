@@ -174,7 +174,7 @@ const jsAndJsonLoader: FileParser = (filePath: string, fileContents: string): St
  *
  * // Now you can use the messages from anywhere in your code or file.
  * // If using importMessageDirectory, the bundle name is the file name.
- * const messages: Messages = Messages.load(packageName, bundleName);
+ * const messages: Messages = Messages.loadMessages(packageName, bundleName);
  *
  * // Messages now contains all the message in the bundleName file.
  * messages.getMessage('authInfoCreationError');
@@ -204,7 +204,7 @@ export class Messages<T extends string> {
   /**
    * Create a new messages bundle.
    *
-   * **Note:** Use {Messages.load} unless you are writing your own loader function.
+   * **Note:** Use {Messages.loadMessages} unless you are writing your own loader function.
    *
    * @param bundleName The bundle name.
    * @param locale The locale.
@@ -234,7 +234,7 @@ export class Messages<T extends string> {
   }
 
   /**
-   * Set a custom loader function for a package and bundle that will be called on {@link Messages.load}.
+   * Set a custom loader function for a package and bundle that will be called on {@link Messages.loadMessages}.
    *
    * @param packageName The npm package name.
    * @param bundle The name of the bundle.
@@ -302,7 +302,7 @@ export class Messages<T extends string> {
 
   /**
    * Import all json and js files in a messages directory. Use the file name as the bundle key when
-   * {@link Messages.load} is called. By default, we're assuming the moduleDirectoryPart is a
+   * {@link Messages.loadMessages} is called. By default, we're assuming the moduleDirectoryPart is a
    * typescript project and will truncate to root path (where the package.json file is). If your messages
    * directory is in another spot or you are not using typescript, pass in false for truncateToProjectPath.
    *
@@ -375,11 +375,9 @@ export class Messages<T extends string> {
    * Load messages for a given package and bundle. If the bundle is not already cached, use the loader function
    * created from {@link Messages.setLoaderFunction} or {@link Messages.importMessagesDirectory}.
    *
-   * **NOTE: Use {@link Messages.load} instead for safe message validation and usage.**
-   *
    * ```typescript
    * Messages.importMessagesDirectory(__dirname);
-   * const messages = Messages.load('packageName', 'bundleName');
+   * const messages = Messages.loadMessages('packageName', 'bundleName');
    * ```
    *
    * @param packageName The name of the npm package.
@@ -409,21 +407,8 @@ export class Messages<T extends string> {
   }
 
   /**
-   * Load messages for a given package and bundle. If the bundle is not already cached, use the loader function
-   * created from {@link Messages.setLoaderFunction} or {@link Messages.importMessagesDirectory}.
    *
-   * The message keys that will be used must be passed in for validation. This prevents runtime errors if messages are used but not defined.
-   *
-   * **NOTE: This should be defined at the top of the file so validation is done at load time rather than runtime.**
-   *
-   * ```typescript
-   * Messages.importMessagesDirectory(__dirname);
-   * const messages = Messages.load('packageName', 'bundleName', [
-   *   'messageKey1',
-   *   'messageKey2',
-   * ]);
-   * ```
-   *
+   * @deprecated Use {@link Messages.loadMessages} instead.
    * @param packageName The name of the npm package.
    * @param bundleName The name of the bundle to load.
    * @param keys The message keys that will be used.

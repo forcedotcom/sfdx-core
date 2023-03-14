@@ -19,13 +19,7 @@ import { CometClient, CometSubscription, Message, StatusResult, StreamingExtensi
 export { CometClient, CometSubscription, Message, StatusResult, StreamingExtension, StreamProcessor };
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'streaming', [
-  'waitParamValidValueError',
-  'genericHandshakeTimeout',
-  'invalidApiVersion',
-  'genericTimeout',
-  'handshakeApiVersionError',
-]);
+const messages = Messages.loadMessages('@salesforce/core', 'streaming');
 
 /**
  * Inner streaming client interface. This implements the Cometd behavior.

@@ -50,15 +50,7 @@ const scimEndpoint = '/services/scim/v1/Users';
 const scimHeaders = { 'auto-approve-user': 'true' };
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'user', [
-  'invalidHttpResponseCreatingUser',
-  'userQueryFailed',
-  'missingId',
-  'permsetNamesAreRequired',
-  'missingFields',
-  'lengthOutOfBound',
-  'complexityOutOfBound',
-]);
+const messages = Messages.loadMessages('@salesforce/core', 'user');
 
 /**
  * A Map of Required Salesforce User fields.

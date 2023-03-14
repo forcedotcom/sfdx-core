@@ -21,14 +21,7 @@ import { Messages } from './messages';
 import { SfProjectJson } from './sfProject';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.load('@salesforce/core', 'auth', [
-  'invalidRequestUri',
-  'invalidRequestMethod',
-  'missingAuthCode',
-  'serverErrorHTMLResponse',
-  'portInUse',
-  'portInUse.actions',
-]);
+const messages = Messages.loadMessages('@salesforce/core', 'auth');
 
 /**
  * Handles the creation of a web server for web based login flows.
