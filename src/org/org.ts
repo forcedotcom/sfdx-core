@@ -92,7 +92,7 @@ export interface SandboxUserAuthResponse {
   loginUrl: string;
 }
 
-const resumableSandboxStatus = ['Activating', 'Pending', 'Pending Activation', 'Processing', 'Sampling'];
+const resumableSandboxStatus = ['Activating', 'Pending', 'Pending Activation', 'Processing', 'Sampling', 'Completed'];
 
 export function sandboxIsResumable(value: string): boolean {
   return resumableSandboxStatus.includes(value);
