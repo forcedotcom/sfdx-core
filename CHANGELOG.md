@@ -1,3 +1,12 @@
+## [3.34.1](https://github.com/forcedotcom/sfdx-core/compare/3.34.0...3.34.1) (2023-03-16)
+
+
+### Bug Fixes
+
+* allow completed status to be resume ([484244d](https://github.com/forcedotcom/sfdx-core/commit/484244d2877b6eec610975bd643fea2a368b5f5e))
+
+
+
 # [3.34.0](https://github.com/forcedotcom/sfdx-core/compare/3.33.9...3.34.0) (2023-03-14)
 
 
