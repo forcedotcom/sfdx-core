@@ -684,7 +684,9 @@ export class SfProject {
    */
   public getDefaultPackage(): NamedPackageDir {
     if (!this.hasPackages()) {
-      throw new SfError('The sfdx-project.json does not have any packageDirectories defined.');
+      throw new SfError('The sfdx-project.json does not have any packageDirectories defined.', 'NoPackageDirectories', [
+        `Check ${this.getPath()} for packageDirectories.`,
+      ]);
     }
     const defaultPackage = this.findPackage((packageDir) => packageDir.default === true);
     return defaultPackage ?? this.getPackageDirectories()[0];
