@@ -6272,10 +6272,10 @@ widest-line@^3.1.0:
   dependencies:
     string-width "^4.0.0"
 
-wireit@^0.9.3:
-  version "0.9.3"
-  resolved "https://registry.yarnpkg.com/wireit/-/wireit-0.9.3.tgz#2508f77418d73a632d0653a0dd3275c1808f3f98"
-  integrity sha512-o31NkFrr+AjGNgarZB094Tw6xWcmNn1uts672B1qKzSo2XMFBt5abjtg/SBUNlBcQPtPryEXJkIUQ6i9p+1Y9w==
+wireit@^0.9.3, wireit@^0.9.5:
+  version "0.9.5"
+  resolved "https://registry.yarnpkg.com/wireit/-/wireit-0.9.5.tgz#7c3622f6ff5e63b7fac05783baf82f967f52562c"
+  integrity sha512-dKKNAwLxQjbPPMrltPxMUFKvLy2z6hlVjvR/qitvPm8GEQyb/1QYBG7ObvOQLsi95uAXpkWLJXBYkCKeVcMVgA==
   dependencies:
     braces "^3.0.2"
     chokidar "^3.5.3"
