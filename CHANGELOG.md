@@ -1,3 +1,12 @@
+## [3.34.2](https://github.com/forcedotcom/sfdx-core/compare/3.34.1...3.34.2) (2023-03-19)
+
+
+### Bug Fixes
+
+* **deps:** bump jsforce from 2.0.0-beta.19 to 2.0.0-beta.20 ([9026092](https://github.com/forcedotcom/sfdx-core/commit/90260926103273ae5ffac382db38d6aea9e2bcc3))
+
+
+
 ## [3.34.1](https://github.com/forcedotcom/sfdx-core/compare/3.34.0...3.34.1) (2023-03-16)
 
 
