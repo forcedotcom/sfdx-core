@@ -1,3 +1,12 @@
+## [3.34.3](https://github.com/forcedotcom/sfdx-core/compare/3.34.2...3.34.3) (2023-03-20)
+
+
+### Bug Fixes
+
+* **deps:** bump graceful-fs from 4.2.10 to 4.2.11 ([8384d3f](https://github.com/forcedotcom/sfdx-core/commit/8384d3fcef55fc0ef609590364311c146f171d46))
+
+
+
 ## [3.34.2](https://github.com/forcedotcom/sfdx-core/compare/3.34.1...3.34.2) (2023-03-19)
 
 
