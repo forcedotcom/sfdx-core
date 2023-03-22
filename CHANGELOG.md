@@ -1,3 +1,12 @@
+## [3.34.4](https://github.com/forcedotcom/sfdx-core/compare/3.34.3...3.34.4) (2023-03-22)
+
+
+### Bug Fixes
+
+* check resumable state before emitting first progress event ([#793](https://github.com/forcedotcom/sfdx-core/issues/793)) ([6677d0f](https://github.com/forcedotcom/sfdx-core/commit/6677d0f02e155e7d245701b7f73ee19dc8aa03be))
+
+
+
 ## [3.34.3](https://github.com/forcedotcom/sfdx-core/compare/3.34.2...3.34.3) (2023-03-20)
 
 
