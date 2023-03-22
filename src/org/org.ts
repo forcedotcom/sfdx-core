@@ -283,6 +283,13 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       `Return from calling singleRecordQuery with tooling: ${JSON.stringify(sandboxCreationProgress, undefined, 2)}`
     );
 
+    if (!sandboxIsResumable(sandboxCreationProgress.Status)) {
+      throw messages.createError('sandboxNotResumable', [
+        sandboxCreationProgress.SandboxName,
+        sandboxCreationProgress.Status,
+      ]);
+    }
+
     await Lifecycle.getInstance().emit(SandboxEvents.EVENT_RESUME, sandboxCreationProgress);
 
     const [wait, pollInterval] = this.validateWaitOptions(options);
@@ -306,12 +313,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       throw messages.createError('sandboxCreateNotComplete');
     }
 
-    if (!sandboxIsResumable(sandboxCreationProgress.Status)) {
-      throw messages.createError('sandboxNotResumable', [
-        sandboxCreationProgress.SandboxName,
-        sandboxCreationProgress.Status,
-      ]);
-    }
     this.logger.debug(
       `resume - pollStatusAndAuth sandboxProcessObj ${JSON.stringify(
         sandboxCreationProgress,

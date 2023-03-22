@@ -895,7 +895,7 @@ const filterSecrets = (...args: unknown[]): unknown =>
     if (arg) {
       let mutableArg: string;
 
-      // Normalize all objects into a string. This include errors.
+      // Normalize all objects into a string. This includes errors.
       if (arg instanceof Buffer) {
         mutableArg = '<Buffer>';
       } else if (isObject(arg)) {
