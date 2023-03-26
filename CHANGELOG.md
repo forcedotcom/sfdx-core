@@ -1,3 +1,12 @@
+## [3.34.5](https://github.com/forcedotcom/sfdx-core/compare/3.34.4...3.34.5) (2023-03-26)
+
+
+### Bug Fixes
+
+* **deps:** bump json5 from 1.0.1 to 1.0.2 ([0dbbcf6](https://github.com/forcedotcom/sfdx-core/commit/0dbbcf61576512d527799240a50b311f723ab200))
+
+
+
 ## [3.34.4](https://github.com/forcedotcom/sfdx-core/compare/3.34.3...3.34.4) (2023-03-22)
 
 
