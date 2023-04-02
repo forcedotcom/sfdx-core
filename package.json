@@ -67,7 +67,7 @@
     "@types/lodash": "^4.14.192",
     "@types/shelljs": "0.8.11",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
-    "@typescript-eslint/parser": "^5.56.0",
+    "@typescript-eslint/parser": "^5.57.0",
     "chai": "^4.3.7",
     "chai-string": "^1.5.0",
     "commitizen": "^3.1.2",
