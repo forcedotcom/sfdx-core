@@ -9,9 +9,10 @@
 import * as crypto from 'crypto';
 import * as os from 'os';
 import { join as pathJoin } from 'path';
-import { ensure, Nullable, Optional } from '@salesforce/ts-types';
+import { ensure, isString, Nullable, Optional } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, env } from '@salesforce/kit';
 import { Logger } from '../logger';
+import { SfError } from '../sfError';
 import { Messages } from '../messages';
 import { Cache } from '../util/cache';
 import { Global } from '../global';
@@ -20,7 +21,7 @@ import { KeyChain } from './keyChainImpl';
 import { SecureBuffer } from './secureBuffer';
 
 const TAG_DELIMITER = ':';
-const BYTE_COUNT_FOR_IV = 6;
+const BYTE_COUNT_FOR_IV = 12;
 const ALGO = 'aes-256-gcm';
 
 const AUTH_TAG_LENGTH = 32;
@@ -39,7 +40,7 @@ interface CredType {
 
 const makeSecureBuffer = (password: string | undefined): SecureBuffer<string> => {
   const newSb = new SecureBuffer<string>();
-  newSb.consume(Buffer.from(ensure(password), 'utf8'));
+  newSb.consume(Buffer.from(ensure(password), 'hex'));
   return newSb;
 };
 
@@ -66,7 +67,7 @@ const keychainPromises = {
         })
       );
     } else {
-      const pw = sb.value((buffer) => buffer.toString('utf8'));
+      const pw = sb.value((buffer) => buffer.toString('hex'));
       Cache.set(cacheKey, makeSecureBuffer(pw));
       return new Promise((resolve): void => resolve({ username: account, password: ensure(pw) }));
     }
@@ -107,6 +108,9 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
 
   private noResetOnClose!: boolean;
 
+  // true when the key is 32 hex chars
+  private legacy_key_mode = false;
+
   /**
    * Constructor
    * **Do not directly construct instances of this class -- use {@link Crypto.create} instead.**
@@ -134,16 +138,17 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
       throw messages.createError('keychainPasswordCreationError');
     }
 
-    const iv = crypto.randomBytes(BYTE_COUNT_FOR_IV).toString('hex');
+    const iv = crypto.randomBytes(BYTE_COUNT_FOR_IV);
 
     return this.key.value((buffer: Buffer): string => {
-      const cipher = crypto.createCipheriv(ALGO, buffer.toString('utf8'), iv);
+      const cipher = crypto.createCipheriv(ALGO, buffer, iv);
+      const ivHex = iv.toString('hex');
 
       let encrypted = cipher.update(text, 'utf8', 'hex');
       encrypted += cipher.final('hex');
 
       const tag = cipher.getAuthTag().toString('hex');
-      return `${iv}${encrypted}${TAG_DELIMITER}${tag}`;
+      return `${ivHex}${encrypted}${TAG_DELIMITER}${tag}`;
     });
   }
 
@@ -169,21 +174,41 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     const secret = tokens[0].substring(BYTE_COUNT_FOR_IV * 2, tokens[0].length);
 
     return this.key.value((buffer: Buffer) => {
-      const decipher = crypto.createDecipheriv(ALGO, buffer.toString('utf8'), iv);
+      let decipher = crypto.createDecipheriv(ALGO, buffer, Buffer.from(iv, 'hex'));
 
-      let dec;
+      let dec!: string;
       try {
         decipher.setAuthTag(Buffer.from(tag, 'hex'));
         dec = decipher.update(secret, 'hex', 'utf8');
         dec += decipher.final('utf8');
-      } catch (err) {
-        const error = messages.createError('authDecryptError', [(err as Error).message], [], err as Error);
-        const useGenericUnixKeychain =
-          env.getBoolean('SFDX_USE_GENERIC_UNIX_KEYCHAIN') || env.getBoolean('USE_GENERIC_UNIX_KEYCHAIN');
-        if (os.platform() === 'darwin' && !useGenericUnixKeychain) {
-          error.actions = [messages.getMessage('macKeychainOutOfSync')];
+      } catch (_err: unknown) {
+        const err = (isString(_err) ? SfError.wrap(_err) : _err) as Error;
+        const handleDecryptError = (decryptErr: Error) => {
+          const error = messages.createError('authDecryptError', [decryptErr.message], [], decryptErr);
+          const useGenericUnixKeychain =
+            env.getBoolean('SFDX_USE_GENERIC_UNIX_KEYCHAIN') || env.getBoolean('USE_GENERIC_UNIX_KEYCHAIN');
+          if (os.platform() === 'darwin' && !useGenericUnixKeychain) {
+            error.actions = [messages.getMessage('macKeychainOutOfSync')];
+          }
+          throw error;
+        };
+
+        if (this.legacy_key_mode && err?.message === 'Unsupported state or unable to authenticate data') {
+          try {
+            const iv_legacy = tokens[0].substring(0, BYTE_COUNT_FOR_IV);
+            const secret_legacy = tokens[0].substring(BYTE_COUNT_FOR_IV, tokens[0].length);
+            // legacy encryption used a utf8 encoded string from the buffer
+            decipher = crypto.createDecipheriv(ALGO, buffer.toString('utf8'), iv_legacy);
+            decipher.setAuthTag(Buffer.from(tag, 'hex'));
+            dec = decipher.update(secret_legacy, 'hex', 'utf8');
+            dec += decipher.final('utf8');
+          } catch (_err2: unknown) {
+            const err2 = (isString(_err2) ? SfError.wrap(_err2) : _err2) as Error;
+            handleDecryptError(err2);
+          }
+        } else {
+          handleDecryptError(err);
         }
-        throw error;
       }
       return dec;
     });
@@ -242,13 +267,19 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     this.noResetOnClose = !!this.options.noResetOnClose;
 
     try {
-      this.key.consume(
-        Buffer.from(
-          (await keychainPromises.getPassword(await this.getKeyChain(this.options.platform), KEY_NAME, ACCOUNT))
-            .password,
-          'utf8'
-        )
-      );
+      const keyChain = await this.getKeyChain(this.options.platform);
+      const pwdHex = (await keychainPromises.getPassword(keyChain, KEY_NAME, ACCOUNT)).password;
+      // This supports the legacy key size (32 hex chars) and the new key size (64 hex chars).
+      let encoding: 'hex' | 'utf8';
+      if (pwdHex.length === 64) {
+        encoding = 'hex';
+        logger.debug('Detected new key size');
+      } else {
+        encoding = 'utf8';
+        logger.debug('Detected legacy key size');
+        this.legacy_key_mode = true;
+      }
+      this.key.consume(Buffer.from(pwdHex, encoding));
     } catch (err) {
       // No password found
       if ((err as Error).name === 'PasswordNotFoundError') {
@@ -260,7 +291,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
           logger.debug('password not found in keychain attempting to created one and re-init.');
         }
 
-        const key = crypto.randomBytes(Math.ceil(16)).toString('hex');
+        const key = crypto.randomBytes(32).toString('hex');
         // Create a new password in the KeyChain.
         await keychainPromises.setPassword(ensure(this.options.keychain), KEY_NAME, ACCOUNT, key);
 
