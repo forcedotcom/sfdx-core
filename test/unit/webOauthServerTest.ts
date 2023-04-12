@@ -43,7 +43,7 @@ describe('WebOauthServer', () => {
 
   describe('authorizeAndSave', () => {
     const testData = new MockTestOrgData();
-    const frontDoorUrl = 'https://www.frontdoor.com';
+    const oauthSuccessUrl = 'https://login.salesforce.com/services/oauth2/success';
     let authFields: AuthFields;
     let authInfoStub: StubbedType<AuthInfo>;
     let serverResponseStub: StubbedType<http.ServerResponse>;
@@ -54,7 +54,6 @@ describe('WebOauthServer', () => {
       authFields = await testData.getConfig();
       authInfoStub = stubInterface<AuthInfo>($$.SANDBOX, {
         getFields: () => authFields,
-        getOrgFrontDoorUrl: () => frontDoorUrl,
       });
       serverResponseStub = stubInterface<http.ServerResponse>($$.SANDBOX, {});
 
@@ -71,12 +70,12 @@ describe('WebOauthServer', () => {
       expect(authInfo.getFields()).to.deep.equal(authFields);
     });
 
-    it('should redirect to front door url', async () => {
+    it('should redirect to oauth success url', async () => {
       const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
       await oauthServer.start();
       await oauthServer.authorizeAndSave();
       expect(redirectStub.callCount).to.equal(1);
-      expect(redirectStub.args).to.deep.equal([[303, frontDoorUrl, serverResponseStub]]);
+      expect(redirectStub.args).to.deep.equal([[303, oauthSuccessUrl, serverResponseStub]]);
     });
 
     it('should report error', async () => {

@@ -94,7 +94,9 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
                 oauth2: this.oauth2,
               });
               await authInfo.save();
-              this.webServer.doRedirect(303, authInfo.getOrgFrontDoorUrl(), response);
+              const loginUrl = this.oauth2.loginUrl.replace(/\/+$/, '');
+              const oauthSuccessUrl = `${loginUrl}/services/oauth2/success`;
+              this.webServer.doRedirect(303, oauthSuccessUrl, response);
               response.end();
               resolve(authInfo);
             } catch (err) {
