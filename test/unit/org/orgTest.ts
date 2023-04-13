@@ -157,6 +157,15 @@ describe('Org Tests', () => {
       const org = await Org.create({ aliasOrUsername: testData.username });
       expect(org.getOrgId()).to.eq(testData.orgId);
     });
+
+    it('should not create org when bad username', async () => {
+      try {
+        await shouldThrow(Org.create({ aliasOrUsername: 'bad@nope.fail' }));
+      } catch (err) {
+        assert(err instanceof SfError);
+        expect(err.name).to.equal('NamedOrgNotFound');
+      }
+    });
   });
 
   describe('retrieveMaxApiVersion', () => {
