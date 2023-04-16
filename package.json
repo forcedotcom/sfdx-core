@@ -64,7 +64,7 @@
     "@types/debug": "0.0.31",
     "@types/jsen": "0.0.21",
     "@types/jsonwebtoken": "9.0.1",
-    "@types/lodash": "^4.14.192",
+    "@types/lodash": "^4.14.194",
     "@types/shelljs": "0.8.11",
     "@typescript-eslint/eslint-plugin": "^5.58.0",
     "@typescript-eslint/parser": "^5.57.1",
