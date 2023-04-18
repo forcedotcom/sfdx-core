@@ -32,8 +32,8 @@ describe('keyChain', () => {
   });
 
   after(() => {
-    process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = OLD_SFDX_GENERIC_VAL || '';
-    process.env.USE_GENERIC_UNIX_KEYCHAIN = OLD_GENERIC_VAL || '';
+    process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = OLD_SFDX_GENERIC_VAL ?? '';
+    process.env.USE_GENERIC_UNIX_KEYCHAIN = OLD_GENERIC_VAL ?? '';
   });
 
   it('should return OSX keychain and lib secret', () => {
