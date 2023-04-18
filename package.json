@@ -19,7 +19,6 @@
     "prepack": "sf-prepack",
     "prepare": "sf-install",
     "test": "wireit",
-    "test:compile": "wireit",
     "test:only": "wireit"
   },
   "keywords": [
@@ -56,7 +55,7 @@
   },
   "devDependencies": {
     "@salesforce/dev-config": "^3.0.1",
-    "@salesforce/dev-scripts": "^4.0.0-beta.7",
+    "@salesforce/dev-scripts": "^4.3.0",
     "@salesforce/prettier-config": "^0.0.2",
     "@salesforce/ts-sinon": "^1.4.6",
     "@types/archiver": "^5.3.2",
@@ -121,15 +120,24 @@
       "clean": "if-file-deleted"
     },
     "format": {
-      "command": "prettier --write \"+(src|test|schemas)/**/*.+(ts|js|json)|command-snapshot.json\""
-    },
-    "lint": {
-      "command": "eslint --color --cache --cache-location .eslintcache",
+      "command": "prettier --write \"+(src|test|schemas)/**/*.+(ts|js|json)|command-snapshot.json\"",
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        ".eslintignore",
-        ".eslintrc.js"
+        "schemas/**/*.json",
+        "command-snapshot.json",
+        ".prettier*"
+      ],
+      "output": []
+    },
+    "lint": {
+      "command": "eslint src test --color --cache --cache-location .eslintcache",
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "messages/**",
+        "**/.eslint*",
+        "**/tsconfig.json"
       ],
       "output": []
     },
@@ -137,18 +145,22 @@
       "command": "tsc -p \"./test\" --pretty",
       "files": [
         "test/**/*.ts",
-        "tsconfig.json",
-        "test/tsconfig.json"
+        "**/tsconfig.json"
       ],
       "output": []
     },
     "test:only": {
       "command": "nyc mocha \"test/**/*Test.ts\"",
+      "env": {
+        "FORCE_COLOR": "2"
+      },
       "files": [
         "test/**/*.ts",
         "src/**/*.ts",
-        "tsconfig.json",
-        "test/tsconfig.json"
+        "**/tsconfig.json",
+        ".mocha*",
+        "!*.nut.ts",
+        ".nycrc"
       ],
       "output": []
     },
