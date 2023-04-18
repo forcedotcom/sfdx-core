@@ -10,7 +10,7 @@ import { AnyJson, Dictionary, isArray, isJsonMap, JsonMap, Optional } from '@sal
 import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
 import { EnvVars } from './envVars';
-import { Config, ConfigPropertyMeta, SfdxPropertyKeys, SFDX_ALLOWED_PROPERTIES } from './config';
+import { Config, ConfigPropertyMeta } from './config';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
@@ -447,56 +447,4 @@ export namespace ConfigAggregator {
  *
  * @deprecated
  */
-export class SfdxConfigAggregator extends ConfigAggregator {
-  protected static instance: AsyncOptionalCreatable;
-  protected static encrypted = true;
-
-  public static async create<P, T extends AsyncOptionalCreatable<P>>(
-    this: new (options?: ConfigAggregator.Options) => T,
-    options: ConfigAggregator.Options = {}
-  ): Promise<T> {
-    const customConfigMeta = options.customConfigMeta ?? [];
-    // org-metadata-rest-deploy has been moved to plugin-deploy-retrieve but we need to have a placeholder
-    // for it here since sfdx needs to know how to set the deprecated restDeploy config var.
-    const restDeploy = SFDX_ALLOWED_PROPERTIES.find((p) => p.key === SfdxPropertyKeys.REST_DEPLOY);
-    const orgRestDeploy = Object.assign({}, restDeploy, { key: 'org-metadata-rest-deploy', deprecated: false });
-    options.customConfigMeta = [...customConfigMeta, orgRestDeploy];
-
-    let config = SfdxConfigAggregator.instance as SfdxConfigAggregator;
-    if (!config) {
-      config = SfdxConfigAggregator.instance = new this(options) as unknown as SfdxConfigAggregator;
-      await config.init();
-    }
-    if (SfdxConfigAggregator.encrypted) {
-      await config.loadProperties();
-    }
-
-    if (options?.customConfigMeta) {
-      Config.addAllowedProperties(options.customConfigMeta);
-    }
-    return SfdxConfigAggregator.instance as T;
-  }
-
-  public getLocation(key: string): Optional<ConfigAggregator.Location> {
-    return super.getLocation(this.translate(key));
-  }
-
-  public getPath(key: string): Optional<string> {
-    return super.getPath(this.translate(key));
-  }
-
-  public getConfigInfo(): ConfigInfo[] {
-    return super.getConfigInfo().map((c) => {
-      c.key = this.translate(c.key, 'toOld');
-      return c;
-    });
-  }
-
-  private translate(key: string, direction: 'toNew' | 'toOld' = 'toNew'): string {
-    const propConfig =
-      direction === 'toNew'
-        ? this.getPropertyMeta(key)
-        : Config.getAllowedProperties().find((c) => c.newKey === key) ?? ({} as ConfigPropertyMeta);
-    return propConfig.key || key;
-  }
-}
+export class SfdxConfigAggregator extends ConfigAggregator {}
