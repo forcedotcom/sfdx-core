@@ -39,6 +39,7 @@ jobs:
       command: 'yarn test:nuts'
       os: ${{ matrix.os }}
       useCache: false
+      preSwapCommands: 'yarn upgrade jsforce@beta; npx yarn-deduplicate; yarn install'
       postBuildCommands: 'shx rm -rf node_modules/jsforce/typings'
       preExternalBuildCommands: 'shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core'
     secrets: inherit
@@ -59,6 +60,7 @@ jobs:
   #   with:
   #     packageName: '@salesforce/core'
   #     externalProjectGitUrl: 'https://github.com/salesforcecli/plugin-deploy-retrieve'
+  # preSwapCommands: 'yarn upgrade jsforce@beta; npx yarn-deduplicate; yarn install'
   #     command: ${{ matrix.command }}
   #     os: ${{ matrix.os }}
   #   secrets: inherit
