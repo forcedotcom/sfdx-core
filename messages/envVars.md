@@ -301,3 +301,13 @@ Boolean indicating that the installer is running
 # sfEnv
 
 Describes if sf is in "demo" mode
+
+# deprecatedEnv
+
+Deprecated environment variable: %s. Please use %s instead.
+
+# deprecatedEnvDisagreement
+
+Deprecated environment variable: %s. Please use %s instead.
+
+Your environment has both variables populated, and with different values. The value from %s will be used.

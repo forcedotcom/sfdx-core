@@ -8,6 +8,7 @@
 import { AsyncOptionalCreatable, merge, sortBy } from '@salesforce/kit';
 import { AnyJson, Dictionary, isArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { Messages } from '../messages';
+import { Lifecycle } from '../lifecycleEvents';
 import { EnvVars } from './envVars';
 import { Config, ConfigPropertyMeta, SfdxPropertyKeys, SFDX_ALLOWED_PROPERTIES } from './config';
 
@@ -137,7 +138,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    *
    * @param key The config key.
    */
-  public static getValue(key: string): ConfigInfo {
+  public static getValue(key: string): ConfigInfo | undefined {
     return this.getInstance().getInfo(key);
   }
 
@@ -165,13 +166,22 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
 
   /**
    * Get a resolved config property.
+   * If you use a deprecated property, a warning will be emitted and it will attempt to resolve the new property's value
    *
    * **Throws** *{@link SfError}{ name: 'UnknownConfigKeyError' }* An attempt to get a property that's not supported.
    *
    * @param key The key of the property.
    */
   public getPropertyValue<T extends AnyJson>(key: string): Optional<T> {
-    if (this.getAllowedProperties().some((element) => key === element.key)) {
+    const match = this.getAllowedProperties().find((element) => key === element.key);
+    if (match?.deprecated && match.newKey) {
+      void Lifecycle.getInstance().emitWarning(messages.getMessage('deprecatedConfigKey', [key, match.newKey]));
+      const newKeyMatch = this.getAllowedProperties().find((element) => match.newKey === element.key);
+      if (newKeyMatch) {
+        return (this.getConfig()[newKeyMatch.key] as T) ?? (this.getConfig()[match.key] as T);
+      }
+    }
+    if (this.getAllowedProperties().some((element) => key === element.key || key === element.newKey)) {
       return this.getConfig()[key] as T;
     } else {
       throw messages.createError('unknownConfigKey', [key]);
@@ -180,6 +190,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
 
   /**
    * Get a resolved config property meta.
+   * If the property is deprecated, it will return the new key's meta, if it exists, with a deprecation warning
    *
    * **Throws** *{@link SfError}{ name: 'UnknownConfigKeyError' }* An attempt to get a property that's not supported.
    *
@@ -188,6 +199,13 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
   public getPropertyMeta(key: string): ConfigPropertyMeta {
     const match = this.getAllowedProperties().find((element) => key === element.key);
     if (match) {
+      if (match.deprecated && match.newKey) {
+        void Lifecycle.getInstance().emitWarning(messages.getMessage('deprecatedConfigKey', [key, match.newKey]));
+        const newKeyMatch = this.getAllowedProperties().find((element) => key === element.newKey);
+        if (newKeyMatch) {
+          return newKeyMatch ?? match;
+        }
+      }
       return match;
     } else {
       throw messages.createError('unknownConfigKey', [key]);
@@ -196,6 +214,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
 
   /**
    * Get a resolved config property.
+   * If a property is deprecated, it will try to use the the new key, if there is a config there.
    *
    * @param key The key of the property.
    * @param throwOnDeprecation True, if you want an error throw when reading a deprecated config
@@ -203,15 +222,19 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
   public getInfo(key: string, throwOnDeprecation = false): ConfigInfo {
     const meta = this.getPropertyMeta(key);
 
-    if (throwOnDeprecation && meta.deprecated && meta.newKey) {
-      throw messages.createError('deprecatedConfigKey', [key, meta.newKey]);
+    if (meta.deprecated && meta.newKey) {
+      if (throwOnDeprecation) {
+        throw messages.createError('deprecatedConfigKey', [key, meta.newKey]);
+      } else {
+        void Lifecycle.getInstance().emitWarning(messages.getMessage('deprecatedConfigKey', [key, meta.newKey]));
+      }
     }
-    const location = this.getLocation(key);
+    const location = meta.newKey ? this.getLocation(meta.newKey) : this.getLocation(key);
     return {
-      key,
+      key: meta.newKey ?? key,
       location,
-      value: this.getPropertyValue(key),
-      path: this.getPath(key),
+      value: this.getPropertyValue(meta.newKey ?? key),
+      path: this.getPath(meta.newKey ?? key),
       isLocal: () => location === ConfigAggregator.Location.LOCAL,
       isGlobal: () => location === ConfigAggregator.Location.GLOBAL,
       isEnvVar: () => location === ConfigAggregator.Location.ENVIRONMENT,
@@ -230,6 +253,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    * @param key The key of the property.
    */
   public getLocation(key: string): Optional<ConfigAggregator.Location> {
+    // envs populate old and new automatically
     if (this.envVars[key] != null) {
       return ConfigAggregator.Location.ENVIRONMENT;
     }
@@ -256,6 +280,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    * @param key The key of the property.
    */
   public getPath(key: string): Optional<string> {
+    // TODO: make EnvVars always prefer the "new" regardless of CLI
     if (this.envVars[key] != null) {
       return `$${EnvVars.propertyToEnvName(key)}`;
     }
@@ -450,27 +475,6 @@ export class SfdxConfigAggregator extends ConfigAggregator {
       Config.addAllowedProperties(options.customConfigMeta);
     }
     return SfdxConfigAggregator.instance as T;
-  }
-
-  public getPropertyMeta(key: string): ConfigPropertyMeta {
-    const match = this.getAllowedProperties().find((element) => key === element.key);
-    if (match?.deprecated && match?.newKey) {
-      return this.getPropertyMeta(match.newKey);
-    } else if (match) {
-      return match;
-    } else {
-      throw messages.createError('unknownConfigKey', [key]);
-    }
-  }
-
-  public getPropertyValue<T extends AnyJson>(key: string): Optional<T> {
-    return super.getPropertyValue(this.translate(key));
-  }
-
-  public getInfo(key: string): ConfigInfo {
-    const info = super.getInfo(this.translate(key));
-    info.key = this.translate(info.key, 'toOld');
-    return info;
   }
 
   public getLocation(key: string): Optional<ConfigAggregator.Location> {
