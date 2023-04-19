@@ -23,7 +23,7 @@ export const retrieveKeychain = async (platform: string): Promise<KeyChain> => {
   const logger: Logger = await Logger.child('keyChain');
   logger.debug(`platform: ${platform}`);
 
-  const useGenericUnixKeychainVar = env.getBoolean('SFDX_USE_GENERIC_UNIX_KEYCHAIN');
+  const useGenericUnixKeychainVar = env.getBoolean('SF_USE_GENERIC_UNIX_KEYCHAIN');
   const shouldUseGenericUnixKeychain = useGenericUnixKeychainVar && useGenericUnixKeychainVar;
 
   if (platform.startsWith('win')) {

@@ -179,7 +179,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
       } catch (err) {
         const error = messages.createError('authDecryptError', [(err as Error).message], [], err as Error);
         const useGenericUnixKeychain =
-          env.getBoolean('SFDX_USE_GENERIC_UNIX_KEYCHAIN') || env.getBoolean('USE_GENERIC_UNIX_KEYCHAIN');
+          env.getBoolean('SF_USE_GENERIC_UNIX_KEYCHAIN') || env.getBoolean('USE_GENERIC_UNIX_KEYCHAIN');
         if (os.platform() === 'darwin' && !useGenericUnixKeychain) {
           error.actions = [messages.getMessage('macKeychainOutOfSync')];
         }

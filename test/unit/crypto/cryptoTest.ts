@@ -171,7 +171,7 @@ describe('CryptoTest', function () {
     });
 
     it('Decrypt should fail but not add extra message with env var', async () => {
-      process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = 'false';
+      process.env.SF_USE_GENERIC_UNIX_KEYCHAIN = 'false';
       const message: string = Messages.load('@salesforce/core', 'encryption', ['authDecryptError']).getMessage(
         'authDecryptError'
       );
@@ -189,7 +189,7 @@ describe('CryptoTest', function () {
       await crypto.init();
       // @ts-expect-error: secret is not a string
       expect(() => crypto.decrypt(secret)).to.not.throw(message);
-      delete process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN;
+      delete process.env.SF_USE_GENERIC_UNIX_KEYCHAIN;
     });
   }
 });

@@ -20,19 +20,19 @@ import { TestContext } from '../../../src/testSetup';
 
 describe('keyChain', () => {
   const $$ = new TestContext();
-  const OLD_SFDX_GENERIC_VAL = process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN;
+  const OLD_SFDX_GENERIC_VAL = process.env.SF_USE_GENERIC_UNIX_KEYCHAIN;
   const OLD_GENERIC_VAL = process.env.USE_GENERIC_UNIX_KEYCHAIN;
 
   beforeEach(() => {
     // Testing crypto functionality, so restore global stubs.
     $$.SANDBOXES.CRYPTO.restore();
 
-    process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = 'false';
+    process.env.SF_USE_GENERIC_UNIX_KEYCHAIN = 'false';
     process.env.USE_GENERIC_UNIX_KEYCHAIN = 'false';
   });
 
   after(() => {
-    process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = OLD_SFDX_GENERIC_VAL ?? '';
+    process.env.SF_USE_GENERIC_UNIX_KEYCHAIN = OLD_SFDX_GENERIC_VAL ?? '';
     process.env.USE_GENERIC_UNIX_KEYCHAIN = OLD_GENERIC_VAL ?? '';
   });
 
@@ -62,7 +62,7 @@ describe('keyChain', () => {
   });
 
   it('should return generic unix for OSX and Linux', async () => {
-    process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = 'true';
+    process.env.SF_USE_GENERIC_UNIX_KEYCHAIN = 'true';
     const darwinKeychain = await retrieveKeychain('darwin');
     const linuxKeychain = await retrieveKeychain('linux');
 
