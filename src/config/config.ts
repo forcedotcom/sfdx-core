@@ -15,6 +15,7 @@ import { Messages } from '../messages';
 import { validateApiVersion } from '../util/sfdc';
 import { SfdcUrl } from '../util/sfdcUrl';
 import { ORG_CONFIG_ALLOWED_PROPERTIES, OrgConfigProperties } from '../org/orgConfigProperties';
+import { Lifecycle } from '../lifecycleEvents';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue } from './configStore';
 
@@ -490,7 +491,9 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
       throw messages.createError('unknownConfigKey', [key]);
     }
     if (property.deprecated && property.newKey) {
-      throw messages.createError('deprecatedConfigKey', [key, property.newKey]);
+      // you're trying to set a deprecated key, but we'll set the new key instead
+      void Lifecycle.getInstance().emitWarning(messages.getMessage('deprecatedConfigKey', [key, property.newKey]));
+      return this.set(property.newKey, value);
     }
 
     if (property.input) {
@@ -526,7 +529,10 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     }
 
     if (property.deprecated && property.newKey) {
-      throw messages.createError('deprecatedConfigKey', [key, property.newKey]);
+      // you're trying to set a deprecated key, so we'll ALSO unset the new key
+      void Lifecycle.getInstance().emitWarning(messages.getMessage('deprecatedConfigKey', [key, property.newKey]));
+      super.unset(property.key);
+      return this.unset(property.newKey);
     }
 
     return super.unset(property.key);
@@ -544,6 +550,10 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     const prop = Config.propertyConfigMap()[propertyName];
 
     if (!prop) {
+      const newEquivalent = Config.allowedProperties.find((p) => p.newKey);
+      if (newEquivalent) {
+        return this.getPropertyConfig(newEquivalent.key);
+      }
       throw messages.createError('unknownConfigKey', [propertyName]);
     }
     return prop;
