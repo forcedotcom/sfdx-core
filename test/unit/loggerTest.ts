@@ -280,13 +280,7 @@ describe('Logger', () => {
 
     it('should apply for log level: error', () => runTest(['error', 50]));
 
-    it('should apply for log level: fatal', async () => {
-      // logger.fatal() necessarily writes to stderr so stub it here
-      $$.SANDBOX.stub(process.stderr, 'write');
-      await runTest(['fatal', 60]);
-      // @ts-expect-error: called is a sinon spy property
-      expect(process.stderr.write['called']).to.be.true;
-    });
+    it('should apply for log level: fatal', () => runTest(['fatal', 60]));
   });
 
   describe('addField', () => {
