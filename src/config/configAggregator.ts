@@ -225,9 +225,8 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
     if (meta.deprecated && meta.newKey) {
       if (throwOnDeprecation) {
         throw messages.createError('deprecatedConfigKey', [key, meta.newKey]);
-      } else {
-        void Lifecycle.getInstance().emitWarning(messages.getMessage('deprecatedConfigKey', [key, meta.newKey]));
       }
+      // we don't need to emit a deprecatedConfigKey warning here because getPropertyMeta does that
     }
     const location = meta.newKey ? this.getLocation(meta.newKey) : this.getLocation(key);
     return {
