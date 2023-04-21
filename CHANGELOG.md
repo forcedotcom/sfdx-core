@@ -1,3 +1,12 @@
+## [3.34.8](https://github.com/forcedotcom/sfdx-core/compare/3.34.7...3.34.8) (2023-04-21)
+
+
+### Bug Fixes
+
+* prevent logging loop ([55bcbc3](https://github.com/forcedotcom/sfdx-core/commit/55bcbc357e9ac04b6d064e3d42a07e2975213d96))
+
+
+
 ## [3.34.7](https://github.com/forcedotcom/sfdx-core/compare/3.34.6...3.34.7) (2023-04-16)
 
 
