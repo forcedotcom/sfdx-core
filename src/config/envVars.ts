@@ -10,7 +10,6 @@ import { camelCase, snakeCase } from 'change-case';
 import { Env } from '@salesforce/kit';
 import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
-// import { Global } from '../global';
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
 const messages = Messages.loadMessages('@salesforce/core', 'envVars');
