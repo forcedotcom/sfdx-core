@@ -20,7 +20,7 @@ The scratch org is not ready yet (Status = %s).
 
 # action.StillInProgress
 
-Wait for a few minutes, and then try the <%= config.bin %> <%= command.id %> command again
+Wait for a few minutes, and then try the command again
 
 # NoScratchOrgInfoError
 
