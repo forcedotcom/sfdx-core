@@ -109,8 +109,8 @@ describe('WebOauthServer', () => {
         expect(status).to.equal(303);
         expect(url).to.equal('/OauthSuccess');
         expect(response).to.be.ok;
-        // @ts-expect-error
         await requestListener(
+          // @ts-expect-error
           { method: 'GET', url: `http://localhost:1717${url}` },
           {
             setHeader: () => {},
@@ -165,8 +165,8 @@ describe('WebOauthServer', () => {
         expect(status).to.equal(303);
         expect(url).to.equal('/OauthError');
         expect(response).to.be.ok;
-        // @ts-expect-error
         await requestListener(
+          // @ts-expect-error
           { method: 'GET', url: `http://localhost:1717${url}` },
           {
             setHeader: () => {},
@@ -223,8 +223,8 @@ describe('WebOauthServer', () => {
       expect(status).to.equal(303);
       expect(url).to.equal('/OauthError');
       expect(response).to.be.ok;
-      // @ts-expect-error
       await requestListener(
+        // @ts-expect-error
         { method: 'GET', url: `http://localhost:1717${url}` },
         {
           setHeader: () => {},
