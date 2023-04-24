@@ -138,7 +138,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    *
    * @param key The config key.
    */
-  public static getValue(key: string): ConfigInfo | undefined {
+  public static getValue(key: string): ConfigInfo {
     return this.getInstance().getInfo(key);
   }
 
