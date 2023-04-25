@@ -1383,10 +1383,17 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * @private
    */
   private async querySandboxProcess(where: string): Promise<SandboxProcessObject> {
-    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE ${where} AND Status != 'D'`;
-    return this.connection.singleRecordQuery(queryStr, {
-      tooling: true,
-    });
+    const soql = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE ${where}`;
+    const result = (await this.connection.tooling.query<SandboxProcessObject>(soql)).records.filter(
+      (item) => !item.Status.startsWith('Del')
+    );
+    if (result.length === 0) {
+      throw new SfError(`No record found for ${soql}`, SingleRecordQueryErrors.NoRecords);
+    }
+    if (result.length > 1) {
+      throw new SfError('The query returned more than 1 record', SingleRecordQueryErrors.MultipleRecords);
+    }
+    return result[0];
   }
   /**
    * determines if the sandbox has successfully been created
