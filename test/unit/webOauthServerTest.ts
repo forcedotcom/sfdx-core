@@ -88,6 +88,7 @@ describe('WebOauthServer', () => {
       stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-argument
         if (event !== 'request') return origOn.call(webServer.server, event, callback);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         requestListener = callback;
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         callback(
@@ -109,6 +110,7 @@ describe('WebOauthServer', () => {
         expect(status).to.equal(303);
         expect(url).to.equal('/OauthSuccess');
         expect(response).to.be.ok;
+        // eslint-disable-next-line @typescript-eslint/await-thenable
         await requestListener(
           // @ts-expect-error
           { method: 'GET', url: `http://localhost:1717${url}` },
@@ -144,6 +146,7 @@ describe('WebOauthServer', () => {
       stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-argument
         if (event !== 'request') return origOn.call(webServer.server, event, callback);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         requestListener = callback;
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         callback(
@@ -165,6 +168,7 @@ describe('WebOauthServer', () => {
         expect(status).to.equal(303);
         expect(url).to.equal('/OauthError');
         expect(response).to.be.ok;
+        // eslint-disable-next-line @typescript-eslint/await-thenable
         await requestListener(
           // @ts-expect-error
           { method: 'GET', url: `http://localhost:1717${url}` },
@@ -203,6 +207,7 @@ describe('WebOauthServer', () => {
     stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-argument
       if (event !== 'request') return origOn.call(webServer.server, event, callback);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       requestListener = callback;
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       callback(
@@ -223,6 +228,7 @@ describe('WebOauthServer', () => {
       expect(status).to.equal(303);
       expect(url).to.equal('/OauthError');
       expect(response).to.be.ok;
+      // eslint-disable-next-line @typescript-eslint/await-thenable
       await requestListener(
         // @ts-expect-error
         { method: 'GET', url: `http://localhost:1717${url}` },

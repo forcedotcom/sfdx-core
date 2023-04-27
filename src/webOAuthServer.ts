@@ -11,6 +11,7 @@ import * as http from 'http';
 import { parse as parseQueryString } from 'querystring';
 import { parse as parseUrl } from 'url';
 import { Socket } from 'net';
+import { EventEmitter } from 'events';
 import { JwtOAuth2Config, OAuth2 } from 'jsforce';
 import { AsyncCreatable, Env, set, toNumber } from '@salesforce/kit';
 import { asString, get, Nullable } from '@salesforce/ts-types';
@@ -19,7 +20,6 @@ import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org';
 import { SfError } from './sfError';
 import { Messages } from './messages';
 import { SfProjectJson } from './sfProject';
-import { EventEmitter } from 'events';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'auth');
@@ -151,26 +151,30 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   private async executeOauthRequest(): Promise<http.ServerResponse> {
     return new Promise((resolve, reject) => {
       this.logger.debug('Starting web auth flow');
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/no-explicit-any, @typescript-eslint/require-await
-      this.webServer.server.on('request', async (request: any, response) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        const url = parseUrl(request.url);
-        this.logger.debug(`processing request for uri: ${url.pathname as string}`);
+      // - async method when sync expected
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      this.webServer.server.on('request', async (request: WebOAuthServer.Request, response) => {
+        const url = parseUrl(request.url as string);
+        this.logger.debug(`processing request for uri: ${url.pathname}`);
         if (request.method === 'GET') {
           if (url.pathname?.startsWith('/OauthRedirect')) {
-            request.query = parseQueryString(url.query as string);
+            request.query = parseQueryString(url.query as string) as {
+              code: string;
+              state: string;
+              error?: string | undefined;
+              error_description?: string;
+            };
             if (request.query.error) {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-              this.oauthError = new SfError(
-                request.query.error_description ?? request.query.error,
-                request.query.error
-              );
+              const errorName: string =
+                typeof request.query.error_description === 'string'
+                  ? request.query.error_description
+                  : request.query.error;
+              this.oauthError = new SfError(errorName, request.query.error);
               await this.webServer.handleError(response);
               return reject(this.oauthError);
             }
-            this.logger.debug(`request.query.state: ${request.query.state as string}`);
+            this.logger.debug(`request.query.state: ${request.query.state}`);
             try {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
               this.oauthConfig.authCode = asString(this.parseAuthCodeFromRequest(response, request));
               resolve(response);
             } catch (err) {
@@ -189,7 +193,6 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
         } else {
           this.webServer.sendError(405, 'Unsupported http methods', response);
           const errName = 'invalidRequestMethod';
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const errMessage = messages.getMessage(errName, [request.method]);
           reject(new SfError(errMessage, errName));
         }
@@ -259,7 +262,9 @@ export namespace WebOAuthServer {
     oauthConfig: JwtOAuth2Config;
   }
 
-  export type Request = http.IncomingMessage & { query: { code: string; state: string } };
+  export type Request = http.IncomingMessage & {
+    query: { code: string; state: string; error?: string; error_description?: string };
+  };
 }
 
 /**
@@ -398,7 +403,7 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
   private async handleRedirect(response: http.ServerResponse, url: '/OauthSuccess' | '/OauthError'): Promise<void> {
     return new Promise((resolve) => {
       this.redirectStatus.on('complete', () => {
-        this.logger.debug(`Redirect complete`);
+        this.logger.debug('Redirect complete');
         resolve();
       });
       this.doRedirect(303, url, response);
