@@ -154,47 +154,49 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
       // - async method when sync expected
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       this.webServer.server.on('request', async (request: WebOAuthServer.Request, response) => {
-        const url = parseUrl(request.url as string);
-        this.logger.debug(`processing request for uri: ${url.pathname}`);
-        if (request.method === 'GET') {
-          if (url.pathname?.startsWith('/OauthRedirect')) {
-            request.query = parseQueryString(url.query as string) as {
-              code: string;
-              state: string;
-              error?: string | undefined;
-              error_description?: string;
-            };
-            if (request.query.error) {
-              const errorName: string =
-                typeof request.query.error_description === 'string'
-                  ? request.query.error_description
-                  : request.query.error;
-              this.oauthError = new SfError(errorName, request.query.error);
-              await this.webServer.handleError(response);
-              return reject(this.oauthError);
+        if (request.url) {
+          const url = parseUrl(request.url);
+          this.logger.debug(`processing request for uri: ${url.pathname}`);
+          if (request.method === 'GET') {
+            if (url.pathname?.startsWith('/OauthRedirect') && url.query) {
+              request.query = parseQueryString(url.query) as {
+                code: string;
+                state: string;
+                error?: string | undefined;
+                error_description?: string;
+              };
+              if (request.query.error) {
+                const errorName: string =
+                  typeof request.query.error_description === 'string'
+                    ? request.query.error_description
+                    : request.query.error;
+                this.oauthError = new SfError(errorName, request.query.error);
+                await this.webServer.handleError(response);
+                return reject(this.oauthError);
+              }
+              this.logger.debug(`request.query.state: ${request.query.state}`);
+              try {
+                this.oauthConfig.authCode = asString(this.parseAuthCodeFromRequest(response, request));
+                resolve(response);
+              } catch (err) {
+                reject(err);
+              }
+            } else if (url.pathname === '/OauthSuccess') {
+              this.webServer.reportSuccess(response);
+            } else if (url.pathname === '/OauthError') {
+              this.webServer.reportError(this.oauthError, response);
+            } else {
+              this.webServer.sendError(404, 'Resource not found', response);
+              const errName = 'invalidRequestUri';
+              const errMessage = messages.getMessage(errName, [url.pathname]);
+              reject(new SfError(errMessage, errName));
             }
-            this.logger.debug(`request.query.state: ${request.query.state}`);
-            try {
-              this.oauthConfig.authCode = asString(this.parseAuthCodeFromRequest(response, request));
-              resolve(response);
-            } catch (err) {
-              reject(err);
-            }
-          } else if (url.pathname === '/OauthSuccess') {
-            this.webServer.reportSuccess(response);
-          } else if (url.pathname === '/OauthError') {
-            this.webServer.reportError(this.oauthError, response);
           } else {
-            this.webServer.sendError(404, 'Resource not found', response);
-            const errName = 'invalidRequestUri';
-            const errMessage = messages.getMessage(errName, [url.pathname]);
+            this.webServer.sendError(405, 'Unsupported http methods', response);
+            const errName = 'invalidRequestMethod';
+            const errMessage = messages.getMessage(errName, [request.method]);
             reject(new SfError(errMessage, errName));
           }
-        } else {
-          this.webServer.sendError(405, 'Unsupported http methods', response);
-          const errName = 'invalidRequestMethod';
-          const errMessage = messages.getMessage(errName, [request.method]);
-          reject(new SfError(errMessage, errName));
         }
       });
     });
