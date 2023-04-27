@@ -762,8 +762,10 @@ export class Logger {
    */
   public fatal(...args: unknown[]): Logger {
     // always show fatal to stderr
-    // eslint-disable-next-line no-console
-    console.error(...args);
+    // IMPORTANT:
+    // Do not use console.error() here, if fatal() is called from the uncaughtException handler, it
+    // will be re-thrown and caught again by the uncaughtException handler, causing an infinite loop.
+    console.log(...args); // eslint-disable-line no-console
     this.bunyan.fatal(this.applyFilters(LoggerLevel.FATAL, ...args));
     return this;
   }

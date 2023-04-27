@@ -1,3 +1,21 @@
+## [3.34.9](https://github.com/forcedotcom/sfdx-core/compare/3.34.8...3.34.9) (2023-04-27)
+
+
+### Bug Fixes
+
+* redirect to oauth success url ([#811](https://github.com/forcedotcom/sfdx-core/issues/811)) ([e505351](https://github.com/forcedotcom/sfdx-core/commit/e505351e2d91cc8481b2e3908914d2406ea5a217))
+
+
+
+## [3.34.8](https://github.com/forcedotcom/sfdx-core/compare/3.34.7...3.34.8) (2023-04-21)
+
+
+### Bug Fixes
+
+* prevent logging loop ([55bcbc3](https://github.com/forcedotcom/sfdx-core/commit/55bcbc357e9ac04b6d064e3d42a07e2975213d96))
+
+
+
 ## [3.34.7](https://github.com/forcedotcom/sfdx-core/compare/3.34.6...3.34.7) (2023-04-16)
 
 
