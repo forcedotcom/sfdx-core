@@ -10,7 +10,7 @@ import * as http from 'http';
 import { expect } from 'chai';
 
 import { assert } from '@salesforce/ts-types';
-import { StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';
+import { StubbedType, spyMethod, stubInterface, stubMethod } from '@salesforce/ts-sinon';
 import { Env } from '@salesforce/kit';
 import { MockTestOrgData, TestContext } from '../../src/testSetup';
 import { SfProjectJson } from '../../src/sfProject';
@@ -19,6 +19,8 @@ import { AuthFields, AuthInfo } from '../../src/org/authInfo';
 
 describe('WebOauthServer', () => {
   const $$ = new TestContext();
+  const authCode = 'abc123456';
+
   describe('determineOauthPort', () => {
     it('should return configured oauth port if it exists', async () => {
       $$.SANDBOX.stub(SfProjectJson.prototype, 'get').withArgs('oauthLocalPort').returns(8080);
@@ -43,7 +45,6 @@ describe('WebOauthServer', () => {
 
   describe('authorizeAndSave', () => {
     const testData = new MockTestOrgData();
-    const frontDoorUrl = 'https://www.frontdoor.com';
     let authFields: AuthFields;
     let authInfoStub: StubbedType<AuthInfo>;
     let serverResponseStub: StubbedType<http.ServerResponse>;
@@ -54,36 +55,127 @@ describe('WebOauthServer', () => {
       authFields = await testData.getConfig();
       authInfoStub = stubInterface<AuthInfo>($$.SANDBOX, {
         getFields: () => authFields,
-        getOrgFrontDoorUrl: () => frontDoorUrl,
       });
       serverResponseStub = stubInterface<http.ServerResponse>($$.SANDBOX, {});
 
-      stubMethod($$.SANDBOX, WebOAuthServer.prototype, 'executeOauthRequest').callsFake(async () => serverResponseStub);
       authStub = stubMethod($$.SANDBOX, AuthInfo, 'create').callsFake(async () => authInfoStub);
-      redirectStub = stubMethod($$.SANDBOX, WebServer.prototype, 'doRedirect').callsFake(async () => {});
     });
 
     it('should save new AuthInfo', async () => {
+      redirectStub = stubMethod($$.SANDBOX, WebServer.prototype, 'doRedirect').callsFake(async () => {});
+      stubMethod($$.SANDBOX, WebOAuthServer.prototype, 'executeOauthRequest').callsFake(async () => serverResponseStub);
       const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
       await oauthServer.start();
+      // @ts-expect-error because private member
+      const handleSuccessStub = stubMethod($$.SANDBOX, oauthServer.webServer, 'handleSuccess').resolves();
       const authInfo = await oauthServer.authorizeAndSave();
       expect(authInfoStub.save.callCount).to.equal(1);
       expect(authInfo.getFields()).to.deep.equal(authFields);
+      expect(handleSuccessStub.calledOnce).to.be.true;
     });
 
-    it('should redirect to front door url', async () => {
+    it('should redirect and handle /OauthSuccess on success', async () => {
       const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
+      const validateStateStub = stubMethod($$.SANDBOX, oauthServer, 'validateState').returns(true);
       await oauthServer.start();
-      await oauthServer.authorizeAndSave();
+
+      // @ts-expect-error because private member
+      const webServer = oauthServer.webServer;
+      const reportSuccessSpy = spyMethod($$.SANDBOX, webServer, 'reportSuccess');
+
+      const origOn = webServer.server.on;
+      let requestListener: http.RequestListener;
+      stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-argument
+        if (event !== 'request') return origOn.call(webServer.server, event, callback);
+        requestListener = callback;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        callback(
+          {
+            method: 'GET',
+            url: `http://localhost:1717/OauthRedirect?code=${authCode}&state=972475373f51`,
+            query: { code: authCode },
+          },
+          {
+            setHeader: () => {},
+            writeHead: () => {},
+            end: () => {},
+          }
+        );
+      });
+
+      // stub the redirect to ensure proper redirect handling and the web server is closed.
+      redirectStub = stubMethod($$.SANDBOX, webServer, 'doRedirect').callsFake(async (status, url, response) => {
+        expect(status).to.equal(303);
+        expect(url).to.equal('/OauthSuccess');
+        expect(response).to.be.ok;
+        await requestListener(
+          // @ts-expect-error
+          { method: 'GET', url: `http://localhost:1717${url}` },
+          {
+            setHeader: () => {},
+            writeHead: () => {},
+            end: () => {},
+          }
+        );
+      });
+
+      const authInfo = await oauthServer.authorizeAndSave();
+      expect(authInfo.getFields()).to.deep.equal(authFields);
       expect(redirectStub.callCount).to.equal(1);
-      expect(redirectStub.args).to.deep.equal([[303, frontDoorUrl, serverResponseStub]]);
+      expect(validateStateStub.callCount).to.equal(1);
+      expect(reportSuccessSpy.callCount).to.equal(1);
     });
 
-    it('should report error', async () => {
-      const reportErrorStub = stubMethod($$.SANDBOX, WebServer.prototype, 'reportError').callsFake(async () => {});
-      authStub.rejects(new Error('BAD ERROR'));
+    it('should redirect and handle /OauthError on error', async () => {
       const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
+      const validateStateStub = stubMethod($$.SANDBOX, oauthServer, 'validateState').returns(true);
       await oauthServer.start();
+
+      // @ts-expect-error because private member
+      const webServer = oauthServer.webServer;
+      const reportErrorSpy = spyMethod($$.SANDBOX, webServer, 'reportError');
+
+      const authError = new Error('BAD ERROR');
+      authStub.rejects(authError);
+
+      const origOn = webServer.server.on;
+      let requestListener: http.RequestListener;
+      stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-argument
+        if (event !== 'request') return origOn.call(webServer.server, event, callback);
+        requestListener = callback;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        callback(
+          {
+            method: 'GET',
+            url: `http://localhost:1717/OauthRedirect?code=${authCode}&state=972475373f51`,
+            query: { code: authCode },
+          },
+          {
+            setHeader: () => {},
+            writeHead: () => {},
+            end: () => {},
+          }
+        );
+      });
+
+      // stub the redirect to ensure proper redirect handling and the web server is closed.
+      redirectStub = stubMethod($$.SANDBOX, webServer, 'doRedirect').callsFake(async (status, url, response) => {
+        expect(status).to.equal(303);
+        expect(url).to.equal('/OauthError');
+        expect(response).to.be.ok;
+        await requestListener(
+          // @ts-expect-error
+          { method: 'GET', url: `http://localhost:1717${url}` },
+          {
+            setHeader: () => {},
+            writeHead: () => {},
+            end: () => {},
+          }
+        );
+      });
+
       try {
         await oauthServer.authorizeAndSave();
         assert(false, 'authorizeAndSave should fail');
@@ -91,7 +183,10 @@ describe('WebOauthServer', () => {
         expect((e as Error).message, 'BAD ERROR');
       }
       expect(authStub.callCount).to.equal(1);
-      expect(reportErrorStub.args[0][0].message).to.equal('BAD ERROR');
+      expect(redirectStub.callCount).to.equal(1);
+      expect(validateStateStub.callCount).to.equal(1);
+      expect(reportErrorSpy.callCount).to.equal(1);
+      expect(reportErrorSpy.args[0][0]).to.equal(authError);
     });
   });
 
@@ -104,9 +199,11 @@ describe('WebOauthServer', () => {
     const endSpy = $$.SANDBOX.spy();
 
     const origOn = webServer.server.on;
+    let requestListener: http.RequestListener;
     stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-argument
       if (event !== 'request') return origOn.call(webServer.server, event, callback);
+      requestListener = callback;
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       callback(
         {
@@ -115,6 +212,23 @@ describe('WebOauthServer', () => {
         },
         {
           setHeader: () => {},
+          writeHead: () => {},
+          end: endSpy,
+        }
+      );
+    });
+
+    // stub the redirect to ensure proper redirect handling and the web server is closed.
+    stubMethod($$.SANDBOX, webServer, 'doRedirect').callsFake(async (status, url, response) => {
+      expect(status).to.equal(303);
+      expect(url).to.equal('/OauthError');
+      expect(response).to.be.ok;
+      await requestListener(
+        // @ts-expect-error
+        { method: 'GET', url: `http://localhost:1717${url}` },
+        {
+          setHeader: () => {},
+          writeHead: () => {},
           end: endSpy,
         }
       );
@@ -130,7 +244,6 @@ describe('WebOauthServer', () => {
   });
 
   describe('parseAuthCodeFromRequest', () => {
-    const authCode = 'abc123456';
     let serverResponseStub: StubbedType<http.ServerResponse>;
     let serverRequestStub: StubbedType<WebOAuthServer.Request>;
 
