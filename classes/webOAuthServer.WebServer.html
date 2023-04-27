@@ -24,7 +24,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">WebServer</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/28f564e4/src/webOAuthServer.ts#L258">src/webOAuthServer.ts:258</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e505351e/src/webOAuthServer.ts#L268">src/webOAuthServer.ts:268</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -45,7 +45,10 @@
 <h3 class="tsd-index-heading">Methods</h3>
 <div class="tsd-index-list"><a href="webOAuthServer.WebServer.html#close" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="#FF4DB8" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12" id="icon-2048-path"></rect><path d="M9.162 16V7.24H10.578L11.514 10.072C11.602 10.328 11.674 10.584 11.73 10.84C11.794 11.088 11.842 11.28 11.874 11.416C11.906 11.28 11.954 11.088 12.018 10.84C12.082 10.584 12.154 10.324 12.234 10.06L13.122 7.24H14.538V16H13.482V12.82C13.482 12.468 13.49 12.068 13.506 11.62C13.53 11.172 13.558 10.716 13.59 10.252C13.622 9.78 13.654 9.332 13.686 8.908C13.726 8.476 13.762 8.1 13.794 7.78L12.366 12.16H11.334L9.894 7.78C9.934 8.092 9.97 8.456 10.002 8.872C10.042 9.28 10.078 9.716 10.11 10.18C10.142 10.636 10.166 11.092 10.182 11.548C10.206 12.004 10.218 12.428 10.218 12.82V16H9.162Z" fill="var(--color-text)" id="icon-2048-text"></path></svg><span>close</span></a>
 <a href="webOAuthServer.WebServer.html#doRedirect" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>do<wbr/>Redirect</span></a>
+<a href="webOAuthServer.WebServer.html#handleError" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>handle<wbr/>Error</span></a>
+<a href="webOAuthServer.WebServer.html#handleSuccess" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>handle<wbr/>Success</span></a>
 <a href="webOAuthServer.WebServer.html#reportError" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>report<wbr/>Error</span></a>
+<a href="webOAuthServer.WebServer.html#reportSuccess" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>report<wbr/>Success</span></a>
 <a href="webOAuthServer.WebServer.html#sendError" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>send<wbr/>Error</span></a>
 <a href="webOAuthServer.WebServer.html#start" class="tsd-index-link tsd-kind-method tsd-parent-kind-class"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg><span>start</span></a>
 </div></section></div></details></section></section>
@@ -64,29 +67,29 @@
 <h4 class="tsd-returns-title">Returns <a href="webOAuthServer.WebServer.html" class="tsd-signature-type" data-tsd-kind="Class">WebServer</a></h4><aside class="tsd-sources">
 <p>Overrides AsyncCreatable&lt;WebServer.Options&gt;.constructor</p>
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/28f564e4/src/webOAuthServer.ts#L266">src/webOAuthServer.ts:266</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e505351e/src/webOAuthServer.ts#L277">src/webOAuthServer.ts:277</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="host" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>host</span><a href="#host" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">host<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = &#39;localhost&#39;</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/28f564e4/src/webOAuthServer.ts#L262">src/webOAuthServer.ts:262</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e505351e/src/webOAuthServer.ts#L272">src/webOAuthServer.ts:272</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="port" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>port</span><a href="#port" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">port<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = WebOAuthServer.DEFAULT_PORT</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/28f564e4/src/webOAuthServer.ts#L261">src/webOAuthServer.ts:261</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e505351e/src/webOAuthServer.ts#L271">src/webOAuthServer.ts:271</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="server" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>server</span><a href="#server" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">server<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Server</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/28f564e4/src/webOAuthServer.ts#L260">src/webOAuthServer.ts:260</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e505351e/src/webOAuthServer.ts#L270">src/webOAuthServer.ts:270</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class"><a id="DEFAULT_CLIENT_SOCKET_TIMEOUT" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>DEFAULT_<wbr/>CLIENT_<wbr/>SOCKET_<wbr/>TIMEOUT</span><a href="#DEFAULT_CLIENT_SOCKET_TIMEOUT" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <div class="tsd-signature">DEFAULT_<wbr/>CLIENT_<wbr/>SOCKET_<wbr/>TIMEOUT<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 20000</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/28f564e4/src/webOAuthServer.ts#L259">src/webOAuthServer.ts:259</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e505351e/src/webOAuthServer.ts#L269">src/webOAuthServer.ts:269</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="close" class="tsd-anchor"></a>
@@ -98,7 +101,7 @@
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/28f564e4/src/webOAuthServer.ts#L299">src/webOAuthServer.ts:299</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e505351e/src/webOAuthServer.ts#L310">src/webOAuthServer.ts:310</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="doRedirect" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>do<wbr/>Redirect</span><a href="#doRedirect" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -110,7 +113,9 @@
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>status: <span class="tsd-signature-type">number</span></h5></li>
+<h5>status: <span class="tsd-signature-type">number</span></h5>
+<div class="tsd-comment tsd-typography"><p>the statusCode for the response.</p>
+</div></li>
 <li>
 <h5>url: <span class="tsd-signature-type">string</span></h5>
 <div class="tsd-comment tsd-typography"><p>the url to redirect to.</p>
@@ -121,7 +126,33 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/28f564e4/src/webOAuthServer.ts#L332">src/webOAuthServer.ts:332</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e505351e/src/webOAuthServer.ts#L343">src/webOAuthServer.ts:343</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="handleError" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>handle<wbr/>Error</span><a href="#handleError" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="handleError.handleError-1">handle<wbr/>Error<span class="tsd-signature-symbol">(</span>response<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ServerResponse</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#handleError.handleError-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>response: <span class="tsd-signature-type">ServerResponse</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e505351e/src/webOAuthServer.ts#L390">src/webOAuthServer.ts:390</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="handleSuccess" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>handle<wbr/>Success</span><a href="#handleSuccess" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="handleSuccess.handleSuccess-1">handle<wbr/>Success<span class="tsd-signature-symbol">(</span>response<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ServerResponse</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#handleSuccess.handleSuccess-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>response: <span class="tsd-signature-type">ServerResponse</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e505351e/src/webOAuthServer.ts#L386">src/webOAuthServer.ts:386</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="reportError" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>report<wbr/>Error</span><a href="#reportError" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -134,15 +165,32 @@
 <ul class="tsd-parameter-list">
 <li>
 <h5>error: <span class="tsd-signature-type">Error</span></h5>
-<div class="tsd-comment tsd-typography"><p>the error</p>
+<div class="tsd-comment tsd-typography"><p>the oauth error</p>
 </div></li>
 <li>
 <h5>response: <span class="tsd-signature-type">ServerResponse</span></h5>
-<div class="tsd-comment tsd-typography"><p>the response to write the redirect to.</p>
+<div class="tsd-comment tsd-typography"><p>the HTTP response.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/28f564e4/src/webOAuthServer.ts#L346">src/webOAuthServer.ts:346</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e505351e/src/webOAuthServer.ts#L358">src/webOAuthServer.ts:358</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="reportSuccess" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>report<wbr/>Success</span><a href="#reportSuccess" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+<li class="tsd-signature tsd-anchor-link" id="reportSuccess.reportSuccess-1">report<wbr/>Success<span class="tsd-signature-symbol">(</span>response<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">ServerResponse</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#reportSuccess.reportSuccess-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>sends a response to the browser reporting the success.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5>response: <span class="tsd-signature-type">ServerResponse</span></h5>
+<div class="tsd-comment tsd-typography"><p>the HTTP response.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e505351e/src/webOAuthServer.ts#L376">src/webOAuthServer.ts:376</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="sendError" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>send<wbr/>Error</span><a href="#sendError" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -154,7 +202,9 @@
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5>status: <span class="tsd-signature-type">number</span></h5></li>
+<h5>status: <span class="tsd-signature-type">number</span></h5>
+<div class="tsd-comment tsd-typography"><p>the statusCode for the response.</p>
+</div></li>
 <li>
 <h5>message: <span class="tsd-signature-type">string</span></h5>
 <div class="tsd-comment tsd-typography"><p>the message for the http body.</p>
@@ -165,7 +215,7 @@
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/28f564e4/src/webOAuthServer.ts#L319">src/webOAuthServer.ts:319</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e505351e/src/webOAuthServer.ts#L330">src/webOAuthServer.ts:330</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class"><a id="start" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>start</span><a href="#start" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -175,7 +225,7 @@
 </div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/28f564e4/src/webOAuthServer.ts#L275">src/webOAuthServer.ts:275</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/e505351e/src/webOAuthServer.ts#L286">src/webOAuthServer.ts:286</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
@@ -318,7 +368,10 @@
 <li class="tsd-kind-property tsd-parent-kind-class"><a href="webOAuthServer.WebServer.html#DEFAULT_CLIENT_SOCKET_TIMEOUT" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-1024-path"></use><use href="#icon-1024-text"></use></svg>DEFAULT_<wbr/>CLIENT_<wbr/>SOCKET_<wbr/>TIMEOUT</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="webOAuthServer.WebServer.html#close" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>close</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="webOAuthServer.WebServer.html#doRedirect" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>do<wbr/>Redirect</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="webOAuthServer.WebServer.html#handleError" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>handle<wbr/>Error</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="webOAuthServer.WebServer.html#handleSuccess" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>handle<wbr/>Success</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="webOAuthServer.WebServer.html#reportError" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>report<wbr/>Error</a></li>
+<li class="tsd-kind-method tsd-parent-kind-class"><a href="webOAuthServer.WebServer.html#reportSuccess" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>report<wbr/>Success</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="webOAuthServer.WebServer.html#sendError" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>send<wbr/>Error</a></li>
 <li class="tsd-kind-method tsd-parent-kind-class"><a href="webOAuthServer.WebServer.html#start" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-2048-path"></use><use href="#icon-2048-text"></use></svg>start</a></li></ul></li></ul></nav></div></div>
 <div class="overlay"></div><script src="../assets/main.js"></script></body></html>
