@@ -191,7 +191,7 @@ describe('User Tests', () => {
       const user = await User.create({ org });
 
       const options: DefaultUserFields.Options = {
-        templateUser: org.getUsername() || '',
+        templateUser: org.getUsername() ?? '',
       };
       const fields = (await DefaultUserFields.create(options)).getFields();
       const info = await user.createUser(fields);

@@ -602,8 +602,8 @@ describe('Org Tests', () => {
 
     it('should remove config setting', async () => {
       stubMethod($$.SANDBOX, ConfigFile.prototype, 'exists').callsFake(async function (): Promise<boolean> {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         // @ts-expect-error this is any
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         const result: boolean = this.path?.endsWith(`${testData.orgId}.json`) as boolean;
         return result;
       });
