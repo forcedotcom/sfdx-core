@@ -1,3 +1,34 @@
+# [3.36.0](https://github.com/forcedotcom/sfdx-core/compare/3.35.0...3.36.0) (2023-04-28)
+
+
+
+# [3.35.0-qa.3](https://github.com/forcedotcom/sfdx-core/compare/3.35.0-qa.2...3.35.0-qa.3) (2023-04-24)
+
+
+### Bug Fixes
+
+* load config for deprecated stuff, too ([ef1c71b](https://github.com/forcedotcom/sfdx-core/commit/ef1c71b2f9989f7afeb99e662f5b441ef077515f))
+
+
+
+# [3.35.0-qa.2](https://github.com/forcedotcom/sfdx-core/compare/3.34.8...3.35.0-qa.2) (2023-04-24)
+
+
+### Features
+
+* sf rest_deploy via env ([46ae051](https://github.com/forcedotcom/sfdx-core/commit/46ae051bd36a52be0244b55274dc4aa438286286))
+
+
+
+# [3.35.0-qa.1](https://github.com/forcedotcom/sfdx-core/compare/3.34.7...3.35.0-qa.1) (2023-04-21)
+
+
+### Bug Fixes
+
+* prerelease branch for testing ([cdeaa51](https://github.com/forcedotcom/sfdx-core/commit/cdeaa514497456d7cae198e04079eb2d12630d7a))
+
+
+
 # [3.35.0](https://github.com/forcedotcom/sfdx-core/compare/3.34.9...3.35.0) (2023-04-28)
 
 
@@ -14,7 +45,7 @@
 
 
 
-## [3.34.9](https://github.com/forcedotcom/sfdx-core/compare/3.34.8...3.34.9) (2023-04-27)
+## [3.34.9](https://github.com/forcedotcom/sfdx-core/compare/3.35.0-qa.3...3.34.9) (2023-04-27)
 
 
 ### Bug Fixes
@@ -23,12 +54,73 @@
 
 
 
-## [3.34.8](https://github.com/forcedotcom/sfdx-core/compare/3.34.7...3.34.8) (2023-04-21)
+## [3.34.8](https://github.com/forcedotcom/sfdx-core/compare/3.35.0-qa.1...3.34.8) (2023-04-21)
 
 
 ### Bug Fixes
 
 * prevent logging loop ([55bcbc3](https://github.com/forcedotcom/sfdx-core/commit/55bcbc357e9ac04b6d064e3d42a07e2975213d96))
+
+
+
+# [3.35.0-qa.3](https://github.com/forcedotcom/sfdx-core/compare/3.35.0-qa.2...3.35.0-qa.3) (2023-04-24)
+
+
+### Bug Fixes
+
+* load config for deprecated stuff, too ([ef1c71b](https://github.com/forcedotcom/sfdx-core/commit/ef1c71b2f9989f7afeb99e662f5b441ef077515f))
+
+
+
+# [3.35.0-qa.2](https://github.com/forcedotcom/sfdx-core/compare/3.34.8...3.35.0-qa.2) (2023-04-24)
+
+
+### Features
+
+* sf rest_deploy via env ([46ae051](https://github.com/forcedotcom/sfdx-core/commit/46ae051bd36a52be0244b55274dc4aa438286286))
+
+
+
+# [3.35.0-qa.1](https://github.com/forcedotcom/sfdx-core/compare/3.34.7...3.35.0-qa.1) (2023-04-21)
+
+
+### Bug Fixes
+
+* bad error message for in progress scratch orgs ([b18d112](https://github.com/forcedotcom/sfdx-core/commit/b18d1121b56c96f7bb9cddfcacc0bae58f977628))
+* prerelease branch for testing ([cdeaa51](https://github.com/forcedotcom/sfdx-core/commit/cdeaa514497456d7cae198e04079eb2d12630d7a))
+
+
+### Features
+
+* backward compatible configs/envs with warnings ([51ed461](https://github.com/forcedotcom/sfdx-core/commit/51ed461ba06fd62bbada398dcc86656eb9b34fac))
+* sfdxConfigAggregator = configAggregator ([a98cd97](https://github.com/forcedotcom/sfdx-core/commit/a98cd975e17e4bc75f76c3f6034050816d0f9e1e))
+* warnings from config ([a84993e](https://github.com/forcedotcom/sfdx-core/commit/a84993edeee942175f80c5e96683164579a4fa70))
+
+
+
+## [3.34.8](https://github.com/forcedotcom/sfdx-core/compare/3.35.0-qa.1...3.34.8) (2023-04-21)
+
+
+### Bug Fixes
+
+* prevent logging loop ([55bcbc3](https://github.com/forcedotcom/sfdx-core/commit/55bcbc357e9ac04b6d064e3d42a07e2975213d96))
+
+
+
+# [3.35.0-qa.1](https://github.com/forcedotcom/sfdx-core/compare/3.34.7...3.35.0-qa.1) (2023-04-21)
+
+
+### Bug Fixes
+
+* bad error message for in progress scratch orgs ([b18d112](https://github.com/forcedotcom/sfdx-core/commit/b18d1121b56c96f7bb9cddfcacc0bae58f977628))
+* prerelease branch for testing ([cdeaa51](https://github.com/forcedotcom/sfdx-core/commit/cdeaa514497456d7cae198e04079eb2d12630d7a))
+
+
+### Features
+
+* backward compatible configs/envs with warnings ([51ed461](https://github.com/forcedotcom/sfdx-core/commit/51ed461ba06fd62bbada398dcc86656eb9b34fac))
+* sfdxConfigAggregator = configAggregator ([a98cd97](https://github.com/forcedotcom/sfdx-core/commit/a98cd975e17e4bc75f76c3f6034050816d0f9e1e))
+* warnings from config ([a84993e](https://github.com/forcedotcom/sfdx-core/commit/a84993edeee942175f80c5e96683164579a4fa70))
 
 
 
