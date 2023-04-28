@@ -1,3 +1,19 @@
+# [3.35.0](https://github.com/forcedotcom/sfdx-core/compare/3.34.9...3.35.0) (2023-04-28)
+
+
+### Bug Fixes
+
+* bad error message for in progress scratch orgs ([b18d112](https://github.com/forcedotcom/sfdx-core/commit/b18d1121b56c96f7bb9cddfcacc0bae58f977628))
+
+
+### Features
+
+* backward compatible configs/envs with warnings ([51ed461](https://github.com/forcedotcom/sfdx-core/commit/51ed461ba06fd62bbada398dcc86656eb9b34fac))
+* sfdxConfigAggregator = configAggregator ([a98cd97](https://github.com/forcedotcom/sfdx-core/commit/a98cd975e17e4bc75f76c3f6034050816d0f9e1e))
+* warnings from config ([a84993e](https://github.com/forcedotcom/sfdx-core/commit/a84993edeee942175f80c5e96683164579a4fa70))
+
+
+
 ## [3.34.9](https://github.com/forcedotcom/sfdx-core/compare/3.34.8...3.34.9) (2023-04-27)
 
 
