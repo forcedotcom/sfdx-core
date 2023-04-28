@@ -1,3 +1,37 @@
+# [3.35.0](https://github.com/forcedotcom/sfdx-core/compare/3.34.9...3.35.0) (2023-04-28)
+
+
+### Bug Fixes
+
+* bad error message for in progress scratch orgs ([b18d112](https://github.com/forcedotcom/sfdx-core/commit/b18d1121b56c96f7bb9cddfcacc0bae58f977628))
+
+
+### Features
+
+* backward compatible configs/envs with warnings ([51ed461](https://github.com/forcedotcom/sfdx-core/commit/51ed461ba06fd62bbada398dcc86656eb9b34fac))
+* sfdxConfigAggregator = configAggregator ([a98cd97](https://github.com/forcedotcom/sfdx-core/commit/a98cd975e17e4bc75f76c3f6034050816d0f9e1e))
+* warnings from config ([a84993e](https://github.com/forcedotcom/sfdx-core/commit/a84993edeee942175f80c5e96683164579a4fa70))
+
+
+
+## [3.34.9](https://github.com/forcedotcom/sfdx-core/compare/3.34.8...3.34.9) (2023-04-27)
+
+
+### Bug Fixes
+
+* redirect to oauth success url ([#811](https://github.com/forcedotcom/sfdx-core/issues/811)) ([e505351](https://github.com/forcedotcom/sfdx-core/commit/e505351e2d91cc8481b2e3908914d2406ea5a217))
+
+
+
+## [3.34.8](https://github.com/forcedotcom/sfdx-core/compare/3.34.7...3.34.8) (2023-04-21)
+
+
+### Bug Fixes
+
+* prevent logging loop ([55bcbc3](https://github.com/forcedotcom/sfdx-core/commit/55bcbc357e9ac04b6d064e3d42a07e2975213d96))
+
+
+
 ## [3.34.7](https://github.com/forcedotcom/sfdx-core/compare/3.34.6...3.34.7) (2023-04-16)
 
 

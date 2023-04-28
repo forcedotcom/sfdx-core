@@ -1050,7 +1050,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         this.throwUserGetException(response);
       } else {
         const userInfoJson = parseJsonMap(response.body) as UserInfoResult;
-        const url = `${baseUrl.toString()}/services/data/${apiVersion}/sobjects/User/${userInfoJson.user_id}`;
+        const url = `${baseUrl.toString()}services/data/${apiVersion}/sobjects/User/${userInfoJson.user_id}`;
         this.logger.info(`Sending request for User SObject after successful auth code exchange to URL: ${url}`);
         response = await new Transport().httpRequest({ url, method: 'GET', headers });
         if (response.statusCode >= 400) {
