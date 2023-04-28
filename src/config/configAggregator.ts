@@ -304,7 +304,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    */
   public getConfigInfo(): ConfigInfo[] {
     const infos = Object.keys(this.getConfig())
-      .filter((key) => this.getAllowedProperties().some((element) => key === element.key))
+      .filter((key) => this.getAllowedProperties().some((element) => key === element.key || key === element.newKey))
       .map((key) => this.getInfo(key))
       .filter((info): info is ConfigInfo => !!info);
     return sortBy(infos, 'key');

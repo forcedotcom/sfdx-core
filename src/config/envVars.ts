@@ -243,7 +243,8 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SFDX_REST_DEPLOY]: {
     description: getMessage(EnvironmentVariable.SFDX_REST_DEPLOY),
-    synonymOf: null,
+    // this is not an "official" env var, but it supports the env=>config naming convention for the config that lives in plugin-deploy-retrieve
+    synonymOf: 'SF_ORG_METADATA_REST_DEPLOY',
   },
   [EnvironmentVariable.SFDX_SOURCE_MEMBER_POLLING_TIMEOUT]: {
     description: getMessage(EnvironmentVariable.SFDX_SOURCE_MEMBER_POLLING_TIMEOUT),
