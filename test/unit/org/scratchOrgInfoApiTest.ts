@@ -29,10 +29,7 @@ import { SfError } from '../../../src/sfError';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoApi');
-const errorCodesMessages = Messages.load('@salesforce/core', 'scratchOrgErrorCodes', [
-  'SignupFailedUnknownError',
-  'C-1007',
-]);
+const errorCodesMessages = Messages.loadMessages('@salesforce/core', 'scratchOrgErrorCodes');
 
 const scratchOrgInfoId = '2SRK0000001QZxF';
 const TEMPLATE_SCRATCH_ORG_INFO: ScratchOrgInfo = {

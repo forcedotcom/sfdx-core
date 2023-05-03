@@ -10,7 +10,7 @@
 import { URL } from 'url';
 import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
 import { Duration, env, maxBy } from '@salesforce/kit';
-import { asString, ensure, isString, JsonCollection, JsonMap, Optional } from '@salesforce/ts-types';
+import { asString, ensure, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import {
   Connection as JSForceConnection,
   ConnectionConfig,
@@ -43,7 +43,6 @@ export const SFDX_HTTP_HEADERS = {
 };
 
 export const DNS_ERROR_NAME = 'DomainNotFoundError';
-type recentValidationOptions = { id: string; rest?: boolean };
 export type DeployOptionsWithRest = Partial<DeployOptions> & { rest?: boolean };
 
 export interface Tooling<S extends Schema = Schema> extends JSForceTooling<S> {
@@ -216,19 +215,6 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     return super._baseUrl();
   }
 
-  /**
-   * Will deploy a recently validated deploy request - directly calling jsforce now that this is supported.
-   * WARNING: will always return a string from jsforce, the type is JsonCollection to support backwards compatibility
-   *
-   * @param options.id = the deploy ID that's been validated already from a previous checkOnly deploy request
-   * @param options.rest = a boolean whether or not to use the REST API
-   * @deprecated use {@link Connection.metadata#deployRecentValidation} instead - the jsforce implementation, instead of this wrapper
-   */
-  public async deployRecentValidation(options: recentValidationOptions): Promise<JsonCollection> {
-    // REST returns an object with an id property, SOAP returns the id as a string directly. That is now handled
-    // in jsforce, so we have to cast a string as unknown as JsonCollection to support backwards compatibility.
-    return (await this.metadata.deployRecentValidation(options)) as unknown as JsonCollection;
-  }
   /**
    * Retrieves the highest api version that is supported by the target server instance.
    */

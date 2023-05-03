@@ -769,13 +769,3 @@ export class SfProject {
       .map(([key]) => key);
   }
 }
-
-/**
- * @deprecated use SfProject instead
- */
-export class SfdxProject extends SfProject {}
-
-/**
- * @deprecated use SfProjectJson instead
- */
-export class SfdxProjectJson extends SfProjectJson {}

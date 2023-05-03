@@ -439,11 +439,3 @@ export namespace ConfigAggregator {
     customConfigMeta?: ConfigPropertyMeta[];
   };
 }
-
-/**
- * A ConfigAggregator that will work with deprecated config vars (e.g. defaultusername, apiVersion).
- * We do NOT recommend using this class unless you absolutely have to.
- *
- * @deprecated
- */
-export class SfdxConfigAggregator extends ConfigAggregator {}

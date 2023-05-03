@@ -24,6 +24,7 @@ import { SfError } from '../sfError';
  * interesting decorations of each values, such as ANSI coloring.
  *
  * @deprecated
+ *
  */
 export class SchemaPropertyRenderer {
   /**
@@ -67,6 +68,7 @@ export class SchemaPropertyRenderer {
  * Prints a JSON schema in a human-friendly format.
  *
  * @deprecated
+ * remaining reference: https://github.com/salesforcecli/plugin-data/blob/cc1bdfa2c707f93a6da96beea8117b25f9612d4a/src/commands/data/import/tree.ts#L75
  *
  * ```
  * import chalk from 'chalk';

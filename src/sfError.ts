@@ -149,8 +149,3 @@ export class SfError extends NamedError {
     return obj;
   }
 }
-
-/**
- * @deprecated use SfError instead
- */
-export class SfdxError extends SfError {}
