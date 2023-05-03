@@ -86,6 +86,7 @@ export { OrgConfigProperties, ORG_CONFIG_ALLOWED_PROPERTIES } from './org/orgCon
 export { PackageDir, NamedPackageDir, PackageDirDependency, SfProject, SfProjectJson } from './sfProject';
 
 export { SchemaValidator } from './schema/validator';
+export { SchemaPrinter } from './schema/printer';
 
 export { SfError } from './sfError';
 
