@@ -106,7 +106,8 @@ describe('ConfigAggregator', () => {
       $$.SANDBOX.stub(fs, 'readFile').resolves({});
 
       const aggregator = await ConfigAggregator.create();
-      const info = aggregator.getConfigInfo()[0];
+      const info = aggregator.getConfigInfo().find((c) => c.key === 'target-org');
+      assert(info);
       expect(info.key).to.equal('target-org');
       expect(info.value).to.equal('test');
       expect(info.location).to.equal('Environment');
@@ -116,7 +117,8 @@ describe('ConfigAggregator', () => {
       $$.SANDBOX.stub(fs.promises, 'readFile').resolves('{ "invalid": "entry", "org-api-version": 49.0 }');
 
       const aggregator = await ConfigAggregator.create();
-      const info = aggregator.getConfigInfo()[0];
+      const info = aggregator.getConfigInfo().find((c) => c.key === 'org-api-version');
+      assert(info);
       expect(info.key).to.equal('org-api-version');
       expect(info.value).to.equal(49.0);
       expect(info.location).to.equal('Local');
