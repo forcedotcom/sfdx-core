@@ -8,10 +8,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import * as fs from 'fs';
 import { assert, expect, config as chaiConfig } from 'chai';
-import { Config, ConfigProperties, SfdxPropertyKeys } from '../../../src/config/config';
+import { Config, ConfigProperties, SFDX_ALLOWED_PROPERTIES, SfdxPropertyKeys } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
-import { Messages, OrgConfigProperties, Lifecycle } from '../../../src/exported';
+import { Messages, OrgConfigProperties, Lifecycle, ORG_CONFIG_ALLOWED_PROPERTIES } from '../../../src/exported';
 import { TestContext } from '../../../src/testSetup';
 
 // if you add to this, make sure you use both the old and new name
@@ -285,6 +285,43 @@ describe('ConfigAggregator', () => {
       const expected = '51.0';
       $$.SANDBOX.stub(Config.prototype, 'readSync').returns({ 'org-api-version': expected, apiVersion: '50.0' });
       expect(ConfigAggregator.getValue(OrgConfigProperties.ORG_API_VERSION)?.value, expected);
+    });
+  });
+
+  describe('getPropertyMeta', () => {
+    it('key is current, has matching meta', async () => {
+      const aggregator = await ConfigAggregator.create();
+      expect(aggregator.getPropertyMeta(OrgConfigProperties.ORG_API_VERSION)).to.equal(
+        ORG_CONFIG_ALLOWED_PROPERTIES.find((meta) => meta.key === OrgConfigProperties.ORG_API_VERSION)
+      );
+      expect(warnStub.callCount).to.equal(0);
+    });
+    it('key is deprecated, has matching meta', async () => {
+      const aggregator = await ConfigAggregator.create();
+      expect(aggregator.getPropertyMeta(SfdxPropertyKeys.INSTANCE_URL)).to.equal(
+        SFDX_ALLOWED_PROPERTIES.find((meta) => meta.key === SfdxPropertyKeys.INSTANCE_URL)
+      );
+      expect(warnStub.callCount).to.equal(1);
+    });
+    describe('old key is known, new key comes from outside sfdx-core, but has matching meta for old key', () => {
+      it('permanent generic example', async () => {
+        // this scenario happens for 'org-metadata-rest-deploy' because 'restDeploy' is still in core, and knows its new key,
+        // but that config lives in PDR
+        // we want to fall back to avoid "Error (1): Unknown config name: org-metadata-rest-deploy."
+        const aggregator = await ConfigAggregator.create();
+        // simulate 'restDeploy`
+        const oldConfigMeta = { key: 'oldProp', deprecated: true, newKey: 'newProp', description: 'whatever' };
+        aggregator.addAllowedProperties([oldConfigMeta]);
+        expect(aggregator.getPropertyMeta('newProp')).to.equal(oldConfigMeta);
+        expect(warnStub.callCount).to.equal(0);
+      });
+      it('org-metadata-rest-deploy finds restDeploy', async () => {
+        const aggregator = await ConfigAggregator.create();
+        expect(aggregator.getPropertyMeta('org-metadata-rest-deploy')).to.equal(
+          SFDX_ALLOWED_PROPERTIES.find((meta) => meta.key === SfdxPropertyKeys.REST_DEPLOY)
+        );
+        expect(warnStub.callCount).to.equal(0);
+      });
     });
   });
 });
