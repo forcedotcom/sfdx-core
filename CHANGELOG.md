@@ -1,3 +1,12 @@
+## [3.36.1](https://github.com/forcedotcom/sfdx-core/compare/3.36.0...3.36.1) (2023-05-11)
+
+
+### Bug Fixes
+
+* handle unknown config keys that moved to plugins ([5077340](https://github.com/forcedotcom/sfdx-core/commit/5077340d04b8225bf3089112502de106af911841))
+
+
+
 # [3.36.0](https://github.com/forcedotcom/sfdx-core/compare/3.35.0...3.36.0) (2023-04-28)
 
 
