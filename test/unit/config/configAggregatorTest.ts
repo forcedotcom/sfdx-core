@@ -9,7 +9,7 @@
 import * as fs from 'fs';
 import { assert, expect, config as chaiConfig } from 'chai';
 import { Config, ConfigProperties, SFDX_ALLOWED_PROPERTIES, SfdxPropertyKeys } from '../../../src/config/config';
-import { ConfigAggregator } from '../../../src/config/configAggregator';
+import { ConfigAggregator, ConfigInfo } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
 import { Messages, OrgConfigProperties, Lifecycle, ORG_CONFIG_ALLOWED_PROPERTIES } from '../../../src/exported';
 import { TestContext } from '../../../src/testSetup';
@@ -22,6 +22,8 @@ chaiConfig.truncateThreshold = 0;
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
 const envMessages = Messages.loadMessages('@salesforce/core', 'envVars');
+
+const telemtryConfigFilter = (i: ConfigInfo) => i.key !== 'disable-telemetry';
 
 describe('ConfigAggregator', () => {
   let id: string;
@@ -106,7 +108,7 @@ describe('ConfigAggregator', () => {
       $$.SANDBOX.stub(fs, 'readFile').resolves({});
 
       const aggregator = await ConfigAggregator.create();
-      const info = aggregator.getConfigInfo()[0];
+      const info = aggregator.getConfigInfo().filter(telemtryConfigFilter)[0];
       expect(info.key).to.equal('target-org');
       expect(info.value).to.equal('test');
       expect(info.location).to.equal('Environment');
@@ -116,7 +118,7 @@ describe('ConfigAggregator', () => {
       $$.SANDBOX.stub(fs.promises, 'readFile').resolves('{ "invalid": "entry", "org-api-version": 49.0 }');
 
       const aggregator = await ConfigAggregator.create();
-      const info = aggregator.getConfigInfo()[0];
+      const info = aggregator.getConfigInfo().filter(telemtryConfigFilter)[0];
       expect(info.key).to.equal('org-api-version');
       expect(info.value).to.equal(49.0);
       expect(info.location).to.equal('Local');
