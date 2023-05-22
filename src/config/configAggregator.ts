@@ -207,9 +207,12 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
         }
       }
       return match;
-    } else {
-      throw messages.createError('unknownConfigKey', [key]);
     }
+    const matchFromNewKey = this.getAllowedProperties().find((element) => key === element.newKey);
+    if (matchFromNewKey) {
+      return matchFromNewKey;
+    }
+    throw messages.createError('unknownConfigKey', [key]);
   }
 
   /**
