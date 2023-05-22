@@ -1,3 +1,9 @@
+## [3.36.2](https://github.com/forcedotcom/sfdx-core/compare/3.36.1...3.36.2) (2023-05-22)
+
+### Bug Fixes
+
+- bump jsforce to latest beta ([32c46c1](https://github.com/forcedotcom/sfdx-core/commit/32c46c187738cbb6b686e9901a03183e0a02cf34))
+
 ## [3.36.1](https://github.com/forcedotcom/sfdx-core/compare/3.36.0...3.36.1) (2023-05-11)
 
 ### Bug Fixes
