@@ -17,7 +17,6 @@ import { basename, join as pathJoin } from 'path';
 import * as util from 'util';
 import { SinonSandbox, SinonStatic, SinonStub } from 'sinon';
 
-import { once } from '@salesforce/kit';
 import { stubMethod } from '@salesforce/ts-sinon';
 import {
   AnyFunction,
@@ -691,71 +690,6 @@ export const restoreContext = (testContext: TestContext): void => {
   // @ts-ignore clear for testing.
   delete ConfigAggregator.instance;
 };
-
-// eslint-disable-next-line no-underscore-dangle
-const _testSetup = (sinon?: SinonStatic): TestContext => {
-  const testContext = instantiateContext(sinon);
-
-  beforeEach(() => {
-    // Allow each test to have their own config aggregator
-    // @ts-ignore clear for testing.
-    delete ConfigAggregator.instance;
-    testContext.stubs = stubContext(testContext);
-  });
-
-  afterEach(() => {
-    restoreContext(testContext);
-  });
-
-  return testContext;
-};
-
-/**
- * @deprecated Use TestContext instead.
- * Using testSetup will create globals stubs that could lead to erratic test behavior.
- *
- * This example shows you how to use TestContext:
- * @example
- * ```
- * const $$ = new TestContext();
- *
- * beforeEach(() => {
- *   $$.init();
- * });
- *
- * afterEach(() => {
- *   $$.restore();
- * });
- * ```
- *
- * Use to mock out different pieces of sfdx-core to make testing easier. This will mock out
- * logging to a file, config file reading and writing, local and global path resolution, and
- * *http request using connection (soon)*.
- *
- * **Note:** The testSetup should be outside of the describe. If you need to stub per test, use
- * `TestContext`.
- * ```
- * // In a mocha tests
- * import testSetup from '@salesforce/core/lib/testSetup';
- *
- * const $$ = testSetup();
- *
- * describe(() => {
- *  it('test', () => {
- *    // Stub out your own method
- *    $$.SANDBOX.stub(MyClass.prototype, 'myMethod').returnsFake(() => {});
- *
- *    // Set the contents that is used when aliases are read. Same for all config files.
- *    $$.stubAliases({ 'myTestAlias': 'user@company.com' });
- *
- *    // Will use the contents set above.
- *    const username = (await StateAggregator.getInstance()).aliases.resolveUsername("myTestAlias");
- *    expect(username).to.equal("user@company.com");
- *  });
- * });
- * ```
- */
-export const testSetup = once(_testSetup);
 
 /**
  * A pre-canned error for try/catch testing.
