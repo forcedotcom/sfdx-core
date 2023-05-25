@@ -11,6 +11,8 @@ import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigEntry, ConfigValue } from './configStore';
 
 /**
+ * @deprecated
+ *
  * A config file that stores config values in groups. e.g. to store different config
  * values for different commands, without having manually manipulate the config.
  *

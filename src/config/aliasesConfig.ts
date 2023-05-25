@@ -15,6 +15,9 @@ export enum AliasGroup {
   ORGS = 'orgs',
 }
 
+/**
+ * @deprecated.  AliasAccessor is very simple now
+ */
 export class AliasesConfig extends ConfigGroup<ConfigGroup.Options> {
   public static getDefaultOptions(): ConfigGroup.Options {
     return { ...ConfigGroup.getOptions(AliasGroup.ORGS, 'alias.json'), isGlobal: true, isState: true };
