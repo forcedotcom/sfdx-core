@@ -190,8 +190,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   }
 
   /**
-   * Unsets all the aliases for the given entity.
-   *
+   * Unset all the aliases for the given entity.
    *
    * @param entity the aliasable entity for which you want to unset all aliases
    */
