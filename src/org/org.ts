@@ -1216,9 +1216,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     await Promise.all(
       usernames.map(async (username) => {
-        const aliasKeys = (username && stateAggregator.aliases.getAll(username)) ?? [];
-        stateAggregator.aliases.unsetAll(username);
-
         const orgForUser =
           username === this.getUsername()
             ? this
@@ -1230,7 +1227,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         const configInfo = orgForUser.configAggregator.getInfo(orgType);
         const needsConfigUpdate =
           (configInfo.isGlobal() || configInfo.isLocal()) &&
-          (configInfo.value === username || aliasKeys.includes(configInfo.value as string));
+          (configInfo.value === username || stateAggregator.aliases.get(configInfo.value as string) === username);
 
         return [
           orgForUser.removeAuth(),
@@ -1239,8 +1236,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       })
     );
 
-    // now that we're dong with all the aliases, we can unset those
-    await stateAggregator.aliases.unsetAndSave(usernames);
+    // now that we're done with all the aliases, we can unset those
+    await stateAggregator.aliases.unsetValuesAndSave(usernames);
   }
 
   private async removeSandboxConfig(): Promise<void> {

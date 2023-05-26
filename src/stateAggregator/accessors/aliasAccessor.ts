@@ -9,6 +9,7 @@ import { join, dirname } from 'node:path';
 import { homedir } from 'node:os';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { writeFileSync, readFileSync } from 'node:fs';
+import { lock, unlock, lockSync, unlockSync } from 'proper-lockfile';
 
 import { AsyncOptionalCreatable, ensureArray } from '@salesforce/kit';
 
@@ -21,8 +22,10 @@ import { SfToken } from './tokenAccessor';
 
 export type Aliasable = string | (Partial<AuthFields> & Partial<SfToken>);
 const DEFAULT_GROUP = 'orgs';
-const FILENAME = 'alias.json';
-
+export const FILENAME = 'alias.json';
+const lockRetryOptions = {
+  retries: { retries: 10, maxTimeout: 1000, factor: 2 },
+};
 export class AliasAccessor extends AsyncOptionalCreatable {
   // set in init method
   private fileLocation!: string;
@@ -139,13 +142,12 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   /**
    * Set an alias for the given aliasable entity.  Writes to the file
    *
-   * @deprecated use setAndSave
    * @param alias the alias you want to set
    * @param entity the aliasable entity that's being aliased
    */
   public async setAndSave(alias: string, entity: Aliasable): Promise<void> {
-    // get a very fresh copy to merge with to avoid conflicts
-    await this.readFileToAliasStore();
+    // get a very fresh copy to merge with to avoid conflicts, then lock
+    await this.readFileToAliasStore(true);
     this.aliasStore.set(alias, getNameOf(entity));
     return this.saveAliasStoreToFile();
   }
@@ -164,16 +166,16 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    * Unset the given alias(es).  Writes to the file
    *
    */
-  public async unsetAndSave(alias: string | string[]): Promise<void> {
-    await this.readFileToAliasStore();
-    ensureArray(alias).forEach((a) => this.aliasStore.delete(a));
+  public async unsetAndSave(alias: string): Promise<void> {
+    await this.readFileToAliasStore(true);
+    this.aliasStore.delete(alias);
     return this.saveAliasStoreToFile();
   }
 
   /**
    * Unsets all the aliases for the given entity.
    *
-   * @deprecated use unsetAllAndSave
+   * @deprecated use unsetValuesAndSave
    *
    * @param entity the aliasable entity for which you want to unset all aliases
    */
@@ -187,14 +189,14 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   /**
    * Unsets all the aliases for the given entity.
    *
-   * @deprecated use unsetAllAndSave
    *
    * @param entity the aliasable entity for which you want to unset all aliases
    */
-  public async unsetAllAndSave(entity: Aliasable): Promise<void> {
-    await this.readFileToAliasStore();
-    const aliases = this.getAll(entity);
-    aliases.forEach((a) => this.aliasStore.delete(a));
+  public async unsetValuesAndSave(aliasees: Aliasable[]): Promise<void> {
+    await this.readFileToAliasStore(true);
+    ensureArray(aliasees)
+      .flatMap((a) => this.getAll(a))
+      .map((a) => this.aliasStore.delete(a));
     return this.saveAliasStoreToFile();
   }
 
@@ -215,7 +217,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   }
 
   protected async init(): Promise<void> {
-    this.fileLocation = join(homedir(), Global.SFDX_STATE_FOLDER, FILENAME);
+    this.fileLocation = getFileLocation();
     await this.readFileToAliasStore();
   }
 
@@ -223,8 +225,11 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    * go to the fileSystem and read the file, storing a copy in the class's store
    * if the file doesn't exist, create it empty
    */
-  private async readFileToAliasStore(): Promise<void> {
+  private async readFileToAliasStore(useLock = false): Promise<void> {
     try {
+      if (useLock) {
+        await lock(this.fileLocation, lockRetryOptions);
+      }
       this.aliasStore = fileContentsRawToAliasStore(await readFile(this.fileLocation, 'utf-8'));
     } catch (e) {
       if (e instanceof Error && 'code' in e && e.code === 'ENOENT') {
@@ -233,23 +238,36 @@ export class AliasAccessor extends AsyncOptionalCreatable {
         await this.saveAliasStoreToFile();
         return;
       }
+      if (useLock) await unlock(this.fileLocation);
       throw e;
     }
   }
 
   private async saveAliasStoreToFile(): Promise<void> {
-    return writeFile(this.fileLocation, aliasStoreToRawFileContents(this.aliasStore));
+    await writeFile(this.fileLocation, aliasStoreToRawFileContents(this.aliasStore));
+    try {
+      await unlock(this.fileLocation);
+    } catch {
+      // ignore the error.  If it wasn't locked, that's what we wanted
+    }
   }
 
-  /** provided for the legacy sync set/unset methods */
+  /**
+   * @deprecated use the async version of this method instead
+   * provided for the legacy sync set/unset methods. */
   private readFileToAliasStoreSync(): void {
     // the file is guaranteed to exist because this init method ensures it
+    // put a lock in place.  This method is only used by legacy set/unset methods.
+    lockSync(this.fileLocation);
     this.aliasStore = fileContentsRawToAliasStore(readFileSync(this.fileLocation, 'utf-8'));
   }
 
-  /** provided for the legacy sync set/unset methods */
+  /**
+   * @deprecated use the async version of this method instead
+   * provided for the legacy sync set/unset methods */
   private saveAliasStoreToFileSync(): void {
     writeFileSync(this.fileLocation, aliasStoreToRawFileContents(this.aliasStore));
+    unlockSync(this.fileLocation);
   }
 }
 
@@ -276,3 +294,6 @@ const fileContentsRawToAliasStore = (contents: string): Map<string, string> => {
 
 const aliasStoreToRawFileContents = (aliasStore: Map<string, string>): string =>
   JSON.stringify({ [DEFAULT_GROUP]: Object.fromEntries(Array.from(aliasStore.entries())) });
+
+// exported for testSetup mocking
+export const getFileLocation = (): string => join(homedir(), Global.SFDX_STATE_FOLDER, FILENAME);
