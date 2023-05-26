@@ -22,7 +22,7 @@ Both of these were empty wrappers around `SfProject` and `SfProjectJson`. Use th
 
 ## Connection.deployRecentValidation
 
-Since this was moved to jsforce2, the sfdx-core implementation was an empty wrapper. Use jsforce's Connection(eployRecentValidation iunset.
+Since this was moved to jsforce2, the sfdx-core implementation was an empty wrapper. Use jsforce's ConnectionDeployRecentValidation instead.
 
 ## StateAggregator.aliases (aliasAccessor)
 
