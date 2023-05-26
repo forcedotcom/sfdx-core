@@ -87,20 +87,6 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   }
 
   /**
-   * If the provided string is an alias, it returns the corresponding value.
-   * If the provided string is not an alias, we assume that the provided string
-   * is the value and return it.
-   *
-   * This method is helpful when you don't know if the string you have is a value
-   * or an alias.
-   *
-   * @param valueOrAlias a string that might be a value or might be an alias
-   */
-  public resolveValue(valueOrAlias: string): string {
-    return this.getValue(valueOrAlias) ?? valueOrAlias;
-  }
-
-  /**
    * If the provided string is an alias, it returns the corresponding username.
    * If the provided string is not an alias, we assume that the provided string
    * is the username and return it.
@@ -190,7 +176,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   }
 
   /**
-   * Unset all the aliases for the given entity.
+   * Unset all the aliases for the given array of entity.
    *
    * @param entity the aliasable entity for which you want to unset all aliases
    */
