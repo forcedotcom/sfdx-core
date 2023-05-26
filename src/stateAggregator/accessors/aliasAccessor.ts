@@ -21,9 +21,12 @@ import { SfError } from '../../sfError';
 import { SfToken } from './tokenAccessor';
 
 export type Aliasable = string | (Partial<AuthFields> & Partial<SfToken>);
-const DEFAULT_GROUP = 'orgs';
+export const DEFAULT_GROUP = 'orgs';
 export const FILENAME = 'alias.json';
+
+const lockOptions = { stale: 10_000 };
 const lockRetryOptions = {
+  ...lockOptions,
   retries: { retries: 10, maxTimeout: 1000, factor: 2 },
 };
 export class AliasAccessor extends AsyncOptionalCreatable {
@@ -258,7 +261,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   private readFileToAliasStoreSync(): void {
     // the file is guaranteed to exist because this init method ensures it
     // put a lock in place.  This method is only used by legacy set/unset methods.
-    lockSync(this.fileLocation);
+    lockSync(this.fileLocation, lockOptions);
     this.aliasStore = fileContentsRawToAliasStore(readFileSync(this.fileLocation, 'utf-8'));
   }
 

@@ -40,12 +40,11 @@ import { Logger } from './logger';
 import { Messages } from './messages';
 import { SfError } from './sfError';
 import { SfProject, SfProjectJson } from './sfProject';
-import * as aliasAccesorMocks from './stateAggregator/accessors/aliasAccessor';
+import * as aliasAccessorEntireFile from './stateAggregator/accessors/aliasAccessor';
 import { CometClient, CometSubscription, Message, StreamingExtension } from './status/streamingClient';
 import { OrgAccessor, StateAggregator } from './stateAggregator';
 import { AuthFields, Org, SandboxFields, User, UserFields } from './org';
 import { SandboxAccessor } from './stateAggregator/accessors/sandboxAccessor';
-import { AliasGroup } from './config/aliasesConfig';
 import { Global } from './global';
 
 /**
@@ -377,7 +376,7 @@ export class TestContext {
   /**
    * Stub the aliases in the global aliases config file.
    */
-  public stubAliases(aliases: Record<string, string>, group = AliasGroup.ORGS): void {
+  public stubAliases(aliases: Record<string, string>, group = aliasAccessorEntireFile.DEFAULT_GROUP): void {
     // we don't really "stub" these since they don't use configFile.
     // write the fileContents to location
     fs.mkdirSync(dirname(getAliasFileLocation()), { recursive: true });
@@ -638,7 +637,7 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
     return testContext.fakeConnectionRequest.call(this, request, options as AnyJson);
   });
 
-  stubMethod(testContext.SANDBOX, aliasAccesorMocks, 'getFileLocation').returns(getAliasFileLocation());
+  stubMethod(testContext.SANDBOX, aliasAccessorEntireFile, 'getFileLocation').returns(getAliasFileLocation());
 
   stubs.configExists = stubMethod(testContext.SANDBOXES.ORGS, OrgAccessor.prototype, 'exists').callsFake(
     async function (this: OrgAccessor, username: string): Promise<boolean | undefined> {
@@ -664,7 +663,7 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
   return stubs;
 };
 
-const getAliasFileLocation = (): string => pathJoin(osTmpdir(), Global.SFDX_DIR, aliasAccesorMocks.FILENAME);
+const getAliasFileLocation = (): string => pathJoin(osTmpdir(), Global.SFDX_DIR, aliasAccessorEntireFile.FILENAME);
 /**
  * Restore a @salesforce/core test context. This is automatically stubbed in the global beforeEach created by
  * `const $$ = testSetup()` but is useful if you don't want to have a global stub of @salesforce/core and you
