@@ -121,7 +121,6 @@ export class TestContext {
    */
   public configStubs: {
     [configName: string]: Optional<ConfigStub>;
-    // AliasesConfig?: ConfigStub;
     AuthInfoConfig?: ConfigStub;
     Config?: ConfigStub;
     SfProjectJson?: ConfigStub;
