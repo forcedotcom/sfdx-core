@@ -407,49 +407,6 @@ export class Messages<T extends string> {
   }
 
   /**
-   *
-   * @deprecated Use {@link Messages.loadMessages} instead.
-   * @param packageName The name of the npm package.
-   * @param bundleName The name of the bundle to load.
-   * @param keys The message keys that will be used.
-   */
-  public static load<T extends string>(packageName: string, bundleName: string, keys: [T, ...T[]]): Messages<T> {
-    const key = getKey(packageName, bundleName);
-    let messages: Messages<T> | undefined;
-
-    if (this.isCached(packageName, bundleName)) {
-      messages = this.bundles.get(key);
-    } else if (this.loaders.has(key)) {
-      const loader = this.loaders.get(key);
-      if (loader) {
-        messages = loader(Messages.getLocale());
-        this.bundles.set(key, messages);
-        messages = this.bundles.get(key);
-      }
-    }
-
-    if (messages) {
-      // Type guard on key length, but do a runtime check.
-      if (!keys || keys.length === 0) {
-        throw new NamedError(
-          'MissingKeysError',
-          'Can not load messages without providing the message keys that will be used.'
-        );
-      }
-
-      // Get all messages to validate they are actually present
-      for (const messageKey of keys) {
-        messages.getMessage(messageKey);
-      }
-
-      return messages;
-    }
-
-    // Don't use messages inside messages
-    throw new NamedError('MissingBundleError', `Missing bundle ${key} for locale ${Messages.getLocale()}.`);
-  }
-
-  /**
    * Check if a bundle already been loaded.
    *
    * @param packageName The npm package name.
@@ -523,36 +480,6 @@ export class Messages<T extends string> {
       key,
       tokens,
       actionTokens,
-    });
-    return new SfError(message, name, actions, exitCodeOrCause, cause);
-  }
-
-  /**
-   * SfError wants error names to end with the suffix Error.  Use this to create errors while preserving their existing name (for compatibility reasons).
-   *
-   * @deprecated Use `createError` instead unless you need to preserver the error name to avoid breaking changes.
-   * `error.name` will be the upper-cased key, remove prefixed `error.`.
-   * `error.actions` will be loaded using `${key}.actions` if available.
-   *
-   * @param key The key of the error message.
-   * @param tokens The error message tokens.
-   * @param actionTokens The action messages tokens.
-   * @param exitCodeOrCause The exit code which will be used by SfdxCommand or the underlying error that caused this error to be raised.
-   * @param cause The underlying error that caused this error to be raised.
-   */
-  public createErrorButPreserveName(
-    key: T,
-    tokens: Tokens = [],
-    actionTokens: Tokens = [],
-    exitCodeOrCause?: number | Error,
-    cause?: Error
-  ): SfError {
-    const { message, name, actions } = this.formatMessageContents({
-      type: 'error',
-      key,
-      tokens,
-      actionTokens,
-      preserveName: true,
     });
     return new SfError(message, name, actions, exitCodeOrCause, cause);
   }

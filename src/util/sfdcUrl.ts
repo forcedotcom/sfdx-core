@@ -210,28 +210,6 @@ export class SfdcUrl extends URL {
   }
 
   /**
-   * Tests whether this url is a sandbox url
-   *
-   * @Deprecated - identification of a sandbox instance by URL alone is not deterministic
-   * @param createdOrgInstance The Salesforce instance the org was created on. e.g. `cs42`
-   * @returns {boolean}
-   */
-  // TODO: how to get rid of this?
-  public isSandboxUrl(createdOrgInstance?: string): boolean {
-    return (
-      (createdOrgInstance && /^cs|s$/gi.test(createdOrgInstance)) ||
-      this.origin.endsWith('sandbox.my.salesforce.mil') ||
-      /sandbox\.my\.salesforce\.com/gi.test(this.origin) || // enhanced domains >= 230
-      /(cs[0-9]+(\.my|)\.salesforce\.com)/gi.test(this.origin) || // my domains on CS instance OR CS instance without my domain
-      /(cs[0-9]+\.force\.com)/gi.test(this.origin) || // sandboxes have cnames like cs123.force.com
-      /(\w+--\w+\.my\.salesforce\.com)/gi.test(this.origin) || // sandboxes myDomain like foo--bar.my.salesforce.com
-      /([a-z]{3}[0-9]+s\.sfdc-.+\.salesforce\.com)/gi.test(this.origin) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
-      /([a-z]{3}[0-9]+s\.sfdc-.+\.force\.com)/gi.test(this.origin) || // falcon sandbox ex: usa2s.sfdc-whatever.force.com
-      this.hostname === 'test.salesforce.com'
-    );
-  }
-
-  /**
    * Test whether this url represents a lightning domain
    *
    * @returns {boolean} true if this domain is a lightning domain

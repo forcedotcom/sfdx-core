@@ -36,7 +36,7 @@ export {
 
 export { SandboxRequestCacheEntry, SandboxRequestCache } from './config/sandboxProcessCache';
 
-export { ConfigInfo, ConfigAggregator, SfdxConfigAggregator } from './config/configAggregator';
+export { ConfigInfo, ConfigAggregator } from './config/configAggregator';
 
 export { AuthFields, AuthInfo, AuthSideEffects, OrgAuthorization } from './org/authInfo';
 
@@ -83,21 +83,12 @@ export {
 
 export { OrgConfigProperties, ORG_CONFIG_ALLOWED_PROPERTIES } from './org/orgConfigProperties';
 
-export {
-  PackageDir,
-  NamedPackageDir,
-  PackageDirDependency,
-  SfProject,
-  SfProjectJson,
-  SfdxProject,
-  SfdxProjectJson,
-} from './sfProject';
-
-export { SchemaPrinter } from './schema/printer';
+export { PackageDir, NamedPackageDir, PackageDirDependency, SfProject, SfProjectJson } from './sfProject';
 
 export { SchemaValidator } from './schema/validator';
+export { SchemaPrinter } from './schema/printer';
 
-export { SfError, SfdxError } from './sfError';
+export { SfError } from './sfError';
 
 export { PollingClient } from './status/pollingClient';
 
