@@ -13,7 +13,7 @@ import * as fs from 'node:fs';
 import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
 import { tmpdir as osTmpdir } from 'os';
-import { basename, join as pathJoin, dirname } from 'path';
+import { basename, join as pathJoin, dirname, resolve } from 'path';
 import * as util from 'util';
 import { SinonSandbox, SinonStatic, SinonStub } from 'sinon';
 
@@ -662,7 +662,8 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
   return stubs;
 };
 
-const getAliasFileLocation = (): string => pathJoin(osTmpdir(), Global.SFDX_DIR, aliasAccessorEntireFile.FILENAME);
+const getAliasFileLocation = (): string =>
+  pathJoin(resolve(osTmpdir()), Global.SFDX_DIR, aliasAccessorEntireFile.FILENAME);
 /**
  * Restore a @salesforce/core test context. This is automatically stubbed in the global beforeEach created by
  * `const $$ = testSetup()` but is useful if you don't want to have a global stub of @salesforce/core and you
