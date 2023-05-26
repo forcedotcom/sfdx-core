@@ -124,6 +124,35 @@ describe('AliasAccessor', () => {
     });
   });
 
+  describe('setAndSave', () => {
+    it('should set an alias for a username', async () => {
+      const stateAggregator = await StateAggregator.getInstance();
+      await stateAggregator.aliases.setAndSave('foobar', username1);
+      const aliases = stateAggregator.aliases.getAll(username1);
+      expect(aliases).to.include('foobar');
+
+      // confirm persistence
+      StateAggregator.clearInstance();
+      const stateAggregator2 = await StateAggregator.getInstance();
+      const aliases2 = stateAggregator2.aliases.getAll(username1);
+      expect(aliases2).to.include('foobar');
+    });
+
+    it('should set an alias for an org', async () => {
+      const stateAggregator = await StateAggregator.getInstance();
+      await stateAggregator.aliases.setAndSave('foobar', await org.getConfig());
+      const aliases = stateAggregator.aliases.getAll(org.username);
+      expect(aliases).to.include('foobar');
+    });
+
+    it('should set an alias for a token', async () => {
+      const stateAggregator = await StateAggregator.getInstance();
+      await stateAggregator.aliases.setAndSave('foobar', token);
+      const aliases = stateAggregator.aliases.getAll(token.user);
+      expect(aliases).to.include('foobar');
+    });
+  });
+
   describe('unsetAll', () => {
     it('should unset all the aliases for a given username', async () => {
       const stateAggregator = await StateAggregator.getInstance();
@@ -142,6 +171,69 @@ describe('AliasAccessor', () => {
     it('should return false if the alias exists', async () => {
       const stateAggregator = await StateAggregator.getInstance();
       expect(stateAggregator.aliases.has('DOES_NOT_EXIST')).to.be.false;
+    });
+  });
+
+  describe('concurrent access', () => {
+    const quantity = 50;
+
+    describe('synchronous', () => {
+      it('should not throw an error when setting aliases concurrently', async () => {
+        const stateAggregator = await StateAggregator.getInstance();
+        const testArray = Array(quantity).map((v, i) => i.toString());
+        await Promise.all(
+          testArray.map((i) => Promise.resolve(stateAggregator.aliases.set(i.toString(), i.toString())))
+        );
+        testArray.forEach((i) => {
+          expect(stateAggregator.aliases.get(i)).to.equal(i);
+        });
+
+        // confirm persistence
+        StateAggregator.clearInstance();
+        const stateAggregator2 = await StateAggregator.getInstance();
+        testArray.forEach((i) => {
+          expect(stateAggregator2.aliases.get(i)).to.equal(i);
+        });
+      });
+
+      it('should not throw an error when unsetting aliases concurrently', async () => {
+        const stateAggregator = await StateAggregator.getInstance();
+        const testArray = Array(quantity).map((v, i) => i.toString());
+        await Promise.all(
+          testArray.map((i) => Promise.resolve(stateAggregator.aliases.setAndSave(i.toString(), i.toString())))
+        );
+        await Promise.all(testArray.map((i) => Promise.resolve(stateAggregator.aliases.unsetAndSave(i))));
+        testArray.forEach((i) => {
+          expect(stateAggregator.aliases.get(i)).to.be.undefined;
+        });
+      });
+    });
+    describe('promises', () => {
+      it('should not throw an error when setting aliases concurrently', async () => {
+        const stateAggregator = await StateAggregator.getInstance();
+        const testArray = Array(quantity).map((v, i) => i.toString());
+        await Promise.all(testArray.map((i) => stateAggregator.aliases.setAndSave(i.toString(), i.toString())));
+        testArray.forEach((i) => {
+          expect(stateAggregator.aliases.get(i)).to.equal(i);
+        });
+
+        // confirm persistence
+        StateAggregator.clearInstance();
+        const stateAggregator2 = await StateAggregator.getInstance();
+        testArray.forEach((i) => {
+          expect(stateAggregator2.aliases.get(i)).to.equal(i);
+        });
+      });
+
+      it('should not throw an error when unsetting aliases concurrently', async () => {
+        const stateAggregator = await StateAggregator.getInstance();
+        const testArray = Array(quantity).map((v, i) => i.toString());
+        await Promise.all(testArray.map((i) => stateAggregator.aliases.setAndSave(i.toString(), i.toString())));
+        await Promise.all(testArray.map((i) => stateAggregator.aliases.unsetAndSave(i)));
+        testArray.forEach((i) => {
+          expect(stateAggregator.aliases.get(i)).to.be.undefined;
+        });
+      });
     });
   });
 });

@@ -9,11 +9,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-
+import * as fs from 'node:fs';
 import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
 import { tmpdir as osTmpdir } from 'os';
-import { basename, join as pathJoin } from 'path';
+import { basename, join as pathJoin, dirname } from 'path';
 import * as util from 'util';
 import { SinonSandbox, SinonStatic, SinonStub } from 'sinon';
 
@@ -40,6 +40,7 @@ import { Logger } from './logger';
 import { Messages } from './messages';
 import { SfError } from './sfError';
 import { SfProject, SfProjectJson } from './sfProject';
+import * as aliasAccesorMocks from './stateAggregator/accessors/aliasAccessor';
 import { CometClient, CometSubscription, Message, StreamingExtension } from './status/streamingClient';
 import { OrgAccessor, StateAggregator } from './stateAggregator';
 import { AuthFields, Org, SandboxFields, User, UserFields } from './org';
@@ -122,7 +123,7 @@ export class TestContext {
    */
   public configStubs: {
     [configName: string]: Optional<ConfigStub>;
-    AliasesConfig?: ConfigStub;
+    // AliasesConfig?: ConfigStub;
     AuthInfoConfig?: ConfigStub;
     Config?: ConfigStub;
     SfProjectJson?: ConfigStub;
@@ -377,7 +378,10 @@ export class TestContext {
    * Stub the aliases in the global aliases config file.
    */
   public stubAliases(aliases: Record<string, string>, group = AliasGroup.ORGS): void {
-    this.configStubs.AliasesConfig = { contents: { [group]: aliases } };
+    // we don't really "stub" these since they don't use configFile.
+    // write the fileContents to location
+    fs.mkdirSync(dirname(getAliasFileLocation()), { recursive: true });
+    fs.writeFileSync(getAliasFileLocation(), JSON.stringify({ [group]: aliases }));
   }
 
   /**
@@ -527,7 +531,6 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
   // Turn off the interoperability feature so that we don't have to mock
   // the old .sfdx config files
   Global.SFDX_INTEROPERABILITY = false;
-
   const stubs: Record<string, SinonStub> = {};
 
   // Most core files create a child logger so stub this to return our test logger.
@@ -635,6 +638,8 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
     return testContext.fakeConnectionRequest.call(this, request, options as AnyJson);
   });
 
+  stubMethod(testContext.SANDBOX, aliasAccesorMocks, 'getFileLocation').returns(getAliasFileLocation());
+
   stubs.configExists = stubMethod(testContext.SANDBOXES.ORGS, OrgAccessor.prototype, 'exists').callsFake(
     async function (this: OrgAccessor, username: string): Promise<boolean | undefined> {
       // @ts-expect-error because private member
@@ -659,6 +664,7 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
   return stubs;
 };
 
+const getAliasFileLocation = (): string => pathJoin(osTmpdir(), Global.SFDX_DIR, aliasAccesorMocks.FILENAME);
 /**
  * Restore a @salesforce/core test context. This is automatically stubbed in the global beforeEach created by
  * `const $$ = testSetup()` but is useful if you don't want to have a global stub of @salesforce/core and you
