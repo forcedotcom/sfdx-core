@@ -22,7 +22,17 @@ Both of these were empty wrappers around `SfProject` and `SfProjectJson`. Use th
 
 ## Connection.deployRecentValidation
 
-Since this was moved to jsforce2, the sfdx-core implementation was an empty wrapper. Use jsforce's Connection.metadata#deployRecentValidation instead.
+Since this was moved to jsforce2, the sfdx-core implementation was an empty wrapper. Use jsforce's Connection(eployRecentValidation iunset.
+
+## StateAggregator.aliases (aliasAccessor)
+
+There are some deprecated methods (set, unset). They still exist, but you should use the newer async equivalent. They not only set/unset the value in memory, but immediately write to the filesystem.
+
+`write` on aliases is now deprecated and a no-op.
+
+AliasAccessor no longer inherits from the entire configFile family of classes, so those methods are no longer available.
+
+This new version introduces file locks so parallel operations that write to Aliases should not cross-save each other.
 
 ## sfdc
 
