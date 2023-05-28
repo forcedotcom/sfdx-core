@@ -23,7 +23,7 @@ Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
 const envMessages = Messages.loadMessages('@salesforce/core', 'envVars');
 
-const telemtryConfigFilter = (i: ConfigInfo) => i.key !== 'disable-telemetry';
+const telemetryConfigFilter = (i: ConfigInfo) => i.key !== 'disable-telemetry';
 
 describe('ConfigAggregator', () => {
   let id: string;
@@ -108,7 +108,7 @@ describe('ConfigAggregator', () => {
       $$.SANDBOX.stub(fs, 'readFile').resolves({});
 
       const aggregator = await ConfigAggregator.create();
-      const info = aggregator.getConfigInfo().filter(telemtryConfigFilter)[0];
+      const info = aggregator.getConfigInfo().filter(telemetryConfigFilter)[0];
       expect(info.key).to.equal('target-org');
       expect(info.value).to.equal('test');
       expect(info.location).to.equal('Environment');
@@ -118,7 +118,7 @@ describe('ConfigAggregator', () => {
       $$.SANDBOX.stub(fs.promises, 'readFile').resolves('{ "invalid": "entry", "org-api-version": 49.0 }');
 
       const aggregator = await ConfigAggregator.create();
-      const info = aggregator.getConfigInfo().filter(telemtryConfigFilter)[0];
+      const info = aggregator.getConfigInfo().filter(telemetryConfigFilter)[0];
       expect(info.key).to.equal('org-api-version');
       expect(info.value).to.equal(49.0);
       expect(info.location).to.equal('Local');

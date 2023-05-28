@@ -92,15 +92,3 @@ export const findUpperCaseKeys = (data?: JsonMap, sectionBlocklist: string[] = [
  * @param value
  */
 export const matchesAccessToken = (value: string): boolean => /^(00D\w{12,15})![.\w]*$/.test(value);
-
-/** @deprecated import the individual functions instead of the whole object */
-export const sfdc = {
-  trimTo15,
-  validateApiVersion,
-  validateEmail,
-  isInternalUrl,
-  matchesAccessToken,
-  validateSalesforceId,
-  validatePathDoesNotContainInvalidChars,
-  findUpperCaseKeys,
-};
