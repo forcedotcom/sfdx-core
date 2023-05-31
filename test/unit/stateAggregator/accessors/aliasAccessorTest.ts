@@ -4,9 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { join } from 'node:path';
+import { existsSync } from 'node:fs';
+import { rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { expect } from 'chai';
-import { StateAggregator } from '../../../../src/stateAggregator';
+import { FILENAME, StateAggregator } from '../../../../src/stateAggregator';
 import { MockTestOrgData, TestContext, uniqid } from '../../../../src/testSetup';
+import { Global } from '../../../../src/global';
 
 const username1 = 'espresso@coffee.com';
 const username2 = 'foobar@salesforce.com';
@@ -174,6 +179,20 @@ describe('AliasAccessor', () => {
     });
   });
 
+  describe('lockfile concerns', () => {
+    it('no aliases file, creates empty file', async () => {
+      const fileLocation = getAliasFileLocation();
+      await rm(fileLocation);
+      expect(existsSync(fileLocation)).to.be.false;
+      const stateAggregator = await StateAggregator.getInstance();
+      const aliases = stateAggregator.aliases.getAll(username1);
+      expect(aliases).to.deep.equal([]);
+      const all = stateAggregator.aliases.getAll();
+      expect(all).to.deep.equal({});
+      expect(existsSync(fileLocation)).to.be.true;
+    });
+  });
+
   describe('concurrent access', () => {
     const quantity = 50;
 
@@ -237,3 +256,5 @@ describe('AliasAccessor', () => {
     });
   });
 });
+
+const getAliasFileLocation = (): string => join(tmpdir(), Global.SFDX_STATE_FOLDER, FILENAME);

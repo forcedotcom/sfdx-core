@@ -216,10 +216,10 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    * if the file doesn't exist, create it empty
    */
   private async readFileToAliasStore(useLock = false): Promise<void> {
+    if (useLock) {
+      await lock(this.fileLocation, lockRetryOptions);
+    }
     try {
-      if (useLock) {
-        await lock(this.fileLocation, lockRetryOptions);
-      }
       this.aliasStore = fileContentsRawToAliasStore(await readFile(this.fileLocation, 'utf-8'));
     } catch (e) {
       if (e instanceof Error && 'code' in e && e.code === 'ENOENT') {
