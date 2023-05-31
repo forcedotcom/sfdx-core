@@ -48,7 +48,11 @@ describe('myDomainResolver', () => {
   describe('disable dns check', () => {
     const env = new Env();
     it('should return host if SFDX_DISABLE_DNS_CHECK is set to true', async () => {
-      env.setBoolean('SFDX_DISABLE_DNS_CHECK', true);
+      expect(env.getBoolean('SFDX_DISABLE_DNS_CHECK')).to.be.false;
+      expect(env.getBoolean('SF_DISABLE_DNS_CHECK')).to.be.false;
+      env.setBoolean('SF_DISABLE_DNS_CHECK', true);
+      expect(env.getBoolean('SF_DISABLE_DNS_CHECK')).to.be.true;
+      expect(env.getBoolean('SFDX_DISABLE_DNS_CHECK')).to.be.false;
       const options: MyDomainResolver.Options = {
         url: new URL(`http://${POSITIVE_HOST}`),
         timeout: Duration.milliseconds(50),
@@ -58,6 +62,27 @@ describe('myDomainResolver', () => {
       const ip = await resolver.resolve();
       expect(ip).to.be.equal(POSITIVE_HOST);
       expect(lookupAsyncSpy.callCount).to.be.equal(0);
+      env.unset('SFDX_DISABLE_DNS_CHECK');
+      env.unset('SF_DISABLE_DNS_CHECK');
+    });
+
+    it('should return host if SF_DISABLE_DNS_CHECK is set to true', async () => {
+      expect(env.getBoolean('SFDX_DISABLE_DNS_CHECK')).to.be.false;
+      expect(env.getBoolean('SF_DISABLE_DNS_CHECK')).to.be.false;
+      env.setBoolean('SF_DISABLE_DNS_CHECK', true);
+      expect(env.getBoolean('SF_DISABLE_DNS_CHECK')).to.be.true;
+      expect(env.getBoolean('SFDX_DISABLE_DNS_CHECK')).to.be.false;
+      const options: MyDomainResolver.Options = {
+        url: new URL(`http://${POSITIVE_HOST}`),
+        timeout: Duration.milliseconds(50),
+        frequency: Duration.milliseconds(10),
+      };
+      const resolver: MyDomainResolver = await MyDomainResolver.create(options);
+      const ip = await resolver.resolve();
+      expect(ip).to.be.equal(POSITIVE_HOST);
+      expect(lookupAsyncSpy.callCount).to.be.equal(0);
+      env.unset('SFDX_DISABLE_DNS_CHECK');
+      env.unset('SF_DISABLE_DNS_CHECK');
     });
   });
 
