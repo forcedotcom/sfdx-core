@@ -228,18 +228,14 @@ export class AliasAccessor extends AsyncOptionalCreatable {
         await this.saveAliasStoreToFile();
         return;
       }
-      if (useLock) await unlock(this.fileLocation);
+      if (useLock) return unlockIfLocked(this.fileLocation);
       throw e;
     }
   }
 
   private async saveAliasStoreToFile(): Promise<void> {
     await writeFile(this.fileLocation, aliasStoreToRawFileContents(this.aliasStore));
-    try {
-      await unlock(this.fileLocation);
-    } catch {
-      // ignore the error.  If it wasn't locked, that's what we wanted
-    }
+    return unlockIfLocked(this.fileLocation);
   }
 
   /**
@@ -257,7 +253,13 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    * provided for the legacy sync set/unset methods */
   private saveAliasStoreToFileSync(): void {
     writeFileSync(this.fileLocation, aliasStoreToRawFileContents(this.aliasStore));
-    unlockSync(this.fileLocation);
+    try {
+      unlockSync(this.fileLocation);
+    } catch (e) {
+      // ignore the error.  If it wasn't locked, that's what we wanted
+      if (errorIsNotAcquired(e)) return;
+      throw e;
+    }
   }
 }
 
@@ -287,3 +289,15 @@ const aliasStoreToRawFileContents = (aliasStore: Map<string, string>): string =>
 
 // exported for testSetup mocking
 export const getFileLocation = (): string => join(homedir(), Global.SFDX_STATE_FOLDER, FILENAME);
+
+const unlockIfLocked = async (fileLocation: string): Promise<void> => {
+  try {
+    await unlock(fileLocation);
+  } catch (e) {
+    // ignore the error.  If it wasn't locked, that's what we wanted
+    if (errorIsNotAcquired(e)) return;
+    throw e;
+  }
+};
+
+const errorIsNotAcquired = (e: unknown): boolean => e instanceof Error && 'code' in e && e.code === 'ENOTACQUIRED';
