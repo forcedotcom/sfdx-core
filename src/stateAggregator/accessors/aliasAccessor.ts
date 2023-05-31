@@ -144,6 +144,8 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   /**
    * Unset the given alias.  Writes to the file
    *
+   * @deprecated use unsetAndSave
+   *
    */
   public unset(alias: string): void {
     this.readFileToAliasStoreSync();
