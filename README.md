@@ -95,7 +95,7 @@ describe('Mocking Aliases', () => {
     const testData = new MockTestOrgData();
     await $$.stubAliases({ myAlias: testData.username });
     const alias = (await StateAggregator.getInstance()).aliases.get(testData.username);
-    strictEqual(alias, 'myAlais');
+    strictEqual(alias, 'myAlias');
   });
 });
 

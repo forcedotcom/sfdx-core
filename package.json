@@ -52,6 +52,7 @@
     "js2xmlparser": "^4.0.1",
     "jsforce": "^2.0.0-beta.23",
     "jsonwebtoken": "9.0.0",
+    "proper-lockfile": "^4.1.2",
     "ts-retry-promise": "^0.7.0"
   },
   "devDependencies": {
@@ -64,6 +65,7 @@
     "@types/debug": "0.0.31",
     "@types/jsonwebtoken": "9.0.2",
     "@types/lodash": "^4.14.194",
+    "@types/proper-lockfile": "^4.1.2",
     "@types/shelljs": "0.8.12",
     "@typescript-eslint/eslint-plugin": "^5.59.7",
     "@typescript-eslint/parser": "^5.59.7",

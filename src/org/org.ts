@@ -1211,36 +1211,33 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     this.logger.debug(`Removing users associate with org: ${this.getOrgId()}`);
     const config = await this.retrieveOrgUsersConfig();
     this.logger.debug(`using path for org users: ${config.getPath()}`);
-    const authInfos: AuthInfo[] = await this.readUserAuthFiles();
+
+    const usernames = (await this.readUserAuthFiles()).map((auth) => auth.getFields().username).filter(isString);
 
     await Promise.all(
-      authInfos
-        .map((auth) => auth.getFields().username)
-        .map(async (username) => {
-          const aliasKeys = (username && stateAggregator.aliases.getAll(username)) ?? [];
-          stateAggregator.aliases.unsetAll(username as string);
+      usernames.map(async (username) => {
+        const orgForUser =
+          username === this.getUsername()
+            ? this
+            : await Org.create({
+                connection: await Connection.create({ authInfo: await AuthInfo.create({ username }) }),
+              });
 
-          const orgForUser =
-            username === this.getUsername()
-              ? this
-              : await Org.create({
-                  connection: await Connection.create({ authInfo: await AuthInfo.create({ username }) }),
-                });
+        const orgType = this.isDevHubOrg() ? OrgConfigProperties.TARGET_DEV_HUB : OrgConfigProperties.TARGET_ORG;
+        const configInfo = orgForUser.configAggregator.getInfo(orgType);
+        const needsConfigUpdate =
+          (configInfo.isGlobal() || configInfo.isLocal()) &&
+          (configInfo.value === username || stateAggregator.aliases.get(configInfo.value as string) === username);
 
-          const orgType = this.isDevHubOrg() ? OrgConfigProperties.TARGET_DEV_HUB : OrgConfigProperties.TARGET_ORG;
-          const configInfo = orgForUser.configAggregator.getInfo(orgType);
-          const needsConfigUpdate =
-            (configInfo.isGlobal() || configInfo.isLocal()) &&
-            (configInfo.value === username || aliasKeys.includes(configInfo.value as string));
-
-          return [
-            orgForUser.removeAuth(),
-            needsConfigUpdate ? Config.update(configInfo.isGlobal(), orgType, undefined) : undefined,
-          ].filter(Boolean);
-        })
+        return [
+          orgForUser.removeAuth(),
+          needsConfigUpdate ? Config.update(configInfo.isGlobal(), orgType, undefined) : undefined,
+        ].filter(Boolean);
+      })
     );
 
-    await stateAggregator.aliases.write();
+    // now that we're done with all the aliases, we can unset those
+    await stateAggregator.aliases.unsetValuesAndSave(usernames);
   }
 
   private async removeSandboxConfig(): Promise<void> {
