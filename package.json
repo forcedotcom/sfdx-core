@@ -39,7 +39,7 @@
   ],
   "dependencies": {
     "@salesforce/bunyan": "^2.0.0",
-    "@salesforce/kit": "^3.0.0",
+    "@salesforce/kit": "^3.0.2",
     "@salesforce/schemas": "^1.5.1",
     "@salesforce/ts-types": "^2.0.1",
     "@types/semver": "^7.3.13",
