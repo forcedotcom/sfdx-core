@@ -50,9 +50,9 @@ describe('myDomainResolver', () => {
     it('should return host if SFDX_DISABLE_DNS_CHECK is set to true', async () => {
       expect(env.getBoolean('SFDX_DISABLE_DNS_CHECK')).to.be.false;
       expect(env.getBoolean('SF_DISABLE_DNS_CHECK')).to.be.false;
-      env.setBoolean('SF_DISABLE_DNS_CHECK', true);
-      expect(env.getBoolean('SF_DISABLE_DNS_CHECK')).to.be.true;
-      expect(env.getBoolean('SFDX_DISABLE_DNS_CHECK')).to.be.false;
+      env.setBoolean('SFDX_DISABLE_DNS_CHECK', true);
+      expect(env.getBoolean('SFDX_DISABLE_DNS_CHECK')).to.be.true;
+      expect(env.getBoolean('SF_DISABLE_DNS_CHECK')).to.be.false;
       const options: MyDomainResolver.Options = {
         url: new URL(`http://${POSITIVE_HOST}`),
         timeout: Duration.milliseconds(50),
