@@ -1,3 +1,14 @@
+## [4.1.1](https://github.com/forcedotcom/sfdx-core/compare/4.1.0...4.1.1) (2023-06-05)
+
+
+### Bug Fixes
+
+* trigger gha ([efbd179](https://github.com/forcedotcom/sfdx-core/commit/efbd1798fb5600545b4507ca894819d03375e0c5))
+* trigger gha ([a6cb99a](https://github.com/forcedotcom/sfdx-core/commit/a6cb99adbd28e8c1abd6bd38550c3b45d9f33c74))
+* use SF prefixed env vars, add UTs ([e266340](https://github.com/forcedotcom/sfdx-core/commit/e266340f57c6512acaf71eb3cf8a9d292f37ca01))
+
+
+
 # [4.1.0](https://github.com/forcedotcom/sfdx-core/compare/4.0.1...4.1.0) (2023-06-01)
 
 
