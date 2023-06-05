@@ -7,192 +7,74 @@
 import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as stream from 'stream';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import * as ZipArchiver from 'archiver';
+import * as JSZip from 'jszip';
 import { ZipWriter } from '../../../src/util/zipWriter';
-import { shouldThrow } from '../../../src/testSetup';
-
-class WritableFileStream extends fs.WriteStream {}
-class ReadableFileStream extends fs.ReadStream {}
 
 describe('ZipWriter', () => {
-  const sandbox: sinon.SinonSandbox = sinon.createSandbox();
-  const appendStub = sandbox
-    .stub()
-    .callsFake(
-      (
-        source: string | stream.Readable | Buffer,
-        data?: ZipArchiver.EntryData | ZipArchiver.ZipEntryData | undefined
-      ) => {
-        expect(source).to.be.a('string').and.to.have.length.greaterThan(0);
-        expect(data).to.be.a('object').and.to.have.property('name');
-      }
-    );
-  const createMock = {
-    append: appendStub,
-  } as unknown as ZipArchiver.Archiver;
-
-  beforeEach(() => {
-    sandbox.stub(ZipArchiver, 'create').returns(createMock);
-  });
+  const sandbox = sinon.createSandbox();
+  const contents = 'my-contents';
+  const filePath = path.join('path', 'to', 'my-file.xml');
 
   afterEach(() => {
     sandbox.restore();
   });
 
-  it('addToStore', async () => {
-    const contents = 'my-contents';
-    const filename = 'path/to/my-file.xml';
+  it('addToStore() should add posix file path and content', async () => {
+    const jsZipFileStub = sandbox.stub(JSZip.prototype, 'file');
+    const posixFilePath = 'path/to/my-file.xml';
     const zipWriter = new ZipWriter();
-    await zipWriter.addToStore(contents, filename);
-    expect(appendStub.callCount).to.equal(1);
-    expect(appendStub.firstCall.args[0]).to.equal(contents);
-    expect(appendStub.firstCall.args[1]).to.deep.equal({
-      name: filename,
-    });
-  });
-});
-
-describe('ZipWriter write to buffer', () => {
-  const sandbox: sinon.SinonSandbox = sinon.createSandbox();
-  beforeEach(() => {
-    const zip = ZipArchiver.create('json');
-    sandbox.stub(ZipArchiver, 'create').returns(zip);
+    await zipWriter.addToStore(contents, filePath);
+    expect(jsZipFileStub.callCount).to.equal(1);
+    expect(jsZipFileStub.firstCall.args[0]).to.equal(posixFilePath);
+    expect(jsZipFileStub.firstCall.args[1]).to.equal(contents);
+    expect(zipWriter.getDestinationPath()).to.be.undefined;
   });
 
-  afterEach(() => {
-    sandbox.restore();
-  });
-
-  it('addToZip and finalize and write to buffer', async () => {
-    const contents = 'my-contents';
-    const filename = 'path/to/my-file.xml';
+  it('finalize() should generate a zipBuffer with expected compression level', async () => {
+    const buf = Buffer.from('hi');
+    const jsZipGenerateAsyncStub = sandbox.stub(JSZip.prototype, 'generateAsync').resolves(buf);
     const zipWriter = new ZipWriter();
-    await zipWriter.addToStore(contents, filename);
     await zipWriter.finalize();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const result = JSON.parse(zipWriter.buffer.toString()).pop();
-    expect(result)
-      .to.be.a('object')
-      .and.to.have.keys([
-        'name',
-        'type',
-        'date',
-        'mode',
-        'prefix',
-        'sourcePath',
-        'stats',
-        'sourceType',
-        'crc32',
-        'size',
-      ]);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    expect(result.name).to.be.equal(filename);
-  });
-});
-
-describe('ZipWriter write to file and throws', () => {
-  const sandbox: sinon.SinonSandbox = sinon.createSandbox();
-  const rootDestination = path.join(os.tmpdir(), 'my-zip.zip');
-  const bufferString = 'DEADBEEF';
-  // const rootDestination = path.join('/Users', 'bmaggi', 'tmp', 'my-zip.zip');
-  let writeStreamStub: sinon.SinonStubbedInstance<WritableFileStream>;
-  let readStreamStub: sinon.SinonStubbedInstance<ReadableFileStream>;
-  let createWriteStreamStub: sinon.SinonStub;
-  let createReadStreamStub: sinon.SinonStub;
-  beforeEach(() => {
-    writeStreamStub = sinon.createStubInstance(WritableFileStream);
-    readStreamStub = sinon.createStubInstance(ReadableFileStream);
-    createWriteStreamStub = sandbox.stub(fs, 'createWriteStream').withArgs(rootDestination).returns(writeStreamStub);
-    createReadStreamStub = sandbox.stub(fs, 'createReadStream').withArgs(rootDestination).returns(readStreamStub);
-    // @ts-expect-error - fake function signature not quite complete
-    readStreamStub.on.callsFake((event: string, listener: (...args: any[]) => void): ReadableFileStream => {
-      if (event === 'data') {
-        setImmediate(() => listener(Buffer.from(bufferString, 'utf8')));
-      }
-      return readStreamStub;
+    expect(zipWriter.buffer).to.equal(buf);
+    expect(jsZipGenerateAsyncStub.firstCall.args[0]).to.deep.equal({
+      type: 'nodebuffer',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 3 },
     });
-    // @ts-expect-error - fake function signature not quite complete
-    readStreamStub.once.callsFake((event: string, listener: (...args: any[]) => void): ReadableFileStream => {
-      if (event === 'end') {
-        setImmediate(() => listener());
-      }
-      return readStreamStub;
-    });
-    const createMock = {
-      append: sinon.spy(),
-      finalize: sinon.stub().resolves(),
-    } as unknown as ZipArchiver.Archiver;
-    sandbox.stub(ZipArchiver, 'create').returns(createMock);
   });
 
-  afterEach(() => {
-    sandbox.restore();
-  });
-
-  it('addToZip and finalize and write to buffer', async () => {
-    const contents = 'my-contents';
-    const filename = 'my-file.xml';
-    const zipWriter = new ZipWriter(rootDestination);
-    await zipWriter.addToStore(contents, filename);
-    await zipWriter.finalize();
-    expect(createWriteStreamStub.firstCall.firstArg).to.equal(rootDestination);
-    expect(createReadStreamStub.firstCall.firstArg).to.equal(rootDestination);
-  });
-});
-
-describe('ZipWriter write to file', () => {
-  const sandbox: sinon.SinonSandbox = sinon.createSandbox();
-  const rootDestination = path.join(os.tmpdir(), 'my-zip.zip');
-  const bufferString = 'DEADBEEF';
-  let writeStreamStub: sinon.SinonStubbedInstance<WritableFileStream>;
-  let readStreamStub: sinon.SinonStubbedInstance<ReadableFileStream>;
-  let createWriteStreamStub: sinon.SinonStub;
-  let createReadStreamStub: sinon.SinonStub;
-  beforeEach(() => {
-    writeStreamStub = sinon.createStubInstance(WritableFileStream);
-    readStreamStub = sinon.createStubInstance(ReadableFileStream);
-    createWriteStreamStub = sandbox.stub(fs, 'createWriteStream').withArgs(rootDestination).returns(writeStreamStub);
-    createReadStreamStub = sandbox.stub(fs, 'createReadStream').withArgs(rootDestination).returns(readStreamStub);
-    // @ts-expect-error - fake function signature not quite complete
-    readStreamStub.on.callsFake((event: string, listener: (...args: any[]) => void): ReadableFileStream => {
-      if (event === 'data') {
-        setImmediate(() => listener(Buffer.from(bufferString, 'utf8')));
-      }
-      return readStreamStub;
-    });
-    // @ts-expect-error - fake function signature not quite complete
-    readStreamStub.once.callsFake((event: string, listener: (...args: any[]) => void): ReadableFileStream => {
-      if (event === 'error') {
-        setImmediate(() => listener(new Error('FileReadError')));
-      }
-      return readStreamStub;
-    });
-    const createMock = {
-      append: sinon.spy(),
-      finalize: sinon.stub().resolves(),
-    } as unknown as ZipArchiver.Archiver;
-    sandbox.stub(ZipArchiver, 'create').returns(createMock);
-  });
-
-  afterEach(() => {
-    sandbox.restore();
-  });
-
-  it('addToZip and finalize and write to buffer and throws', async () => {
-    const contents = 'my-contents';
-    const filename = 'my-file.xml';
-    const zipWriter = new ZipWriter(rootDestination);
-    // eslint-disable-next-line @typescript-eslint/await-thenable
-    await zipWriter.addToStore(contents, filename);
+  it('should throw when buffer() is called before finalize()', async () => {
     try {
-      await shouldThrow(zipWriter.finalize());
-    } catch (error) {
-      expect(error).to.exist;
+      new ZipWriter().buffer;
+      expect(false, 'Expected an error to be thrown');
+    } catch (e) {
+      expect(e).to.be.instanceOf(Error);
+      expect((e as Error).message).to.equal('Must finalize the ZipWriter before getting a buffer');
     }
-    expect(createWriteStreamStub.firstCall.firstArg).to.equal(rootDestination);
-    expect(createReadStreamStub.firstCall.firstArg).to.equal(rootDestination);
+  });
+
+  // NOTE: This is a "NUT style" test versus a unit test since it does some file system operations
+  it('should generate a valid zip file', async () => {
+    const buf = Buffer.from('hi');
+    const rootDestination = path.join(os.tmpdir(), 'zipWriterTest');
+    const zipFilePath = path.join(rootDestination, 'myZip.zip');
+    try {
+      fs.mkdirSync(rootDestination, { recursive: true });
+      const fileToBeZippedPath = path.join(rootDestination, 'foo.txt');
+
+      const zipWriter = new ZipWriter(rootDestination);
+      await zipWriter.addToStore(buf, fileToBeZippedPath);
+      await zipWriter.finalize();
+      fs.writeFileSync(zipFilePath, zipWriter.buffer);
+
+      expect(zipWriter.getDestinationPath()).to.equal(rootDestination);
+      expect(fs.existsSync(zipFilePath)).to.be.true;
+      expect(fs.statSync(zipFilePath).size).to.be.greaterThan(0);
+    } finally {
+      fs.unlinkSync(zipFilePath);
+      fs.rmdirSync(rootDestination);
+    }
   });
 });
