@@ -59,6 +59,9 @@ describe('ZipWriter', () => {
   it('should generate a valid zip file', async () => {
     const buf = Buffer.from('hi');
     const rootDestination = path.join(os.tmpdir(), 'zipWriterTest');
+    if (fs.existsSync(rootDestination)) {
+      fs.rmSync(rootDestination, { recursive: true, force: true });
+    }
     const zipFilePath = path.join(rootDestination, 'myZip.zip');
     try {
       fs.mkdirSync(rootDestination, { recursive: true });
@@ -73,8 +76,7 @@ describe('ZipWriter', () => {
       expect(fs.existsSync(zipFilePath)).to.be.true;
       expect(fs.statSync(zipFilePath).size).to.be.greaterThan(0);
     } finally {
-      fs.unlinkSync(zipFilePath);
-      fs.rmdirSync(rootDestination);
+      fs.rmSync(rootDestination, { recursive: true, force: true });
     }
   });
 });
