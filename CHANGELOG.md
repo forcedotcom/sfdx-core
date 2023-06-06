@@ -1,3 +1,17 @@
+# [4.2.0](https://github.com/forcedotcom/sfdx-core/compare/4.1.3...4.2.0) (2023-06-06)
+
+
+### Bug Fixes
+
+* improve test robustness ([1b29bd3](https://github.com/forcedotcom/sfdx-core/commit/1b29bd360a753a0d9c7606e45e096c6d7c7fa5e6))
+
+
+### Features
+
+* replace archiver with jszip for ZipWriter ([c8d03d4](https://github.com/forcedotcom/sfdx-core/commit/c8d03d429cf14140fa025cdbf2499876b56a9b38))
+
+
+
 ## [4.1.3](https://github.com/forcedotcom/sfdx-core/compare/4.1.2...4.1.3) (2023-06-06)
 
 
