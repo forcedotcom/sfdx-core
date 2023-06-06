@@ -1,3 +1,32 @@
+## [4.1.3](https://github.com/forcedotcom/sfdx-core/compare/4.1.2...4.1.3) (2023-06-06)
+
+
+### Bug Fixes
+
+* **deps:** bump @types/semver from 7.3.13 to 7.5.0 ([4a84e39](https://github.com/forcedotcom/sfdx-core/commit/4a84e39caaf5b66266de29a275bd46a1fde003fc))
+
+
+
+## [4.1.2](https://github.com/forcedotcom/sfdx-core/compare/4.1.1...4.1.2) (2023-06-05)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/kit from 3.0.0 to 3.0.2 ([c1e75d0](https://github.com/forcedotcom/sfdx-core/commit/c1e75d038a3fb6776bde246348935d6a2857f6dc))
+
+
+
+## [4.1.1](https://github.com/forcedotcom/sfdx-core/compare/4.1.0...4.1.1) (2023-06-05)
+
+
+### Bug Fixes
+
+* trigger gha ([efbd179](https://github.com/forcedotcom/sfdx-core/commit/efbd1798fb5600545b4507ca894819d03375e0c5))
+* trigger gha ([a6cb99a](https://github.com/forcedotcom/sfdx-core/commit/a6cb99adbd28e8c1abd6bd38550c3b45d9f33c74))
+* use SF prefixed env vars, add UTs ([e266340](https://github.com/forcedotcom/sfdx-core/commit/e266340f57c6512acaf71eb3cf8a9d292f37ca01))
+
+
+
 # [4.1.0](https://github.com/forcedotcom/sfdx-core/compare/4.0.1...4.1.0) (2023-06-01)
 
 

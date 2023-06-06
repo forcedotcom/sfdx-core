@@ -73,8 +73,9 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
    * executing the dns loookup.
    */
   public async resolve(): Promise<string> {
-    if (new Env().getBoolean('SFDX_DISABLE_DNS_CHECK', false)) {
-      this.logger.debug('SFDX_DISABLE_DNS_CHECK set to true. Skipping DNS check...');
+    const env = new Env();
+    if (env.getBoolean('SF_DISABLE_DNS_CHECK', env.getBoolean('SFDX_DISABLE_DNS_CHECK', false))) {
+      this.logger.debug('SF_DISABLE_DNS_CHECK set to true. Skipping DNS check...');
       return this.options.url.host;
     }
 
