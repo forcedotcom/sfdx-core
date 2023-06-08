@@ -1,3 +1,12 @@
+## [4.2.1](https://github.com/forcedotcom/sfdx-core/compare/4.2.0...4.2.1) (2023-06-08)
+
+
+### Bug Fixes
+
+* typos ([58064b1](https://github.com/forcedotcom/sfdx-core/commit/58064b140adfb78895f3d09a72dd731a4d299dff))
+
+
+
 # [4.2.0](https://github.com/forcedotcom/sfdx-core/compare/4.1.3...4.2.0) (2023-06-06)
 
 
