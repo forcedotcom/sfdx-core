@@ -567,10 +567,10 @@
     typescript "^4.9.5"
     wireit "^0.9.5"
 
-"@salesforce/kit@^3.0.2":
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-3.0.2.tgz#6474c3e9905290bbcfb3455388b140eee3ff84db"
-  integrity sha512-/TbqjmxThz3+ZeLrYZFEcvn7kbK7DW0aHzotazyKsoGbqsHiiXIMNS1Cc5rfJRKQV7bKp84vMF/WCyBZJFHZKA==
+"@salesforce/kit@^3.0.3":
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-3.0.3.tgz#7144bf4d135b45d9f7a0a52365ec5e55b380b4e0"
+  integrity sha512-je1x5wt2+BVcGuFvd6anodqSFQY68cDnSosAfxYCQfuQsknTNp+QorliATurpKfucOJ6yAKCxP8nxGjZzcAX0w==
   dependencies:
     "@salesforce/ts-types" "^2.0.1"
     tslib "^2.5.2"
