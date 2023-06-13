@@ -23,6 +23,10 @@ See the [API documentation](https://forcedotcom.github.io/sfdx-core/).
 
 If you are interested in contributing, please take a look at the [CONTRIBUTING](CONTRIBUTING.md) guide.
 
+## Issues
+
+Please report all issues to [issues only repository](https://github.com/forcedotcom/cli/issues).
+
 # Using TestSetup
 
 The Salesforce DX Core Library provides a unit testing utility to help with mocking and sand-boxing core components. This feature allows unit tests to execute without needing to make API calls to salesforce.com.
