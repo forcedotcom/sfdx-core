@@ -238,7 +238,7 @@ In your plugin or library,
 ```json
 {
   ...
-  "plugins": [{ "transform": "@salesforce/core", "import": "messageTransformer" }]
+  "plugins": [{ "transform": "@salesforce/core/lib/messageTransformer", "import": "messageTransformer" }]
 }
 ```
 
