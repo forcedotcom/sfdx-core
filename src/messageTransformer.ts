@@ -4,8 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/* eslint-disable no-console */
-/* eslint-disable complexity */
 
 import * as ts from 'typescript';
 import { Messages, StoredMessageMap } from './messages';
@@ -15,8 +13,7 @@ import { Messages, StoredMessageMap } from './messages';
  * @experimental
  * transforms `messages` references from dynamic run-time to static compile-time values
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/explicit-function-return-type
-export const messageTransformer = (program: ts.Program, pluginOptions: unknown) => {
+export const messageTransformer = (): ts.TransformerFactory<ts.SourceFile> => {
   Messages.importMessagesDirectory(process.cwd());
   const transformerFactory: ts.TransformerFactory<ts.SourceFile> = (context) => (sourceFile) => {
     if (
