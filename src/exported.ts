@@ -10,7 +10,6 @@ import { Messages } from './messages';
 Messages.importMessagesDirectory(__dirname);
 
 export { OAuth2Config } from 'jsforce';
-export { messageTransformer } from './messageTransformer';
 export { ConfigFile } from './config/configFile';
 
 export { TTLConfig } from './config/ttlConfig';
@@ -65,6 +64,8 @@ export {
   LoggerStream,
   Logger,
 } from './logger';
+
+export { logger } from './logger2';
 
 export { Messages, StructuredMessage } from './messages';
 
