@@ -1,3 +1,12 @@
+# [4.3.0](https://github.com/forcedotcom/sfdx-core/compare/4.2.2...4.3.0) (2023-06-13)
+
+
+### Features
+
+* export msgTransformer for other libraries ([25a5b4f](https://github.com/forcedotcom/sfdx-core/commit/25a5b4f1f3e12864fb3ac735a44eebc3b0a19293))
+
+
+
 ## [4.2.2](https://github.com/forcedotcom/sfdx-core/compare/4.2.1...4.2.2) (2023-06-11)
 
 
