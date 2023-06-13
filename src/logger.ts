@@ -689,7 +689,7 @@ export class Logger {
 
     const child = new Logger(name);
     // only support including additional fields on log line (no config)
-    child.bunyan = this.bunyan.child({ ...fields, name });
+    child.bunyan = this.bunyan.child({ ...fields, name: `${Logger.ROOT_NAME}:${name}` });
     // child.bunyan.name = name;
     // child.bunyan.filters = this.bunyan.filters;
 

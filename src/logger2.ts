@@ -9,7 +9,12 @@ import pino from 'pino';
 import { Global } from './global';
 
 const ROOT_NAME = 'sf';
-const destinationFile = path.join(Global.SF_DIR, `sf.new-${new Date().toISOString().split('T')[0]}.log`);
+const rotator = new Map([
+  ['minute', new Date().toISOString().split(':').slice(0, 2).join('-')],
+  ['day', new Date().toISOString().split('T')[0]],
+]);
+
+const destinationFileMM = path.join(Global.SF_DIR, `sf.new-${rotator.get('minute')}.log`);
 
 /** used when debug mode, writes to stdout */
 const debugTransport = {
@@ -22,7 +27,7 @@ const debugTransport = {
 const primaryTransport = {
   target: 'pino/file',
   level: 'info',
-  options: { destination: destinationFile, mkdir: true },
+  options: { destination: destinationFileMM, mkdir: true },
 } as const;
 
 export const logger = pino({
@@ -32,7 +37,7 @@ export const logger = pino({
   transport: {
     targets: process.env.DEBUG ? [primaryTransport, debugTransport] : [primaryTransport],
   },
-  sync: false,
+  sync: true,
 });
 
 // TODO: handle removing files with dates more than 7 days ago.  Make a quasi random creation of a new job to do it outside the main thread.
@@ -41,3 +46,4 @@ export const logger = pino({
 // TODO: test mode (writing logs to a different location, or buffer, to retrieve from TestSetup)
 
 // TODO: telemetry as custom level (1)
+// TODO: how to inject/hoist this into oclif to override DEBUG library and get telemetry from there?
