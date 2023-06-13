@@ -1,3 +1,12 @@
+## [4.3.1](https://github.com/forcedotcom/sfdx-core/compare/4.3.0...4.3.1) (2023-06-13)
+
+
+### Bug Fixes
+
+* **messageTransformer:** remove export, require deep import from lib ([#861](https://github.com/forcedotcom/sfdx-core/issues/861)) ([49abe60](https://github.com/forcedotcom/sfdx-core/commit/49abe603e765a29bbcb5f29c664dd862c29493be))
+
+
+
 # [4.3.0](https://github.com/forcedotcom/sfdx-core/compare/4.2.2...4.3.0) (2023-06-13)
 
 
