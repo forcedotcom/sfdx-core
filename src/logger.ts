@@ -466,11 +466,10 @@ export class Logger {
       fs.accessSync(logFile, fs.constants.W_OK);
     } catch (err1) {
       try {
-        if (process.platform === 'win32') {
-          fs.mkdirSync(path.dirname(logFile), { recursive: true });
-        } else {
-          fs.mkdirSync(path.dirname(logFile), { recursive: true, mode: 0o700 });
-        }
+        fs.mkdirSync(path.dirname(logFile), {
+          recursive: true,
+          ...(process.platform === 'win32' ? {} : { mode: 0o700 }),
+        });
       } catch (err2) {
         throw SfError.wrap(err2 as Error);
       }
