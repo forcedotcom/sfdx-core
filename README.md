@@ -220,3 +220,45 @@ describe('Testing log lines', () => {
   });
 });
 ```
+
+## Message Transformer
+
+the Messages class, by default, will load message text during run time. It's optimized to do this only per file.
+
+If you're using @salesforce/core or other code that uses its Messages class in a bundler (webpack, esbuild, etc) it may struggle with these runtime references.
+
+src/messageTransformer will "inline" the messages into the js files during TS compile using `https://github.com/cevek/ttypescript`.
+
+In your plugin or library,
+
+`yarn add --dev ttypescript`
+
+> tsconfig.json
+
+```json
+{
+  ...
+  "plugins": [{ "transform": "@salesforce/core", "import": "messageTransformer" }]
+}
+```
+
+> .sfdevrc.json, which gets merged into package.json
+
+```json
+"wireit": {
+    "compile": {
+      "command": "ttsc -p . --pretty --incremental",
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "messages"
+      ],
+      "output": [
+        "lib/**",
+        "*.tsbuildinfo"
+      ],
+      "clean": "if-file-deleted"
+    }
+  }
+
+```
