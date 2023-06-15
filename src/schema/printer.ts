@@ -16,7 +16,7 @@ import {
   JsonMap,
   Optional,
 } from '@salesforce/ts-types';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 
 /**

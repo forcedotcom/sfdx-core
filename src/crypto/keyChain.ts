@@ -6,7 +6,7 @@
  */
 
 import { env } from '@salesforce/kit';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { KeyChain, keyChainImpl } from './keyChainImpl';
 

@@ -30,9 +30,9 @@ import Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
-import { matchesAccessToken, trimTo15 } from '../util/sfdc';
+import { matchesAccessToken, sfdxAuthUrlRegex, trimTo15 } from '../util/sfdc';
 import { StateAggregator } from '../stateAggregator';
 import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
@@ -352,9 +352,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   public static parseSfdxAuthUrl(
     sfdxAuthUrl: string
   ): Pick<AuthFields, 'clientId' | 'clientSecret' | 'refreshToken' | 'loginUrl'> {
-    const match = sfdxAuthUrl.match(
-      /^force:\/\/([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]*):([a-zA-Z0-9._-]+={0,2})@([a-zA-Z0-9._-]+)/
-    );
+    const match = sfdxAuthUrl.match(sfdxAuthUrlRegex);
 
     if (!match) {
       throw new SfError(

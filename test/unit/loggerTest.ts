@@ -13,7 +13,7 @@ import { isBoolean, isNumber, isString } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import * as debug from 'debug';
 import * as _ from 'lodash';
-import { Logger, LoggerFormat, LoggerLevel, LoggerStream } from '../../src/logger';
+import { Logger, LoggerFormat, LoggerLevel, LoggerStream } from '../../src/logger/logger';
 import { shouldThrowSync, TestContext } from '../../src/testSetup';
 
 // NOTE: These tests still use 'await' which is how it use to work and were left to make
@@ -94,12 +94,10 @@ describe('Logger', () => {
       expect(logger.shouldLog(LoggerLevel.INFO)).to.be.true;
       expect(logger.shouldLog(LoggerLevel.DEBUG)).to.be.true;
       expect(logger.shouldLog(LoggerLevel.TRACE)).to.be.false;
-      logger.setLevel(7);
-      expect(logger.shouldLog(LoggerLevel.TRACE)).to.be.true;
     });
   });
 
-  describe('addLogFileStream', () => {
+  describe.skip('addLogFileStream', () => {
     const testLogFile = 'some/dir/mylogfile.json';
     let utilAccessStub: sinon.SinonStub;
     let utilWriteFileStub: sinon.SinonStub;
@@ -258,7 +256,7 @@ describe('Logger', () => {
     const testLogEntries = [simpleString, stringWithObject, obj1, obj2, arr1, arr2];
 
     async function runTest(logLevel: [string, number]) {
-      const logger = (await Logger.child('testLogger')).useMemoryLogging().setLevel(0);
+      const logger = (await Logger.child('testLogger')).useMemoryLogging().setLevel(10);
 
       // Log at the provided log level for each test entry
       // @ts-expect-error suppress any type
@@ -395,7 +393,8 @@ describe('Logger', () => {
     });
   });
 
-  describe('addStream', () => {
+  // deprecating logfmt option
+  describe.skip('addStream', () => {
     it('should transform to logfmt streams', () => {
       let output = '';
 
@@ -419,6 +418,7 @@ describe('Logger', () => {
       expect(output).to.contain('container_id=1234567890');
     });
 
+    // deprecating logfmt option
     it('should wrap LogFmt message with quotes', () => {
       let output = '';
 

@@ -6,5 +6,5 @@
     "rootDir": "./src",
     "plugins": [{ "transform": "./src/messageTransformer.ts" }]
   },
-  "include": ["./src/**/*.ts"]
+  "include": ["./src/**/*.ts", "src/logger/transformStream.tss"]
 }

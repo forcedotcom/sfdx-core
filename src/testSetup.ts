@@ -35,7 +35,8 @@ import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
 import { Connection } from './org/connection';
 import { Crypto } from './crypto/crypto';
-import { Logger } from './logger';
+import { Logger } from './logger/logger';
+import { rootLogger } from './logger/logger2';
 import { Messages } from './messages';
 import { SfError } from './sfError';
 import { SfProject, SfProjectJson } from './sfProject';
@@ -112,6 +113,8 @@ export class TestContext {
    * The test logger that is used when {@link Logger.child} is used anywhere. It uses memory logging.
    */
   public TEST_LOGGER: Logger;
+
+  public ROOT_LOGGER: typeof rootLogger;
   /**
    * id A unique id for the test run.
    */
@@ -149,7 +152,11 @@ export class TestContext {
       ORGS: sinon.createSandbox(),
     };
 
-    this.TEST_LOGGER = new Logger({ name: 'SFDX_Core_Test_Logger' }).useMemoryLogging();
+    this.ROOT_LOGGER = sinon.stub(rootLogger);
+    this.TEST_LOGGER = new Logger({
+      name: 'SFDX_Core_Test_Logger',
+      customPath: pathJoin(this.localPathRetrieverSync(this.id), 'log'),
+    });
 
     if (opts.setup) {
       this.setup();

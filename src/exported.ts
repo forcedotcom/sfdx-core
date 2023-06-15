@@ -63,9 +63,9 @@ export {
   LoggerOptions,
   LoggerStream,
   Logger,
-} from './logger';
+} from './logger/logger';
 
-export { logger } from './logger2';
+export { rootLogger } from './logger/logger2';
 
 export { Messages, StructuredMessage } from './messages';
 

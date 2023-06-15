@@ -1,0 +1,51 @@
+/*
+ * Copyright (c) 2023, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import { pipeline, Transform } from 'stream';
+import { accessTokenRegex, sfdxAuthUrlRegex } from '../exported';
+import { unwrapArrray } from '../util/unwrapArrray';
+import { filterSecrets } from './filters';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+const build = require('pino-abstract-transport');
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
+export default async function (options: Record<string, unknown>) {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+  return build(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (source: any): Transform => {
+      const myTransportStream = new Transform({
+        // Make sure autoDestroy is set,
+        // this is needed in Node v12 or when using the
+        // readable-stream module.
+        autoDestroy: true,
+
+        objectMode: true,
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        transform(chunk: Record<string, unknown>, enc, cb) {
+          // uses the original logger's filters.
+          const filteredChunk = unwrapArrray(filterSecrets([chunk]));
+
+          // stringify the payload again to make it easier to run replacements on
+          // filter things that look like certain tokens
+          const stringified = JSON.stringify(filteredChunk)
+            .replace(new RegExp(accessTokenRegex, 'g'), '<REDACTED ACCESS TOKEN>')
+            .replace(new RegExp(sfdxAuthUrlRegex, 'g'), '<REDACTED ACCESS TOKEN>');
+          this.push(`${stringified}\n`);
+          cb();
+        },
+      });
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      pipeline(source, myTransportStream, () => {});
+      return myTransportStream;
+    },
+    {
+      // This is needed to be able to pipeline transports.
+      enablePipelining: true,
+    }
+  );
+}

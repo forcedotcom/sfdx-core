@@ -15,7 +15,7 @@ import { EventEmitter } from 'events';
 import { JwtOAuth2Config, OAuth2 } from 'jsforce';
 import { AsyncCreatable, Env, set, toNumber } from '@salesforce/kit';
 import { asString, get, Nullable } from '@salesforce/ts-types';
-import { Logger } from './logger';
+import { Logger } from './logger/logger';
 import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org';
 import { SfError } from './sfError';
 import { Messages } from './messages';

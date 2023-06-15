@@ -8,8 +8,8 @@
 import { EOL } from 'os';
 import { mapKeys, upperFirst } from '@salesforce/kit';
 import { hasArray, Optional } from '@salesforce/ts-types';
-import { QueryResult, Record } from 'jsforce';
-import { Logger } from '../logger';
+import { QueryResult, Record, SaveError } from 'jsforce';
+import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
 import { Org } from './org';
@@ -95,14 +95,24 @@ export class PermissionSetAssignment {
       .create(mapKeys(assignment, (value: unknown, key: string) => upperFirst(key)));
 
     if (hasArray(createResponse, 'errors') && createResponse.errors.length > 0) {
-      let message = messages.getMessage('errorsEncounteredCreatingAssignment');
-
       const errors = createResponse.errors;
       if (errors && errors.length > 0) {
-        message = `${message}:${EOL}`;
-        errors.forEach((_message) => {
-          message = `${message}${_message as string}${EOL}`;
-        });
+        const message = [messages.getMessage('errorsEncounteredCreatingAssignment')]
+          .concat(
+            errors
+              .filter(
+                // jsforce types are bad for SaveError[] (the never[] should be optional)
+                (e): e is SaveError =>
+                  typeof e == 'object' &&
+                  e !== null &&
+                  'message' in e &&
+                  'errorCode' in e &&
+                  typeof e.message === 'string' &&
+                  typeof e.errorCode === 'string'
+              )
+              .map((e) => e.message)
+          )
+          .join(EOL);
         throw new SfError(message, 'errorsEncounteredCreatingAssignment');
       } else {
         throw messages.createError('notSuccessfulButNoErrorsReported');

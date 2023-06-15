@@ -11,7 +11,7 @@ import { resolve as resolveUrl } from 'url';
 import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit/lib';
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types/lib';
 import * as Faye from 'faye';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { Org } from '../org/org';
 import { SfError } from '../sfError';
 import { Messages } from '../messages';
