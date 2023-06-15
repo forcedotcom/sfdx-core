@@ -36,7 +36,6 @@ import { ConfigContents } from './config/configStore';
 import { Connection } from './org/connection';
 import { Crypto } from './crypto/crypto';
 import { Logger } from './logger/logger';
-import { rootLogger } from './logger/logger2';
 import { Messages } from './messages';
 import { SfError } from './sfError';
 import { SfProject, SfProjectJson } from './sfProject';
@@ -114,7 +113,6 @@ export class TestContext {
    */
   public TEST_LOGGER: Logger;
 
-  public ROOT_LOGGER: typeof rootLogger;
   /**
    * id A unique id for the test run.
    */
@@ -152,7 +150,6 @@ export class TestContext {
       ORGS: sinon.createSandbox(),
     };
 
-    this.ROOT_LOGGER = sinon.stub(rootLogger);
     this.TEST_LOGGER = new Logger({
       name: 'SFDX_Core_Test_Logger',
       customPath: pathJoin(this.localPathRetrieverSync(this.id), 'log'),
@@ -540,6 +537,7 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
   // Most core files create a child logger so stub this to return our test logger.
   stubMethod(testContext.SANDBOX, Logger, 'child').resolves(testContext.TEST_LOGGER);
   stubMethod(testContext.SANDBOX, Logger, 'childFromRoot').returns(testContext.TEST_LOGGER);
+
   testContext.inProject(true);
   testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) =>
     testContext.rootPathRetriever(isGlobal, testContext.id)

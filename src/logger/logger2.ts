@@ -11,6 +11,8 @@ import pino, { Logger } from 'pino';
 import { Global } from '../global';
 
 const ROOT_NAME = 'sf';
+const enabled = process.env.SFDX_DISABLE_LOG_FILE !== 'true' && process.env.SF_LOG_LEVEL !== 'true';
+const level = process.env.SF_LOG_LEVEL ?? process.env.SFDX_LOG_LEVEL ?? 'warn';
 
 const rotator = new Map([
   ['minute', new Date().toISOString().split(':').slice(0, 2).join('-')],
@@ -29,7 +31,8 @@ const transportStream = {
  * */
 export const rootLogger = pino({
   name: ROOT_NAME,
-  level: process.env.SF_LOG_LEVEL ?? process.env.SFDX_LOG_LEVEL ?? 'warn',
+  enabled,
+  level,
   transport: {
     pipeline: [
       transportStream,
@@ -63,7 +66,8 @@ export const getCustomLogger = ({ customPath, name = ROOT_NAME }: { customPath?:
 
   const customLogger = pino({
     name,
-    level: process.env.SF_LOG_LEVEL ?? process.env.SFDX_LOG_LEVEL ?? 'warn',
+    enabled,
+    level,
     transport: {
       pipeline: [transportStream, testTransport],
     },

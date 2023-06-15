@@ -9,10 +9,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
 import * as fs from 'fs';
-import { isBoolean, isNumber, isString } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import * as debug from 'debug';
-import * as _ from 'lodash';
 import { Logger, LoggerFormat, LoggerLevel, LoggerStream } from '../../src/logger/logger';
 import { shouldThrowSync, TestContext } from '../../src/testSetup';
 
@@ -149,12 +147,9 @@ describe('Logger', () => {
 
   describe('root', () => {
     it('should construct the root SF logger', async () => {
-      $$.SANDBOX.spy(Logger.prototype, 'addFilter');
       const defaultLogger = await Logger.root();
       expect(defaultLogger).to.be.instanceof(Logger);
       expect(defaultLogger.getName()).to.equal('sf');
-      // @ts-expect-error: called is a sinon spy property
-      expect(defaultLogger.addFilter['called'], 'new Logger() should have called addFilter()').to.be.true;
       const logger = await Logger.root();
       expect(logger).to.equal(defaultLogger);
     });
@@ -181,12 +176,11 @@ describe('Logger', () => {
       process.env.SFDX_ENV = 'dev';
 
       const rootLogger = await Logger.root();
-      $$.SANDBOX.stub(rootLogger, 'fatal');
+      const fatalStub = $$.SANDBOX.stub(rootLogger, 'fatal');
 
       // @ts-expect-error to access private property `lifecycle` for testing uncaughtException
       Logger.lifecycle.emit('uncaughtException', 'testException');
-      // @ts-expect-error: called is a sinon spy property
-      expect(rootLogger.fatal['called']).to.be.true;
+      expect(fatalStub.called).to.be.true;
     });
   });
 
@@ -212,7 +206,8 @@ describe('Logger', () => {
     });
   });
 
-  describe('debugCallback', () => {
+  // removed this feature
+  describe.skip('debugCallback', () => {
     it('should log', async () => {
       const logger = (await Logger.child('testLogger')).useMemoryLogging();
       logger.setLevel(LoggerLevel.DEBUG);
@@ -281,7 +276,8 @@ describe('Logger', () => {
     it('should apply for log level: fatal', () => runTest(['fatal', 60]));
   });
 
-  describe('addField', () => {
+  // we don't do dynamic field adds anymore
+  describe.skip('addField', () => {
     it('should add a field to the log record', async () => {
       const logger = (await Logger.child('testLogger')).useMemoryLogging();
       logger.addField('newField1', 'stringVal');
@@ -298,34 +294,35 @@ describe('Logger', () => {
     });
   });
 
-  describe('serializers', () => {
-    it('should run properly after filters are applied', async () => {
-      const logger = (await Logger.child('testSerializersLogger')).useMemoryLogging();
+  // we don't do serializers anymore
+  // describe.skip('serializers', () => {
+  //   it('should run properly after filters are applied', async () => {
+  //     const logger = (await Logger.child('testSerializersLogger')).useMemoryLogging();
 
-      // A test serializer
-      logger.getBunyanLogger().serializers.config = (obj: Record<string, unknown>) =>
-        _.reduce(
-          obj,
-          (acc, val, key) => {
-            if (isString(val) || isNumber(val) || isBoolean(val)) {
-              // @ts-expect-error string cannot index value
-              acc[key] = val;
-            }
-            return acc;
-          },
-          {}
-        );
+  //     // A test serializer
+  //     logger.getBunyanLogger().serializers.config = (obj: Record<string, unknown>) =>
+  //       _.reduce(
+  //         obj,
+  //         (acc, val, key) => {
+  //           if (isString(val) || isNumber(val) || isBoolean(val)) {
+  //             // @ts-expect-error string cannot index value
+  //             acc[key] = val;
+  //           }
+  //           return acc;
+  //         },
+  //         {}
+  //       );
 
-      logger.warn({ config: { foo: { bar: 1 }, sid: 'secret' } });
-      const logRecords = logger.getBufferedRecords();
+  //     logger.warn({ config: { foo: { bar: 1 }, sid: 'secret' } });
+  //     const logRecords = logger.getBufferedRecords();
 
-      // If the serializer was applied it should not log the 'foo' entry
-      const msgOnError = 'Expected the config serializer to remove the "foo" entry from the log record ';
-      expect(logRecords[0], msgOnError).to.have.deep.property('config', {
-        sid: '<sid - HIDDEN>',
-      });
-    });
-  });
+  //     // If the serializer was applied it should not log the 'foo' entry
+  //     const msgOnError = 'Expected the config serializer to remove the "foo" entry from the log record ';
+  //     expect(logRecords[0], msgOnError).to.have.deep.property('config', {
+  //       sid: '<sid - HIDDEN>',
+  //     });
+  //   });
+  // });
 
   describe('debug lib', () => {
     let output: string;
