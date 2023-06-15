@@ -908,7 +908,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * query SandboxProcess via sandbox name
    *
    * @param name SandboxName to query for
-   * @private
    */
   public async querySandboxProcessBySandboxName(name: string): Promise<SandboxProcessObject> {
     return this.querySandboxProcess(`SandboxName='${name}'`);
@@ -918,7 +917,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * query SandboxProcess via SandboxInfoId
    *
    * @param id SandboxInfoId to query for
-   * @private
    */
   public async querySandboxProcessBySandboxInfoId(id: string): Promise<SandboxProcessObject> {
     return this.querySandboxProcess(`SandboxInfoId='${id}'`);
@@ -928,10 +926,19 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * query SandboxProcess via Id
    *
    * @param id SandboxProcessId to query for
-   * @private
    */
   public async querySandboxProcessById(id: string): Promise<SandboxProcessObject> {
     return this.querySandboxProcess(`Id='${id}'`);
+  }
+
+  /**
+   * query SandboxProcess via SandboxOrganization (sandbox Org ID)
+   *
+   * @param sandboxOrgId SandboxOrganization ID to query for
+   */
+  public async querySandboxProcessByOrgId(sandboxOrgId: string): Promise<SandboxProcessObject> {
+    // Must query with a 15 character Org ID
+    return this.querySandboxProcess(`SandboxOrganization='${trimTo15(sandboxOrgId)}'`);
   }
 
   /**
@@ -1291,7 +1298,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       // save auth info for new sandbox
       await authInfo.save();
 
-      const sandboxOrgId = authInfo.getFields().orgId as string;
+      const sandboxOrgId = authInfo.getFields().orgId;
 
       if (!sandboxOrgId) {
         throw messages.createError('AuthInfoOrgIdUndefined');

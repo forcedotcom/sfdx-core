@@ -38,7 +38,7 @@ import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { OrgConfigProperties } from './orgConfigProperties';
-import { Org } from './org';
+import { Org, SandboxFields } from './org';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'core');
@@ -373,7 +373,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   /**
    * Given a set of decrypted fields and an authInfo, determine if the org belongs to an available
-   * dev hub.
+   * dev hub, or if the org is a sandbox of another CLI authed production org.
    *
    * @param fields
    * @param orgAuthInfo
@@ -387,7 +387,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // return if we already know the hub org we know it is a devhub or prod-like or no orgId present
     if (fields.isDevHub || fields.devHubUsername || !fields.orgId) return;
 
-    logger.debug('getting devHubs');
+    logger.debug('getting devHubs to identify scratch orgs and sandboxes');
 
     // TODO: return if url is not sandbox-like to avoid constantly asking about production orgs
     // TODO: someday we make this easier by asking the org if it is a scratch org
@@ -419,7 +419,48 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
             logger.debug(`error updating auth file for ${orgAuthInfo.getUsername()}`, error);
           }
         } catch (error) {
-          logger.error(`Error connecting to devhub ${hubAuthInfo.username}`, error);
+          if (error instanceof Error && error.name === 'SingleRecordQuery_NoRecords' && fields.orgId) {
+            // Not a scratch org owned by this hub. Check if it's a sandbox.
+            try {
+              const prodOrg = await Org.create({ aliasOrUsername: hubAuthInfo.username });
+              const sbxProcess = await prodOrg.querySandboxProcessByOrgId(fields.orgId);
+              logger.debug(`${fields.orgId} is a sandbox of ${hubAuthInfo.username}`);
+
+              try {
+                await orgAuthInfo.save({
+                  ...fields,
+                  isScratch: false,
+                  isSandbox: true,
+                });
+              } catch (err) {
+                logger.debug(`error updating auth file for: ${orgAuthInfo.getUsername()}`, err);
+              }
+
+              try {
+                // set the sandbox config value
+                const sfSandbox = {
+                  sandboxUsername: fields.username,
+                  sandboxOrgId: fields.orgId,
+                  prodOrgUsername: hubAuthInfo.username,
+                  sandboxName: sbxProcess.SandboxName,
+                  sandboxProcessId: sbxProcess.Id,
+                  sandboxInfoId: sbxProcess.SandboxInfoId,
+                  timestamp: new Date().toISOString(),
+                } as SandboxFields;
+
+                const stateAggregator = await StateAggregator.getInstance();
+                stateAggregator.sandboxes.set(fields.orgId, sfSandbox);
+                logger.debug(`writing sandbox auth file for: ${orgAuthInfo.getUsername()} with ID: ${fields.orgId}`);
+                await stateAggregator.sandboxes.write(fields.orgId);
+              } catch (e) {
+                logger.debug(`error writing sandbox auth file for: ${orgAuthInfo.getUsername()}`, e);
+              }
+            } catch (err) {
+              logger.debug(`${fields.orgId} is not a sandbox of ${hubAuthInfo.username}`);
+            }
+          } else {
+            logger.error(`Error connecting to devhub ${hubAuthInfo.username}`, error);
+          }
         }
       })
     );
