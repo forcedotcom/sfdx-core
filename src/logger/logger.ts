@@ -610,23 +610,10 @@ export class Logger {
    */
   // eslint-disable-next-line class-methods-use-this
   public readLogContentsAsText(): string {
-    // if (this.bunyan.ringBuffer) {
-    //   return this.getBufferedRecords().reduce((accum, line) => {
-    //     accum += JSON.stringify(line) + os.EOL;
-    //     return accum;
-    //   }, '');
-    // } else {
-    // let content = '';
-    // // No bunyan typings
-    // // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    // this.bunyan.streams.forEach(async (stream: any) => {
-    //   if (stream.type === 'file') {
-    //     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    //     content += await fs.promises.readFile(stream.path, 'utf8');
-    //   }
-    // });
-    // return content;
-    // }
+    if (this.customPath) {
+      return fs.readFileSync(this.customPath, 'utf8');
+    }
+
     return '';
   }
 

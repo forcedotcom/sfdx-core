@@ -23,6 +23,7 @@ const FILTERED_KEYS: FilteredKey[] = [
 ];
 // SFDX code and plugins should never show tokens or connect app information in the logs
 
+export const HIDDEN = 'HIDDEN';
 /**
  *
  * @param args you *probably are passing this an object, but it can handle any type
@@ -47,8 +48,6 @@ export const filterSecrets = (...args: unknown[]): unknown =>
       } else {
         mutableArg = '';
       }
-
-      const HIDDEN = 'HIDDEN';
 
       FILTERED_KEYS.forEach((key: FilteredKey) => {
         // Filtered keys can be strings or objects containing regular expression components.

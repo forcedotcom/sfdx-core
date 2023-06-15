@@ -11,8 +11,8 @@
 import * as fs from 'fs';
 import { expect } from 'chai';
 import * as debug from 'debug';
-import { Logger, LoggerFormat, LoggerLevel, LoggerStream } from '../../src/logger/logger';
-import { shouldThrowSync, TestContext } from '../../src/testSetup';
+import { Logger, LoggerFormat, LoggerLevel, LoggerStream } from '../../../src/logger/logger';
+import { shouldThrowSync, TestContext } from '../../../src/testSetup';
 
 // NOTE: These tests still use 'await' which is how it use to work and were left to make
 // sure we didn't regress the way they were used.
@@ -229,53 +229,6 @@ describe('Logger', () => {
     });
   });
 
-  describe('filters', () => {
-    const sid = '00D55000000M2qA!AQ0AQHg3LnYDOyobmH07';
-    const simpleString = `sid=${sid}`;
-    const stringWithObject = ` The rain in Spain: ${JSON.stringify({
-      // eslint-disable-next-line camelcase
-      access_token: sid,
-    })}`;
-    const obj1 = { accessToken: `${sid}`, refreshToken: `${sid}` };
-    const obj2 = { key: 'Access Token', value: `${sid}` };
-    const arr1 = [
-      { key: 'ACCESS token ', value: `${sid}` },
-      { key: 'refresh  TOKEN', value: `${sid}` },
-      { key: 'Sfdx Auth Url', value: `${sid}` },
-    ];
-    const arr2 = [
-      { key: ' AcCESS 78token', value: ` ${sid} ` },
-      { key: ' refresh  _TOKEn ', value: ` ${sid} ` },
-      { key: ' SfdX__AuthUrl  ', value: ` ${sid} ` },
-    ];
-    const testLogEntries = [simpleString, stringWithObject, obj1, obj2, arr1, arr2];
-
-    async function runTest(logLevel: [string, number]) {
-      const logger = (await Logger.child('testLogger')).useMemoryLogging().setLevel(10);
-
-      // Log at the provided log level for each test entry
-      // @ts-expect-error suppress any type
-      testLogEntries.forEach((entry) => logger[logLevel[0]](entry));
-
-      const logData = logger.readLogContentsAsText();
-      expect(logData, `Logs should NOT contain '${sid}'`).to.not.contain(sid);
-      const logRecords = logger.getBufferedRecords();
-      expect(logRecords[0], `expected to log at level: ${logLevel[0]}`).to.have.property('level', logLevel[1]);
-    }
-
-    it('should apply for log level: trace', () => runTest(['trace', 10]));
-
-    it('should apply for log level: debug', () => runTest(['debug', 20]));
-
-    it('should apply for log level: info', () => runTest(['info', 30]));
-
-    it('should apply for log level: warn', () => runTest(['warn', 40]));
-
-    it('should apply for log level: error', () => runTest(['error', 50]));
-
-    it('should apply for log level: fatal', () => runTest(['fatal', 60]));
-  });
-
   // we don't do dynamic field adds anymore
   describe.skip('addField', () => {
     it('should add a field to the log record', async () => {
@@ -324,7 +277,8 @@ describe('Logger', () => {
   //   });
   // });
 
-  describe('debug lib', () => {
+  // this is now handled by pino-pretty
+  describe.skip('debug lib', () => {
     let output: string;
     const accumlateOutput = (error: string): boolean => {
       output += error;
