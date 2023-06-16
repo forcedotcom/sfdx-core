@@ -30,7 +30,7 @@ import { ConfigContents } from '../config/configStore';
 import { OrgUsersConfig } from '../config/orgUsersConfig';
 import { Global } from '../global';
 import { Lifecycle } from '../lifecycleEvents';
-import { Logger } from '../logger/logger';
+import { rootLogger } from '../logger/logger2';
 import { SfError } from '../sfError';
 import { trimTo15 } from '../util/sfdc';
 import { WebOAuthServer } from '../webOAuthServer';
@@ -166,8 +166,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   private status: Org.Status = Org.Status.UNKNOWN;
   private configAggregator!: ConfigAggregator;
 
-  // Initialized in create
-  private logger!: Logger;
+  private logger: typeof rootLogger;
   private connection!: Connection;
 
   private options: Org.Options;
@@ -180,6 +179,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   public constructor(options?: Org.Options) {
     super(options);
     this.options = options ?? {};
+    this.logger = rootLogger.child({ name: 'Org' });
   }
 
   /**
@@ -939,7 +939,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   protected async init(): Promise<void> {
     const stateAggregator = await StateAggregator.getInstance();
-    this.logger = await Logger.child('Org');
 
     this.configAggregator = this.options.aggregator ? this.options.aggregator : await ConfigAggregator.create();
 

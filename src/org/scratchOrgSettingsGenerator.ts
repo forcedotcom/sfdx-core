@@ -9,7 +9,7 @@ import * as path from 'path';
 import { isEmpty, env, upperFirst, Duration } from '@salesforce/kit';
 import { ensureObject, JsonMap } from '@salesforce/ts-types';
 import * as js2xmlparser from 'js2xmlparser';
-import { Logger } from '../logger/logger';
+import { rootLogger } from '../logger/logger2';
 import { SfError } from '../sfError';
 import { StructuredWriter } from '../util/structuredWriter';
 import { StatusResult } from '../status/types';
@@ -180,7 +180,7 @@ export const createRecordTypeAndBusinessProcessFileContent = (
 export default class SettingsGenerator {
   private settingData?: Record<string, unknown>;
   private objectSettingsData?: { [objectName: string]: ObjectSetting };
-  private logger: Logger;
+  private logger: typeof rootLogger;
   private writer: StructuredWriter;
   private allRecordTypes: string[] = [];
   private allBusinessProcesses: string[] = [];
@@ -188,7 +188,7 @@ export default class SettingsGenerator {
   private readonly packageFilePath: string;
 
   public constructor(options?: { mdApiTmpDir?: string; shapeDirName?: string; asDirectory?: boolean }) {
-    this.logger = Logger.childFromRoot('SettingsGenerator');
+    this.logger = rootLogger.child({ name: 'SettingsGenerator' });
     // If SFDX_MDAPI_TEMP_DIR is set, copy settings to that dir for people to inspect.
     const mdApiTmpDir = options?.mdApiTmpDir ?? env.getString('SFDX_MDAPI_TEMP_DIR');
     this.shapeDirName = options?.shapeDirName ?? `shape_${Date.now()}`;
@@ -242,7 +242,7 @@ export default class SettingsGenerator {
     timeout: Duration = Duration.minutes(10)
   ): Promise<void> {
     const username = scratchOrg.getUsername();
-    const logger = await Logger.child('deploySettingsViaFolder');
+    const logger = rootLogger.child({ name: 'deploySettingsViaFolder' });
 
     await this.createDeployPackageContents(apiVersion);
 

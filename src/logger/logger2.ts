@@ -54,10 +54,9 @@ export const rootLogger = pino({
 
 /**
  * You want a separate root-level logger where you can customize the destination file and name.
- * Each of these will return a new, disconnected logger.
- * Useful for testing
+ * Each of these will return a new, disconnected logger logger to a different place
  */
-export const getCustomLogger = ({ customPath, name = ROOT_NAME }: { customPath?: string; name?: string }): Logger => {
+export const getCustomLogger = ({ customPath, name = ROOT_NAME }: { customPath: string; name?: string }): Logger => {
   /** write to a custom file (for testing) */
   const testTransport = {
     target: 'pino/file',

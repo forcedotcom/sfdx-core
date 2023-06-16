@@ -9,7 +9,7 @@ import { env, Duration, upperFirst } from '@salesforce/kit';
 import { AnyJson } from '@salesforce/ts-types';
 import { OAuth2Config, JwtOAuth2Config, SaveResult } from 'jsforce';
 import { retryDecorator, RetryError } from 'ts-retry-promise';
-import { Logger } from '../logger/logger';
+import { rootLogger } from '../logger/logger2';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
 import { SfdcUrl } from '../util/sfdcUrl';
@@ -80,8 +80,9 @@ const buildOAuth2Options = async (options: {
   retries: number;
   timeout?: number;
   delay?: number;
+  // eslint-disable-next-line @typescript-eslint/require-await
 }> => {
-  const logger = await Logger.child('buildOAuth2Options');
+  const logger = rootLogger.child({ name: 'buildOAuth2Options' });
   const isJwtFlow = !!options.hubOrg.getConnection().getAuthInfoFields().privateKey;
   const oauth2Options: JwtOAuth2Config = {
     loginUrl: getOrgInstanceAuthority(
@@ -141,7 +142,7 @@ const getAuthInfo = async (options: {
   timeout?: number;
   delay?: number;
 }): Promise<AuthInfo> => {
-  const logger = await Logger.child('getAuthInfo');
+  const logger = rootLogger.child({ name: 'getAuthInfo' });
 
   const retryAuthorize = retryDecorator(async (opts: AuthInfo.Options): Promise<AuthInfo> => AuthInfo.create(opts), {
     timeout: options.timeout,
@@ -199,7 +200,8 @@ export const authorizeScratchOrg = async (options: {
 }): Promise<AuthInfo> => {
   const { scratchOrgInfoComplete, hubOrg, clientSecret, signupTargetLoginUrlConfig, retry } = options;
   await emit({ stage: 'authenticate', scratchOrgInfo: scratchOrgInfoComplete });
-  const logger = await Logger.child('authorizeScratchOrg');
+  const logger = rootLogger.child({ name: 'authorizeScratchOrg' });
+
   logger.debug(`scratchOrgInfoComplete: ${JSON.stringify(scratchOrgInfoComplete, null, 4)}`);
 
   // if we didn't have it marked as a devhub but just successfully used it as one, this will update the authFile, fix cache, etc
@@ -329,7 +331,8 @@ export const pollForScratchOrgInfo = async (
   // org:create specifies a default timeout of 6.  This longer default is for other consumers
   timeout: Duration = Duration.minutes(15)
 ): Promise<ScratchOrgInfo> => {
-  const logger = await Logger.child('scratchOrgInfoApi-pollForScratchOrgInfo');
+  const logger = rootLogger.child({ name: 'scratchOrgInfoApi-pollForScratchOrg' });
+
   logger.debug(`PollingTimeout in minutes: ${timeout.minutes}`);
 
   const pollingOptions: PollingClient.Options = {
@@ -397,7 +400,8 @@ export const deploySettings = async (
   apiVersion: string,
   timeout: Duration = Duration.minutes(10)
 ): Promise<void> => {
-  const logger = await Logger.child('scratchOrgInfoApi-deploySettings');
+  const logger = rootLogger.child({ name: 'scratchOrgInfoApi-deploySettings' });
+
   if (orgSettings.hasSettings()) {
     // deploy the settings to the newly created scratch org
     logger.debug(`deploying scratch org settings with apiVersion ${apiVersion}`);
@@ -421,7 +425,8 @@ export const deploySettings = async (
  * @returns AuthInfo
  */
 export const resolveUrl = async (scratchOrgAuthInfo: AuthInfo): Promise<AuthInfo> => {
-  const logger = await Logger.child('scratchOrgInfoApi-resolveUrl');
+  const logger = rootLogger.child({ name: 'scratchOrgInfoApi-resolveUrl' });
+
   const { instanceUrl } = scratchOrgAuthInfo.getFields();
   if (!instanceUrl) {
     const sfError = new SfError('Org does not have instanceUrl');

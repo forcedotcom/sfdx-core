@@ -292,7 +292,7 @@ export class Logger {
 
     this.actualLogger =
       this.customPath || (!options.asChild && options.name && options.name !== Logger.ROOT_NAME)
-        ? getCustomLogger({ customPath: this.customPath, name: options.name })
+        ? getCustomLogger({ customPath: this.customPath ?? options.name, name: options.name })
         : baseLogger;
 
     if (options.format) {
@@ -674,7 +674,7 @@ export class Logger {
     // only support including additional fields on log line (no config)
     child.actualLogger = this.actualLogger.child({ ...fields, name });
 
-    this.trace(`Setup child '${name}' logger instance`);
+    this.actualLogger.trace(`Setup child '${name}' logger instance`);
 
     return child;
   }

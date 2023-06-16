@@ -8,8 +8,8 @@
 import { EOL } from 'os';
 import { mapKeys, upperFirst } from '@salesforce/kit';
 import { hasArray, Optional } from '@salesforce/ts-types';
-import { QueryResult, Record, SaveError } from 'jsforce';
-import { Logger } from '../logger/logger';
+import { QueryResult, Record } from 'jsforce';
+import { rootLogger } from '../logger/logger2';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
 import { Org } from './org';
@@ -29,10 +29,10 @@ export interface PermissionSetAssignmentFields {
  * A class for assigning a Salesforce User to one or more permission sets.
  */
 export class PermissionSetAssignment {
-  private logger: Logger;
+  private logger: typeof rootLogger;
   private org: Org;
 
-  private constructor(org: Org, logger: Logger) {
+  private constructor(org: Org, logger: typeof rootLogger) {
     this.logger = logger;
     this.org = org;
   }
@@ -41,12 +41,13 @@ export class PermissionSetAssignment {
    *
    * @param org The target org for the assignment.
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   public static async init(org: Org): Promise<PermissionSetAssignment> {
     if (!org) {
       throw messages.createError('orgRequired');
     }
 
-    return new PermissionSetAssignment(org, await Logger.child('PermissionSetAssignment'));
+    return new PermissionSetAssignment(org, rootLogger.child({ name: 'PermissionSetAssignment' }));
   }
 
   /**
@@ -100,17 +101,9 @@ export class PermissionSetAssignment {
         const message = [messages.getMessage('errorsEncounteredCreatingAssignment')]
           .concat(
             errors
-              .filter(
-                // jsforce types are bad for SaveError[] (the never[] should be optional)
-                (e): e is SaveError =>
-                  typeof e == 'object' &&
-                  e !== null &&
-                  'message' in e &&
-                  'errorCode' in e &&
-                  typeof e.message === 'string' &&
-                  typeof e.errorCode === 'string'
-              )
-              .map((e) => e.message)
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore jsforce types are wrong (never[] | SaveResult)
+              .map((e) => e.message as string)
           )
           .join(EOL);
         throw new SfError(message, 'errorsEncounteredCreatingAssignment');

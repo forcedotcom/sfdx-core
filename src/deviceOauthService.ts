@@ -12,7 +12,7 @@ import { AsyncCreatable, Duration, parseJsonMap } from '@salesforce/kit';
 import { HttpRequest, OAuth2Config } from 'jsforce';
 import { ensureString, JsonMap, Nullable } from '@salesforce/ts-types';
 import * as FormData from 'form-data';
-import { Logger } from './logger/logger';
+import { rootLogger } from './logger/logger2';
 import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, SFDX_HTTP_HEADERS } from './org';
 import { SfError } from './sfError';
 import { Messages } from './messages';
@@ -80,12 +80,13 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
   public static SCOPE = 'refresh_token web api';
   private static POLLING_COUNT_MAX = 100;
 
-  private logger!: Logger;
+  private logger: typeof rootLogger;
   private options: OAuth2Config;
   private pollingCount = 0;
 
   public constructor(options: OAuth2Config) {
     super(options);
+    this.logger = rootLogger.child({ name: this.constructor.name });
     this.options = options;
     if (!this.options.clientId) this.options.clientId = DEFAULT_CONNECTED_APP_INFO.clientId;
     if (!this.options.loginUrl) this.options.loginUrl = AuthInfo.getDefaultInstanceUrl();
@@ -132,8 +133,8 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
     return authInfo;
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   protected async init(): Promise<void> {
-    this.logger = await Logger.child(this.constructor.name);
     this.logger.debug(`this.options.clientId: ${this.options.clientId}`);
     this.logger.debug(`this.options.loginUrl: ${this.options.loginUrl}`);
   }

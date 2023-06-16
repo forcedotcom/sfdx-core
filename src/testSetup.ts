@@ -30,12 +30,12 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
+import { BaseLogger } from 'pino';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
 import { Connection } from './org/connection';
 import { Crypto } from './crypto/crypto';
-import { Logger } from './logger/logger';
 import { Messages } from './messages';
 import { SfError } from './sfError';
 import { SfProject, SfProjectJson } from './sfProject';
@@ -45,6 +45,7 @@ import { OrgAccessor, StateAggregator } from './stateAggregator';
 import { AuthFields, Org, SandboxFields, User, UserFields } from './org';
 import { SandboxAccessor } from './stateAggregator/accessors/sandboxAccessor';
 import { Global } from './global';
+import { rootLogger } from './logger/logger2';
 
 /**
  * Different parts of the system that are mocked out. They can be restored for
@@ -59,6 +60,7 @@ export interface SandboxTypes {
   CONNECTION: SinonSandbox;
   FS: SinonSandbox;
   ORGS: SinonSandbox;
+  ROOTLOGGER: SinonSandbox;
 }
 
 /**
@@ -111,7 +113,7 @@ export class TestContext {
   /**
    * The test logger that is used when {@link Logger.child} is used anywhere. It uses memory logging.
    */
-  public TEST_LOGGER: Logger;
+  // public TEST_LOGGER: Logger;
 
   /**
    * id A unique id for the test run.
@@ -133,6 +135,16 @@ export class TestContext {
    */
   public stubs: Record<string, SinonStub> = {};
 
+  public loggerStubs?: {
+    [key: string]: SinonStub;
+    trace: SinonStub;
+    debug: SinonStub;
+    info: SinonStub;
+    warn: SinonStub;
+    error: SinonStub;
+    fatal: SinonStub;
+  };
+
   public constructor(options: { sinon?: SinonStatic; sandbox?: SinonSandbox; setup?: boolean } = {}) {
     const opts = { setup: true, ...options };
     const sinon = this.requireSinon(opts.sinon);
@@ -148,12 +160,12 @@ export class TestContext {
       CONNECTION: sinon.createSandbox(),
       FS: sinon.createSandbox(),
       ORGS: sinon.createSandbox(),
+      ROOTLOGGER: sinon.createSandbox(),
     };
 
-    this.TEST_LOGGER = new Logger({
-      name: 'SFDX_Core_Test_Logger',
-      customPath: pathJoin(this.localPathRetrieverSync(this.id), 'log'),
-    });
+    // this.TEST_LOGGER = new Logger({
+    //   name: Logger.ROOT_NAME,
+    // });
 
     if (opts.setup) {
       this.setup();
@@ -534,9 +546,25 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
   Global.SFDX_INTEROPERABILITY = false;
   const stubs: Record<string, SinonStub> = {};
 
-  // Most core files create a child logger so stub this to return our test logger.
-  stubMethod(testContext.SANDBOX, Logger, 'child').resolves(testContext.TEST_LOGGER);
-  stubMethod(testContext.SANDBOX, Logger, 'childFromRoot').returns(testContext.TEST_LOGGER);
+  // Most core files used to create a child logger so stub this to return our test logger.
+  // stubMethod(testContext.SANDBOX, Logger, 'child').resolves(testContext.TEST_LOGGER);
+  // stubMethod(testContext.SANDBOX, Logger, 'childFromRoot').returns(testContext.TEST_LOGGER);
+
+  testContext.loggerStubs = stubLoggerLoggingMethods(rootLogger, testContext);
+  // you can ask for children, but you'll keep getting the same stubbed logger during a test
+  testContext.SANDBOXES.ROOTLOGGER.stub(rootLogger, 'child').callsFake((bindings) => {
+    const childLogger = rootLogger.child(bindings);
+    stubLoggerLoggingMethods(childLogger, testContext);
+    return childLogger;
+  });
+  // useful because we're about to stub it
+  // const originalCustomLogger = logger2ForStubbing.getCustomLogger;
+  // // and stub any custom loggers
+  // testContext.SANDBOXES.ROOTLOGGER.stub(logger2ForStubbing, 'getCustomLogger').callsFake(({ customPath, name }) => {
+  //   const customLogger = originalCustomLogger({ customPath, name });
+  //   stubLoggerLoggingMethods(customLogger, testContext);
+  //   return customLogger;
+  // });
 
   testContext.inProject(true);
   testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) =>
@@ -694,6 +722,7 @@ export const restoreContext = (testContext: TestContext): void => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   Object.values(testContext.SANDBOXES).forEach((theSandbox) => theSandbox.restore());
   testContext.configStubs = {};
+  delete testContext.loggerStubs;
   // Give each test run a clean StateAggregator
   StateAggregator.clearInstance();
   // Allow each test to have their own config aggregator
@@ -1125,3 +1154,15 @@ export class MockTestSandboxData {
     };
   }
 }
+
+/** take a pino logger and stub all of the methods that write logs (that is, each level) */
+const stubLoggerLoggingMethods = (
+  loggerToStub: typeof rootLogger,
+  testContext: TestContext
+): typeof TestContext.prototype.loggerStubs => {
+  const loggerLevels = Object.keys(loggerToStub.levels.values);
+  // @ts-expect-error the public loggerStubs property enumerates the standard logger levels for convenience
+  return Object.fromEntries(
+    loggerLevels.map((level) => [level, testContext.SANDBOXES.ROOTLOGGER.stub(loggerToStub, level as keyof BaseLogger)])
+  );
+};

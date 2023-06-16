@@ -25,7 +25,7 @@ import { Tooling as JSForceTooling } from 'jsforce/lib/api/tooling';
 import { StreamPromise } from 'jsforce/lib/util/promise';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { ConfigAggregator } from '../config/configAggregator';
-import { Logger } from '../logger/logger';
+import { rootLogger } from '../logger/logger2';
 import { SfError } from '../sfError';
 import { validateApiVersion } from '../util/sfdc';
 import { Messages } from '../messages';
@@ -70,7 +70,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
 
   // We want to use 1 logger for this class and the jsForce base classes so override
   // the jsForce connection.tooling.logger and connection.logger.
-  private logger!: Logger;
+  private logger!: typeof rootLogger;
   private options: Connection.Options<S>;
 
   // All connections are tied to a username
@@ -157,9 +157,10 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   /**
    * Async initializer.
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async init(): Promise<void> {
     // eslint-disable-next-line no-underscore-dangle
-    this.logger = this.tooling._logger = await Logger.child('connection');
+    this.logger = this.tooling._logger = this.logger = rootLogger.child({ name: 'connection' });
   }
 
   /**

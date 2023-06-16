@@ -10,11 +10,11 @@ import { AsyncCreatable, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } f
 import { asJsonArray, asNumber, ensureJsonMap, ensureString, isJsonMap, Many } from '@salesforce/ts-types';
 import type { HttpRequest, HttpResponse, QueryResult, Schema, SObjectUpdateRecord } from 'jsforce';
 import { HttpApi } from 'jsforce/lib/http-api';
-import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { SecureBuffer } from '../crypto/secureBuffer';
 import { SfError } from '../sfError';
 import { matchesAccessToken, validateSalesforceId } from '../util/sfdc';
+import { rootLogger } from '../logger/logger2';
 import { Connection } from './connection';
 import { PermissionSetAssignment } from './permissionSetAssignment';
 import { Org } from './org';
@@ -81,7 +81,7 @@ export type UserFields = { -readonly [K in keyof typeof REQUIRED_FIELDS]: string
  * @param logger
  * @param username The username.
  */
-async function retrieveUserFields(logger: Logger, username: string): Promise<UserFields> {
+async function retrieveUserFields(logger: typeof rootLogger, username: string): Promise<UserFields> {
   const connection: Connection = await Connection.create({
     authInfo: await AuthInfo.create({ username }),
   });
@@ -157,7 +157,7 @@ async function retrieveProfileId(name: string, connection: Connection): Promise<
  */
 export class DefaultUserFields extends AsyncCreatable<DefaultUserFields.Options> {
   // Initialized in init
-  private logger!: Logger;
+  private logger!: typeof rootLogger;
   private userFields!: UserFields;
 
   private options: DefaultUserFields.Options;
@@ -181,7 +181,7 @@ export class DefaultUserFields extends AsyncCreatable<DefaultUserFields.Options>
    * Initialize asynchronous components.
    */
   protected async init(): Promise<void> {
-    this.logger = await Logger.child('DefaultUserFields');
+    this.logger = rootLogger.child({ name: 'DefaultUserFields' });
     this.userFields = await retrieveUserFields(this.logger, this.options.templateUser);
     this.userFields.profileId = await retrieveProfileId(
       'Standard User',
@@ -220,7 +220,7 @@ export interface PasswordConditions {
  */
 export class User extends AsyncCreatable<User.Options> {
   private org: Org;
-  private logger!: Logger;
+  private logger: typeof rootLogger;
 
   /**
    * @ignore
@@ -228,6 +228,7 @@ export class User extends AsyncCreatable<User.Options> {
   public constructor(options: User.Options) {
     super(options);
     this.org = options.org;
+    this.logger = rootLogger.child({ name: 'User' });
   }
 
   /**
@@ -269,7 +270,6 @@ export class User extends AsyncCreatable<User.Options> {
    * Initialize a new instance of a user and return it.
    */
   public async init(): Promise<void> {
-    this.logger = await Logger.child('User');
     await this.org.refreshAuth();
     this.logger.debug('Auth refresh ok');
   }

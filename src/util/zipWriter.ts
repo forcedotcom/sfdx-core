@@ -7,19 +7,19 @@
 
 import { Readable, Writable } from 'stream';
 import * as JSZip from 'jszip';
-import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
+import { rootLogger } from '../logger/logger2';
 import { StructuredWriter } from './structuredWriter';
 
 export class ZipWriter extends Writable implements StructuredWriter {
   private zip = JSZip();
   private zipBuffer?: Buffer;
-  private logger: Logger;
+  private logger: typeof rootLogger;
 
   public constructor(private readonly rootDestination?: string) {
     super({ objectMode: true });
     const destination = rootDestination ? `for: ${rootDestination}` : 'in memory';
-    this.logger = Logger.childFromRoot(this.constructor.name);
+    this.logger = rootLogger.child({ name: this.constructor.name });
     this.logger.debug(`generating zip ${destination}`);
   }
 

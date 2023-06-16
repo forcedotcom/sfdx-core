@@ -11,10 +11,10 @@ import { resolve as resolveUrl } from 'url';
 import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit/lib';
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types/lib';
 import * as Faye from 'faye';
-import { Logger } from '../logger/logger';
 import { Org } from '../org/org';
 import { SfError } from '../sfError';
 import { Messages } from '../messages';
+import { rootLogger } from '../logger/logger2';
 import { CometClient, CometSubscription, Message, StatusResult, StreamingExtension, StreamProcessor } from './types';
 export { CometClient, CometSubscription, Message, StatusResult, StreamingExtension, StreamProcessor };
 
@@ -119,7 +119,7 @@ function validateTimeout(newTime: Duration, existingTime: Duration): Duration {
 export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Options> {
   private readonly targetUrl: string;
   private readonly options: StreamingClient.Options;
-  private logger!: Logger;
+  private logger: typeof rootLogger;
   private cometClient: CometClient;
 
   /**
@@ -131,6 +131,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
   public constructor(options?: StreamingClient.Options) {
     super(options);
     this.options = ensure(options);
+    this.logger = rootLogger.child({ name: this.constructor.name });
 
     const instanceUrl = ensure(this.options.org.getConnection().getAuthInfoFields().instanceUrl);
     /**
@@ -170,8 +171,6 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
     // get the apiVersion from the connection if not already an option
     const conn = this.options.org.getConnection();
     this.options.apiVersion = this.options.apiVersion || conn.getApiVersion();
-
-    this.logger = await Logger.child(this.constructor.name);
 
     await this.options.org.refreshAuth();
 
@@ -440,7 +439,7 @@ export namespace StreamingClient {
      */
     public constructor(org: Org, channel: string, streamProcessor: StreamProcessor, envDep: Env = env) {
       if (envDep) {
-        const logger = Logger.childFromRoot('StreamingClient');
+        const logger = rootLogger.child({ name: 'StreamingClient' });
         logger.warn('envDep is deprecated');
       }
       if (!streamProcessor) {

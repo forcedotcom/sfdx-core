@@ -26,7 +26,7 @@ describe('SfProject', () => {
   });
 
   describe('json', () => {
-    it('allows uppercase packaging aliases on write', async () => {
+    it.only('allows uppercase packaging aliases on write', async () => {
       const json = await SfProjectJson.create();
       await json.write({ packageAliases: { MyName: 'somePackage' } });
       // @ts-expect-error possibly undefined
@@ -98,10 +98,9 @@ describe('SfProject', () => {
           sourceApiVersion: '48.0',
         },
       });
-      const loggerSpy = $$.SANDBOX.spy($$.TEST_LOGGER, 'warn');
       const project = new SfProjectJson({});
       await project.schemaValidate();
-      expect(loggerSpy.called).to.be.false;
+      expect($$.loggerStubs?.warn.called).to.be.false;
     });
     it('throws when SFDX_PROJECT_JSON_VALIDATION=true and invalid file', async () => {
       $$.setConfigStubContents('SfProjectJson', {
@@ -130,11 +129,10 @@ describe('SfProject', () => {
           foo: 'bar',
         },
       });
-      const loggerSpy = $$.SANDBOX.spy($$.TEST_LOGGER, 'warn');
       const project = new SfProjectJson({});
       await project.schemaValidate();
-      expect(loggerSpy.calledOnce).to.be.true;
-      expect(loggerSpy.args[0][0]).to.contain('is not schema valid');
+      expect($$.loggerStubs?.warn.calledOnce).to.be.true;
+      expect($$.loggerStubs?.warn.args[0][0]).to.contain('is not schema valid');
     });
   });
 

@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import { keyBy, parseJsonMap, set } from '@salesforce/kit';
 import { Dictionary, ensure, isString, JsonPrimitive, Nullable } from '@salesforce/ts-types';
 import { Global } from '../global';
-import { Logger } from '../logger/logger';
+import { rootLogger } from '../logger/logger2';
 import { Messages } from '../messages';
 import { validateApiVersion } from '../util/sfdc';
 import { SfdcUrl } from '../util/sfdcUrl';
@@ -359,7 +359,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
 
     // If logger is needed elsewhere in this file, do not move this outside of the Config class.
     // It was causing issues with Bunyan log rotation. See https://github.com/forcedotcom/sfdx-core/pull/562
-    const logger = Logger.childFromRoot('core:config');
+    const logger = rootLogger.child({ name: 'core:config' });
 
     metas.forEach((meta) => {
       if (currentMetaKeys.includes(meta.key)) {

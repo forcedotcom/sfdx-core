@@ -9,8 +9,8 @@ import { URL } from 'url';
 import { Env, Duration } from '@salesforce/kit';
 import { ensureNumber, ensureArray } from '@salesforce/ts-types';
 import { MyDomainResolver } from '../status/myDomainResolver';
-import { Logger } from '../logger/logger';
 import { Lifecycle } from '../lifecycleEvents';
+import { rootLogger } from '../logger/logger2';
 
 export function getLoginAudienceCombos(audienceUrl: string, loginUrl: string): Array<[string, string]> {
   const filtered = [
@@ -48,10 +48,11 @@ export class SfdcUrl extends URL {
   public static readonly SANDBOX = 'https://test.salesforce.com';
   public static readonly PRODUCTION = 'https://login.salesforce.com';
   private static readonly cache: Set<string> = new Set();
-  private logger!: Logger;
+  private logger: typeof rootLogger;
 
   public constructor(input: string | URL, base?: string | URL) {
     super(input.toString(), base);
+    this.logger = rootLogger.child({ name: 'SfdcUrl' });
     if (this.protocol !== 'https:' && !SfdcUrl.cache.has(this.origin)) {
       SfdcUrl.cache.add(this.origin);
       void Lifecycle.getInstance().emitWarning(`Using insecure protocol: ${this.protocol} on url: ${this.origin}`);
@@ -74,8 +75,8 @@ export class SfdcUrl extends URL {
    * @param createdOrgInstance The Salesforce instance the org was created on. e.g. `cs42`
    * @return {Promise<string>} The audience url
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async getJwtAudienceUrl(createdOrgInstance?: string): Promise<string> {
-    this.logger = await Logger.child('SfdcUrl');
     // environment variable is used as an override
     const envVarVal = new Env().getString('SFDX_AUDIENCE_URL', '');
     if (envVarVal) {

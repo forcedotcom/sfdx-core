@@ -12,8 +12,8 @@ import { promisify } from 'util';
 import { ensureString } from '@salesforce/ts-types';
 
 import { AsyncOptionalCreatable, Duration, Env } from '@salesforce/kit';
-import { Logger } from '../logger/logger';
 import { SfdcUrl } from '../util/sfdcUrl';
+import { rootLogger } from '../logger/logger2';
 import { StatusResult } from './types';
 import { PollingClient } from './pollingClient';
 
@@ -42,7 +42,7 @@ const DNS_RETRY_FREQ = Math.max(1, new Env().getNumber('SFDX_DNS_RETRY_FREQUENCY
 export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Options> {
   public static DEFAULT_DOMAIN = new URL('https://login.salesforce.com');
 
-  private logger!: Logger;
+  private logger!: typeof rootLogger;
 
   private options: MyDomainResolver.Options;
 
@@ -55,6 +55,7 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
   public constructor(options?: MyDomainResolver.Options) {
     super(options);
     this.options = options ?? { url: MyDomainResolver.DEFAULT_DOMAIN };
+    this.logger = rootLogger.child({ name: 'MyDomainResolver' });
   }
 
   public getTimeout(): Duration {
@@ -130,8 +131,9 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
   /**
    * Used to initialize asynchronous components.
    */
+  // eslint-disable-next-line class-methods-use-this
   protected async init(): Promise<void> {
-    this.logger = await Logger.child('MyDomainResolver');
+    // old logger instantiation was here, which I think it what made this async
   }
 }
 

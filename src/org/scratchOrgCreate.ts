@@ -7,7 +7,7 @@
 import { Duration } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
 import { Messages } from '../messages';
-import { Logger } from '../logger/logger';
+import { rootLogger } from '../logger/logger2';
 import { ConfigAggregator } from '../config/configAggregator';
 import { OrgConfigProperties } from '../org/orgConfigProperties';
 import { SfProject } from '../sfProject';
@@ -105,7 +105,7 @@ const validateRetry = (retry: number): void => {
 
 export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateResult> => {
   const [logger, cache] = await Promise.all([
-    Logger.child('scratchOrgResume'),
+    rootLogger.child({ name: 'scratchOrgResume' }),
     ScratchOrgCache.create(),
     emit({ stage: 'send request' }),
   ]);
@@ -184,7 +184,7 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
 };
 
 export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promise<ScratchOrgCreateResult> => {
-  const logger = await Logger.child('scratchOrgCreate');
+  const logger = rootLogger.child({ name: 'scratchOrgCreate' });
   /** epoch milliseconds */
   const startTimestamp = Date.now();
 

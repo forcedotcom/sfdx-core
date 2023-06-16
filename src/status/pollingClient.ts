@@ -7,9 +7,9 @@
 import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
 import { AnyJson, ensure } from '@salesforce/ts-types';
 import { retryDecorator, NotRetryableError } from 'ts-retry-promise';
-import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { Lifecycle } from '../lifecycleEvents';
+import { rootLogger } from '../logger/logger2';
 import { StatusResult } from './types';
 
 /**
@@ -31,7 +31,7 @@ import { StatusResult } from './types';
  * ```
  */
 export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options> {
-  protected logger!: Logger;
+  protected logger: typeof rootLogger;
   private options: PollingClient.Options;
 
   /**
@@ -43,13 +43,15 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
   public constructor(options?: PollingClient.Options) {
     super(options);
     this.options = ensure(options);
+    this.logger = rootLogger.child({ name: this.constructor.name });
   }
 
   /**
    * Asynchronous initializer.
    */
+  // eslint-disable-next-line class-methods-use-this
   public async init(): Promise<void> {
-    this.logger = await Logger.child(this.constructor.name);
+    // logger instantiation used to be here, moved to constructor
   }
 
   /**

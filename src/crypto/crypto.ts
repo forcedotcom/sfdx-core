@@ -11,10 +11,10 @@ import * as os from 'os';
 import { join as pathJoin } from 'path';
 import { ensure, Nullable, Optional } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, env } from '@salesforce/kit';
-import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { Cache } from '../util/cache';
 import { Global } from '../global';
+import { rootLogger } from '../logger/logger2';
 import { retrieveKeychain } from './keyChain';
 import { KeyChain } from './keyChainImpl';
 import { SecureBuffer } from './secureBuffer';
@@ -231,7 +231,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
    * Initialize async components.
    */
   protected async init(): Promise<void> {
-    const logger = await Logger.child('crypto');
+    const logger = rootLogger.child({ name: this.constructor.name });
 
     if (!this.options.platform) {
       this.options.platform = os.platform();

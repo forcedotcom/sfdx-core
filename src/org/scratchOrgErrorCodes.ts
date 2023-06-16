@@ -8,7 +8,7 @@
 import { Optional } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
-import { Logger } from '../logger/logger';
+import { rootLogger } from '../logger/logger2';
 import { ScratchOrgInfo } from './scratchOrgTypes';
 import { ScratchOrgCache } from './scratchOrgCache';
 import { emit } from './scratchOrgLifecycleEvents';
@@ -85,7 +85,7 @@ export const checkScratchOrgInfoForErrors = async (
   }
   if (orgInfo.Status === 'Error') {
     await ScratchOrgCache.unset(orgInfo.Id);
-    const logger = await Logger.child('ScratchOrgErrorCodes');
+    const logger = rootLogger.child({ name: 'ScratchOrgErrorCodes' });
     // Maybe the request object can help the user somehow
     logger.error('No error code on signup error! Logging request.');
     logger.error(orgInfo);

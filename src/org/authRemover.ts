@@ -8,7 +8,7 @@
 import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { JsonMap } from '@salesforce/ts-types';
 import { ConfigAggregator } from '../config/configAggregator';
-import { Logger } from '../logger/logger';
+import { rootLogger } from '../logger/logger2';
 import { Messages } from '../messages';
 import { StateAggregator } from '../stateAggregator';
 import { OrgConfigProperties } from './orgConfigProperties';
@@ -43,7 +43,7 @@ const messages = Messages.loadMessages('@salesforce/core', 'auth');
 export class AuthRemover extends AsyncOptionalCreatable {
   private config!: ConfigAggregator;
   private stateAggregator!: StateAggregator;
-  private logger!: Logger;
+  private logger!: typeof rootLogger;
 
   /**
    * Removes the authentication and any configs or aliases associated with it
@@ -101,7 +101,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
   }
 
   protected async init(): Promise<void> {
-    this.logger = await Logger.child(this.constructor.name);
+    this.logger = rootLogger.child({ name: this.constructor.name });
     this.config = await ConfigAggregator.create();
     this.stateAggregator = await StateAggregator.getInstance();
     await this.stateAggregator.orgs.readAll();

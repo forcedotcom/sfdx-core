@@ -15,7 +15,7 @@ import { EventEmitter } from 'events';
 import { JwtOAuth2Config, OAuth2 } from 'jsforce';
 import { AsyncCreatable, Env, set, toNumber } from '@salesforce/kit';
 import { asString, get, Nullable } from '@salesforce/ts-types';
-import { Logger } from './logger/logger';
+import { rootLogger } from './logger/logger2';
 import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org';
 import { SfError } from './sfError';
 import { Messages } from './messages';
@@ -43,7 +43,7 @@ const messages = Messages.loadMessages('@salesforce/core', 'auth');
 export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   public static DEFAULT_PORT = 1717;
   private authUrl!: string;
-  private logger!: Logger;
+  private logger: typeof rootLogger;
   private webServer!: WebServer;
   private oauth2!: OAuth2;
   private oauthConfig: JwtOAuth2Config;
@@ -52,6 +52,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   public constructor(options: WebOAuthServer.Options) {
     super(options);
     this.oauthConfig = options.oauthConfig;
+    this.logger = rootLogger.child({ name: this.constructor.name });
   }
 
   /**
@@ -131,7 +132,6 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   }
 
   protected async init(): Promise<void> {
-    this.logger = await Logger.child(this.constructor.name);
     const port = await WebOAuthServer.determineOauthPort();
 
     if (!this.oauthConfig.clientId) this.oauthConfig.clientId = DEFAULT_CONNECTED_APP_INFO.clientId;
@@ -277,7 +277,7 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
   public server!: http.Server;
   public port = WebOAuthServer.DEFAULT_PORT;
   public host = 'localhost';
-  private logger!: Logger;
+  private logger: typeof rootLogger;
   private sockets: Socket[] = [];
   private redirectStatus = new EventEmitter();
 
@@ -285,6 +285,7 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
     super(options);
     if (options.port) this.port = options.port;
     if (options.host) this.host = options.host;
+    this.logger = rootLogger.child({ name: this.constructor.name });
   }
 
   /**
@@ -398,8 +399,9 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
     return this.handleRedirect(response, '/OauthError');
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   protected async init(): Promise<void> {
-    this.logger = await Logger.child(this.constructor.name);
+    // placeholder.  Logger instantiation used to be here
   }
 
   private async handleRedirect(response: http.ServerResponse, url: '/OauthSuccess' | '/OauthError'): Promise<void> {

@@ -30,12 +30,12 @@ import Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
-import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { matchesAccessToken, sfdxAuthUrlRegex, trimTo15 } from '../util/sfdc';
 import { StateAggregator } from '../stateAggregator';
 import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
+import { rootLogger } from '../logger/logger2';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { OrgConfigProperties } from './orgConfigProperties';
 import { Org } from './org';
@@ -211,7 +211,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   private usingAccessToken = false;
 
   // Initialized in init
-  private logger!: Logger;
+  private logger!: typeof rootLogger;
   private stateAggregator!: StateAggregator;
   private username!: string;
 
@@ -225,6 +225,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public constructor(options?: AuthInfo.Options) {
     super(options);
+    this.logger = rootLogger.child({ name: 'AuthInfo' });
     this.options = options ?? {};
   }
 
@@ -380,7 +381,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // fields property is passed in because the consumers of this method have performed the decrypt.
     // This is so we don't have to call authInfo.getFields(true) and decrypt again OR accidentally save an
     // authInfo before it is necessary.
-    const logger = await Logger.child('Common', { tag: 'identifyPossibleScratchOrgs' });
+    const logger = rootLogger.child({ name: 'Common', tag: 'identifyPossibleScratchOrgs' });
 
     // return if we already know the hub org we know it is a devhub or prod-like or no orgId present
     if (fields.isDevHub || fields.devHubUsername || !fields.orgId) return;
@@ -708,7 +709,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // If the username is an access token, use that for auth and don't persist
     if (isString(oauthUsername) && matchesAccessToken(oauthUsername)) {
       // Need to initAuthOptions the logger and authInfoCrypto since we don't call init()
-      this.logger = await Logger.child('AuthInfo');
 
       const aggregator = await ConfigAggregator.create();
       const instanceUrl = this.getInstanceUrl(aggregator, authOptions);
@@ -746,8 +746,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @returns {Promise<AuthInfo>}
    */
   private async initAuthOptions(options?: JwtOAuth2Config | AccessTokenOptions): Promise<AuthInfo> {
-    this.logger = await Logger.child('AuthInfo');
-
     // If options were passed, use those before checking cache and reading an auth file.
     let authConfig: AuthFields;
 

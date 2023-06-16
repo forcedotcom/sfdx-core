@@ -12,7 +12,7 @@ import { dirname as pathDirname, join as pathJoin } from 'path';
 import { isPlainObject } from '@salesforce/ts-types';
 import { parseJsonMap } from '@salesforce/kit';
 import { Global } from '../global';
-import { Logger } from '../logger/logger';
+import { rootLogger } from '../logger/logger2';
 import { SfError } from '../sfError';
 import { resolveProjectPath, resolveProjectPathSync } from '../util/internal';
 import { BaseConfigStore, ConfigContents } from './configStore';
@@ -44,7 +44,7 @@ export class ConfigFile<
   protected hasRead = false;
 
   // Initialized in init
-  protected logger!: Logger;
+  protected logger: typeof rootLogger;
 
   // Initialized in create
   private path!: string;
@@ -58,8 +58,7 @@ export class ConfigFile<
    */
   public constructor(options?: T) {
     super(options);
-
-    this.logger = Logger.childFromRoot(this.constructor.name);
+    this.logger = rootLogger.child({ name: this.constructor.name });
     const statics = this.constructor as typeof ConfigFile;
     let defaultOptions = {};
     try {

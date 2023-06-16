@@ -14,7 +14,7 @@ import { Global } from '../../global';
 import { AuthFields } from '../../org';
 import { ConfigFile } from '../../config/configFile';
 import { ConfigContents } from '../../config/configStore';
-import { Logger } from '../../logger/logger';
+import { rootLogger } from '../../logger/logger2';
 import { Messages } from '../../messages';
 
 function chunk<T>(array: T[], chunkSize: number): T[][] {
@@ -26,8 +26,8 @@ function chunk<T>(array: T[], chunkSize: number): T[][] {
 export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigContents> extends AsyncOptionalCreatable {
   private configs: Map<string, Nullable<T>> = new Map();
   private contents: Map<string, P> = new Map();
-  private logger!: Logger;
-
+  // init in init() method
+  private logger!: typeof rootLogger;
   /**
    * Read the auth file for the given username. Once the file has been read, it can be re-accessed with the `get` method.
    *
@@ -213,8 +213,9 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   protected async init(): Promise<void> {
-    this.logger = await Logger.child(this.constructor.name);
+    this.logger = rootLogger.child({ name: this.constructor.name });
   }
 
   private async getAllFiles(): Promise<string[]> {
