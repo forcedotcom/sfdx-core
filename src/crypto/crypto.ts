@@ -14,7 +14,7 @@ import { AsyncOptionalCreatable, env } from '@salesforce/kit';
 import { Messages } from '../messages';
 import { Cache } from '../util/cache';
 import { Global } from '../global';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 import { retrieveKeychain } from './keyChain';
 import { KeyChain } from './keyChainImpl';
 import { SecureBuffer } from './secureBuffer';

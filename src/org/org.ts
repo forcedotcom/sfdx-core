@@ -30,7 +30,7 @@ import { ConfigContents } from '../config/configStore';
 import { OrgUsersConfig } from '../config/orgUsersConfig';
 import { Global } from '../global';
 import { Lifecycle } from '../lifecycleEvents';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { trimTo15 } from '../util/sfdc';
 import { WebOAuthServer } from '../webOAuthServer';

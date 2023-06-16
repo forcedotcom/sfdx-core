@@ -9,7 +9,7 @@ import { env, Duration, upperFirst } from '@salesforce/kit';
 import { AnyJson } from '@salesforce/ts-types';
 import { OAuth2Config, JwtOAuth2Config, SaveResult } from 'jsforce';
 import { retryDecorator, RetryError } from 'ts-retry-promise';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
 import { SfdcUrl } from '../util/sfdcUrl';

@@ -8,7 +8,7 @@
 import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { JsonMap } from '@salesforce/ts-types';
 import { ConfigAggregator } from '../config/configAggregator';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 import { Messages } from '../messages';
 import { StateAggregator } from '../stateAggregator';
 import { OrgConfigProperties } from './orgConfigProperties';

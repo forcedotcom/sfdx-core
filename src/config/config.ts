@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import { keyBy, parseJsonMap, set } from '@salesforce/kit';
 import { Dictionary, ensure, isString, JsonPrimitive, Nullable } from '@salesforce/ts-types';
 import { Global } from '../global';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 import { Messages } from '../messages';
 import { validateApiVersion } from '../util/sfdc';
 import { SfdcUrl } from '../util/sfdcUrl';

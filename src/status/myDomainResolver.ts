@@ -13,7 +13,7 @@ import { ensureString } from '@salesforce/ts-types';
 
 import { AsyncOptionalCreatable, Duration, Env } from '@salesforce/kit';
 import { SfdcUrl } from '../util/sfdcUrl';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 import { StatusResult } from './types';
 import { PollingClient } from './pollingClient';
 

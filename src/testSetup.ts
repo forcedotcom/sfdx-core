@@ -45,7 +45,7 @@ import { OrgAccessor, StateAggregator } from './stateAggregator';
 import { AuthFields, Org, SandboxFields, User, UserFields } from './org';
 import { SandboxAccessor } from './stateAggregator/accessors/sandboxAccessor';
 import { Global } from './global';
-import { rootLogger } from './logger/logger2';
+import { rootLogger } from './logger/logger';
 
 /**
  * Different parts of the system that are mocked out. They can be restored for

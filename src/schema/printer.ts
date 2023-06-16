@@ -17,7 +17,7 @@ import {
   Optional,
 } from '@salesforce/ts-types';
 import { SfError } from '../sfError';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 
 /**
  * Renders schema properties.  By default, this is simply an identity transform.  Subclasses may provide more

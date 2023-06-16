@@ -11,7 +11,7 @@ import Ajv, { DefinedError } from 'ajv';
 import { AnyJson, JsonMap } from '@salesforce/ts-types';
 import { getJsonValuesByName, parseJsonMap } from '@salesforce/kit';
 import { SfError } from '../sfError';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 
 /**
  * Loads a JSON schema and performs validations against JSON objects.

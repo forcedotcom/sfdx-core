@@ -9,7 +9,7 @@ import { AnyJson, ensure } from '@salesforce/ts-types';
 import { retryDecorator, NotRetryableError } from 'ts-retry-promise';
 import { SfError } from '../sfError';
 import { Lifecycle } from '../lifecycleEvents';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 import { StatusResult } from './types';
 
 /**

@@ -10,7 +10,7 @@ import { Env, Duration } from '@salesforce/kit';
 import { ensureNumber, ensureArray } from '@salesforce/ts-types';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { Lifecycle } from '../lifecycleEvents';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 
 export function getLoginAudienceCombos(audienceUrl: string, loginUrl: string): Array<[string, string]> {
   const filtered = [

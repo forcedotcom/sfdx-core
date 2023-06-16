@@ -7,7 +7,7 @@
 import { Duration } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
 import { Messages } from '../messages';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 import { ConfigAggregator } from '../config/configAggregator';
 import { OrgConfigProperties } from '../org/orgConfigProperties';
 import { SfProject } from '../sfProject';

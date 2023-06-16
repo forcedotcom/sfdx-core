@@ -9,7 +9,7 @@ import * as path from 'path';
 import { isEmpty, env, upperFirst, Duration } from '@salesforce/kit';
 import { ensureObject, JsonMap } from '@salesforce/ts-types';
 import * as js2xmlparser from 'js2xmlparser';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { StructuredWriter } from '../util/structuredWriter';
 import { StatusResult } from '../status/types';

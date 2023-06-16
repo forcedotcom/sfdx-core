@@ -14,7 +14,7 @@ import { Global } from '../../global';
 import { AuthFields } from '../../org';
 import { ConfigFile } from '../../config/configFile';
 import { ConfigContents } from '../../config/configStore';
-import { rootLogger } from '../../logger/logger2';
+import { rootLogger } from '../../logger/logger';
 import { Messages } from '../../messages';
 
 function chunk<T>(array: T[], chunkSize: number): T[][] {

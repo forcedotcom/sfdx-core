@@ -54,18 +54,7 @@ export { SfdcUrl } from './util/sfdcUrl';
 
 export { getJwtAudienceUrl } from './util/getJwtAudienceUrl';
 
-export {
-  Fields,
-  FieldValue,
-  LoggerLevel,
-  LoggerLevelValue,
-  LogLine,
-  LoggerOptions,
-  LoggerStream,
-  Logger,
-} from './logger/logger';
-
-export { rootLogger } from './logger/logger2';
+export { rootLogger } from './logger/logger';
 
 export { Messages, StructuredMessage } from './messages';
 

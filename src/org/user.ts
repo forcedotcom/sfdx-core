@@ -14,7 +14,7 @@ import { Messages } from '../messages';
 import { SecureBuffer } from '../crypto/secureBuffer';
 import { SfError } from '../sfError';
 import { matchesAccessToken, validateSalesforceId } from '../util/sfdc';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 import { Connection } from './connection';
 import { PermissionSetAssignment } from './permissionSetAssignment';
 import { Org } from './org';

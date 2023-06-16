@@ -35,7 +35,7 @@ import { matchesAccessToken, sfdxAuthUrlRegex, trimTo15 } from '../util/sfdc';
 import { StateAggregator } from '../stateAggregator';
 import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { OrgConfigProperties } from './orgConfigProperties';
 import { Org } from './org';

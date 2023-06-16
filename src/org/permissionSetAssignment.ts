@@ -9,7 +9,7 @@ import { EOL } from 'os';
 import { mapKeys, upperFirst } from '@salesforce/kit';
 import { hasArray, Optional } from '@salesforce/ts-types';
 import { QueryResult, Record } from 'jsforce';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
 import { Org } from './org';

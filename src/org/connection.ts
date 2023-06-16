@@ -25,7 +25,7 @@ import { Tooling as JSForceTooling } from 'jsforce/lib/api/tooling';
 import { StreamPromise } from 'jsforce/lib/util/promise';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { ConfigAggregator } from '../config/configAggregator';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { validateApiVersion } from '../util/sfdc';
 import { Messages } from '../messages';

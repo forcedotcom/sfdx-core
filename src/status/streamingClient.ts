@@ -14,7 +14,7 @@ import * as Faye from 'faye';
 import { Org } from '../org/org';
 import { SfError } from '../sfError';
 import { Messages } from '../messages';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 import { CometClient, CometSubscription, Message, StatusResult, StreamingExtension, StreamProcessor } from './types';
 export { CometClient, CometSubscription, Message, StatusResult, StreamingExtension, StreamProcessor };
 

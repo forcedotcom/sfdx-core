@@ -8,7 +8,7 @@
 import { Optional } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 import { ScratchOrgInfo } from './scratchOrgTypes';
 import { ScratchOrgCache } from './scratchOrgCache';
 import { emit } from './scratchOrgLifecycleEvents';

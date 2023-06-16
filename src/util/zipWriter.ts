@@ -8,7 +8,7 @@
 import { Readable, Writable } from 'stream';
 import * as JSZip from 'jszip';
 import { SfError } from '../sfError';
-import { rootLogger } from '../logger/logger2';
+import { rootLogger } from '../logger/logger';
 import { StructuredWriter } from './structuredWriter';
 
 export class ZipWriter extends Writable implements StructuredWriter {
