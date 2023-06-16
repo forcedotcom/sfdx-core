@@ -26,7 +26,7 @@ describe('SfProject', () => {
   });
 
   describe('json', () => {
-    it.only('allows uppercase packaging aliases on write', async () => {
+    it('allows uppercase packaging aliases on write', async () => {
       const json = await SfProjectJson.create();
       await json.write({ packageAliases: { MyName: 'somePackage' } });
       // @ts-expect-error possibly undefined

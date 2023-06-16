@@ -472,8 +472,6 @@ describe('Org Tests', () => {
       });
 
       it('will fail to auth sandbox user correctly - but will swallow the error', async () => {
-        // @ts-expect-error because private member
-        const logStub = stubMethod($$.SANDBOX, prod.logger, 'debug');
         const sandboxResponse = {
           SandboxName: 'test',
           EndDate: '2021-19-06T20:25:46.000+0000',
@@ -485,9 +483,9 @@ describe('Org Tests', () => {
 
         // @ts-expect-error because private method
         await prod.sandboxSignupComplete(sandboxResponse);
-        expect(logStub.callCount).to.equal(3);
-        // error swallowed
-        expect(logStub.thirdCall.args[0]).to.equal('Error while authenticating the user');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        const debugArgs = $$.loggerStubs?.debug.getCalls().flatMap((call) => call.args);
+        expect(debugArgs).to.include('Error while authenticating the user');
       });
     });
 

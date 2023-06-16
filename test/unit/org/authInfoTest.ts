@@ -1080,7 +1080,7 @@ describe('AuthInfo', () => {
         }),
         initAuthOptions: $$.SANDBOX.stub(),
         save: $$.SANDBOX.stub(),
-        logger: $$.TEST_LOGGER,
+        logger: $$.rootLogger,
       };
       const testCallback = $$.SANDBOX.stub();
       testCallback.resolves();
@@ -1135,7 +1135,7 @@ describe('AuthInfo', () => {
         }),
         initAuthOptions: $$.SANDBOX.stub(),
         save: $$.SANDBOX.stub(),
-        logger: $$.TEST_LOGGER,
+        logger: $$.rootLogger,
       };
       const testCallback = $$.SANDBOX.spy();
       context.initAuthOptions.throws(new Error('Error: Data Not Available'));

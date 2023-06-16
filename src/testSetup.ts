@@ -135,6 +135,21 @@ export class TestContext {
    */
   public stubs: Record<string, SinonStub> = {};
 
+  /** expose the test context's logger.  Useful for passing it into something that expects an already-instantiated logger */
+  public rootLogger?: typeof rootLogger;
+
+  /**
+   * Sinon stubs dynamically created for the logger levels
+   * ALL things will logging to these, so you can't rely on order/quantity being exclusive to your test
+   *
+   * @example
+   * ```typescript
+   * // get all the arguments for a given level, and assert that yours happened
+   * const debugArgs = $$.loggerStubs?.debug.getCalls().flatMap((call) => call.args);
+   * expect(debugArgs).to.include('Error while authenticating the user');
+   *
+   * ```
+   */
   public loggerStubs?: {
     [key: string]: SinonStub;
     trace: SinonStub;
@@ -551,21 +566,8 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
   // stubMethod(testContext.SANDBOX, Logger, 'childFromRoot').returns(testContext.TEST_LOGGER);
 
   testContext.loggerStubs = stubLoggerLoggingMethods(rootLogger, testContext);
-  // you can ask for children, but you'll keep getting the same stubbed logger during a test
-  testContext.SANDBOXES.ROOTLOGGER.stub(rootLogger, 'child').callsFake((bindings) => {
-    const childLogger = rootLogger.child(bindings);
-    stubLoggerLoggingMethods(childLogger, testContext);
-    return childLogger;
-  });
-  // useful because we're about to stub it
-  // const originalCustomLogger = logger2ForStubbing.getCustomLogger;
-  // // and stub any custom loggers
-  // testContext.SANDBOXES.ROOTLOGGER.stub(logger2ForStubbing, 'getCustomLogger').callsFake(({ customPath, name }) => {
-  //   const customLogger = originalCustomLogger({ customPath, name });
-  //   stubLoggerLoggingMethods(customLogger, testContext);
-  //   return customLogger;
-  // });
-
+  testContext.SANDBOXES.ROOTLOGGER.stub(rootLogger, 'child').returns(rootLogger);
+  testContext.rootLogger = rootLogger;
   testContext.inProject(true);
   testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) =>
     testContext.rootPathRetriever(isGlobal, testContext.id)
