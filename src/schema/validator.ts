@@ -11,14 +11,14 @@ import Ajv, { DefinedError } from 'ajv';
 import { AnyJson, JsonMap } from '@salesforce/ts-types';
 import { getJsonValuesByName, parseJsonMap } from '@salesforce/kit';
 import { SfError } from '../sfError';
-import { rootLogger } from '../logger/logger';
+import { Logger } from '../logger/legacyLogger';
 
 /**
  * Loads a JSON schema and performs validations against JSON objects.
  */
 export class SchemaValidator {
   private readonly schemasDir: string;
-  private readonly logger: typeof rootLogger;
+  private readonly logger: Logger;
 
   private schema?: JsonMap;
 
@@ -28,8 +28,8 @@ export class SchemaValidator {
    * @param logger An {@link Logger} instance on which to base this class's logger.
    * @param schemaPath The path to the schema file to load and use for validation.
    */
-  public constructor(logger: typeof rootLogger, private schemaPath: string) {
-    this.logger = rootLogger.child({ name: 'SchemaValidator' });
+  public constructor(logger: Logger, private schemaPath: string) {
+    this.logger = logger.child({ name: 'SchemaValidator' });
     this.schemasDir = path.dirname(this.schemaPath);
   }
 
