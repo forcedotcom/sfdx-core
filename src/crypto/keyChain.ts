@@ -20,8 +20,7 @@ const messages = Messages.loadMessages('@salesforce/core', 'encryption');
  * @ignore
  */
 export const retrieveKeychain = async (platform: string): Promise<KeyChain> => {
-  const logger = rootLogger.child({ name: 'keyChain' });
-  logger.debug(`platform: ${platform}`);
+  rootLogger.debug({ name: 'keyChain', platform });
 
   const useGenericUnixKeychainVar = env.getBoolean('SF_USE_GENERIC_UNIX_KEYCHAIN');
   const shouldUseGenericUnixKeychain = useGenericUnixKeychainVar && useGenericUnixKeychainVar;

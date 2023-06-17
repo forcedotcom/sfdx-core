@@ -248,6 +248,7 @@ export class Logger {
   private pino!: PinoLogger;
 
   /**
+   * @deprecated.  Preserved for backward compatibility. Use the exported rootLogger instead of this wrapper class
    * Constructs a new `Logger`.
    *
    * @param optionsOrName A set of `LoggerOptions` or name to use with the default options.
@@ -267,6 +268,10 @@ export class Logger {
       options = optionsOrName;
     }
 
+    if (Logger.rootLogger && options.name === Logger.ROOT_NAME) {
+      throw new SfError('Can not create another root logger.', 'RedundantRootLoggerError');
+    }
+
     if (options.asChild) {
       // let Logger.child handle setting the child
     } else {
@@ -274,18 +279,13 @@ export class Logger {
       if (options.level) {
         this.pino.level = this.pino.levels.labels[options.level];
       }
-    }
-
-    if (Logger.rootLogger && options.name === Logger.ROOT_NAME) {
-      throw new SfError('Can not create another root logger.', 'RedundantRootLoggerError');
+      this.trace(`Created '${this.pino.bindings().namee}' logger instance`);
     }
 
     if (Global.getEnvironmentMode() !== Mode.TEST) {
       Logger.lifecycle.on('uncaughtException', this.uncaughtExceptionHandler);
       Logger.lifecycle.on('exit', this.exitHandler);
     }
-
-    this.trace(`Created '${this.getName()}' logger instance`);
   }
 
   /**
@@ -560,7 +560,7 @@ export class Logger {
   public trace(...args: any[]): Logger {
     // @ts-expect-error leaving args typed as any
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    this.pino.trace(...args);
+    (this.pino ?? rootLogger).trace(...args);
     return this;
   }
 
@@ -572,7 +572,7 @@ export class Logger {
   public debug(...args: unknown[]): Logger {
     // @ts-expect-error leaving args typed as any
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    this.pino.debug(...args);
+    (this.pino ?? rootLogger).debug(...args);
     return this;
   }
 
@@ -583,7 +583,7 @@ export class Logger {
    * @param cb A callback that returns on array objects to be logged.
    */
   public debugCallback(cb: () => unknown[] | string): void {
-    this.pino.warn('debugCallback is deprecated and does nothing');
+    (this.pino ?? rootLogger).warn('debugCallback is deprecated and does nothing');
   }
 
   /**
@@ -594,7 +594,7 @@ export class Logger {
   public info(...args: unknown[]): Logger {
     // @ts-expect-error leaving args typed as any
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    this.pino.info(...args);
+    (this.pino ?? rootLogger).info(...args);
     return this;
   }
 
@@ -606,7 +606,7 @@ export class Logger {
   public warn(...args: unknown[]): Logger {
     // @ts-expect-error leaving args typed as any
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    this.pino.warn(...args);
+    (this.pino ?? rootLogger).warn(...args);
     return this;
   }
 
@@ -618,7 +618,7 @@ export class Logger {
   public error(...args: unknown[]): Logger {
     // @ts-expect-error leaving args typed as any
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    this.pino.error(...args);
+    (this.pino ?? rootLogger).error(...args);
     return this;
   }
 
@@ -635,7 +635,7 @@ export class Logger {
     console.log(...args); // eslint-disable-line no-console
     // @ts-expect-error leaving args typed as any
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    this.pino.fatal(...args);
+    (this.pino ?? rootLogger).fatal(...args);
     return this;
   }
 
