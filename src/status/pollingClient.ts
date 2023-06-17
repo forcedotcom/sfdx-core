@@ -31,7 +31,7 @@ import { StatusResult } from './types';
  * ```
  */
 export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options> {
-  protected logger: typeof rootLogger;
+  protected logger!: typeof rootLogger;
   private options: PollingClient.Options;
 
   /**
@@ -43,15 +43,14 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
   public constructor(options?: PollingClient.Options) {
     super(options);
     this.options = ensure(options);
-    this.logger = rootLogger.child({ name: this.constructor.name });
   }
 
   /**
    * Asynchronous initializer.
    */
-  // eslint-disable-next-line class-methods-use-this
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async init(): Promise<void> {
-    // logger instantiation used to be here, moved to constructor
+    this.logger = rootLogger.child({ name: this.constructor.name });
   }
 
   /**
