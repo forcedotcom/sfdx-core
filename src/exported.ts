@@ -11,7 +11,7 @@ Messages.importMessagesDirectory(__dirname);
 
 export { OAuth2Config } from 'jsforce';
 export { ConfigFile } from './config/configFile';
-
+export { Logger } from './logger/legacyLogger';
 export { TTLConfig } from './config/ttlConfig';
 
 export { envVars, EnvironmentVariable, SUPPORTED_ENV_VARS, EnvVars } from './config/envVars';

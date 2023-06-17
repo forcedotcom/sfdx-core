@@ -5,31 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { EventEmitter } from 'events';
-import * as os from 'os';
-import * as path from 'path';
 import { Writable } from 'stream';
-import * as fs from 'fs';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import * as Bunyan from '@salesforce/bunyan';
-import { Env, parseJson, parseJsonMap } from '@salesforce/kit';
-import {
-  Dictionary,
-  ensure,
-  ensureNumber,
-  isArray,
-  isFunction,
-  isKeyOf,
-  isObject,
-  isPlainObject,
-  isString,
-  Many,
-  Optional,
-} from '@salesforce/ts-types';
-import * as Debug from 'debug';
+import { Env } from '@salesforce/kit';
+import { isKeyOf, isString } from '@salesforce/ts-types';
+import { Logger as PinoLogger } from 'pino';
 import { SfError } from '../sfError';
 import { Global, Mode } from '../global';
-// import { rootLogger } from './logger';
+import { rootLogger } from './logger';
 
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -37,6 +19,7 @@ import { Global, Mode } from '../global';
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 /**
  * A Bunyan `Serializer` function.
@@ -59,6 +42,7 @@ export interface Serializers {
  * The common set of `Logger` options.
  */
 export interface LoggerOptions {
+  asChild: boolean;
   /**
    * The logger name.
    */
@@ -248,10 +232,8 @@ export class Logger {
    */
   public debugEnabled = false;
 
-  // The actual Bunyan logger
-  private bunyan: Bunyan;
-
-  private readonly format: LoggerFormat;
+  // the actual logger this class is wrapping
+  private pino!: PinoLogger;
 
   /**
    * Constructs a new `Logger`.
@@ -267,44 +249,21 @@ export class Logger {
       options = {
         name: optionsOrName,
         level: Logger.DEFAULT_LEVEL,
-        serializers: Bunyan.stdSerializers,
+        asChild: false,
       };
     } else {
       options = optionsOrName;
     }
 
+    if (options.asChild) {
+      // let Logger.child handle setting the child
+    } else {
+      this.pino = rootLogger;
+    }
+
     if (Logger.rootLogger && options.name === Logger.ROOT_NAME) {
       throw new SfError('Can not create another root logger.', 'RedundantRootLoggerError');
     }
-
-    // Inspect format to know what logging format to use then delete from options to
-    // ensure it doesn't conflict with Bunyan.
-    this.format = options.format ?? LoggerFormat.JSON;
-    delete options.format;
-
-    // If the log format is LOGFMT, we need to convert any stream(s) into a LOGFMT type stream.
-    if (this.format === LoggerFormat.LOGFMT && options.stream) {
-      const ls: LoggerStream = this.createLogFmtFormatterStream({ stream: options.stream });
-      options.stream = ls.stream;
-    }
-    if (this.format === LoggerFormat.LOGFMT && options.streams) {
-      const logFmtConvertedStreams: LoggerStream[] = [];
-      options.streams.forEach((ls: LoggerStream) => {
-        logFmtConvertedStreams.push(this.createLogFmtFormatterStream(ls));
-      });
-      options.streams = logFmtConvertedStreams;
-    }
-
-    this.bunyan = new Bunyan(options);
-    this.bunyan.name = options.name;
-    this.bunyan.filters = [];
-
-    if (!options.streams && !options.stream) {
-      this.bunyan.streams = [];
-    }
-
-    // all SFDX loggers must filter sensitive data
-    this.addFilter((...args) => filterSecrets(...args));
 
     if (Global.getEnvironmentMode() !== Mode.TEST) {
       Logger.lifecycle.on('uncaughtException', this.uncaughtExceptionHandler);
@@ -321,16 +280,16 @@ export class Logger {
     if (this.rootLogger) {
       return this.rootLogger;
     }
-    const rootLogger = (this.rootLogger = new Logger(Logger.ROOT_NAME).setLevel());
+    const newRootLogger = (this.rootLogger = new Logger(Logger.ROOT_NAME).setLevel());
 
     // disable log file writing, if applicable
     const disableLogFile = new Env().getString('SF_DISABLE_LOG_FILE');
     if (disableLogFile !== 'true' && Global.getEnvironmentMode() !== Mode.TEST) {
-      await rootLogger.addLogFileStream(Global.LOG_FILE_PATH);
+      await newRootLogger.addLogFileStream(Global.LOG_FILE_PATH);
     }
 
-    rootLogger.enableDEBUG();
-    return rootLogger;
+    newRootLogger.enableDEBUG();
+    return newRootLogger;
   }
 
   /**
@@ -340,15 +299,15 @@ export class Logger {
     if (this.rootLogger) {
       return this.rootLogger;
     }
-    const rootLogger = (this.rootLogger = new Logger(Logger.ROOT_NAME).setLevel());
+    const newRootLogger = (this.rootLogger = new Logger(Logger.ROOT_NAME).setLevel());
 
     // disable log file writing, if applicable
     if (process.env.SFDX_DISABLE_LOG_FILE !== 'true' && Global.getEnvironmentMode() !== Mode.TEST) {
-      rootLogger.addLogFileStreamSync(Global.LOG_FILE_PATH);
+      newRootLogger.addLogFileStreamSync(Global.LOG_FILE_PATH);
     }
 
-    rootLogger.enableDEBUG();
-    return rootLogger;
+    newRootLogger.enableDEBUG();
+    return newRootLogger;
   }
 
   /**
@@ -400,118 +359,49 @@ export class Logger {
   }
 
   /**
+   * @deprecated
    * Adds a stream.
    *
    * @param stream The stream configuration to add.
    * @param defaultLevel The default level of the stream.
    */
   public addStream(stream: LoggerStream, defaultLevel?: LoggerLevelValue): void {
-    if (this.format === LoggerFormat.LOGFMT) {
-      stream = this.createLogFmtFormatterStream(stream);
-    }
-    this.bunyan.addStream(stream, defaultLevel);
+    this.warn('manipulating streams on a logger is no longer supported');
   }
 
   /**
+   * @deprecated
    * Adds a file stream to this logger. Resolved or rejected upon completion of the addition.
    *
    * @param logFile The path to the log file.  If it doesn't exist it will be created.
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   public async addLogFileStream(logFile: string): Promise<void> {
-    try {
-      // Check if we have write access to the log file (i.e., we created it already)
-      await fs.promises.access(logFile, fs.constants.W_OK);
-    } catch (err1) {
-      try {
-        if (process.platform === 'win32') {
-          await fs.promises.mkdir(path.dirname(logFile), { recursive: true });
-        } else {
-          await fs.promises.mkdir(path.dirname(logFile), { recursive: true, mode: 0o700 });
-        }
-      } catch (err2) {
-        throw SfError.wrap(err2 as string | Error);
-      }
-      try {
-        await fs.promises.writeFile(logFile, '', { mode: '600' });
-      } catch (err3) {
-        throw SfError.wrap(err3 as string | Error);
-      }
-    }
-
-    // avoid multiple streams to same log file
-    if (
-      !this.bunyan.streams.find(
-        // No bunyan typings
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (stream: any) => stream.type === 'rotating-file' && stream.path === logFile
-      )
-    ) {
-      this.addStream({
-        type: 'rotating-file',
-        path: logFile,
-        period: this.logRotationPeriod,
-        count: this.logRotationCount,
-        level: this.bunyan.level(),
-      });
-    }
+    this.warn('manipulating streams on a logger is no longer supported');
   }
 
   /**
+   * @deprecated
    * Adds a file stream to this logger. Resolved or rejected upon completion of the addition.
    *
    * @param logFile The path to the log file.  If it doesn't exist it will be created.
    */
   public addLogFileStreamSync(logFile: string): void {
-    try {
-      // Check if we have write access to the log file (i.e., we created it already)
-      fs.accessSync(logFile, fs.constants.W_OK);
-    } catch (err1) {
-      try {
-        if (process.platform === 'win32') {
-          fs.mkdirSync(path.dirname(logFile), { recursive: true });
-        } else {
-          fs.mkdirSync(path.dirname(logFile), { recursive: true, mode: 0o700 });
-        }
-      } catch (err2) {
-        throw SfError.wrap(err2 as Error);
-      }
-      try {
-        fs.writeFileSync(logFile, '', { mode: '600' });
-      } catch (err3) {
-        throw SfError.wrap(err3 as string | Error);
-      }
-    }
-
-    // avoid multiple streams to same log file
-    if (
-      !this.bunyan.streams.find(
-        // No bunyan typings
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (stream: any) => stream.type === 'rotating-file' && stream.path === logFile
-      )
-    ) {
-      this.addStream({
-        type: 'rotating-file',
-        path: logFile,
-        period: this.logRotationPeriod,
-        count: this.logRotationCount,
-        level: this.bunyan.level(),
-      });
-    }
+    this.warn('manipulating streams on a logger is no longer supported');
   }
 
   /**
    * Gets the name of this logger.
    */
   public getName(): string {
-    return this.bunyan.name;
+    return this.pino.bindings().name;
   }
 
   /**
    * Gets the current level of this logger.
    */
   public getLevel(): LoggerLevelValue {
-    return this.bunyan.level();
+    return this.pino.levels.values[this.pino.level];
   }
 
   /**
@@ -540,18 +430,19 @@ export class Logger {
       const logLevelFromEnvVar = new Env().getString('SF_LOG_LEVEL');
       level = logLevelFromEnvVar ? Logger.getLevelByName(logLevelFromEnvVar) : Logger.DEFAULT_LEVEL;
     }
-    this.bunyan.level(level);
+    this.pino.level = this.pino.levels.labels[level];
     return this;
   }
 
   /**
-   * Gets the underlying Bunyan logger.
+   * @deprecated
+   * Gets the underlying logger, which is no longer Bunyan.
    */
   // leave this typed as any to keep if from trying to export the type from the untyped bunyan module
   // this prevents consumers from getting node_modules/@salesforce/core/lib/logger.d.ts:281:24 - error TS2304: Cannot find name 'Bunyan'.
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
   public getBunyanLogger(): any {
-    return this.bunyan;
+    return this.pino;
   }
 
   /**
@@ -561,97 +452,57 @@ export class Logger {
    * @param level The requested log level to compare against the currently set log level.
    */
   public shouldLog(level: LoggerLevelValue): boolean {
-    if (typeof level === 'string') {
-      level = Bunyan.levelFromName(level) as number;
-    }
-    return level >= this.getLevel();
+    return this.pino.isLevelEnabled(this.pino.levels.labels[level]);
   }
 
   /**
+   * @deprecated
    * Use in-memory logging for this logger instance instead of any parent streams. Useful for testing.
    * For convenience this object is returned.
    *
    * **WARNING: This cannot be undone for this logger instance.**
    */
   public useMemoryLogging(): Logger {
-    this.bunyan.streams = [];
-    this.bunyan.ringBuffer = new Bunyan.RingBuffer({ limit: 5000 });
-    this.addStream({
-      type: 'raw',
-      stream: this.bunyan.ringBuffer,
-      level: this.bunyan.level(),
-    });
     return this;
   }
 
   /**
+   * @deprecated
    * Gets an array of log line objects. Each element is an object that corresponds to a log line.
    */
+  // eslint-disable-next-line class-methods-use-this
   public getBufferedRecords(): LogLine[] {
-    if (this.bunyan.ringBuffer) {
-      return this.bunyan.ringBuffer.records;
-    }
     return [];
   }
 
   /**
+   * @deprecated
+   *
    * Reads a text blob of all the log lines contained in memory or the log file.
    */
   public readLogContentsAsText(): string {
-    if (this.bunyan.ringBuffer) {
-      return this.getBufferedRecords().reduce((accum, line) => {
-        accum += JSON.stringify(line) + os.EOL;
-        return accum;
-      }, '');
-    } else {
-      let content = '';
-      // No bunyan typings
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      this.bunyan.streams.forEach(async (stream: any) => {
-        if (stream.type === 'file') {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          content += await fs.promises.readFile(stream.path, 'utf8');
-        }
-      });
-      return content;
-    }
+    this.warn('readLogContentsAsText is no longer supported.  It always returns empty strings');
+    return '';
   }
 
   /**
+   * @deprecated
    * Adds a filter to be applied to all logged messages.
    *
    * @param filter A function with signature `(...args: any[]) => any[]` that transforms log message arguments.
    */
   public addFilter(filter: (...args: unknown[]) => unknown): void {
-    if (!this.bunyan.filters) {
-      this.bunyan.filters = [];
-    }
-    this.bunyan.filters.push(filter);
+    this.warn('addFilter is deprecated and does nothing');
   }
 
   /**
+   * @deprecated
    * Close the logger, including any streams, and remove all listeners.
    *
    * @param fn A function with signature `(stream: LoggerStream) => void` to call for each stream with the stream as an arg.
    */
   public close(fn?: (stream: LoggerStream) => void): void {
-    if (this.bunyan.streams) {
-      try {
-        this.bunyan.streams.forEach((entry: LoggerStream) => {
-          if (fn) {
-            fn(entry);
-          }
-          // close file streams, flush buffer to disk
-          // eslint-disable-next-line @typescript-eslint/unbound-method
-          if (entry.type === 'file' && entry.stream && isFunction(entry.stream.end)) {
-            entry.stream.end();
-          }
-        });
-      } finally {
-        Logger.lifecycle.removeListener('uncaughtException', this.uncaughtExceptionHandler);
-        Logger.lifecycle.removeListener('exit', this.exitHandler);
-      }
-    }
+    this.warn('closing a logger is deprecated and does nothing');
   }
 
   /**
@@ -666,12 +517,9 @@ export class Logger {
     }
     fields.log = name;
 
-    const child = new Logger(name);
+    const child = new Logger({ name, asChild: true });
     // only support including additional fields on log line (no config)
-    child.bunyan = this.bunyan.child(fields, true);
-    child.bunyan.name = name;
-    child.bunyan.filters = this.bunyan.filters;
-
+    child.pino = this.pino.child({ ...fields, name });
     this.trace(`Setup child '${name}' logger instance`);
 
     return child;
@@ -684,7 +532,7 @@ export class Logger {
    * @param value The value of the field to be logged.
    */
   public addField(name: string, value: FieldValue): Logger {
-    this.bunyan.fields[name] = value;
+    this.pino.setBindings({ ...this.pino.bindings(), [name]: value });
     return this;
   }
 
@@ -695,8 +543,9 @@ export class Logger {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public trace(...args: any[]): Logger {
+    // @ts-expect-error leaving args typed as any
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    this.bunyan.trace(this.applyFilters(LoggerLevel.TRACE, ...args));
+    this.pino.trace(...args);
     return this;
   }
 
@@ -706,24 +555,20 @@ export class Logger {
    * @param args Any number of arguments to be logged.
    */
   public debug(...args: unknown[]): Logger {
-    this.bunyan.debug(this.applyFilters(LoggerLevel.DEBUG, ...args));
+    // @ts-expect-error leaving args typed as any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    this.pino.debug(...args);
     return this;
   }
 
   /**
+   * @deprecated
    * Logs at `debug` level with filtering applied.
    *
    * @param cb A callback that returns on array objects to be logged.
    */
   public debugCallback(cb: () => unknown[] | string): void {
-    if (this.getLevel() === LoggerLevel.DEBUG || process.env.DEBUG) {
-      const result = cb();
-      if (isArray(result)) {
-        this.bunyan.debug(this.applyFilters(LoggerLevel.DEBUG, ...result));
-      } else {
-        this.bunyan.debug(this.applyFilters(LoggerLevel.DEBUG, ...[result]));
-      }
-    }
+    this.pino.warn('debugCallback is deprecated and does nothing');
   }
 
   /**
@@ -732,7 +577,9 @@ export class Logger {
    * @param args Any number of arguments to be logged.
    */
   public info(...args: unknown[]): Logger {
-    this.bunyan.info(this.applyFilters(LoggerLevel.INFO, ...args));
+    // @ts-expect-error leaving args typed as any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    this.pino.info(...args);
     return this;
   }
 
@@ -742,7 +589,9 @@ export class Logger {
    * @param args Any number of arguments to be logged.
    */
   public warn(...args: unknown[]): Logger {
-    this.bunyan.warn(this.applyFilters(LoggerLevel.WARN, ...args));
+    // @ts-expect-error leaving args typed as any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    this.pino.warn(...args);
     return this;
   }
 
@@ -752,7 +601,9 @@ export class Logger {
    * @param args Any number of arguments to be logged.
    */
   public error(...args: unknown[]): Logger {
-    this.bunyan.error(this.applyFilters(LoggerLevel.ERROR, ...args));
+    // @ts-expect-error leaving args typed as any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    this.pino.error(...args);
     return this;
   }
 
@@ -767,60 +618,20 @@ export class Logger {
     // Do not use console.error() here, if fatal() is called from the uncaughtException handler, it
     // will be re-thrown and caught again by the uncaughtException handler, causing an infinite loop.
     console.log(...args); // eslint-disable-line no-console
-    this.bunyan.fatal(this.applyFilters(LoggerLevel.FATAL, ...args));
+    // @ts-expect-error leaving args typed as any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    this.pino.fatal(...args);
     return this;
   }
 
   /**
+   * @deprecated
    * Enables logging to stdout when the DEBUG environment variable is used. It uses the logger
    * name as the debug name, so you can do DEBUG=<logger-name> to filter the results to your logger.
    */
   public enableDEBUG(): void {
     // The debug library does this for you, but no point setting up the stream if it isn't there
-    if (process.env.DEBUG && !this.debugEnabled) {
-      const debuggers: Dictionary<Debug.IDebugger> = {};
-
-      debuggers.core = Debug(`${this.getName()}:core`);
-
-      this.addStream({
-        name: 'debug',
-        stream: new Writable({
-          write: (chunk, encoding, next) => {
-            try {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-              const json = parseJsonMap(chunk.toString());
-              const logLevel = ensureNumber(json.level);
-              if (this.getLevel() <= logLevel) {
-                let debuggerName = 'core';
-                if (isString(json.log)) {
-                  debuggerName = json.log;
-                  if (!debuggers[debuggerName]) {
-                    debuggers[debuggerName] = Debug(`${this.getName()}:${debuggerName}`);
-                  }
-                }
-                const level = LoggerLevel[logLevel];
-                ensure(debuggers[debuggerName])(`${level} ${json.msg}`);
-              }
-            } catch (err) {
-              // do nothing
-            }
-            next();
-          },
-        }),
-        // Consume all levels
-        level: 0,
-      });
-      this.debugEnabled = true;
-    }
-  }
-
-  private applyFilters(logLevel: LoggerLevel, ...args: unknown[]): Optional<Many<unknown>> {
-    if (this.shouldLog(logLevel)) {
-      // No bunyan typings
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      this.bunyan.filters.forEach((filter: any) => (args = filter(...args)));
-    }
-    return args && args.length === 1 ? args[0] : args;
+    this.pino.warn('enableDEBUG is deprecated and does nothing');
   }
 
   private uncaughtExceptionHandler = (err: Error) => {
@@ -838,109 +649,4 @@ export class Logger {
   private exitHandler = () => {
     this.close();
   };
-
-  // eslint-disable-next-line class-methods-use-this
-  private createLogFmtFormatterStream(loggerStream: LoggerStream): LoggerStream {
-    const logFmtWriteableStream = new Writable({
-      write: (chunk, enc, cb) => {
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          const parsedJSON = JSON.parse(chunk.toString());
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          const keys = Object.keys(parsedJSON);
-
-          let logEntry = '';
-          keys.forEach((key) => {
-            let logMsg = `${parsedJSON[key]}`;
-            if (logMsg.trim().includes(' ')) {
-              logMsg = `"${logMsg}"`;
-            }
-            logEntry += `${key}=${logMsg} `;
-          });
-          if (loggerStream.stream) {
-            loggerStream.stream.write(logEntry.trimRight() + '\n');
-          }
-        } catch (error) {
-          if (loggerStream.stream) {
-            loggerStream.stream.write(chunk.toString());
-          }
-        }
-        cb(null);
-      },
-    });
-
-    return Object.assign({}, loggerStream, { stream: logFmtWriteableStream });
-  }
 }
-
-type FilteredKey = string | { name: string; regex: string };
-
-// Ok to log clientid
-const FILTERED_KEYS: FilteredKey[] = [
-  'sid',
-  'Authorization',
-  // Any json attribute that contains the words "access" and "token" will have the attribute/value hidden
-  { name: 'access_token', regex: 'access[^\'"]*token' },
-  // Any json attribute that contains the words "refresh" and "token" will have the attribute/value hidden
-  { name: 'refresh_token', regex: 'refresh[^\'"]*token' },
-  'clientsecret',
-  // Any json attribute that contains the words "sfdx", "auth", and "url" will have the attribute/value hidden
-  { name: 'sfdxauthurl', regex: 'sfdx[^\'"]*auth[^\'"]*url' },
-];
-
-// SFDX code and plugins should never show tokens or connect app information in the logs
-const filterSecrets = (...args: unknown[]): unknown =>
-  args.map((arg) => {
-    if (isArray(arg)) {
-      return filterSecrets(...arg);
-    }
-
-    if (arg) {
-      let mutableArg: string;
-
-      // Normalize all objects into a string. This includes errors.
-      if (arg instanceof Buffer) {
-        mutableArg = '<Buffer>';
-      } else if (isObject(arg)) {
-        mutableArg = JSON.stringify(arg);
-      } else if (isString(arg)) {
-        mutableArg = arg;
-      } else {
-        mutableArg = '';
-      }
-
-      const HIDDEN = 'HIDDEN';
-
-      FILTERED_KEYS.forEach((key: FilteredKey) => {
-        let expElement = key;
-        let expName = key;
-
-        // Filtered keys can be strings or objects containing regular expression components.
-        if (isPlainObject(key)) {
-          expElement = key.regex;
-          expName = key.name;
-        }
-
-        const hiddenAttrMessage = `"<${expName} - ${HIDDEN}>"`;
-
-        // Match all json attribute values case insensitive: ex. {" Access*^&(*()^* Token " : " 45143075913458901348905 \n\t" ...}
-        const regexTokens = new RegExp(`(['"][^'"]*${expElement}[^'"]*['"]\\s*:\\s*)['"][^'"]*['"]`, 'gi');
-
-        mutableArg = mutableArg.replace(regexTokens, `$1${hiddenAttrMessage}`);
-
-        // Match all key value attribute case insensitive: ex. {" key\t"    : ' access_token  ' , " value " : "  dsafgasr431 " ....}
-        const keyRegex = new RegExp(
-          `(['"]\\s*key\\s*['"]\\s*:)\\s*['"]\\s*${expElement}\\s*['"]\\s*.\\s*['"]\\s*value\\s*['"]\\s*:\\s*['"]\\s*[^'"]*['"]`,
-          'gi'
-        );
-        mutableArg = mutableArg.replace(keyRegex, `$1${hiddenAttrMessage}`);
-      });
-
-      mutableArg = mutableArg.replace(/(00D\w{12,15})![.\w]*/, `<${HIDDEN}>`);
-
-      // return an object if an object was logged; otherwise return the filtered string.
-      return isObject(arg) ? parseJson(mutableArg) : mutableArg;
-    } else {
-      return arg;
-    }
-  });
