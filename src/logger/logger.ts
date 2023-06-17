@@ -29,7 +29,7 @@ const transportStream = {
  * basic root-level logger with default/env behavior.
  * you probably want to use this, and if you need a child, want to call .child() on it
  * */
-export const rootLogger = pino({
+const rootLogger = pino({
   name: ROOT_NAME,
   enabled,
   level,
@@ -52,7 +52,10 @@ export const rootLogger = pino({
   sync: false,
 });
 
+export { rootLogger };
 /**
+ * @experimental
+ *
  * You want a separate root-level logger where you can customize the destination file and name.
  * Each of these will return a new, disconnected logger logger to a different place
  */
@@ -82,5 +85,3 @@ export const getCustomLogger = ({ customPath, name = ROOT_NAME }: { customPath: 
 
 // TODO: telemetry as custom level (1)
 // TODO: how to inject/hoist this into oclif to override DEBUG library and get telemetry from there?
-
-// TODO: filter by DEBUG = * matchers
