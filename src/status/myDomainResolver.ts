@@ -79,7 +79,7 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
       this.logger.debug('SF_DISABLE_DNS_CHECK set to true. Skipping DNS check...');
       return this.options.url.host;
     }
-
+    const logger = this.logger;
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self: MyDomainResolver = this;
     const pollingOptions: PollingClient.Options = {
@@ -87,7 +87,7 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
         const { host } = self.options.url;
         let dnsResult: { address: string };
         try {
-          self.logger.debug(`Attempting to resolve url: ${host}`);
+          logger.debug(`Attempting to resolve url: ${host}`);
           if (new SfdcUrl(self.options.url).isLocalUrl()) {
             return {
               completed: true,
@@ -95,15 +95,15 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
             };
           }
           dnsResult = await promisify(lookup)(host);
-          self.logger.debug(`Successfully resolved host: ${host} result: ${JSON.stringify(dnsResult)}`);
+          logger.debug(`Successfully resolved host: ${host} result: ${JSON.stringify(dnsResult)}`);
           return {
             completed: true,
             payload: dnsResult.address,
           };
         } catch (e) {
-          self.logger.debug(`An error occurred trying to resolve: ${host}`);
-          self.logger.debug(`Error: ${(e as Error).message}`);
-          self.logger.debug('Re-trying dns lookup again....');
+          logger.debug(`An error occurred trying to resolve: ${host}`);
+          logger.debug(`Error: ${(e as Error).message}`);
+          logger.debug('Re-trying dns lookup again....');
           return {
             completed: false,
           };
