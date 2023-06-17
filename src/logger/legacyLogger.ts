@@ -22,6 +22,7 @@ import { rootLogger } from './logger';
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 /**
+ * @deprecated
  * A Bunyan `Serializer` function.
  *
  * @param input The input to be serialized.
@@ -30,6 +31,7 @@ import { rootLogger } from './logger';
 export type Serializer = (input: unknown) => unknown;
 
 /**
+ * @deprecated
  * A collection of named `Serializer`s.
  *
  * **See** {@link https://github.com/forcedotcom/node-bunyan#serializers|Bunyan Serializers API}
@@ -42,6 +44,7 @@ export interface Serializers {
  * The common set of `Logger` options.
  */
 export interface LoggerOptions {
+  /** the new logger will be created as a child logger  */
   asChild: boolean;
   /**
    * The logger name.
@@ -49,15 +52,18 @@ export interface LoggerOptions {
   name: string;
 
   /**
+   * @deprecated.  json is the default and only option
    * The logger format type. Current options include LogFmt or JSON (default).
    */
   format?: LoggerFormat;
 
   /**
+   * @deprecated. serializers are not customizable
    * The logger's serializers.
    */
   serializers?: Serializers;
   /**
+   * @deprecated. this never did anything
    * Whether or not to log source file, line, and function information.
    */
   src?: boolean;
@@ -66,10 +72,12 @@ export interface LoggerOptions {
    */
   level?: LoggerLevelValue;
   /**
+   * @deprecated. streams are not customizable
    * A stream to write to.
    */
   stream?: Writable;
   /**
+   * @deprecated. streams are not customizable
    * An array of streams to write to.
    */
   streams?: LoggerStream[];
@@ -99,6 +107,8 @@ export enum LoggerFormat {
 
 /**
  * A Bunyan stream configuration.
+ *
+ * @deprecated we don't use Bunyan anymore
  *
  * @see {@link https://github.com/forcedotcom/node-bunyan#streams|Bunyan Streams}
  */
@@ -142,11 +152,13 @@ export interface Fields {
 }
 
 /**
+ * @deprecated
  * All possible field value types.
  */
 export type FieldValue = string | number | boolean;
 
 /**
+ * @deprecated
  * Log line interface
  */
 export interface LogLine {
@@ -259,6 +271,9 @@ export class Logger {
       // let Logger.child handle setting the child
     } else {
       this.pino = rootLogger;
+      if (options.level) {
+        this.pino.level = this.pino.levels.labels[options.level];
+      }
     }
 
     if (Logger.rootLogger && options.name === Logger.ROOT_NAME) {
