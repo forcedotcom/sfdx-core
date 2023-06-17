@@ -17,8 +17,8 @@ import {
   Optional,
 } from '@salesforce/ts-types';
 import { SfError } from '../sfError';
-import { rootLogger } from '../logger/logger';
-
+// import { rootLogger } from '../logger/logger';
+import { Logger } from '../logger/legacyLogger';
 /**
  * Renders schema properties.  By default, this is simply an identity transform.  Subclasses may provide more
  * interesting decorations of each values, such as ANSI coloring.
@@ -81,7 +81,7 @@ export class SchemaPropertyRenderer {
  * ```
  */
 export class SchemaPrinter {
-  private logger: typeof rootLogger;
+  private logger: Logger;
   private lines: string[] = [];
 
   /**
@@ -92,11 +92,11 @@ export class SchemaPrinter {
    * @param propertyRenderer The property renderer.
    */
   public constructor(
-    logger: typeof rootLogger,
+    logger: Logger,
     private schema: JsonMap,
     private propertyRenderer: SchemaPropertyRenderer = new SchemaPropertyRenderer()
   ) {
-    this.logger = logger.child({ name: 'SchemaPrinter' });
+    this.logger = logger.child('SchemaPrinter');
 
     if (!this.schema.properties && !this.schema.items) {
       // No need to add to messages, since this should never happen. In fact,
@@ -198,7 +198,7 @@ export class SchemaPrinter {
 
 class SchemaProperty {
   public constructor(
-    private readonly logger: typeof rootLogger,
+    private readonly logger: Logger,
     private readonly schema: JsonMap,
     private readonly name: string,
     private rawProperty: JsonMap,
