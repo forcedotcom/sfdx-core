@@ -19,11 +19,6 @@ export default async function (options: Record<string, unknown>) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (source: any): Transform => {
       const myTransportStream = new Transform({
-        // Make sure autoDestroy is set,
-        // this is needed in Node v12 or when using the
-        // readable-stream module.
-        autoDestroy: true,
-
         objectMode: true,
         // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         transform(chunk: Record<string, unknown>, enc, cb) {
