@@ -55,7 +55,6 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
   public constructor(options?: MyDomainResolver.Options) {
     super(options);
     this.options = options ?? { url: MyDomainResolver.DEFAULT_DOMAIN };
-    this.logger = rootLogger.child({ name: 'MyDomainResolver' });
   }
 
   public getTimeout(): Duration {
@@ -131,9 +130,9 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
   /**
    * Used to initialize asynchronous components.
    */
-  // eslint-disable-next-line class-methods-use-this
+  // eslint-disable-next-line @typescript-eslint/require-await
   protected async init(): Promise<void> {
-    // old logger instantiation was here, which I think it what made this async
+    this.logger = rootLogger.child({ name: 'MyDomainResolver' });
   }
 }
 
