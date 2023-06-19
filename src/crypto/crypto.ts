@@ -237,7 +237,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
       this.options.platform = os.platform();
     }
 
-    logger.debug(`retryStatus: ${this.options.retryStatus}`);
+    logger.debug({ retryStatus: this.options.retryStatus });
 
     this.noResetOnClose = !!this.options.noResetOnClose;
 

@@ -7,7 +7,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import * as path from 'path';
-import pino, { Logger } from 'pino';
+import pino from 'pino';
 import { Global } from '../global';
 
 const ROOT_NAME = 'sf';
@@ -53,32 +53,8 @@ const rootLogger = pino({
 });
 
 export { rootLogger };
-/**
- * @experimental
- *
- * You want a separate root-level logger where you can customize the destination file and name.
- * Each of these will return a new, disconnected logger logger to a different place
- */
-export const getCustomLogger = ({ customPath, name = ROOT_NAME }: { customPath: string; name?: string }): Logger => {
-  /** write to a custom file (for testing) */
-  const testTransport = {
-    target: 'pino/file',
-    options: { destination: customPath, mkdir: true },
-  } as const;
-
-  const customLogger = pino({
-    name,
-    enabled,
-    level,
-    transport: {
-      pipeline: [transportStream, testTransport],
-    },
-    sync: true,
-  });
-
-  customLogger.warn({ customPath, name }, 'custom logger created');
-  return customLogger;
-};
+// rootLogger.trace(`root logger created by ${require.main?.filename}`);
+// rootLogger.trace(`file being read is ${module.filename}}`);
 
 // TODO: handle removing files with dates more than 7 days ago.  Make a quasi random creation of a new job to do it outside the main thread.
 // TODO: test mode (writing logs to a different location, or buffer, to retrieve from TestSetup)
