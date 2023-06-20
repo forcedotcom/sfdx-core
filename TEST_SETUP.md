@@ -89,9 +89,26 @@ describe('Mocking Config', () => {
   });
 });
 
+describe('Mocking a project config file', () => {
+  it('stubs the project config file', async () => {
+    $$.setConfigStubContents('SfProjectJson', {
+      contents: {
+        packageDirectories: [
+          {
+            path: 'force-app',
+            default: true,
+          },
+        ],
+        sourceApiVersion: '57.0',
+      },
+    });
+  });
+});
+
 describe('Mocking Arbitrary Config Files', () => {
   it('example', async () => {
     // MyConfigFile must extend the ConfigFile class in order for this to work properly.
+    // Examples include: DeployCache, DeployPipelineCache, ScratchOrgCache
     $$.setConfigStubContents('MyConfigFile', { contents: { foo: 'bar' } });
   });
 });
