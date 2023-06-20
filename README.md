@@ -17,21 +17,21 @@ See the [API documentation](https://forcedotcom.github.io/sfdx-core/).
 
 ## Contributing
 
-If you are interested in contributing, please take a look at the [CONTRIBUTING](CONTRIBUTING.md) guide.
+If you're interested in contributing, take a look at the [CONTRIBUTING](CONTRIBUTING.md) guide.
 
 ## Issues
 
-Please report all issues to [issues only repository](https://github.com/forcedotcom/cli/issues).
+Report all issues to the [issues only repository](https://github.com/forcedotcom/cli/issues).
 
 # Using TestSetup
 
 The Salesforce DX Core Library provides a unit testing utility to help with mocking and sand-boxing core components. This feature allows unit tests to execute without needing to make API calls to salesforce.com.
 
-See more in the [Test Setup documentation](TEST_SETUP.md)
+See the [Test Setup documentation](TEST_SETUP.md).
 
 ## Message Transformer
 
-the Messages class, by default, will load message text during run time. It's optimized to do this only per file.
+The Messages class, by default, loads message text during run time. It's optimized to do this only per file.
 
 If you're using @salesforce/core or other code that uses its Messages class in a bundler (webpack, esbuild, etc) it may struggle with these runtime references.
 
