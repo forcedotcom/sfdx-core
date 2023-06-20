@@ -10,7 +10,7 @@ The Salesforce DX Core Library provides a unit testing utility to help with mock
 
 ## Mocking Authorizations
 
-Here you can mock authorization for a Salesforce scratch org.
+This code shows how to mock authorization for a Salesforce scratch org.
 
 ```typescript
 import { strictEqual } from 'assert';
@@ -28,7 +28,7 @@ describe('Mocking Auth data', () => {
 });
 ```
 
-After having a valid AuthInfo object you can then create fake connections to a Salesforce.com scratch org. This allows for writing tests that can validate result responses for SOQL queries and REST endpoints.
+After having a valid AuthInfo object, you can then create fake connections to a Salesforce.com scratch org. You can then write tests that can validate result responses for SOQL queries and REST endpoints.
 
 ```typescript
 import { AuthInfo, Connection, SfError } from '@salesforce/core';
@@ -63,7 +63,7 @@ describe('Mocking a force server call', () => {
 
 ## Mocking Config Files
 
-You can mock the contents of various config files
+You can mock the contents of various config files.
 
 ```typescript
 import { strictEqual } from 'assert';
@@ -99,9 +99,9 @@ describe('Mocking Arbitrary Config Files', () => {
 
 ## Using the Built-in Sinon Sandboxes
 
-sfdx-core uses Sinon as its underlying mocking system. If you're unfamiliar with Sinon and its sandboxing concept you can find more information here:
-https://sinonjs.org/
-Sinon `stub`s and `spy`s must be cleaned up after test invocations. To ease the use of Sinon with sfdx core we've exposed our sandbox in TestSetup. After adding your own `stub`s and/or `spy`s they will automatically be cleaned up after each test using mocha's afterEach method.
+sfdx-core uses Sinon as its underlying mocking system. Find more information about Sinon and its sandboxing concept [here](https://sinonjs.org/).
+
+Sinon `stub`s and `spy`s must be cleaned up after test invocations. To ease the use of Sinon with sfdx-core, we've exposed our sandbox in `TestSetup`. After adding your own `stub`s or `spy`s, they'll automatically be cleaned up after each test using mocha's `afterEach` method.
 
 ```typescript
 import { strictEqual } from 'assert';
@@ -145,7 +145,7 @@ describe('Testing for expected errors', () => {
 });
 ```
 
-You can also use `shouldThrowSync` for syncrhonous functions you expect to fail
+You can also use `shouldThrowSync` for syncrhonous functions you expect to fail.
 
 ```typescript
 import { SfError } from '@salesforce/core';
