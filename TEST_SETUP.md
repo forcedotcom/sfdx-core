@@ -1,5 +1,8 @@
 # Using TestSetup
 
+> **Note**  
+> Explore test examples in the [examples directory](./examples)
+
 The Salesforce DX Core Library provides a unit testing utility to help with mocking and sand-boxing core components. This feature allows unit tests to execute without needing to make API calls to salesforce.com.
 
 - [Mocking Authorizations](#mocking-authorizations)
