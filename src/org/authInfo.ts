@@ -62,6 +62,7 @@ export type AuthFields = {
   loginUrl?: string;
   orgId?: string;
   password?: string;
+  jwtPrivateKey?: string;
   privateKey?: string;
   refreshToken?: string;
   scratchAdminUsername?: string;
@@ -112,6 +113,7 @@ export type AuthSideEffects = {
 };
 
 export type JwtOAuth2Config = OAuth2Config & {
+  jwtPrivateKey?: string;
   privateKey?: string;
   privateKeyFile?: string;
   authCode?: string;
@@ -783,7 +785,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
             // Grab whatever flow is defined
             Object.assign(options, {
               clientSecret: parentFields.clientSecret,
-              privateKey: parentFields.privateKey ? pathResolve(parentFields.privateKey) : parentFields.privateKey,
+              jwtPrivateKey: parentFields.jwtPrivateKey,
             });
           }
         }
@@ -794,7 +796,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           options.privateKey = pathResolve(options.privateKeyFile);
         }
 
-        if (options.privateKey) {
+        if (options.jwtPrivateKey || options.privateKey) {
           authConfig = await this.authJwt(options);
         } else if (!options.authCode && options.refreshToken) {
           // refresh token flow (from sfdxUrl or OAuth refreshFn)
@@ -875,7 +877,14 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     if (!options.clientId) {
       throw messages.createError('missingClientId');
     }
-    const privateKeyContents = await this.readJwtKey(ensureString(options.privateKey));
+    let privateKeyContents = '';
+
+    if (options.jwtPrivateKey) {
+      privateKeyContents = options.jwtPrivateKey;
+    } else if (options.privateKey) {
+      privateKeyContents = await this.readJwtKey(ensureString(options.privateKey));
+    }
+
     const { loginUrl = SfdcUrl.PRODUCTION } = options;
     const url = new SfdcUrl(loginUrl);
     const createdOrgInstance = (this.getFields().createdOrgInstance ?? '').trim().toLowerCase();
@@ -906,6 +915,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       accessToken: asString(authFieldsBuilder.access_token),
       orgId: parseIdUrl(ensureString(authFieldsBuilder.id)).orgId,
       loginUrl: options.loginUrl,
+      jwtPrivateKey: options.jwtPrivateKey,
       privateKey: options.privateKey,
       clientId: options.clientId,
     };
