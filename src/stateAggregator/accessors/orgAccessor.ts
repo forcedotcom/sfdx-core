@@ -42,6 +42,9 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
       this.configs.set(username, config);
       return this.get(username, decrypt);
     } catch (err) {
+      if (err instanceof Error && err.name === 'JsonParseError') {
+        throw err;
+      }
       return null;
     }
   }
