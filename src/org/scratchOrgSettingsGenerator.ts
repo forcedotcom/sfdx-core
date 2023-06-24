@@ -286,12 +286,17 @@ export default class SettingsGenerator {
     const client = await PollingClient.create(pollingOptions);
     const status = await client.subscribe<string>();
 
+    type FailureMessage = {
+      problemType: string;
+      fullName: string;
+      problem: string;
+    };
     if (status !== RequestStatus.Succeeded) {
       const componentFailures = ensureObject<{
-        componentFailures: Record<string, unknown> | Array<Record<string, unknown>>;
+        componentFailures: FailureMessage | FailureMessage[];
       }>(result.details).componentFailures;
       const failures = (Array.isArray(componentFailures) ? componentFailures : [componentFailures])
-        .map((failure) => failure.problem)
+        .map((failure) => `[${failure.problemType}] ${failure.fullName} : ${failure.problem} `)
         .join('\n');
       const error = new SfError(
         `A scratch org was created with username ${username}, but the settings failed to deploy due to: \n${failures}`,

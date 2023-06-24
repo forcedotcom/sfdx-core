@@ -25,7 +25,7 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
-import { JwtOAuth2, JwtOAuth2Config, OAuth2, TokenResponse } from 'jsforce';
+import { OAuth2Config, OAuth2, TokenResponse } from 'jsforce';
 import Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { Config } from '../config/config';
@@ -109,6 +109,14 @@ export type AuthSideEffects = {
   setDefault: boolean;
   setDefaultDevHub: boolean;
   setTracksSource?: boolean;
+};
+
+export type JwtOAuth2Config = OAuth2Config & {
+  privateKey?: string;
+  privateKeyFile?: string;
+  authCode?: string;
+  refreshToken?: string;
+  username?: string;
 };
 
 type UserInfo = AnyJson & {
@@ -934,10 +942,14 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       }
     );
 
-    const oauth2 = new JwtOAuth2({ loginUrl });
-    // jsforce has it types as any
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return ensureJsonMap(await oauth2.jwtAuthorize(jwtToken));
+    const oauth2 = new OAuth2({ loginUrl });
+    return ensureJsonMap(
+      await oauth2.requestToken({
+        // eslint-disable-next-line camelcase
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion: jwtToken,
+      })
+    );
   }
 
   // Build OAuth config for a refresh token auth flow

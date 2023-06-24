@@ -7,9 +7,10 @@
 
 import { env, Duration, upperFirst } from '@salesforce/kit';
 import { AnyJson } from '@salesforce/ts-types';
-import { OAuth2Config, JwtOAuth2Config, SaveResult } from 'jsforce';
+import { OAuth2Config, SaveResult } from 'jsforce';
 import { retryDecorator, RetryError } from 'ts-retry-promise';
 import { rootLogger } from '../logger/logger';
+import { JwtOAuth2Config } from '../org/authInfo';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
 import { SfdcUrl } from '../util/sfdcUrl';

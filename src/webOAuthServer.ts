@@ -12,7 +12,7 @@ import { parse as parseQueryString } from 'querystring';
 import { parse as parseUrl } from 'url';
 import { Socket } from 'net';
 import { EventEmitter } from 'events';
-import { JwtOAuth2Config, OAuth2 } from 'jsforce';
+import { OAuth2 } from 'jsforce';
 import { AsyncCreatable, Env, set, toNumber } from '@salesforce/kit';
 import { asString, get, Nullable } from '@salesforce/ts-types';
 import { rootLogger } from './logger/logger';
@@ -20,6 +20,7 @@ import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org';
 import { SfError } from './sfError';
 import { Messages } from './messages';
 import { SfProjectJson } from './sfProject';
+import { JwtOAuth2Config } from './org/authInfo';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'auth');
