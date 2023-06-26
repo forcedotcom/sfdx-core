@@ -1,3 +1,12 @@
+## [4.3.3](https://github.com/forcedotcom/sfdx-core/compare/4.3.2...4.3.3) (2023-06-26)
+
+
+### Bug Fixes
+
+* tolerate broken auth files (with warning) during readAll ([#869](https://github.com/forcedotcom/sfdx-core/issues/869)) ([4cea657](https://github.com/forcedotcom/sfdx-core/commit/4cea657213054b6c3f22bb70a00753105caf2337))
+
+
+
 ## [4.3.2](https://github.com/forcedotcom/sfdx-core/compare/4.3.1...4.3.2) (2023-06-20)
 
 
