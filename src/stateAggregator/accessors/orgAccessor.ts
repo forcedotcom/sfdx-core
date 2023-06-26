@@ -16,6 +16,7 @@ import { ConfigFile } from '../../config/configFile';
 import { ConfigContents } from '../../config/configStore';
 import { Logger } from '../../logger';
 import { Messages } from '../../messages';
+import { Lifecycle } from '../../lifecycleEvents';
 
 function chunk<T>(array: T[], chunkSize: number): T[][] {
   const final = [];
@@ -41,6 +42,9 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
       this.configs.set(username, config);
       return this.get(username, decrypt);
     } catch (err) {
+      if (err instanceof Error && err.name === 'JsonParseError') {
+        throw err;
+      }
       return null;
     }
   }
@@ -55,8 +59,12 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     for (const fileChunk of fileChunks) {
       const promises = fileChunk.map(async (f) => {
         const username = this.parseUsername(f);
-        const config = await this.initAuthFile(username);
-        this.configs.set(username, config);
+        try {
+          const config = await this.initAuthFile(username);
+          this.configs.set(username, config);
+        } catch (e) {
+          await Lifecycle.getInstance().emitWarning(`The auth file for ${username} is invalid.`);
+        }
       });
       // eslint-disable-next-line no-await-in-loop
       await Promise.all(promises);
