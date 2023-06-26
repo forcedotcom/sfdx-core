@@ -507,6 +507,18 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Will delete 'this' instance remotely and any files locally
    */
   public async delete(): Promise<void> {
+    const username = ensureString(this.getUsername());
+
+    // unset any aliases referencing this org
+    const stateAgg = await StateAggregator.getInstance();
+    const existingAliases = stateAgg.aliases.getAll(username);
+    await stateAgg.aliases.unsetValuesAndSave(existingAliases);
+
+    // unset any configs referencing this org
+    const config = await Config.create();
+    [...existingAliases, username].flatMap((name) => config.getKeysByValue(name)).map((key) => config.unset(key));
+    await config.write();
+
     if (await this.isSandbox()) {
       await this.deleteSandbox();
     } else {
@@ -1131,17 +1143,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     try {
       const devHubConn = devHub.getConnection();
-      const username = ensureString(this.getUsername());
-
-      // unset any aliases referencing this org
-      const stateAgg = await StateAggregator.getInstance();
-      const existingAliases = stateAgg.aliases.getAll(username);
-      await stateAgg.aliases.unsetValuesAndSave(existingAliases);
-
-      // unset any configs referencing this org
-      const config = await Config.create();
-      [...existingAliases, username].flatMap((name) => config.getKeysByValue(name)).map((key) => config.unset(key));
-      await config.write();
+      const username = this.getUsername();
 
       const activeScratchOrgRecordId = (
         await devHubConn.singleRecordQuery<{ Id: string }>(
