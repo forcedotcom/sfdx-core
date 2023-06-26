@@ -1131,7 +1131,20 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     try {
       const devHubConn = devHub.getConnection();
-      const username = this.getUsername();
+      const username = ensureString(this.getUsername());
+
+      // unset any aliases referencing this org
+      const stateAgg = await StateAggregator.getInstance();
+      const existingAliases = stateAgg.aliases.getAll(username);
+      await stateAgg.aliases.unsetValuesAndSave(existingAliases);
+
+      // unset any configs referencing this org
+      const config = await Config.create();
+      [...existingAliases, username]
+        .map((name) => config.getKeysByValue(name))
+        .map((keys) => keys.map((k) => config.unset(k)));
+      await config.write();
+
       const activeScratchOrgRecordId = (
         await devHubConn.singleRecordQuery<{ Id: string }>(
           `SELECT Id FROM ActiveScratchOrg WHERE SignupUsername='${username}'`
