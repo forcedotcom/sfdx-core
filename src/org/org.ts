@@ -1140,9 +1140,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
       // unset any configs referencing this org
       const config = await Config.create();
-      [...existingAliases, username]
-        .map((name) => config.getKeysByValue(name))
-        .map((keys) => keys.map((k) => config.unset(k)));
+      [...existingAliases, username].flatMap((name) => config.getKeysByValue(name)).map((key) => config.unset(key));
       await config.write();
 
       const activeScratchOrgRecordId = (
