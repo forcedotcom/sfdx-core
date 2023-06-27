@@ -128,7 +128,7 @@ describe('Logger', () => {
       const childLoggerName = 'myChildLogger';
       const childLogger = await Logger.child(childLoggerName);
       expect(childLogger).to.be.instanceof(Logger);
-      expect(childLogger.getName()).to.equal(childLoggerName);
+      expect(childLogger.getName()).to.equal(`${Logger.ROOT_NAME}:${childLoggerName}`);
     });
   });
 
