@@ -8,8 +8,6 @@ import { Lifecycle } from '../lifecycleEvents';
 import { AuthFields } from './authInfo';
 import { ScratchOrgInfo } from './scratchOrgTypes';
 
-const emitter = Lifecycle.getInstance();
-
 export const scratchOrgLifecycleEventName = 'scratchOrgLifecycleEvent';
 export const scratchOrgLifecycleStages = [
   'prepare request',
@@ -26,7 +24,7 @@ export interface ScratchOrgLifecycleEvent {
 }
 
 export const emit = async (event: ScratchOrgLifecycleEvent): Promise<void> =>
-  emitter.emit(scratchOrgLifecycleEventName, event);
+  Lifecycle.getInstance().emit(scratchOrgLifecycleEventName, event);
 
 const postOrgCreateHookFields = [
   'accessToken',
@@ -47,7 +45,7 @@ const isHookField = (key: string): key is (typeof postOrgCreateHookFields)[numbe
   postOrgCreateHookFields.includes(key as (typeof postOrgCreateHookFields)[number]);
 
 export const emitPostOrgCreate = async (authFields: AuthFields): Promise<void> => {
-  await emitter.emit(
+  await Lifecycle.getInstance().emit(
     'postorgcreate',
     Object.fromEntries(Object.entries(authFields).filter(([key]) => isHookField(key))) as PostOrgCreateHook
   );
