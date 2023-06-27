@@ -398,7 +398,7 @@ export class Logger {
    * Adds a file stream to this logger. Resolved or rejected upon completion of the addition.
    *
    * @deprecated.  streams don't change once a logger is built
-   
+   *
    * @param logFile The path to the log file.  If it doesn't exist it will be created.
    */
   // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
