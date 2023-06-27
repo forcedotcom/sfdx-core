@@ -17,13 +17,6 @@ import { unwrapArray } from '../util/unwrapArray';
 import { MemoryLogger } from './memoryLogger';
 import { cleanup } from './cleanup';
 
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-
 /**
  * @deprecated.  Don't use serializers
  * A Bunyan `Serializer` function.
@@ -419,7 +412,7 @@ export class Logger {
    * Gets the name of this logger.
    */
   public getName(): string {
-    return this.pinoLogger.bindings().name;
+    return (this.pinoLogger.bindings().name as string) ?? '';
   }
 
   /**
@@ -645,6 +638,7 @@ export class Logger {
   public enableDEBUG(): void {} /** return various streams that the logger could send data to, depending on the options and env  */
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const getWriteStream = (level = 'warn') => {
   // used when debug mode, writes to stdout (colorized)
   if (process.env.DEBUG) {
