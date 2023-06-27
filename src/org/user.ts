@@ -10,7 +10,7 @@ import { AsyncCreatable, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } f
 import { asJsonArray, asNumber, ensureJsonMap, ensureString, isJsonMap, Many } from '@salesforce/ts-types';
 import type { HttpRequest, HttpResponse, QueryResult, Schema, SObjectUpdateRecord } from 'jsforce';
 import { HttpApi } from 'jsforce/lib/http-api';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { SecureBuffer } from '../crypto/secureBuffer';
 import { SfError } from '../sfError';

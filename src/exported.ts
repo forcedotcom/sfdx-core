@@ -63,7 +63,7 @@ export {
   LoggerOptions,
   LoggerStream,
   Logger,
-} from './logger';
+} from './logger/logger';
 
 export { Messages, StructuredMessage } from './messages';
 

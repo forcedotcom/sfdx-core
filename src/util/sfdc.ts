@@ -86,9 +86,13 @@ export const findUpperCaseKeys = (data?: JsonMap, sectionBlocklist: string[] = [
   return key;
 };
 
+export const accessTokenRegex = /(00D\w{12,15})![.\w]*/;
+export const sfdxAuthUrlRegex =
+  /force:\/\/([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]*):([a-zA-Z0-9._-]+={0,2})@([a-zA-Z0-9._-]+)/;
+
 /**
  * Tests whether a given string is an access token
  *
  * @param value
  */
-export const matchesAccessToken = (value: string): boolean => /^(00D\w{12,15})![.\w]*$/.test(value);
+export const matchesAccessToken = (value: string): boolean => accessTokenRegex.test(value);
