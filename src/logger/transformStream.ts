@@ -20,8 +20,7 @@ export default async function (options: Record<string, unknown>) {
     (source: any): Transform => {
       const myTransportStream = new Transform({
         objectMode: true,
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-        transform(chunk: Record<string, unknown>, enc, cb) {
+        transform(chunk: Record<string, unknown>, enc, cb): void {
           if (debugAllows(chunk)) {
             // uses the original logger's filters.
             const filteredChunk = unwrapArray(filterSecrets([chunk]));
