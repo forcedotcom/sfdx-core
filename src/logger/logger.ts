@@ -15,6 +15,7 @@ import { Global, Mode } from '../global';
 import { SfError } from '../sfError';
 import { unwrapArray } from '../util/unwrapArray';
 import { MemoryLogger } from './memoryLogger';
+import { cleanup } from './cleanup';
 
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -296,9 +297,14 @@ export class Logger {
           },
           sync: false,
         });
+        // when a new file logger root is instantiated, we check for old log files.
+        // but we don't want to wait for it
+        // and it's async and we can't wait from a ctor anyway
+        void cleanup();
       }
 
       Logger.rootLogger = this;
+      // run, but don't care about the result
     }
   }
 
@@ -667,9 +673,4 @@ const getWriteStream = (level = 'warn') => {
   };
 };
 
-// TODO: how to clean up old logs using a new process
 // TODO: telemetry as custom level (1)
-
-// TODO: should Lifecycle use logger instad of DEBUG
-
-// TODO: how to inject/hoist this into oclif to override DEBUG library and get telemetry from there?
