@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           cache: yarn
-      - run: yarn test:perf | tee output.txt
+      - run: npm run test:perf | tee output.txt
 
       # Run `github-action-benchmark` action
       - name: Store benchmark result
