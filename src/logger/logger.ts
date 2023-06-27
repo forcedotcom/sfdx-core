@@ -651,6 +651,7 @@ const getWriteStream = (level = 'warn') => {
   // default: we're writing to a rotating file
   const rotator = new Map([
     ['1m', new Date().toISOString().split(':').slice(0, 2).join('-')],
+    ['1h', new Date().toISOString().split(':').slice(0, 1).join('-')],
     ['1d', new Date().toISOString().split('T')[0]],
   ]);
   const logRotationPeriod = new Env().getString('SF_LOG_ROTATION_PERIOD') ?? '1d';
@@ -659,7 +660,7 @@ const getWriteStream = (level = 'warn') => {
     // write to a rotating file
     target: 'pino/file',
     options: {
-      destination: path.join(Global.SF_DIR, `sf.new-${rotator.get(logRotationPeriod) ?? '1d'}.log`),
+      destination: path.join(Global.SF_DIR, `sf-${rotator.get(logRotationPeriod) ?? rotator.get('1d')}.log`),
       mkdir: true,
       level,
     },
