@@ -37,11 +37,4 @@ suite
     // eslint-disable-next-line no-console, @typescript-eslint/no-unsafe-member-access
     console.log(String(event.target));
   })
-  // .on('complete', function () {
-  //   const fastest = this.filter('fastest').map('name');
-
-  //   // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/restrict-plus-operands
-  //   console.log('Fastest is ' + fastest);
-  // })
-  // run async
   .run({ async: true });
