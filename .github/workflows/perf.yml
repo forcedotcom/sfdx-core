@@ -33,6 +33,7 @@ jobs:
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@5bbce78ef18edf5b96cb2d23e8d240b485f9dc4a
         with:
+          name: Logger Benchmarks ${{ runner.os}}
           tool: 'benchmarkjs'
           output-file-path: test/perf/output.txt
           comment-on-alert: true
