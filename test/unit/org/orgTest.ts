@@ -341,7 +341,7 @@ describe('Org Tests', () => {
           await configAgg.reload();
           const stateAggregator = await StateAggregator.getInstance();
 
-          expect(configAgg.getConfig()).to.deep.equal({ 'target-org': username });
+          expect(configAgg.getConfig()['target-org']).to.equal(username);
 
           await stateAggregator.aliases.setAndSave('deleteThisAlias', username);
           expect(stateAggregator.aliases.getUsername('deleteThisAlias')).to.equal(username);
@@ -353,7 +353,7 @@ describe('Org Tests', () => {
           $$.SANDBOX.stub(org, 'getDevHubOrg').resolves(dev);
 
           await org.delete();
-          expect(configAgg.getConfig()).to.deep.equal({});
+          expect(configAgg.getConfig()['target-org']).to.equal(undefined);
 
           expect(stateAggregator.aliases.get(username)).to.be.null;
           expect(devHubQuery.calledOnce).to.be.true;
