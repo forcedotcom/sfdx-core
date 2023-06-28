@@ -22,6 +22,11 @@ jobs:
         with:
           cache: yarn
       - run: yarn install
+      - name: Download previous benchmark data
+        uses: actions/cache@v3
+        with:
+          path: ./cache
+          key: ${{ runner.os }}-benchmark
       - run: npm run test:perf | tee output.txt
 
       # Run `github-action-benchmark` action
@@ -30,6 +35,7 @@ jobs:
         with:
           tool: 'benchmarkjs'
           output-file-path: output.txt
+          external-data-json-path: ./cache/${{ runner.os }}-benchmark-data.json
           comment-on-alert: true
           fail-on-alert: true
           # Push and deploy GitHub pages branch automatically
