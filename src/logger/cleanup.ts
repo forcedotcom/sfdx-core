@@ -13,14 +13,14 @@ import { Global } from '../global';
  * ex: CLEAN_ODDS=100 implies 1 in 100
  * ex: CLEAN_ODDS=100 implies 1 in 1 (run every time)
  * */
-const CLEAN_ODDS = 100;
+const CLEAN_ODDS = 1;
 const MAX_FILE_AGE_DAYS = 7;
 const MAX_FILE_AGE_MS = 1000 * 60 * 60 * 24 * MAX_FILE_AGE_DAYS;
 
 const shouldClean = Math.random() * CLEAN_ODDS > CLEAN_ODDS - 1;
 
-export const cleanup = async (maxMs = MAX_FILE_AGE_MS): Promise<void> => {
-  if (shouldClean) {
+export const cleanup = async (maxMs = MAX_FILE_AGE_MS, force = false): Promise<void> => {
+  if (shouldClean || force) {
     try {
       const filesToConsider = await fs.promises // get the files in that dir
         .readdir(Global.SF_DIR);
