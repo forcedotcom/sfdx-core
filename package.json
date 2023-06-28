@@ -22,7 +22,8 @@
     "prepack": "sf-prepack",
     "prepare": "sf-install",
     "test": "wireit",
-    "test:only": "wireit"
+    "test:only": "wireit",
+    "test:perf": "ts-node test/perf/logger/main.test.ts"
   },
   "keywords": [
     "force",
@@ -61,6 +62,7 @@
     "@salesforce/dev-scripts": "^5.4.2",
     "@salesforce/prettier-config": "^0.0.3",
     "@salesforce/ts-sinon": "^1.4.8",
+    "@types/benchmark": "^2.1.2",
     "@types/chai-string": "^1.4.2",
     "@types/jsonwebtoken": "9.0.2",
     "@types/lodash": "^4.14.195",
@@ -68,6 +70,7 @@
     "@types/shelljs": "0.8.12",
     "@typescript-eslint/eslint-plugin": "^5.59.9",
     "@typescript-eslint/parser": "^5.59.11",
+    "benchmark": "^2.1.4",
     "chai": "^4.3.7",
     "chai-string": "^1.5.0",
     "eslint": "^8.43.0",
