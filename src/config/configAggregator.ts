@@ -335,10 +335,16 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
   }
 
   public async unsetByValue(key: string): Promise<void> {
-    this.localConfig?.getKeysByValue(key).map((k) => this.localConfig?.unset(k));
-    this.globalConfig?.getKeysByValue(key).map((k) => this.globalConfig?.unset(k));
-    await this.localConfig?.write();
-    await this.globalConfig?.write();
+    const hasLocalWrites = this.localConfig
+      ?.getKeysByValue(key)
+      .map((k) => this.localConfig?.unset(k))
+      .some(Boolean);
+    if (hasLocalWrites) await this.localConfig?.write();
+    const hasGlobalWrites = this.globalConfig
+      ?.getKeysByValue(key)
+      .map((k) => this.globalConfig?.unset(k))
+      .some(Boolean);
+    if (hasGlobalWrites) await this.globalConfig?.write();
   }
 
   /**

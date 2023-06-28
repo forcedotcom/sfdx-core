@@ -331,13 +331,13 @@ describe('Org Tests', () => {
 
         it('should unset the alias and any configs', async () => {
           const dev = await createOrgViaAuthInfo(testData.username);
-
+          const stateAggregator = await StateAggregator.getInstance();
+          await ConfigAggregator.create();
           const orgTestData = new MockTestOrgData();
           const org = await createOrgViaAuthInfo(orgTestData.username, orgTestData);
           const username = ensureString(org.getUsername());
           $$.setConfigStubContents('Config', { contents: { [OrgConfigProperties.TARGET_ORG]: username } });
           expect($$.getConfigStubContents('Config')).to.deep.equal({ 'target-org': username });
-          const stateAggregator = await StateAggregator.getInstance();
 
           await stateAggregator.aliases.setAndSave('deleteThisAlias', username);
           expect(stateAggregator.aliases.getUsername('deleteThisAlias')).to.equal(username);
