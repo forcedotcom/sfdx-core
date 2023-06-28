@@ -43,5 +43,5 @@ jobs:
           # summary-always: true
           comment-always: true
           benchmark-data-dir-path: perf-${{ runner.os}}
-          auto-push: true
+          # auto-push: true
           github-token: ${{ secrets.SVC_CLI_BOT_GITHUB_TOKEN }}
