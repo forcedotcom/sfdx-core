@@ -22,6 +22,8 @@ jobs:
         with:
           cache: yarn
       - run: yarn install
+      # build is necessary because transport references /lib
+      - run: yarn build
       - run: npm run test:perf | tee test/perf/output.txt
 
       # Run `github-action-benchmark` action
