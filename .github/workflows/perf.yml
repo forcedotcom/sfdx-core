@@ -27,15 +27,14 @@ jobs:
         with:
           path: ./cache
           key: ${{ runner.os }}-benchmark
-      - run: npm run test:perf | tee output.txt
+      - run: npm run test:perf | tee test/perf/output.txt
 
       # Run `github-action-benchmark` action
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@5bbce78ef18edf5b96cb2d23e8d240b485f9dc4a
         with:
           tool: 'benchmarkjs'
-          output-file-path: output.txt
-          external-data-json-path: ./cache/${{ runner.os }}-benchmark-data.json
+          output-file-path: test/perf/output.txt
           comment-on-alert: true
           fail-on-alert: true
           # Push and deploy GitHub pages branch automatically
@@ -43,5 +42,5 @@ jobs:
           # summary-always: true
           comment-always: true
           benchmark-data-dir-path: perf-${{ runner.os}}
-          # auto-push: true
+          auto-push: true
           github-token: ${{ secrets.SVC_CLI_BOT_GITHUB_TOKEN }}
