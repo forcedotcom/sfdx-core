@@ -24,6 +24,10 @@ describe('cleanup', () => {
       const files = [`sf-${new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString().slice(0, 10)}.log`];
       expect(getOldLogFiles(files)).to.deep.equal([]);
     });
+    it('100 days old files when maxMS is higher', () => {
+      const files = [`sf-${new Date(Date.now() - 1000 * 60 * 60 * 24 * 100).toISOString().slice(0, 10)}.log`];
+      expect(getOldLogFiles(files, 1000 * 60 * 60 * 24 * 200)).to.deep.equal([]);
+    });
   });
   describe('deleted', () => {
     it('will delete an old daily file', () => {
@@ -37,6 +41,10 @@ describe('cleanup', () => {
     it('8 day old files', () => {
       const files = [`sf-${new Date(Date.now() - 1000 * 60 * 60 * 24 * 8).toISOString().slice(0, 10)}.log`];
       expect(getOldLogFiles(files)).to.deep.equal(files);
+    });
+    it('1 day old files when maxMs = 0', () => {
+      const files = [`sf-${new Date(Date.now() - 1000 * 60 * 60 * 24 * 1).toISOString().slice(0, 10)}.log`];
+      expect(getOldLogFiles(files, 0)).to.deep.equal(files);
     });
   });
 });
