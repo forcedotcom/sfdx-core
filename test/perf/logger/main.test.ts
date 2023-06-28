@@ -18,19 +18,19 @@ suite
     Logger.childFromRoot('benchmarkChild');
   })
   .add('Logging a string on root logger', () => {
-    logger.debug('this is a string');
+    logger.warn('this is a string');
   })
   .add('Logging an object on root logger', () => {
-    logger.debug({ foo: 1, bar: 2, baz: 3 });
+    logger.warn({ foo: 1, bar: 2, baz: 3 });
   })
   .add('Logging an object with a message on root logger', () => {
-    logger.debug({ foo: 1, bar: 2, baz: 3 }, 'this is a message');
+    logger.warn({ foo: 1, bar: 2, baz: 3 }, 'this is a message');
   })
   .add('Logging an object with a redacted prop on root logger', () => {
-    logger.debug({ foo: 1, bar: 2, accessToken: '00D' });
+    logger.warn({ foo: 1, bar: 2, accessToken: '00D' });
   })
   .add('Logging a nested 3-level object on root logger', () => {
-    logger.debug({ foo: 1, bar: 2, baz: { foo: 1, bar: 2, baz: { foo: 1, bar: 2, baz: 3 } } });
+    logger.warn({ foo: 1, bar: 2, baz: { foo: 1, bar: 2, baz: { foo: 1, bar: 2, baz: 3 } } });
   })
   // add listeners
   .on('cycle', (event: any) => {
