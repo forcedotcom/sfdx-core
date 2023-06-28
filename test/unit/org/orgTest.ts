@@ -331,13 +331,17 @@ describe('Org Tests', () => {
 
         it('should unset the alias and any configs', async () => {
           const dev = await createOrgViaAuthInfo(testData.username);
-          const stateAggregator = await StateAggregator.getInstance();
-          await ConfigAggregator.create();
+          const configAgg = await ConfigAggregator.create();
+
           const orgTestData = new MockTestOrgData();
           const org = await createOrgViaAuthInfo(orgTestData.username, orgTestData);
           const username = ensureString(org.getUsername());
           $$.setConfigStubContents('Config', { contents: { [OrgConfigProperties.TARGET_ORG]: username } });
-          expect($$.getConfigStubContents('Config')).to.deep.equal({ 'target-org': username });
+
+          await configAgg.reload();
+          const stateAggregator = await StateAggregator.getInstance();
+
+          expect(configAgg.getConfig()).to.deep.equal({ 'target-org': username });
 
           await stateAggregator.aliases.setAndSave('deleteThisAlias', username);
           expect(stateAggregator.aliases.getUsername('deleteThisAlias')).to.equal(username);
@@ -349,8 +353,7 @@ describe('Org Tests', () => {
           $$.SANDBOX.stub(org, 'getDevHubOrg').resolves(dev);
 
           await org.delete();
-
-          expect($$.getConfigStubContents('Config')).to.deep.equal({});
+          expect(configAgg.getConfig()).to.deep.equal({});
 
           expect(stateAggregator.aliases.get(username)).to.be.null;
           expect(devHubQuery.calledOnce).to.be.true;
