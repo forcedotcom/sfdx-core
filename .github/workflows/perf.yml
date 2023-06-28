@@ -1,0 +1,47 @@
+# runs some very-large-repo tests (for windows filesystem limits) and commits perf results for comparison
+name: perf-tests
+on:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+
+# linux will finish ahead of windows, but prevent other branches/commits from hitting simultaneously
+# since we're pushing git commits and there would be conflicts
+concurrency: perf-test
+
+jobs:
+  perf-tests:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          cache: yarn
+      - run: yarn install
+      - name: Download previous benchmark data
+        uses: actions/cache@v3
+        with:
+          path: ./cache
+          key: ${{ runner.os }}-benchmark
+      - run: npm run test:perf | tee test/perf/output.txt
+
+      # Run `github-action-benchmark` action
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@5bbce78ef18edf5b96cb2d23e8d240b485f9dc4a
+        with:
+          name: Logger Benchmarks - ${{ matrix.os }}
+          tool: "benchmarkjs"
+          output-file-path: test/perf/output.txt
+          comment-on-alert: true
+          fail-on-alert: true
+          # Push and deploy GitHub pages branch automatically
+          # this has a bug where it creates duplicate commits when summary-always and aut-push are both true
+          # summary-always: true
+          comment-always: true
+          benchmark-data-dir-path: perf-${{ runner.os}}
+          auto-push: true
+          github-token: ${{ secrets.SVC_CLI_BOT_GITHUB_TOKEN }}
