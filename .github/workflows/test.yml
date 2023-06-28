@@ -7,41 +7,41 @@ on:
 jobs:
   yarn-lockfile-check:
     uses: salesforcecli/github-workflows/.github/workflows/lockFileCheck.yml@main
-  # # Since the Windows unit tests take much longer, we run the linux unit tests first and then run the windows unit tests in parallel with NUTs
-  # linux-unit-tests:
-  #   needs: yarn-lockfile-check
-  #   uses: salesforcecli/github-workflows/.github/workflows/unitTestsLinux.yml@main
-  # windows-unit-tests:
-  #   needs: linux-unit-tests
-  #   uses: salesforcecli/github-workflows/.github/workflows/unitTestsWindows.yml@main
-  # nuts:
-  #   needs: linux-unit-tests
-  #   uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       os: ['ubuntu-latest', 'windows-latest']
-  #       externalProjectGitUrl:
-  #         - https://github.com/salesforcecli/plugin-auth
-  #         - https://github.com/salesforcecli/plugin-custom-metadata
-  #         - https://github.com/salesforcecli/plugin-data
-  #         - https://github.com/salesforcecli/plugin-env
-  #         - https://github.com/salesforcecli/plugin-limits
-  #         - https://github.com/salesforcecli/plugin-org
-  #         - https://github.com/salesforcecli/plugin-schema
-  #         - https://github.com/salesforcecli/plugin-settings
-  #         - https://github.com/salesforcecli/plugin-signups
-  #         - https://github.com/salesforcecli/plugin-templates
-  #         - https://github.com/salesforcecli/plugin-user
-  #   with:
-  #     packageName: '@salesforce/core'
-  #     externalProjectGitUrl: ${{ matrix.externalProjectGitUrl }}
-  #     command: 'yarn test:nuts'
-  #     os: ${{ matrix.os }}
-  #     useCache: false
-  #     preSwapCommands: 'yarn upgrade jsforce@beta; npx yarn-deduplicate; yarn install'
-  #     preExternalBuildCommands: 'shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core'
-  #   secrets: inherit
+  # Since the Windows unit tests take much longer, we run the linux unit tests first and then run the windows unit tests in parallel with NUTs
+  linux-unit-tests:
+    needs: yarn-lockfile-check
+    uses: salesforcecli/github-workflows/.github/workflows/unitTestsLinux.yml@main
+  windows-unit-tests:
+    needs: linux-unit-tests
+    uses: salesforcecli/github-workflows/.github/workflows/unitTestsWindows.yml@main
+  nuts:
+    needs: linux-unit-tests
+    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['ubuntu-latest', 'windows-latest']
+        externalProjectGitUrl:
+          - https://github.com/salesforcecli/plugin-auth
+          - https://github.com/salesforcecli/plugin-custom-metadata
+          - https://github.com/salesforcecli/plugin-data
+          - https://github.com/salesforcecli/plugin-env
+          - https://github.com/salesforcecli/plugin-limits
+          - https://github.com/salesforcecli/plugin-org
+          - https://github.com/salesforcecli/plugin-schema
+          - https://github.com/salesforcecli/plugin-settings
+          - https://github.com/salesforcecli/plugin-signups
+          - https://github.com/salesforcecli/plugin-templates
+          - https://github.com/salesforcecli/plugin-user
+    with:
+      packageName: '@salesforce/core'
+      externalProjectGitUrl: ${{ matrix.externalProjectGitUrl }}
+      command: 'yarn test:nuts'
+      os: ${{ matrix.os }}
+      useCache: false
+      preSwapCommands: 'yarn upgrade jsforce@beta; npx yarn-deduplicate; yarn install'
+      preExternalBuildCommands: 'shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core'
+    secrets: inherit
   # hidden until we fix source-testkit to better handle jwt
   # deployRetrieveNuts:
   #   needs: unit-tests
