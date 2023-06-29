@@ -65,6 +65,15 @@
 </blockquote>
 <pre><code class="language-json"><span class="hl-3">&quot;wireit&quot;</span><span class="hl-0">: {</span><br/><span class="hl-0">    </span><span class="hl-2">&quot;compile&quot;</span><span class="hl-0">: {</span><br/><span class="hl-0">      </span><span class="hl-2">&quot;command&quot;</span><span class="hl-0">: </span><span class="hl-3">&quot;ttsc -p . --pretty --incremental&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">      </span><span class="hl-2">&quot;files&quot;</span><span class="hl-0">: [</span><br/><span class="hl-0">        </span><span class="hl-3">&quot;src/**/*.ts&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">        </span><span class="hl-3">&quot;tsconfig.json&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">        </span><span class="hl-3">&quot;messages&quot;</span><br/><span class="hl-0">      ],</span><br/><span class="hl-0">      </span><span class="hl-2">&quot;output&quot;</span><span class="hl-0">: [</span><br/><span class="hl-0">        </span><span class="hl-3">&quot;lib/**&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">        </span><span class="hl-3">&quot;*.tsbuildinfo&quot;</span><br/><span class="hl-0">      ],</span><br/><span class="hl-0">      </span><span class="hl-2">&quot;clean&quot;</span><span class="hl-0">: </span><span class="hl-3">&quot;if-file-deleted&quot;</span><br/><span class="hl-0">    }</span><br/><span class="hl-0">  }</span><br/>
 </code></pre>
+
+<a href="#performance-testing" id="performance-testing" style="color: inherit; text-decoration: none;">
+  <h2>Performance Testing</h2>
+</a>
+<p>There are some benchmark.js checks to get a baseline for Logger performance.
+<a href="https://forcedotcom.github.io/sfdx-core/perf-Linux">https://forcedotcom.github.io/sfdx-core/perf-Linux</a>
+<a href="https://forcedotcom.github.io/sfdx-core/perf-Windows">https://forcedotcom.github.io/sfdx-core/perf-Windows</a></p>
+<p>You can add more test cases in test/perf/logger/main.js</p>
+<p>If you add tests for new parts of sfdx-core outside of Logger, add new test Suites and create new jobs in the GHA <code>perf.yml</code></p>
 </div></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
