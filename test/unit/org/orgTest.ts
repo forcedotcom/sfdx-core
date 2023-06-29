@@ -329,6 +329,42 @@ describe('Org Tests', () => {
           }
         });
 
+        it('should unset the alias and any configs', async () => {
+          const dev = await createOrgViaAuthInfo(testData.username);
+          const configAgg = await ConfigAggregator.create();
+
+          const orgTestData = new MockTestOrgData();
+          const org = await createOrgViaAuthInfo(orgTestData.username, orgTestData);
+          const username = ensureString(org.getUsername());
+          $$.setConfigStubContents('Config', { contents: { [OrgConfigProperties.TARGET_ORG]: username } });
+
+          await configAgg.reload();
+          const stateAggregator = await StateAggregator.getInstance();
+
+          expect(configAgg.getConfig()['target-org']).to.equal(username);
+
+          await stateAggregator.aliases.setAndSave('deleteThisAlias', username);
+          expect(stateAggregator.aliases.getUsername('deleteThisAlias')).to.equal(username);
+
+          const devHubQuery = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({
+            Id: orgTestData.orgId,
+          });
+          const devHubDelete = stubMethod($$.SANDBOX, Org.prototype, 'destroyScratchOrg').resolves();
+          $$.SANDBOX.stub(org, 'getDevHubOrg').resolves(dev);
+
+          await org.delete();
+          expect(configAgg.getConfig()['target-org']).to.equal(undefined);
+
+          expect(stateAggregator.aliases.get(username)).to.be.null;
+          expect(devHubQuery.calledOnce).to.be.true;
+          expect(devHubQuery.firstCall.args[0]).to.equal(
+            `SELECT Id FROM ActiveScratchOrg WHERE SignupUsername='${orgTestData.username}'`
+          );
+
+          expect(devHubDelete.calledOnce).to.be.true;
+          expect(devHubDelete.firstCall.args[1]).to.equal(orgTestData.orgId);
+        });
+
         it('should handle SingleRecordQueryErrors.NoRecords errors', async () => {
           const dev = await createOrgViaAuthInfo();
 
