@@ -2,7 +2,7 @@
 name: perf-tests
 on:
   push:
-    branches-ignore: [main]
+    branches-ignore: [main, gh-pages]
   workflow_dispatch:
 
 # linux will finish ahead of windows, but prevent other branches/commits from hitting simultaneously
