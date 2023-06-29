@@ -18,8 +18,9 @@ import { AnyJson, getJsonMap, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { Transport } from 'jsforce/lib/transport';
 
-import { JwtOAuth2Config, OAuth2 } from 'jsforce';
+import { OAuth2 } from 'jsforce';
 import { SinonSpy, SinonStub } from 'sinon';
+import { JwtOAuth2Config } from '../../../src/org/authInfo';
 import { AuthFields, AuthInfo } from '../../../src/org';
 import { MockTestOrgData, shouldThrow, shouldThrowSync, TestContext } from '../../../src/testSetup';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
