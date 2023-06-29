@@ -7,13 +7,14 @@
 import * as fs from 'node:fs';
 import path = require('node:path');
 import { Global } from '../global';
+import { Logger } from './logger';
 
 /**
  * the odds of running are 1 in CLEAN_ODDS
  * ex: CLEAN_ODDS=100 implies 1 in 100
  * ex: CLEAN_ODDS=100 implies 1 in 1 (run every time)
  * */
-const CLEAN_ODDS = 1;
+const CLEAN_ODDS = 100;
 const MAX_FILE_AGE_DAYS = 7;
 const MAX_FILE_AGE_MS = 1000 * 60 * 60 * 24 * MAX_FILE_AGE_DAYS;
 
@@ -28,7 +29,8 @@ export const cleanup = async (maxMs = MAX_FILE_AGE_MS, force = false): Promise<v
       const filesToDelete = getOldLogFiles(filesToConsider, maxMs);
       await Promise.all(filesToDelete.map((f) => fs.promises.unlink(path.join(Global.SF_DIR, f))));
     } catch (e) {
-      // we never, ever, ever throw since we're not awaiting this promise
+      // we never, ever, ever throw since we're not awaiting this promise, so just log a warning
+      (await Logger.child('cleanup')).warn('Failed to cleanup old log files', e);
     }
   }
 };
