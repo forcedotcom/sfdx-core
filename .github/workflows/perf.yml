@@ -22,6 +22,7 @@ jobs:
         with:
           cache: yarn
       - run: yarn install
+      - run: yarn build
       - name: Download previous benchmark data
         uses: actions/cache@v3
         with:
