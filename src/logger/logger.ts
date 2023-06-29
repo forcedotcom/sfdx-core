@@ -66,10 +66,12 @@ export interface LoggerOptions {
    */
   level?: LoggerLevelValue;
   /**
+   * @deprecated don't pass in streams.  this will no do anything
    * A stream to write to.
    */
   stream?: Writable;
   /**
+   * @deprecated don't pass in streams.  this will no do anything
    * An array of streams to write to.
    */
   streams?: LoggerStream[];
@@ -79,7 +81,7 @@ export interface LoggerOptions {
    */
   fields?: Fields;
 
-  /** log to memory instead of to a file */
+  /** log to memory instead of to a file.  Intended for Unit Testing */
   useMemoryLogger?: boolean;
 }
 
@@ -229,6 +231,7 @@ export class Logger {
   public readonly logRotationCount = new Env().getNumber('SF_LOG_ROTATION_COUNT') ?? 2;
 
   /**
+   * @deprecated.  Has no effect, will always be false
    * Whether debug is enabled for this Logger.
    */
   public debugEnabled = false;
@@ -256,9 +259,8 @@ export class Logger {
 
     // if there is a rootLogger, use its Pino instance
     if (Logger.rootLogger) {
-      // modify the name
       this.pinoLogger = Logger.rootLogger.pinoLogger.child({ ...options.fields, name: options.name });
-      this.memoryLogger = Logger.rootLogger.memoryLogger;
+      this.memoryLogger = Logger.rootLogger.memoryLogger; // if the root was constructed with memory logging, keep that
       this.pinoLogger.trace(`Created '${options.name}' child logger instance`);
     } else {
       const level = new Env().getString('SF_LOG_LEVEL') ?? pino.levels.labels[options.level ?? Logger.DEFAULT_LEVEL];
@@ -297,13 +299,12 @@ export class Logger {
       }
 
       Logger.rootLogger = this;
-      // run, but don't care about the result
     }
   }
 
   /**
    *
-   * Gets the root logger with the default level, file stream, and DEBUG enabled.
+   * Gets the root logger.  It's a singleton
    * See also getRawLogger if you don't need the root logger
    */
   public static async root(): Promise<Logger> {
@@ -311,7 +312,7 @@ export class Logger {
   }
 
   /**
-   * Gets the root logger with the default level, file stream, and DEBUG enabled.
+   * Gets the root logger.  It's a singleton
    */
   public static getRoot(): Logger {
     if (this.rootLogger) {
@@ -333,7 +334,7 @@ export class Logger {
   }
 
   /**
-   * Create a child of the root logger, inheriting this instance's configuration such as `level`, `streams`, etc.
+   * Create a child of the root logger, inheriting this instance's configuration such as `level`, transports, etc.
    *
    * @param name The name of the child logger.
    * @param fields Additional fields included in all log lines.
@@ -343,7 +344,7 @@ export class Logger {
   }
 
   /**
-   * Create a child of the root logger, inheriting this instance's configuration such as `level`, `streams`, etc.
+   * Create a child of the root logger, inheriting this instance's configuration such as `level`, transports, etc.
    *
    * @param name The name of the child logger.
    * @param fields Additional fields included in all log lines.
@@ -532,7 +533,7 @@ export class Logger {
   /**
    * Create a child logger, typically to add a few log record fields. For convenience this object is returned.
    *
-   * @param name The name of the child logger that is emitted w/ log line as `log:<name>`.
+   * @param name The name of the child logger that is emitted w/ log line.  Will be prefixed with the parent logger name and `:`
    * @param fields Additional fields included in all log lines for the child logger.
    */
   public child(name: string, fields: Fields = {}): Logger {
@@ -638,8 +639,7 @@ export class Logger {
   public enableDEBUG(): void {} /** return various streams that the logger could send data to, depending on the options and env  */
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const getWriteStream = (level = 'warn') => {
+const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
   // used when debug mode, writes to stdout (colorized)
   if (process.env.DEBUG) {
     return {
@@ -666,5 +666,3 @@ const getWriteStream = (level = 'warn') => {
     },
   };
 };
-
-// TODO: telemetry as custom level (1)

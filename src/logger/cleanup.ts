@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as fs from 'node:fs';
-import path = require('node:path');
+import { join } from 'node:path';
 import { Global } from '../global';
 import { Logger } from './logger';
 
@@ -20,6 +20,15 @@ const MAX_FILE_AGE_MS = 1000 * 60 * 60 * 24 * MAX_FILE_AGE_DAYS;
 
 const shouldClean = Math.random() * CLEAN_ODDS > CLEAN_ODDS - 1;
 
+/**
+ * New logger (Summer 2023) changes how file rotation works.  Each day, the logger writes to a new file
+ * To get old files cleaned up, this can be called when a new root logger is instantiated
+ * based on CLEAN_ODDS, it could exit OR delete some old log files
+ *
+ * to start this without waiting, use void cleanup()
+ *
+ * accepts params to override the default behavior (used to cleanup huge log file during perf tests)
+ */
 export const cleanup = async (maxMs = MAX_FILE_AGE_MS, force = false): Promise<void> => {
   if (shouldClean || force) {
     try {
@@ -27,7 +36,7 @@ export const cleanup = async (maxMs = MAX_FILE_AGE_MS, force = false): Promise<v
         .readdir(Global.SF_DIR);
 
       const filesToDelete = getOldLogFiles(filesToConsider, maxMs);
-      await Promise.all(filesToDelete.map((f) => fs.promises.unlink(path.join(Global.SF_DIR, f))));
+      await Promise.all(filesToDelete.map((f) => fs.promises.unlink(join(Global.SF_DIR, f))));
     } catch (e) {
       // we never, ever, ever throw since we're not awaiting this promise, so just log a warning
       (await Logger.child('cleanup')).warn('Failed to cleanup old log files', e);
