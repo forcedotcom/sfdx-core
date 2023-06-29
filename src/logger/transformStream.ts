@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { pipeline, Transform } from 'stream';
-import { accessTokenRegex, sfdxAuthUrlRegex } from '../exported';
 import { unwrapArray } from '../util/unwrapArray';
 import { filterSecrets } from './filters';
 
@@ -24,13 +23,8 @@ export default async function (options: Record<string, unknown>) {
           if (debugAllows(chunk)) {
             // uses the original logger's filters.
             const filteredChunk = unwrapArray(filterSecrets([chunk]));
-
-            // stringify the payload again to make it easier to run replacements on
-            // filter things that look like certain tokens
-            const stringified = JSON.stringify(filteredChunk)
-              .replace(new RegExp(accessTokenRegex, 'g'), '<REDACTED ACCESS TOKEN>')
-              .replace(new RegExp(sfdxAuthUrlRegex, 'g'), '<REDACTED ACCESS TOKEN>');
-            this.push(`${stringified}\n`);
+            const stringified = JSON.stringify(filteredChunk);
+            this.push(stringified.concat('\n'));
           }
           cb();
         },
@@ -48,8 +42,7 @@ export default async function (options: Record<string, unknown>) {
 
 /** if the DEBUG= is set, see if that matches the logger name.  If not, we don't want to keep going */
 const debugAllows = (chunk: Record<string, unknown>): boolean => {
-  if (!process.env.DEBUG) return true;
-  if (process.env.DEBUG === '*') return true;
+  if (!process.env.DEBUG || process.env.DEBUG === '*') return true;
   if (typeof chunk.name !== 'string') return true;
   // turn wildcard patterns into regexes
   const regexFromDebug = new RegExp(process.env.DEBUG.replace(/\*/g, '.*'));
