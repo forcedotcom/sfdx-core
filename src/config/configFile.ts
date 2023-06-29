@@ -161,24 +161,22 @@ export class ConfigFile<
       // internally and updated persistently via write().
       if (!this.hasRead || force) {
         this.logger.info(`Reading config file: ${this.getPath()}`);
-        const obj = parseJsonMap(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath());
+        const obj = parseJsonMap(await fs.promises.readFile(this.getPath(), 'utf8'));
         this.setContentsFromObject(obj);
       }
-      // Necessarily set this even when an error happens to avoid infinite re-reading.
-      // To attempt another read, pass `force=true`.
-      this.hasRead = true;
       return this.getContents();
     } catch (err) {
-      this.hasRead = true;
       if ((err as SfError).code === 'ENOENT') {
         if (!throwOnNotFound) {
           this.setContents();
           return this.getContents();
         }
       }
+      throw err;
+    } finally {
       // Necessarily set this even when an error happens to avoid infinite re-reading.
       // To attempt another read, pass `force=true`.
-      throw err;
+      this.hasRead = true;
     }
   }
 
