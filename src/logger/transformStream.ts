@@ -11,8 +11,7 @@ import { filterSecrets } from './filters';
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const build = require('pino-abstract-transport');
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/require-await, @typescript-eslint/no-unused-vars
-export default async function (options: Record<string, unknown>) {
+export default function (): Transform {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
   return build(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

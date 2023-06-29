@@ -8,6 +8,9 @@ import { Writable } from 'stream';
 import { unwrapArray } from '../util/unwrapArray';
 import { filterSecrets } from './filters';
 
+/**
+ * Used by test setup to keep UT from writing to disk.
+ */
 export class MemoryLogger extends Writable {
   public loggedData: Array<Record<string, unknown>> = [];
 
