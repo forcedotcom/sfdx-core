@@ -2,7 +2,7 @@
 name: perf-tests
 on:
   push:
-    branches-ignore: [main]
+    branches-ignore: [main, gh-pages]
   workflow_dispatch:
 
 # linux will finish ahead of windows, but prevent other branches/commits from hitting simultaneously
@@ -22,7 +22,6 @@ jobs:
         with:
           cache: yarn
       - run: yarn install
-      # build is necessary because transport references /lib
       - run: yarn build
       - run: npm run test:perf | tee test/perf/output.txt
 
