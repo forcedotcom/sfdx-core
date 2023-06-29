@@ -69,3 +69,13 @@ In your plugin or library,
   }
 
 ```
+
+## Performance Testing
+
+There are some benchmark.js checks to get a baseline for Logger performance.
+https://forcedotcom.github.io/sfdx-core/perf-Linux
+https://forcedotcom.github.io/sfdx-core/perf-Windows
+
+You can add more test cases in test/perf/logger/main.js
+
+If you add tests for new parts of sfdx-core outside of Logger, add new test Suites and create new jobs in the GHA `perf.yml`
