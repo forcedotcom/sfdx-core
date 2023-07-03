@@ -77,6 +77,8 @@ export class Global {
 
   /**
    * The full system path to the global log file.
+   *
+   * @deprecated.  The log file path is now based on a datestamp an not static.  This will return incorrect information if used.
    */
   // member ordering conflicts with the TS use-before-declaration error
   // eslint-disable-next-line @typescript-eslint/member-ordering
