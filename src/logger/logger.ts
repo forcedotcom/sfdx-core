@@ -285,7 +285,7 @@ export class Logger {
           transport: {
             pipeline: [
               {
-                target: '../../lib/logger/transformStream',
+                target: path.join('..', '..', 'lib', 'logger', 'transformStream'),
               },
               getWriteStream(level),
             ],
@@ -655,11 +655,6 @@ const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
     ['1d', new Date().toISOString().split('T')[0]],
   ]);
   const logRotationPeriod = new Env().getString('SF_LOG_ROTATION_PERIOD') ?? '1d';
-
-  // eslint-disable-next-line no-console
-  console.log(
-    `destination is ${path.join(Global.SF_DIR, `sf-${rotator.get(logRotationPeriod) ?? rotator.get('1d')}.log`)}`
-  );
 
   return {
     // write to a rotating file
