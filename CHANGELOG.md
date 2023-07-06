@@ -1,3 +1,12 @@
+## [4.3.6](https://github.com/forcedotcom/sfdx-core/compare/4.3.5...4.3.6) (2023-07-06)
+
+
+### Bug Fixes
+
+* query scratch orgs by provided Id ([cbfc47a](https://github.com/forcedotcom/sfdx-core/commit/cbfc47a66975a482cc51af2f1528142775aca3be))
+
+
+
 ## [4.3.5](https://github.com/forcedotcom/sfdx-core/compare/4.3.4...4.3.5) (2023-06-29)
 
 
