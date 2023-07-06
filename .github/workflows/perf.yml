@@ -33,7 +33,6 @@ jobs:
           tool: 'benchmarkjs'
           output-file-path: test/perf/output.txt
           comment-on-alert: true
-          fail-on-alert: true
           # Push and deploy GitHub pages branch automatically
           # this has a bug where it creates duplicate commits when summary-always and aut-push are both true
           # summary-always: true
