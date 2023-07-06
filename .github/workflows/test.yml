@@ -22,7 +22,7 @@ jobs:
       matrix:
         os: ['ubuntu-latest', 'windows-latest']
         externalProjectGitUrl:
-          # - https://github.com/salesforcecli/plugin-auth
+          - https://github.com/salesforcecli/plugin-auth
           # - https://github.com/salesforcecli/plugin-custom-metadata
           # - https://github.com/salesforcecli/plugin-data
           # - https://github.com/salesforcecli/plugin-env
@@ -32,7 +32,7 @@ jobs:
           # - https://github.com/salesforcecli/plugin-settings
           # - https://github.com/salesforcecli/plugin-signups
           # - https://github.com/salesforcecli/plugin-templates
-          # - https://github.com/salesforcecli/plugin-user
+          - https://github.com/salesforcecli/plugin-user
     with:
       packageName: '@salesforce/core'
       externalProjectGitUrl: ${{ matrix.externalProjectGitUrl }}
