@@ -1,3 +1,12 @@
+## [4.3.7](https://github.com/forcedotcom/sfdx-core/compare/4.3.6...4.3.7) (2023-07-08)
+
+
+### Bug Fixes
+
+* **deps:** bump tough-cookie from 4.0.0 to 4.1.3 ([230c975](https://github.com/forcedotcom/sfdx-core/commit/230c975c5b024ea64196400752c76750dae20669))
+
+
+
 ## [4.3.6](https://github.com/forcedotcom/sfdx-core/compare/4.3.5...4.3.6) (2023-07-06)
 
 
