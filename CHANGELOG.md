@@ -1,3 +1,12 @@
+## [4.3.8](https://github.com/forcedotcom/sfdx-core/compare/4.3.7...4.3.8) (2023-07-09)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/kit from 3.0.3 to 3.0.4 ([a88baa7](https://github.com/forcedotcom/sfdx-core/commit/a88baa79116250d3e75aca3c9cd2958619cfe154))
+
+
+
 ## [4.3.7](https://github.com/forcedotcom/sfdx-core/compare/4.3.6...4.3.7) (2023-07-08)
 
 
