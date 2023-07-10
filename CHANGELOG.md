@@ -1,3 +1,12 @@
+## [4.3.9](https://github.com/forcedotcom/sfdx-core/compare/4.3.8...4.3.9) (2023-07-10)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/schemas from 1.5.1 to 1.6.0 ([2be2263](https://github.com/forcedotcom/sfdx-core/commit/2be226386f14a3b3ffa1a4d6483d2db3d032c3f1))
+
+
+
 ## [4.3.8](https://github.com/forcedotcom/sfdx-core/compare/4.3.7...4.3.8) (2023-07-09)
 
 
