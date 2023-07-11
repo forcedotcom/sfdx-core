@@ -1,3 +1,12 @@
+## [4.3.10](https://github.com/forcedotcom/sfdx-core/compare/4.3.9...4.3.10) (2023-07-11)
+
+
+### Bug Fixes
+
+* **deps:** bump semver from 5.7.1 to 5.7.2 ([eef3f68](https://github.com/forcedotcom/sfdx-core/commit/eef3f68337ff0b087072e4e911f309eefe60efb4))
+
+
+
 ## [4.3.9](https://github.com/forcedotcom/sfdx-core/compare/4.3.8...4.3.9) (2023-07-10)
 
 
