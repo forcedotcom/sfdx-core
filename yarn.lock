@@ -4799,6 +4799,17 @@ which@2.0.2, which@^2.0.1:
   dependencies:
     isexe "^2.0.0"
 
+wireit@^0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/wireit/-/wireit-0.10.0.tgz#9f2fe35dbf47b232650c488491651858cd7aaff1"
+  integrity sha512-4TX6V9D/2iXUBzdqQaUG+cRePle0mDx1Q7x4Ka2cA8lgp1+ZBhrOTiLsXYRl2roQEldEFgQ2Ff1W8YgyNWAa6w==
+  dependencies:
+    braces "^3.0.2"
+    chokidar "^3.5.3"
+    fast-glob "^3.2.11"
+    jsonc-parser "^3.0.0"
+    proper-lockfile "^4.1.2"
+
 wireit@^0.9.5:
   version "0.9.5"
   resolved "https://registry.yarnpkg.com/wireit/-/wireit-0.9.5.tgz#7c3622f6ff5e63b7fac05783baf82f967f52562c"
