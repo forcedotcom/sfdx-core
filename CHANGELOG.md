@@ -1,3 +1,12 @@
+## [4.3.11](https://github.com/forcedotcom/sfdx-core/compare/4.3.10...4.3.11) (2023-07-16)
+
+
+### Bug Fixes
+
+* **deps:** bump jsonwebtoken from 9.0.0 to 9.0.1 ([ae66699](https://github.com/forcedotcom/sfdx-core/commit/ae66699c99012999db0edd85384237ba7405b7bf))
+
+
+
 ## [4.3.10](https://github.com/forcedotcom/sfdx-core/compare/4.3.9...4.3.10) (2023-07-11)
 
 
