@@ -1,3 +1,39 @@
+## [4.3.11](https://github.com/forcedotcom/sfdx-core/compare/4.3.10...4.3.11) (2023-07-16)
+
+### Bug Fixes
+
+- **deps:** bump jsonwebtoken from 9.0.0 to 9.0.1 ([ae66699](https://github.com/forcedotcom/sfdx-core/commit/ae66699c99012999db0edd85384237ba7405b7bf))
+
+## [4.3.10](https://github.com/forcedotcom/sfdx-core/compare/4.3.9...4.3.10) (2023-07-11)
+
+### Bug Fixes
+
+- **deps:** bump semver from 5.7.1 to 5.7.2 ([eef3f68](https://github.com/forcedotcom/sfdx-core/commit/eef3f68337ff0b087072e4e911f309eefe60efb4))
+
+## [4.3.9](https://github.com/forcedotcom/sfdx-core/compare/4.3.8...4.3.9) (2023-07-10)
+
+### Bug Fixes
+
+- **deps:** bump @salesforce/schemas from 1.5.1 to 1.6.0 ([2be2263](https://github.com/forcedotcom/sfdx-core/commit/2be226386f14a3b3ffa1a4d6483d2db3d032c3f1))
+
+## [4.3.8](https://github.com/forcedotcom/sfdx-core/compare/4.3.7...4.3.8) (2023-07-09)
+
+### Bug Fixes
+
+- **deps:** bump @salesforce/kit from 3.0.3 to 3.0.4 ([a88baa7](https://github.com/forcedotcom/sfdx-core/commit/a88baa79116250d3e75aca3c9cd2958619cfe154))
+
+## [4.3.7](https://github.com/forcedotcom/sfdx-core/compare/4.3.6...4.3.7) (2023-07-08)
+
+### Bug Fixes
+
+- **deps:** bump tough-cookie from 4.0.0 to 4.1.3 ([230c975](https://github.com/forcedotcom/sfdx-core/commit/230c975c5b024ea64196400752c76750dae20669))
+
+## [4.3.6](https://github.com/forcedotcom/sfdx-core/compare/4.3.5...4.3.6) (2023-07-06)
+
+### Bug Fixes
+
+- query scratch orgs by provided Id ([cbfc47a](https://github.com/forcedotcom/sfdx-core/commit/cbfc47a66975a482cc51af2f1528142775aca3be))
+
 ## [4.3.5](https://github.com/forcedotcom/sfdx-core/compare/4.3.4...4.3.5) (2023-06-29)
 
 ### Bug Fixes
