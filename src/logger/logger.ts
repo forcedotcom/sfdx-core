@@ -460,6 +460,7 @@ export class Logger {
   }
 }
 
+/** return various streams that the logger could send data to, depending on the options and env  */
 const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
   // used when debug mode, writes to stdout (colorized)
   if (process.env.DEBUG) {
