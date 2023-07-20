@@ -7,7 +7,6 @@
 import * as os from 'os';
 import * as path from 'path';
 
-import { Writable } from 'stream';
 import { Logger as PinoLogger, pino } from 'pino';
 import { Env } from '@salesforce/kit';
 import { isKeyOf, isString } from '@salesforce/ts-types';
@@ -16,23 +15,6 @@ import { SfError } from '../sfError';
 import { unwrapArray } from '../util/unwrapArray';
 import { MemoryLogger } from './memoryLogger';
 import { cleanup } from './cleanup';
-
-/**
- * @deprecated.  Don't use serializers
- * A Bunyan `Serializer` function.
- *
- * @param input The input to be serialized.
- */
-export type Serializer = (input: unknown) => unknown;
-
-/**
- * @deprecated.  Don't use serializers
- * A collection of named `Serializer`s.
- *
- */
-export interface Serializers {
-  [key: string]: Serializer;
-}
 
 /**
  * The common set of `Logger` options.
@@ -44,37 +26,9 @@ export interface LoggerOptions {
   name: string;
 
   /**
-   * @deprecated.  JSON is the only format.
-   * The logger format type. Current options include LogFmt or JSON (default).
-   */
-  format?: LoggerFormat;
-
-  /**
-   * The logger's serializers.
-   *
-   * @deprecated.  Serializers are not configurable
-   */
-  serializers?: Serializers;
-  /**
-   * Whether or not to log source file, line, and function information.
-   *
-   * @deprecated.  This never did anything
-   */
-  src?: boolean;
-  /**
    * The desired log level.
    */
   level?: LoggerLevelValue;
-  /**
-   * @deprecated don't pass in streams.  this will no do anything
-   * A stream to write to.
-   */
-  stream?: Writable;
-  /**
-   * @deprecated don't pass in streams.  this will no do anything
-   * An array of streams to write to.
-   */
-  streams?: LoggerStream[];
 
   /**
    * Create a logger with the fields set
@@ -100,47 +54,6 @@ export enum LoggerLevel {
 }
 
 /**
- * `Logger` format types.
- *
- * @deprecated JSON is the only option
- */
-export enum LoggerFormat {
-  JSON,
-  LOGFMT,
-}
-
-/**
- * A Bunyan stream configuration.
- *
- * @deprecated.  Do not use
- *
- */
-export interface LoggerStream {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-  /**
-   * The type of stream -- may be inferred from other properties.
-   */
-  type?: string;
-  /**
-   * The desired log level for the stream.
-   */
-  level?: LoggerLevelValue;
-  /**
-   * The stream to write to.  Mutually exclusive with `path`.
-   */
-  stream?: Writable;
-  /**
-   * The name of the stream.
-   */
-  name?: string;
-  /**
-   * A log file path to write to.  Mutually exclusive with `stream`.
-   */
-  path?: string;
-}
-
-/**
  * Any numeric `Logger` level.
  */
 export type LoggerLevelValue = LoggerLevel | number;
@@ -152,10 +65,8 @@ export type Fields = Record<string, unknown>;
 
 /**
  * All possible field value types.
- *
- * @deprecated.  Fields can be anything, including another object
  */
-export type FieldValue = string | number | boolean;
+export type FieldValue = string | number | boolean | Fields;
 
 /**
  * Log line interface
@@ -223,18 +134,6 @@ export class Logger {
 
   // The sfdx root logger singleton
   private static rootLogger?: Logger;
-
-  /**
-   * @deprecated.  Has no effect
-   */
-
-  public readonly logRotationCount = new Env().getNumber('SF_LOG_ROTATION_COUNT') ?? 2;
-
-  /**
-   * @deprecated.  Has no effect, will always be false
-   * Whether debug is enabled for this Logger.
-   */
-  public debugEnabled = false;
 
   private pinoLogger: PinoLogger;
 
@@ -374,36 +273,6 @@ export class Logger {
     return Logger.getRoot().pinoLogger;
   }
 
-  /**
-   * Adds a stream.
-   *
-   * @deprecated.  addStream is a no-op
-   *
-   * @param stream The stream configuration to add.
-   * @param defaultLevel The default level of the stream.
-   */
-  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
-  public addStream(stream: LoggerStream, defaultLevel?: LoggerLevelValue): void {}
-
-  /**
-   * Adds a file stream to this logger. Resolved or rejected upon completion of the addition.
-   *
-   * @deprecated.  streams don't change once a logger is built
-   * @param logFile The path to the log file.  If it doesn't exist it will be created.
-   */
-  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
-  public async addLogFileStream(logFile: string): Promise<void> {}
-
-  /**
-   * Adds a file stream to this logger. Resolved or rejected upon completion of the addition.
-   *
-   * @deprecated.  streams don't change once a logger is built
-   *
-   * @param logFile The path to the log file.  If it doesn't exist it will be created.
-   */
-  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
-  public addLogFileStreamSync(logFile: string): void {}
-
   /** get the bare (pino) logger instead of using the class hierarchy */
   public getRawLogger(): PinoLogger {
     return this.pinoLogger;
@@ -454,16 +323,6 @@ export class Logger {
   }
 
   /**
-   * Gets the underlying Bunyan logger.
-   *
-   * @deprecated.  Bunyan is no longer used.  This will return a pino Logger
-   */
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
-  public getBunyanLogger(): any {
-    return this.pinoLogger;
-  }
-
-  /**
    * Compares the requested log level with the current log level.  Returns true if
    * the requested log level is greater than or equal to the current log level.
    *
@@ -471,17 +330,6 @@ export class Logger {
    */
   public shouldLog(level: LoggerLevelValue): boolean {
     return (typeof level === 'string' ? this.pinoLogger.levelVal : level) >= this.getLevel();
-  }
-
-  /**
-   * @deprecated.  Use the useMemoryLogging option when instantiating the logger
-   * Use in-memory logging for this logger instance instead of any parent streams. Useful for testing.
-   * For convenience this object is returned.
-   *
-   * **WARNING: This cannot be undone for this logger instance.**
-   */
-  public useMemoryLogging(): Logger {
-    return this;
   }
 
   /**
@@ -511,24 +359,6 @@ export class Logger {
       return content;
     }
   }
-
-  /**
-   * @deprecated filters are no longer dynamic
-   * Adds a filter to be applied to all logged messages.
-   *
-   * @param filter A function with signature `(...args: any[]) => any[]` that transforms log message arguments.
-   */
-  // eslint-disable-next-line @typescript-eslint/no-empty-function, class-methods-use-this, @typescript-eslint/no-unused-vars
-  public addFilter(filter: (...args: unknown[]) => unknown): void {}
-
-  /**
-   * @deprecated.  No longer necessary
-   * Close the logger, including any streams, and remove all listeners.
-   *
-   * @param fn A function with signature `(stream: LoggerStream) => void` to call for each stream with the stream as an arg.
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this, @typescript-eslint/no-empty-function
-  public close(fn?: (stream: LoggerStream) => void): void {}
 
   /**
    * Create a child logger, typically to add a few log record fields. For convenience this object is returned.
@@ -628,15 +458,6 @@ export class Logger {
     this.pinoLogger.fatal(unwrapArray(args));
     return this;
   }
-
-  /**
-   * @deprecated use the env DEBUG=* or DEBUG=<logger-name> instead
-   *
-   * Enables logging to stdout when the DEBUG environment variable is used. It uses the logger
-   * name as the debug name, so you can do DEBUG=<logger-name> to filter the results to your logger.
-   */
-  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-empty-function
-  public enableDEBUG(): void {} /** return various streams that the logger could send data to, depending on the options and env  */
 }
 
 const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {

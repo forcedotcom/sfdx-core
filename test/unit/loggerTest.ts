@@ -96,7 +96,6 @@ describe('Logger', () => {
 
   describe('root', () => {
     it('should construct the root SF logger', async () => {
-      $$.SANDBOX.spy(Logger.prototype, 'addFilter');
       const defaultLogger = await Logger.root();
       expect(defaultLogger).to.be.instanceof(Logger);
       expect(defaultLogger.getName()).to.equal('sf');
@@ -111,15 +110,12 @@ describe('Logger', () => {
     });
 
     it('should create the root logger if not already created', async () => {
-      $$.SANDBOX.stub(Logger.prototype, 'addLogFileStream');
       $$.SANDBOX.spy(Logger, 'root');
       const rootLogger = await Logger.root();
       expect(rootLogger.getName()).to.equal('sf');
       expect(await Logger.root()).to.equal(rootLogger);
       // @ts-expect-error: called is a sinon spy property
       expect(Logger.root['called']).to.be.true;
-      // @ts-expect-error: called is a sinon spy property
-      expect(rootLogger.addLogFileStream['called']).to.be.false;
     });
   });
 

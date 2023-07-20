@@ -691,8 +691,6 @@ export const restoreContext = (testContext: TestContext): void => {
   testContext.configStubs = {};
   // Give each test run a clean StateAggregator
   StateAggregator.clearInstance();
-  // get a new clean logger for each run
-  testContext.TEST_LOGGER.close();
   // Allow each test to have their own config aggregator
   // @ts-ignore clear for testing.
   delete ConfigAggregator.instance;
