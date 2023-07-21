@@ -202,7 +202,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       ...SFDX_HTTP_HEADERS,
       ...lowercasedHeaders,
     };
-    this.logger.debug(`request: ${JSON.stringify(httpRequest)}`);
+    this.logger.getRawLogger().debug(httpRequest, 'request');
     return super.request(httpRequest, options);
   }
 
