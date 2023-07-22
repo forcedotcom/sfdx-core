@@ -67,10 +67,11 @@ export {
 
 export { Messages, StructuredMessage } from './messages';
 
-export { Org, SandboxEvents, OrgTypes, ScratchOrgRequest } from './org';
+export { Org, OrgTypes, ScratchOrgRequest } from './org';
 
 export {
   SandboxProcessObject,
+  SandboxEvents,
   StatusEvent,
   SandboxUserAuthResponse,
   SandboxUserAuthRequest,
@@ -103,15 +104,15 @@ export {
   ScratchOrgCreateResult,
   scratchOrgCreate,
   scratchOrgResume,
-} from './org/scratchOrgCreate';
+} from './org/scratch/scratchOrgCreate';
 
-export { ScratchOrgInfo } from './org/scratchOrgTypes';
+export { ScratchOrgInfo } from './org/scratch/scratchOrgTypes';
 export {
   ScratchOrgLifecycleEvent,
   scratchOrgLifecycleEventName,
   scratchOrgLifecycleStages,
-} from './org/scratchOrgLifecycleEvents';
-export { ScratchOrgCache } from './org/scratchOrgCache';
+} from './org/scratch/scratchOrgLifecycleEvents';
+export { ScratchOrgCache } from './org/scratch/scratchOrgCache';
 // Utility sub-modules
 export * from './util/sfdc';
 export * from './util/sfdcUrl';

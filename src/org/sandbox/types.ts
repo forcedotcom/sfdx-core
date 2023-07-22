@@ -5,6 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+export enum SandboxEvents {
+  EVENT_STATUS = 'status',
+  EVENT_ASYNC_RESULT = 'asyncResult',
+  EVENT_RESULT = 'result',
+  EVENT_AUTH = 'auth',
+  EVENT_RESUME = 'resume',
+}
+
 export type SandboxRequest = {
   SandboxName: string;
   LicenseType?: string;

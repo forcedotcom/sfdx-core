@@ -6,8 +6,8 @@
  */
 import { expect } from 'chai';
 import { SfError } from '../../../src/sfError';
-import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
-import { checkScratchOrgInfoForErrors } from '../../../src/org/scratchOrgErrorCodes';
+import { ScratchOrgInfo } from '../../../src/org/scratch/scratchOrgTypes';
+import { checkScratchOrgInfoForErrors } from '../../../src/org/scratch/scratchOrgErrorCodes';
 import { shouldThrow } from '../../../src/testSetup';
 
 const testUsername = 'foo';

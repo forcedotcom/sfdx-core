@@ -16,7 +16,7 @@ import {
   getAncestorIds,
   generateScratchOrgInfo,
   getScratchOrgInfoPayload,
-} from '../../../src/org/scratchOrgInfoGenerator';
+} from '../../../src/org/scratch/scratchOrgInfoGenerator';
 import { SfProjectJson } from '../../../src/sfProject';
 import { Messages } from '../../../src/messages';
 

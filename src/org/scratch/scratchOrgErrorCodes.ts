@@ -6,12 +6,12 @@
  */
 
 import { Optional } from '@salesforce/ts-types';
-import { Messages } from '../messages';
-import { SfError } from '../sfError';
-import { Logger } from '../logger';
+import { Messages } from '../../messages';
+import { SfError } from '../../sfError';
+import { Logger } from '../../logger';
+import { emit } from './scratchOrgLifecycleEvents';
 import { ScratchOrgInfo } from './scratchOrgTypes';
 import { ScratchOrgCache } from './scratchOrgCache';
-import { emit } from './scratchOrgLifecycleEvents';
 
 const WORKSPACE_CONFIG_FILENAME = 'sfdx-project.json';
 

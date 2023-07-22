@@ -28,7 +28,11 @@ import { StateAggregator } from '../../../src/stateAggregator';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { Messages } from '../../../src/messages';
 import { SfError } from '../../../src/sfError';
-
+import { sandboxSignupComplete } from '../../../src/org/sandbox/sandboxProcessQueries';
+// stubbing functions
+import * as OrgFunctionsForStubs from '../../../src/org/org';
+import * as SandboxProcessFunctionsForStubs from '../../../src/org/sandbox/sandboxProcessQueries';
+import * as SandboxAuthFunctionsForStubs from '../../../src/org/sandbox/sandboxAuth';
 /* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
@@ -190,7 +194,7 @@ describe('Org Tests', () => {
 
     it('InvalidProjectWorkspaceError', async () => {
       let invalidProjectWorkspaceError = false;
-      stubMethod($$.SANDBOX, Org.prototype, 'getLocalDataDir').callsFake(() => {
+      stubMethod($$.SANDBOX, OrgFunctionsForStubs, 'getLocalDataDir').callsFake(() => {
         invalidProjectWorkspaceError = true;
         const error = new Error();
         error.name = 'InvalidProjectWorkspaceError';
@@ -203,7 +207,7 @@ describe('Org Tests', () => {
     });
 
     it('Random Error', async () => {
-      stubMethod($$.SANDBOX, Org.prototype, 'getLocalDataDir').callsFake(() => {
+      stubMethod($$.SANDBOX, OrgFunctionsForStubs, 'getLocalDataDir').callsFake(() => {
         const error = new Error();
         error.name = 'UnknownError';
         throw error;
@@ -386,7 +390,7 @@ describe('Org Tests', () => {
           const orgTestData = new MockTestOrgData('4321', { username: 'admin@production.org.dev1' });
           const org = await createOrgViaAuthInfo(orgTestData.username);
           stubMethod($$.SANDBOX, org, 'getSandboxConfig').resolves({ sandboxName: 'foo' });
-          const prodQuerySpy = stubMethod($$.SANDBOX, org, 'queryProduction')
+          const prodQuerySpy = stubMethod($$.SANDBOX, SandboxProcessFunctionsForStubs, 'queryProduction')
             .onFirstCall()
             .throws('abc')
             .onSecondCall()
@@ -447,8 +451,12 @@ describe('Org Tests', () => {
           id: '0GQ4p000000U6nFGAS',
           success: true,
         });
-        querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves();
-        pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves();
+        querySandboxProcessStub = stubMethod(
+          $$.SANDBOX,
+          SandboxProcessFunctionsForStubs,
+          'querySandboxProcess'
+        ).resolves();
+        pollStatusAndAuthStub = stubMethod($$.SANDBOX, SandboxAuthFunctionsForStubs, 'pollStatusAndAuth').resolves();
       });
 
       it('will create the SandboxInfo sObject correctly', async () => {
@@ -477,7 +485,7 @@ describe('Org Tests', () => {
       });
 
       it('will auth sandbox user correctly', async () => {
-        const sandboxResponse = {
+        const sandboxProcessObj = {
           SandboxName: 'test',
           EndDate: '2021-19-06T20:25:46.000+0000',
         } as SandboxProcessObject;
@@ -485,12 +493,11 @@ describe('Org Tests', () => {
         const instanceUrl = 'http://instance.123.salesforce.com.services/data/v50.0/tooling/';
         stubMethod($$.SANDBOX, prod.getConnection().tooling, '_baseUrl').returns(instanceUrl);
 
-        // @ts-expect-error because private method
-        await prod.sandboxSignupComplete(sandboxResponse);
+        await sandboxSignupComplete({ conn: prod.getConnection(), sandboxProcessObj });
         expect(requestStub.firstCall.args).to.deep.include({
           body: JSON.stringify({
             clientId: prod.getConnection().getAuthInfoFields().clientId,
-            sandboxName: sandboxResponse.SandboxName,
+            sandboxName: sandboxProcessObj.SandboxName,
             callbackUrl: 'http://localhost:1717/OauthRedirect',
           }),
           headers: {
@@ -504,7 +511,7 @@ describe('Org Tests', () => {
       it('will fail to auth sandbox user correctly - but will swallow the error', async () => {
         // @ts-expect-error because private member
         const logStub = stubMethod($$.SANDBOX, prod.logger, 'debug');
-        const sandboxResponse = {
+        const sandboxProcessObj = {
           SandboxName: 'test',
           EndDate: '2021-19-06T20:25:46.000+0000',
         } as SandboxProcessObject;
@@ -513,8 +520,7 @@ describe('Org Tests', () => {
           name: 'INVALID_STATUS',
         });
 
-        // @ts-expect-error because private method
-        await prod.sandboxSignupComplete(sandboxResponse);
+        await sandboxSignupComplete({ conn: prod.getConnection(), sandboxProcessObj });
         expect(logStub.callCount).to.equal(3);
         // error swallowed
         expect(logStub.thirdCall.args[0]).to.equal('Error while authenticating the user');
@@ -537,10 +543,14 @@ describe('Org Tests', () => {
           id: orgId,
           success: true,
         });
-        querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves({
+        querySandboxProcessStub = stubMethod(
+          $$.SANDBOX,
+          SandboxProcessFunctionsForStubs,
+          'querySandboxProcess'
+        ).resolves({
           Id: '00D56000000CDsAKJS',
         });
-        pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves();
+        pollStatusAndAuthStub = stubMethod($$.SANDBOX, SandboxAuthFunctionsForStubs, 'pollStatusAndAuth').resolves();
         devHubQueryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').resolves({
           records: [
             {
@@ -1060,7 +1070,9 @@ describe('Org Tests', () => {
       const prodTestData = new MockTestOrgData();
       prod = await createOrgViaAuthInfo(prodTestData.username);
       queryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').resolves(statusResult);
-      pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves(statusResult.records[0]);
+      pollStatusAndAuthStub = stubMethod($$.SANDBOX, SandboxAuthFunctionsForStubs, 'pollStatusAndAuth').resolves(
+        statusResult.records[0]
+      );
     });
 
     it('should return sandbox status', async () => {

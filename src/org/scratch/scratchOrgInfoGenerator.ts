@@ -7,14 +7,14 @@
 import { promises as fs } from 'fs';
 import { parseJson } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
-import { SfProjectJson } from '../sfProject';
-import { WebOAuthServer } from '../webOAuthServer';
-import { Messages } from '../messages';
-import { SfError } from '../sfError';
-import { Org } from './org';
+import { SfProjectJson } from '../../sfProject';
+import { WebOAuthServer } from '../../webOAuthServer';
+import { Messages } from '../../messages';
+import { SfError } from '../../sfError';
+import { Org } from '../org';
+import { DEFAULT_CONNECTED_APP_INFO } from '../authInfo';
 import { ScratchOrgInfo } from './scratchOrgTypes';
 import { ScratchOrgFeatureDeprecation } from './scratchOrgFeatureDeprecation';
-import { DEFAULT_CONNECTED_APP_INFO } from './authInfo';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoGenerator');

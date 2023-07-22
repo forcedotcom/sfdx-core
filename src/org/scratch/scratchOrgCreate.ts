@@ -6,13 +6,16 @@
  */
 import { Duration } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
-import { Messages } from '../messages';
-import { Logger } from '../logger';
-import { ConfigAggregator } from '../config/configAggregator';
-import { OrgConfigProperties } from '../org/orgConfigProperties';
-import { SfProject } from '../sfProject';
-import { StateAggregator } from '../stateAggregator';
-import { Org } from './org';
+import { Messages } from '../../messages';
+import { Logger } from '../../logger';
+import { ConfigAggregator } from '../../config/configAggregator';
+import { OrgConfigProperties } from '../orgConfigProperties';
+import { SfProject } from '../../sfProject';
+import { StateAggregator } from '../../stateAggregator';
+import { Org } from '../org';
+import { AuthFields, AuthInfo } from '../authInfo';
+import SettingsGenerator from './scratchOrgSettingsGenerator';
+import { generateScratchOrgInfo, getScratchOrgInfoPayload } from './scratchOrgInfoGenerator';
 import {
   authorizeScratchOrg,
   requestScratchOrgCreation,
@@ -21,13 +24,10 @@ import {
   resolveUrl,
   queryScratchOrgInfo,
 } from './scratchOrgInfoApi';
-import { ScratchOrgInfo } from './scratchOrgTypes';
-import SettingsGenerator from './scratchOrgSettingsGenerator';
-import { generateScratchOrgInfo, getScratchOrgInfoPayload } from './scratchOrgInfoGenerator';
-import { AuthFields, AuthInfo } from './authInfo';
 import { emit, emitPostOrgCreate } from './scratchOrgLifecycleEvents';
-import { ScratchOrgCache } from './scratchOrgCache';
 import { validateScratchOrgInfoForResume } from './scratchOrgErrorCodes';
+import { ScratchOrgInfo } from './scratchOrgTypes';
+import { ScratchOrgCache } from './scratchOrgCache';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgCreate');

@@ -11,11 +11,11 @@ import { expect } from 'chai';
 import { Org, Connection } from '../../../src/org';
 import { validateApiVersion } from '../../../src/util/sfdc';
 import { ZipWriter } from '../../../src/util/zipWriter';
-import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
+import { ScratchOrgInfo } from '../../../src/org/scratch/scratchOrgTypes';
 import SettingsGenerator, {
   createObjectFileContent,
   createRecordTypeAndBusinessProcessFileContent,
-} from '../../../src/org/scratchOrgSettingsGenerator';
+} from '../../../src/org/scratch/scratchOrgSettingsGenerator';
 import { MockTestOrgData, shouldThrow } from '../../../src/testSetup';
 
 const TEMPLATE_SCRATCH_ORG_INFO: ScratchOrgInfo = {

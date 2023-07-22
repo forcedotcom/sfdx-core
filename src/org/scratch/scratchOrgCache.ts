@@ -6,8 +6,8 @@
  */
 import { Duration } from '@salesforce/kit';
 import { JsonMap } from '@salesforce/ts-types';
-import { Global } from '../global';
-import { TTLConfig } from '../config/ttlConfig';
+import { Global } from '../../global';
+import { TTLConfig } from '../../config/ttlConfig';
 
 export type CachedOptions = {
   hubUsername: string;

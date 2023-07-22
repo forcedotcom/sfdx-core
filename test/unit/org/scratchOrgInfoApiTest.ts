@@ -13,8 +13,8 @@ import { stubMethod } from '@salesforce/ts-sinon';
 import { AuthInfo, Connection, Org } from '../../../src/org';
 import { shouldThrow } from '../../../src/testSetup';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
-import SettingsGenerator from '../../../src/org/scratchOrgSettingsGenerator';
-import * as mockForStandaloneFunctions from '../../../src/org/scratchOrgInfoApi';
+import SettingsGenerator from '../../../src/org/scratch/scratchOrgSettingsGenerator';
+import * as mockForStandaloneFunctions from '../../../src/org/scratch/scratchOrgInfoApi';
 import {
   authorizeScratchOrg,
   deploySettings,
@@ -22,8 +22,8 @@ import {
   pollForScratchOrgInfo,
   requestScratchOrgCreation,
   resolveUrl,
-} from '../../../src/org/scratchOrgInfoApi';
-import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
+} from '../../../src/org/scratch/scratchOrgInfoApi';
+import { ScratchOrgInfo } from '../../../src/org/scratch/scratchOrgTypes';
 import { Messages } from '../../../src/messages';
 import { SfError } from '../../../src/sfError';
 

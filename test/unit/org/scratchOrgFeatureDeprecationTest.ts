@@ -6,7 +6,7 @@
  */
 
 import { expect } from 'chai';
-import { ScratchOrgFeatureDeprecation } from '../../../src/org/scratchOrgFeatureDeprecation';
+import { ScratchOrgFeatureDeprecation } from '../../../src/org/scratch/scratchOrgFeatureDeprecation';
 
 describe('scratchOrgFeatureDeprecation', () => {
   const FEATURE_TYPES = {
