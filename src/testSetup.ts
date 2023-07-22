@@ -42,7 +42,8 @@ import { SfProject, SfProjectJson } from './sfProject';
 import * as aliasAccessorEntireFile from './stateAggregator/accessors/aliasAccessor';
 import { CometClient, CometSubscription, Message, StreamingExtension } from './status/streamingClient';
 import { OrgAccessor, StateAggregator } from './stateAggregator';
-import { AuthFields, Org, SandboxFields, User, UserFields } from './org';
+import { AuthFields, Org, User, UserFields } from './org';
+import { SandboxFields } from './org/sandbox/types';
 import { SandboxAccessor } from './stateAggregator/accessors/sandboxAccessor';
 import { Global } from './global';
 

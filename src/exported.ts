@@ -67,19 +67,17 @@ export {
 
 export { Messages, StructuredMessage } from './messages';
 
+export { Org, SandboxEvents, OrgTypes, ScratchOrgRequest } from './org';
+
 export {
-  Org,
   SandboxProcessObject,
   StatusEvent,
-  SandboxEvents,
   SandboxUserAuthResponse,
   SandboxUserAuthRequest,
   SandboxRequest,
   ResumeSandboxRequest,
-  OrgTypes,
   ResultEvent,
-  ScratchOrgRequest,
-} from './org';
+} from './org/sandbox/types';
 
 export { OrgConfigProperties, ORG_CONFIG_ALLOWED_PROPERTIES } from './org/orgConfigProperties';
 

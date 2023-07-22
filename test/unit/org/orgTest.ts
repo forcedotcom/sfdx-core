@@ -15,14 +15,8 @@ import { assert, expect, config as chaiConfig } from 'chai';
 import { OAuth2 } from 'jsforce';
 import { Transport } from 'jsforce/lib/transport';
 import { SinonStub } from 'sinon';
-import {
-  AuthInfo,
-  Connection,
-  Org,
-  SandboxProcessObject,
-  SandboxUserAuthResponse,
-  SingleRecordQueryErrors,
-} from '../../../src/org';
+import { AuthInfo, Connection, Org, SingleRecordQueryErrors } from '../../../src/org';
+import { SandboxProcessObject, SandboxUserAuthResponse } from '../../../src/exported';
 import { Config } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';

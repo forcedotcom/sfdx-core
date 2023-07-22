@@ -42,7 +42,16 @@ import { Connection, SingleRecordQueryErrors } from './connection';
 import { AuthFields, AuthInfo } from './authInfo';
 import { scratchOrgCreate, ScratchOrgCreateOptions, ScratchOrgCreateResult } from './scratchOrgCreate';
 import { OrgConfigProperties } from './orgConfigProperties';
-
+import {
+  SandboxRequest,
+  SandboxProcessObject,
+  ResumeSandboxRequest,
+  SandboxFields,
+  SandboxUserAuthResponse,
+  ResultEvent,
+  StatusEvent,
+  SandboxUserAuthRequest,
+} from './sandbox/types';
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'org');
 
@@ -59,24 +68,6 @@ export enum OrgTypes {
   Sandbox = 'sandbox',
 }
 
-export interface StatusEvent {
-  sandboxProcessObj: SandboxProcessObject;
-  interval: number;
-  remainingWait: number;
-  waitingOnAuth: boolean;
-}
-
-export interface ResultEvent {
-  sandboxProcessObj: SandboxProcessObject;
-  sandboxRes: SandboxUserAuthResponse;
-}
-
-export interface SandboxUserAuthRequest {
-  sandboxName: string;
-  clientId: string;
-  callbackUrl: string;
-}
-
 export enum SandboxEvents {
   EVENT_STATUS = 'status',
   EVENT_ASYNC_RESULT = 'asyncResult',
@@ -85,56 +76,13 @@ export enum SandboxEvents {
   EVENT_RESUME = 'resume',
 }
 
-export interface SandboxUserAuthResponse {
-  authUserName: string;
-  authCode: string;
-  instanceUrl: string;
-  loginUrl: string;
-}
-
 const resumableSandboxStatus = ['Activating', 'Pending', 'Pending Activation', 'Processing', 'Sampling', 'Completed'];
 
 export function sandboxIsResumable(value: string): boolean {
   return resumableSandboxStatus.includes(value);
 }
 
-export type SandboxProcessObject = {
-  Id: string;
-  Status: string;
-  SandboxName: string;
-  SandboxInfoId: string;
-  LicenseType: string;
-  CreatedDate: string;
-  SandboxOrganization?: string;
-  CopyProgress?: number;
-  SourceId?: string;
-  Description?: string;
-  ApexClassId?: string;
-  EndDate?: string;
-};
-
-export type SandboxRequest = {
-  SandboxName: string;
-  LicenseType?: string;
-  /** Should match a SandboxInfoId, not a SandboxProcessId */
-  SourceId?: string;
-  Description?: string;
-};
-export type ResumeSandboxRequest = {
-  SandboxName?: string;
-  SandboxProcessObjId?: string;
-};
-
 export type ScratchOrgRequest = Omit<ScratchOrgCreateOptions, 'hubOrg'>;
-
-export type SandboxFields = {
-  sandboxOrgId: string;
-  prodOrgUsername: string;
-  sandboxName?: string;
-  sandboxUsername?: string;
-  sandboxProcessId?: string;
-  sandboxInfoId?: string;
-};
 
 /**
  * Provides a way to manage a locally authenticated Org.

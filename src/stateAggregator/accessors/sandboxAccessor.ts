@@ -7,7 +7,7 @@
 /* eslint-disable class-methods-use-this */
 
 import { SandboxOrgConfig } from '../../config/sandboxOrgConfig';
-import { SandboxFields } from '../../org';
+import { SandboxFields } from '../../org/sandbox/types';
 import { BaseOrgAccessor } from './orgAccessor';
 
 export class SandboxAccessor extends BaseOrgAccessor<SandboxOrgConfig, SandboxFields> {
