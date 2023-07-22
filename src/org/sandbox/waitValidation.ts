@@ -7,17 +7,15 @@
 import { Duration } from '@salesforce/kit';
 
 export const validateWaitOptions = ({
-  options,
+  wait = Duration.minutes(30),
+  interval = Duration.seconds(30),
+  async = false,
 }: {
-  options: {
-    wait?: Duration;
-    interval?: Duration;
-    async?: boolean;
-  };
+  wait?: Duration;
+  interval?: Duration;
+  async?: boolean;
 }): [Duration, Duration] => {
-  const wait = options.wait ?? Duration.minutes(30);
-  const interval = options.interval ?? Duration.seconds(30);
-  let pollInterval = options.async ? Duration.seconds(0) : interval;
+  let pollInterval = async ? Duration.seconds(0) : interval;
   // pollInterval cannot be > wait.
   pollInterval = pollInterval.seconds > wait.seconds ? wait : pollInterval;
   return [wait, pollInterval];

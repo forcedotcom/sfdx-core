@@ -23,9 +23,9 @@ const messages = Messages.loadMessages('@salesforce/core', 'org');
  */
 export const queryLatestSandboxProcessBySandboxName = async (
   conn: Connection,
-  sandboxNameIn: string,
-  logger: Logger
+  sandboxNameIn: string
 ): Promise<SandboxProcessObject> => {
+  const logger = Logger.childFromRoot('org:sandbox:queryLatestSandboxProcessBySandboxName');
   const { tooling } = conn;
   logger.debug('QueryLatestSandboxProcessBySandboxName called with SandboxName: %s ', sandboxNameIn);
   const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxName='${sandboxNameIn}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;

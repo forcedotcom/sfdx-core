@@ -23,20 +23,33 @@ import {
   ResultEvent,
   StatusEvent,
 } from './types';
-import { querySandboxProcessBySandboxInfoId, sandboxSignupComplete } from './sandboxProcessQueries';
+import {
+  queryLatestSandboxProcessBySandboxName,
+  querySandboxProcessBySandboxInfoId,
+  sandboxSignupComplete,
+} from './sandboxProcessQueries';
+import { validateWaitOptions } from './waitValidation';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'org');
+
+type SanboxAuthInputs = {
+  sandboxProcessObj: SandboxProcessObject;
+  conn: Connection;
+  prodOrgUsername: string;
+};
+
+type SandboxAuthPollingInputs = {
+  wait: Duration;
+  interval: Duration;
+};
 
 export const writeSandboxAuthFile = async ({
   prodOrgUsername,
   conn,
   sandboxProcessObj,
   sandboxRes,
-}: {
-  prodOrgUsername: string;
-  conn: Connection;
-  sandboxProcessObj: SandboxProcessObject;
+}: SanboxAuthInputs & {
   sandboxRes: SandboxUserAuthResponse;
 }): Promise<void> => {
   const logger = Logger.childFromRoot('writeSandboxAuthFile');
@@ -117,12 +130,9 @@ export const pollStatusAndAuth = async ({
   wait,
   pollInterval,
   prodOrgUsername,
-}: {
-  conn: Connection;
-  sandboxProcessObj: SandboxProcessObject;
+}: SanboxAuthInputs & {
   wait: Duration;
   pollInterval: Duration;
-  prodOrgUsername: string;
 }): Promise<SandboxProcessObject> => {
   const logger = Logger.childFromRoot('org:sandbox:pollStatusAndAuth');
   logger.debug(
@@ -174,4 +184,33 @@ export const pollStatusAndAuth = async ({
   });
 
   return pollingClient.subscribe<SandboxProcessObject>();
+};
+
+/**
+ * Gets the sandboxProcessObject and then polls for it to complete.
+ *
+ * @param sandboxProcessName sanbox process name
+ * @param options { wait?: Duration; interval?: Duration }
+ * @returns {SandboxProcessObject} The SandboxProcessObject for the sandbox
+ */
+export const authWithRetriesByName = async ({
+  conn,
+  prodOrgUsername,
+  sandboxProcessName,
+  wait,
+  interval,
+}: {
+  conn: Connection;
+  prodOrgUsername: string;
+  sandboxProcessName: string;
+} & Partial<SandboxAuthPollingInputs>): Promise<SandboxProcessObject> => {
+  const [validatedWait, pollInterval] = validateWaitOptions({ wait, interval });
+
+  return pollStatusAndAuth({
+    conn,
+    prodOrgUsername,
+    sandboxProcessObj: await queryLatestSandboxProcessBySandboxName(conn, sandboxProcessName),
+    wait: validatedWait,
+    pollInterval,
+  });
 };

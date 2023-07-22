@@ -47,14 +47,13 @@ import {
   SandboxFields,
 } from './sandbox/types';
 import {
-  queryLatestSandboxProcessBySandboxName,
   queryProduction,
   querySandboxProcessById,
   querySandboxProcessBySandboxName,
   sandboxSignupComplete,
 } from './sandbox/sandboxProcessQueries';
 import { validateWaitOptions } from './sandbox/waitValidation';
-import { pollStatusAndAuth, writeSandboxAuthFile } from './sandbox/sandboxAuth';
+import { authWithRetriesByName, pollStatusAndAuth, writeSandboxAuthFile } from './sandbox/sandboxAuth';
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'org');
 
@@ -141,6 +140,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
   ): Promise<SandboxProcessObject> {
     this.logger.debug(`CreateSandbox called with SandboxRequest: ${JSON.stringify(sandboxReq, undefined, 2)}`);
+    const [wait, pollInterval] = validateWaitOptions(options);
+
     const createResult = await this.connection.tooling.create('SandboxInfo', sandboxReq);
     this.logger.debug(`Return from calling tooling.create: ${JSON.stringify(createResult, undefined, 2)}`);
 
@@ -160,14 +161,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       await Lifecycle.getInstance().emit(SandboxEvents.EVENT_ASYNC_RESULT, sandboxCreationProgress);
       return sandboxCreationProgress;
     }
-    const [wait, pollInterval] = validateWaitOptions({ options });
-    this.logger.debug(
-      `create - pollStatusAndAuth sandboxProcessObj ${JSON.stringify(
-        sandboxCreationProgress,
-        undefined,
-        2
-      )}, max wait time of ${wait.minutes} minutes`
-    );
+
     return pollStatusAndAuth({
       conn: this.connection,
       prodOrgUsername: ensureString(this.getUsername()),
@@ -240,7 +234,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     await Lifecycle.getInstance().emit(SandboxEvents.EVENT_RESUME, sandboxCreationProgress);
 
-    const [wait, pollInterval] = validateWaitOptions({ options });
+    const [wait, pollInterval] = validateWaitOptions(options);
     // if wait is 0, return the sandboxCreationProgress immediately
     if (wait.seconds === 0) {
       if (sandboxCreationProgress.Status === 'Completed') {
@@ -269,13 +263,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       throw messages.createError('sandboxCreateNotComplete');
     }
 
-    this.logger.debug(
-      `resume - pollStatusAndAuth sandboxProcessObj ${JSON.stringify(
-        sandboxCreationProgress,
-        undefined,
-        2
-      )}, max wait time of ${wait.minutes} minutes`
-    );
     return pollStatusAndAuth({
       conn: this.connection,
       prodOrgUsername: ensureString(this.getUsername()),
@@ -308,7 +295,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     sandboxname: string,
     options: { wait?: Duration; interval?: Duration }
   ): Promise<SandboxProcessObject> {
-    return this.authWithRetriesByName(sandboxname, options);
+    return authWithRetriesByName({
+      conn: this.connection,
+      prodOrgUsername: ensureString(this.getUsername()),
+      sandboxProcessName: sandboxname,
+      ...options,
+    });
   }
 
   /**
@@ -916,52 +908,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   // eslint-disable-next-line class-methods-use-this
   protected getDefaultOptions(): Org.Options {
     throw new SfError('Not Supported', 'NotSupportedError');
-  }
-
-  /**
-   * Gets the sandboxProcessObject and then polls for it to complete.
-   *
-   * @param sandboxProcessName sanbox process name
-   * @param options { wait?: Duration; interval?: Duration }
-   * @returns {SandboxProcessObject} The SandboxProcessObject for the sandbox
-   */
-  private async authWithRetriesByName(
-    sandboxProcessName: string,
-    options: { wait?: Duration; interval?: Duration }
-  ): Promise<SandboxProcessObject> {
-    return this.authWithRetries(
-      await queryLatestSandboxProcessBySandboxName(this.connection, sandboxProcessName, this.logger),
-      options
-    );
-  }
-
-  /**
-   * Polls the sandbox org for the sandboxProcessObject.
-   *
-   * @param sandboxProcessObj: The in-progress sandbox signup request
-   * @param options { wait?: Duration; interval?: Duration }
-   * @returns {SandboxProcessObject}
-   */
-  private async authWithRetries(
-    sandboxProcessObj: SandboxProcessObject,
-    options: { wait?: Duration; interval?: Duration } = {
-      wait: Duration.minutes(0),
-      interval: Duration.seconds(30),
-    }
-  ): Promise<SandboxProcessObject> {
-    const [wait, pollInterval] = validateWaitOptions({ options });
-    this.logger.debug(
-      `AuthWithRetries sandboxProcessObj ${JSON.stringify(sandboxProcessObj, undefined, 2)}, max wait time of ${
-        wait.minutes
-      } minutes`
-    );
-    return pollStatusAndAuth({
-      conn: this.connection,
-      prodOrgUsername: ensureString(this.getUsername()),
-      sandboxProcessObj,
-      wait,
-      pollInterval,
-    });
   }
 
   private async destroySandbox(org: Org, id: string): Promise<SaveResult> {
