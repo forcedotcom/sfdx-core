@@ -12,7 +12,7 @@ import { Logger } from './logger';
 /**
  * the odds of running are 1 in CLEAN_ODDS
  * ex: CLEAN_ODDS=100 implies 1 in 100
- * ex: CLEAN_ODDS=100 implies 1 in 1 (run every time)
+ * ex: CLEAN_ODDS=1 implies 1 in 1 (run every time)
  * */
 const CLEAN_ODDS = 100;
 const MAX_FILE_AGE_DAYS = 7;
