@@ -25,7 +25,7 @@ import { Tooling as JSForceTooling } from 'jsforce/lib/api/tooling';
 import { StreamPromise } from 'jsforce/lib/util/promise';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { ConfigAggregator } from '../config/configAggregator';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { validateApiVersion } from '../util/sfdc';
 import { Messages } from '../messages';
@@ -202,7 +202,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       ...SFDX_HTTP_HEADERS,
       ...lowercasedHeaders,
     };
-    this.logger.debug(`request: ${JSON.stringify(httpRequest)}`);
+    this.logger.getRawLogger().debug(httpRequest, 'request');
     return super.request(httpRequest, options);
   }
 

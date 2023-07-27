@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import Ajv, { DefinedError } from 'ajv';
 import { AnyJson, JsonMap } from '@salesforce/ts-types';
 import { getJsonValuesByName, parseJsonMap } from '@salesforce/kit';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 
 /**

@@ -6,6 +6,7 @@
  */
 import { Suite } from 'benchmark';
 import { Logger } from '../../../src/exported';
+import { cleanup } from '../../../src/logger/cleanup';
 
 const suite = new Suite();
 
@@ -14,7 +15,6 @@ const logger = new Logger('Benchmarks');
 // add tests
 suite
   .add('Child logger creation', () => {
-    // eslint-disable-next-line @typescript-eslint/prefer-includes
     Logger.childFromRoot('benchmarkChild');
   })
   .add('Logging a string on root logger', () => {
@@ -36,5 +36,9 @@ suite
   .on('cycle', (event: any) => {
     // eslint-disable-next-line no-console, @typescript-eslint/no-unsafe-member-access
     console.log(String(event.target));
+  })
+  .on('complete', async () => {
+    // will clear sf log files, since this generates a LOT of them!
+    await cleanup(0, true);
   })
   .run({ async: true });

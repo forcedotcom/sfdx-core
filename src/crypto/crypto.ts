@@ -11,7 +11,7 @@ import * as os from 'os';
 import { join as pathJoin } from 'path';
 import { ensure, Nullable, Optional } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, env } from '@salesforce/kit';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { Cache } from '../util/cache';
 import { Global } from '../global';

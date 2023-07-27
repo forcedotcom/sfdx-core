@@ -10,7 +10,7 @@ import { AnyJson } from '@salesforce/ts-types';
 import { OAuth2Config, SaveResult } from 'jsforce';
 import { retryDecorator, RetryError } from 'ts-retry-promise';
 import { JwtOAuth2Config } from '../org/authInfo';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
 import { SfdcUrl } from '../util/sfdcUrl';

@@ -35,7 +35,7 @@ import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStore';
 import { Connection } from './org/connection';
 import { Crypto } from './crypto/crypto';
-import { Logger } from './logger';
+import { Logger } from './logger/logger';
 import { Messages } from './messages';
 import { SfError } from './sfError';
 import { SfProject, SfProjectJson } from './sfProject';
@@ -149,7 +149,7 @@ export class TestContext {
       ORGS: sinon.createSandbox(),
     };
 
-    this.TEST_LOGGER = new Logger({ name: 'SFDX_Core_Test_Logger' }).useMemoryLogging();
+    this.TEST_LOGGER = new Logger({ name: 'SFDX_Core_Test_Logger', useMemoryLogger: true });
 
     if (opts.setup) {
       this.setup();

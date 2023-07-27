@@ -9,7 +9,7 @@ import { URL } from 'url';
 import { Env, Duration } from '@salesforce/kit';
 import { ensureNumber, ensureArray } from '@salesforce/ts-types';
 import { MyDomainResolver } from '../status/myDomainResolver';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { Lifecycle } from '../lifecycleEvents';
 
 export function getLoginAudienceCombos(audienceUrl: string, loginUrl: string): Array<[string, string]> {
