@@ -1,3 +1,12 @@
+## [5.1.1](https://github.com/forcedotcom/sfdx-core/compare/5.1.0...5.1.1) (2023-07-28)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/ts-types from 2.0.4 to 2.0.5 ([0b13602](https://github.com/forcedotcom/sfdx-core/commit/0b136024d90e7a361c87f35039d4869255ca2e39))
+
+
+
 # [5.1.0](https://github.com/forcedotcom/sfdx-core/compare/5.0.1-v5-beta.1...5.1.0) (2023-07-27)
 
 
