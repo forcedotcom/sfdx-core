@@ -12,7 +12,7 @@ import { dirname as pathDirname, join as pathJoin } from 'path';
 import { isPlainObject } from '@salesforce/ts-types';
 import { parseJsonMap } from '@salesforce/kit';
 import { Global } from '../global';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { resolveProjectPath, resolveProjectPathSync } from '../util/internal';
 import { BaseConfigStore, ConfigContents } from './configStore';
@@ -161,22 +161,24 @@ export class ConfigFile<
       // internally and updated persistently via write().
       if (!this.hasRead || force) {
         this.logger.info(`Reading config file: ${this.getPath()}`);
-        const obj = parseJsonMap(await fs.promises.readFile(this.getPath(), 'utf8'));
+        const obj = parseJsonMap(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath());
         this.setContentsFromObject(obj);
       }
+      // Necessarily set this even when an error happens to avoid infinite re-reading.
+      // To attempt another read, pass `force=true`.
+      this.hasRead = true;
       return this.getContents();
     } catch (err) {
+      this.hasRead = true;
       if ((err as SfError).code === 'ENOENT') {
         if (!throwOnNotFound) {
           this.setContents();
           return this.getContents();
         }
       }
-      throw err;
-    } finally {
       // Necessarily set this even when an error happens to avoid infinite re-reading.
       // To attempt another read, pass `force=true`.
-      this.hasRead = true;
+      throw err;
     }
   }
 

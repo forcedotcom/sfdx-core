@@ -25,12 +25,12 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
-import { JwtOAuth2, JwtOAuth2Config, OAuth2, TokenResponse } from 'jsforce';
+import { OAuth2Config, OAuth2, TokenResponse } from 'jsforce';
 import Transport from 'jsforce/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { matchesAccessToken, trimTo15 } from '../util/sfdc';
 import { StateAggregator } from '../stateAggregator';
@@ -109,6 +109,14 @@ export type AuthSideEffects = {
   setDefault: boolean;
   setDefaultDevHub: boolean;
   setTracksSource?: boolean;
+};
+
+export type JwtOAuth2Config = OAuth2Config & {
+  privateKey?: string;
+  privateKeyFile?: string;
+  authCode?: string;
+  refreshToken?: string;
+  username?: string;
 };
 
 type UserInfo = AnyJson & {
@@ -473,16 +481,30 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     return AuthInfo.listAllAuthorizations((possibleHub) => possibleHub?.isDevHub ?? false);
   }
 
+  /**
+   * Checks active scratch orgs to match by the ScratchOrg field (the 15-char org id)
+   * if you pass an 18-char scratchOrgId, it will be trimmed to 15-char for query purposes
+   * Throws is no matching scratch org is found
+   */
   private static async queryScratchOrg(
     devHubUsername: string | undefined,
     scratchOrgId: string
   ): Promise<{ Id: string; ExpirationDate: string }> {
     const devHubOrg = await Org.create({ aliasOrUsername: devHubUsername });
+    const trimmedId = trimTo15(scratchOrgId);
     const conn = devHubOrg.getConnection();
-    const data = await conn.singleRecordQuery<{ Id: string; ExpirationDate: string }>(
-      `select Id, ExpirationDate from ScratchOrgInfo where ScratchOrg = '${trimTo15(scratchOrgId)}'`
+    const data = await conn.query<{ Id: string; ExpirationDate: string; ScratchOrg: string }>(
+      `select Id, ExpirationDate, ScratchOrg from ScratchOrgInfo where ScratchOrg = '${trimmedId}' and Status = 'Active'`
     );
-    return data;
+    // where ScratchOrg='00DDE00000485Lg' will return a record for both 00DDE00000485Lg and 00DDE00000485LG.
+    // this is our way of enforcing case sensitivity on a 15-char Id (which is unfortunately how ScratchOrgInfo stores it)
+    const result = data.records.filter((r) => r.ScratchOrg === trimmedId)[0];
+    if (result) return result;
+
+    throw new SfError(
+      `DevHub ${devHubUsername} has no active scratch orgs that match ${trimmedId}`,
+      'NoActiveScratchOrgFound'
+    );
   }
 
   /**
@@ -979,10 +1001,14 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       }
     );
 
-    const oauth2 = new JwtOAuth2({ loginUrl });
-    // jsforce has it types as any
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return ensureJsonMap(await oauth2.jwtAuthorize(jwtToken));
+    const oauth2 = new OAuth2({ loginUrl });
+    return ensureJsonMap(
+      await oauth2.requestToken({
+        // eslint-disable-next-line camelcase
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion: jwtToken,
+      })
+    );
   }
 
   // Build OAuth config for a refresh token auth flow

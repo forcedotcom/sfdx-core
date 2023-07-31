@@ -12,7 +12,7 @@ import { promisify } from 'util';
 import { ensureString } from '@salesforce/ts-types';
 
 import { AsyncOptionalCreatable, Duration, Env } from '@salesforce/kit';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { SfdcUrl } from '../util/sfdcUrl';
 import { StatusResult } from './types';
 import { PollingClient } from './pollingClient';

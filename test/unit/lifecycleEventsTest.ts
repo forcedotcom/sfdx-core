@@ -26,7 +26,7 @@ describe('lifecycleEvents', () => {
   const fake = new Foo();
 
   beforeEach(() => {
-    loggerSpy = spyMethod($$.SANDBOX, Lifecycle.getInstance(), 'debug');
+    loggerSpy = spyMethod($$.SANDBOX, $$.TEST_LOGGER, 'debug');
     fakeSpy = spyMethod($$.SANDBOX, fake, 'bar');
   });
 

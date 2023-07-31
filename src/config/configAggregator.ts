@@ -80,8 +80,8 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
 
   // Initialized in loadProperties
   private allowedProperties!: ConfigPropertyMeta[];
-  private localConfig?: Config;
-  private globalConfig: Config;
+  private readonly localConfig?: Config;
+  private readonly globalConfig: Config;
   private envVars: Dictionary<string> = {};
 
   /**
@@ -334,6 +334,19 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
     return this.config;
   }
 
+  public async unsetByValue(key: string): Promise<void> {
+    const hasLocalWrites = this.localConfig
+      ?.getKeysByValue(key)
+      .map((k) => this.localConfig?.unset(k))
+      .some(Boolean);
+    if (hasLocalWrites) await this.localConfig?.write();
+    const hasGlobalWrites = this.globalConfig
+      ?.getKeysByValue(key)
+      .map((k) => this.globalConfig?.unset(k))
+      .some(Boolean);
+    if (hasGlobalWrites) await this.globalConfig?.write();
+  }
+
   /**
    * Get the config properties that are environment variables.
    */
@@ -412,8 +425,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
     configs.push(this.envVars);
 
     const json: JsonMap = {};
-    const reduced = configs.filter(isJsonMap).reduce((acc: JsonMap, el: AnyJson) => merge(acc, el), json);
-    return reduced;
+    return configs.filter(isJsonMap).reduce((acc: JsonMap, el: AnyJson) => merge(acc, el), json);
   }
 }
 

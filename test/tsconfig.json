@@ -1,6 +1,6 @@
 {
   "extends": "@salesforce/dev-config/tsconfig-test-strict",
-  "include": ["unit/**/*.ts"],
+  "include": ["unit/**/*.ts", "perf/**/*.ts"],
   "compilerOptions": {
     "noEmit": true,
     "skipLibCheck": true,
