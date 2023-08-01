@@ -392,21 +392,29 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // authInfo before it is necessary.
     const logger = await Logger.child('Common', { tag: 'identifyPossibleScratchOrgs' });
 
-    // return if we already know the hub org we know it is a devhub or prod-like or no orgId present
+    // return if we already know the hub org, we know it is a devhub or prod-like, or no orgId present
     if (fields.isDevHub || fields.devHubUsername || !fields.orgId) return;
 
-    logger.debug('getting devHubs to identify scratch orgs and sandboxes');
+    logger.debug('getting devHubs and prod orgs to identify scratch orgs and sandboxes');
 
     // TODO: return if url is not sandbox-like to avoid constantly asking about production orgs
     // TODO: someday we make this easier by asking the org if it is a scratch org
 
     const hubAuthInfos = await AuthInfo.getDevHubAuthInfos();
+    // Get a list of org auths that are known not to be devhubs, scratch orgs, or sandboxes.
+    const possibleProdOrgs = await AuthInfo.listAllAuthorizations(
+      (orgAuth) => orgAuth && !orgAuth.isDevHub && !orgAuth.isScratchOrg && !orgAuth.isSandbox
+    );
+
     logger.debug(`found ${hubAuthInfos.length} DevHubs`);
-    if (hubAuthInfos.length === 0) return;
+    logger.debug(`found ${possibleProdOrgs.length} possible prod orgs`);
+    if (hubAuthInfos.length === 0 && possibleProdOrgs.length === 0) {
+      return;
+    }
 
     // ask all those orgs if they know this orgId
-    await Promise.all(
-      hubAuthInfos.map(async (hubAuthInfo) => {
+    await Promise.all([
+      ...hubAuthInfos.map(async (hubAuthInfo) => {
         try {
           const soi = await AuthInfo.queryScratchOrg(hubAuthInfo.username, fields.orgId as string);
           // if any return a result
@@ -429,49 +437,16 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         } catch (error) {
           if (error instanceof Error && error.name === 'SingleRecordQuery_NoRecords' && fields.orgId) {
             // Not a scratch org owned by this hub. Check if it's a sandbox.
-            try {
-              const prodOrg = await Org.create({ aliasOrUsername: hubAuthInfo.username });
-              const sbxProcess = await prodOrg.querySandboxProcessByOrgId(fields.orgId);
-              logger.debug(`${fields.orgId} is a sandbox of ${hubAuthInfo.username}`);
-
-              try {
-                await orgAuthInfo.save({
-                  ...fields,
-                  isScratch: false,
-                  isSandbox: true,
-                });
-              } catch (err) {
-                logger.debug(`error updating auth file for: ${orgAuthInfo.getUsername()}`, err);
-              }
-
-              try {
-                // set the sandbox config value
-                const sfSandbox = {
-                  sandboxUsername: fields.username,
-                  sandboxOrgId: fields.orgId,
-                  prodOrgUsername: hubAuthInfo.username,
-                  sandboxName: sbxProcess.SandboxName,
-                  sandboxProcessId: sbxProcess.Id,
-                  sandboxInfoId: sbxProcess.SandboxInfoId,
-                  timestamp: new Date().toISOString(),
-                } as SandboxFields;
-
-                const stateAggregator = await StateAggregator.getInstance();
-                stateAggregator.sandboxes.set(fields.orgId, sfSandbox);
-                logger.debug(`writing sandbox auth file for: ${orgAuthInfo.getUsername()} with ID: ${fields.orgId}`);
-                await stateAggregator.sandboxes.write(fields.orgId);
-              } catch (e) {
-                logger.debug(`error writing sandbox auth file for: ${orgAuthInfo.getUsername()}`, e);
-              }
-            } catch (err) {
-              logger.debug(`${fields.orgId} is not a sandbox of ${hubAuthInfo.username}`);
-            }
+            await AuthInfo.identifyPossibleSandbox(hubAuthInfo, fields, orgAuthInfo, logger);
           } else {
             logger.error(`Error connecting to devhub ${hubAuthInfo.username}`, error);
           }
         }
-      })
-    );
+      }),
+      ...possibleProdOrgs.map(async (pOrgAuthInfo) => {
+        await AuthInfo.identifyPossibleSandbox(pOrgAuthInfo, fields, orgAuthInfo, logger);
+      }),
+    ]);
   }
 
   /**
@@ -479,6 +454,59 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public static async getDevHubAuthInfos(): Promise<OrgAuthorization[]> {
     return AuthInfo.listAllAuthorizations((possibleHub) => possibleHub?.isDevHub ?? false);
+  }
+
+  private static async identifyPossibleSandbox(
+    possibleProdOrg: OrgAuthorization,
+    fields: AuthFields,
+    orgAuthInfo: AuthInfo,
+    logger: Logger
+  ): Promise<void> {
+    if (!fields.orgId) {
+      return;
+    }
+
+    try {
+      const prodOrg = await Org.create({ aliasOrUsername: possibleProdOrg.username });
+      const sbxProcess = await prodOrg.querySandboxProcessByOrgId(fields.orgId);
+      if (!sbxProcess?.SandboxInfoId) {
+        return;
+      }
+      logger.debug(`${fields.orgId} is a sandbox of ${possibleProdOrg.username}`);
+
+      try {
+        await orgAuthInfo.save({
+          ...fields,
+          isScratch: false,
+          isSandbox: true,
+        });
+      } catch (err) {
+        logger.debug(`error updating auth file for: ${orgAuthInfo.getUsername()}`, err);
+        throw err; // rethrow; don't want a sandbox config file with an invalid auth file
+      }
+
+      try {
+        // set the sandbox config value
+        const sfSandbox = {
+          sandboxUsername: fields.username,
+          sandboxOrgId: fields.orgId,
+          prodOrgUsername: possibleProdOrg.username,
+          sandboxName: sbxProcess.SandboxName,
+          sandboxProcessId: sbxProcess.Id,
+          sandboxInfoId: sbxProcess.SandboxInfoId,
+          timestamp: new Date().toISOString(),
+        } as SandboxFields;
+
+        const stateAggregator = await StateAggregator.getInstance();
+        stateAggregator.sandboxes.set(fields.orgId, sfSandbox);
+        logger.debug(`writing sandbox auth file for: ${orgAuthInfo.getUsername()} with ID: ${fields.orgId}`);
+        await stateAggregator.sandboxes.write(fields.orgId);
+      } catch (e) {
+        logger.debug(`error writing sandbox auth file for: ${orgAuthInfo.getUsername()}`, e);
+      }
+    } catch (err) {
+      logger.debug(`${fields.orgId} is not a sandbox of ${possibleProdOrg.username}`);
+    }
   }
 
   /**
