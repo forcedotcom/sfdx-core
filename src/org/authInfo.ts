@@ -10,6 +10,7 @@ import { randomBytes } from 'crypto';
 import { resolve as pathResolve } from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
+import { Record as RecordType } from 'jsforce';
 import { AsyncOptionalCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
   AnyJson,
@@ -826,6 +827,15 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         ensureString(authConfig.accessToken)
       );
 
+      const namespacePrefix = await this.getNamespacePrefix(
+        ensureString(authConfig.instanceUrl),
+        ensureString(authConfig.accessToken)
+      );
+
+      if (namespacePrefix) {
+        authConfig.namespacePrefix = namespacePrefix;
+      }
+
       if (authConfig.username) await this.stateAggregator.orgs.read(authConfig.username, false, false);
 
       // Update the auth fields WITH encryption
@@ -1114,6 +1124,32 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     throw new SfError(errorMsg);
   }
 
+  private async getNamespacePrefix(instanceUrl: string, accessToken: string): Promise<string | undefined> {
+    // Make a REST call for the Organization obj directly.  Normally this is done via a connection
+    // but we don't want to create circular dependencies or lots of snowflakes
+    // within this file to support it.
+    const apiVersion = 'v51.0'; // hardcoding to v51.0 just for this call is okay.
+    const instance = ensure(instanceUrl);
+    const baseUrl = new SfdcUrl(instance);
+    const namespacePrefixOrgUrl = `${baseUrl.toString()}/services/data/${apiVersion}/query?q=Select%20Namespaceprefix%20FROM%20Organization`;
+    const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
+
+    try {
+      const res = await new Transport().httpRequest({ url: namespacePrefixOrgUrl, method: 'GET', headers });
+      if (res.statusCode >= 400) {
+        return;
+      }
+
+      const namespacePrefix = JSON.parse(res.body) as {
+        records: RecordType[];
+      };
+
+      return ensureString(namespacePrefix.records[0]?.NamespacePrefix);
+    } catch (err) {
+      /* Doesn't have a namespace */
+      return;
+    }
+  }
   /**
    * Returns `true` if the org is a Dev Hub.
    *

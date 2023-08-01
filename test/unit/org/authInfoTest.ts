@@ -1114,6 +1114,7 @@ describe('AuthInfo', () => {
         accessToken: '',
       });
       stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
 
       await AuthInfo.create({
         username: testOrg.username,
