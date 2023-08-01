@@ -487,7 +487,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
       try {
         // set the sandbox config value
-        const sfSandbox = {
+        const sfSandbox: SandboxFields = {
           sandboxUsername: fields.username,
           sandboxOrgId: fields.orgId,
           prodOrgUsername: possibleProdOrg.username,
@@ -495,7 +495,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           sandboxProcessId: sbxProcess.Id,
           sandboxInfoId: sbxProcess.SandboxInfoId,
           timestamp: new Date().toISOString(),
-        } as SandboxFields;
+        };
 
         const stateAggregator = await StateAggregator.getInstance();
         stateAggregator.sandboxes.set(fields.orgId, sfSandbox);

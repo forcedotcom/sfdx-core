@@ -134,6 +134,7 @@ export type SandboxFields = {
   sandboxUsername?: string;
   sandboxProcessId?: string;
   sandboxInfoId?: string;
+  timestamp?: string;
 };
 
 /**
@@ -1298,15 +1299,15 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         throw messages.createError('AuthInfoOrgIdUndefined');
       }
       // set the sandbox config value
-      const sfSandbox = {
+      const sfSandbox: SandboxFields = {
         sandboxUsername: sandboxRes.authUserName,
         sandboxOrgId,
-        prodOrgUsername: this.getUsername(),
+        prodOrgUsername: this.getUsername() as string,
         sandboxName: sandboxProcessObj.SandboxName,
         sandboxProcessId: sandboxProcessObj.Id,
         sandboxInfoId: sandboxProcessObj.SandboxInfoId,
         timestamp: new Date().toISOString(),
-      } as SandboxFields;
+      };
 
       await this.setSandboxConfig(sandboxOrgId, sfSandbox);
       await (await StateAggregator.getInstance()).sandboxes.write(sandboxOrgId);
