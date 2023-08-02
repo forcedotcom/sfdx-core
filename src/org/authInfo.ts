@@ -401,9 +401,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // TODO: someday we make this easier by asking the org if it is a scratch org
 
     const hubAuthInfos = await AuthInfo.getDevHubAuthInfos();
-    // Get a list of org auths that are known not to be devhubs, scratch orgs, or sandboxes.
+    // Get a list of org auths that are known not to be scratch orgs or sandboxes.
     const possibleProdOrgs = await AuthInfo.listAllAuthorizations(
-      (orgAuth) => orgAuth && !orgAuth.isDevHub && !orgAuth.isScratchOrg && !orgAuth.isSandbox
+      (orgAuth) => orgAuth && !orgAuth.isScratchOrg && !orgAuth.isSandbox
     );
 
     logger.debug(`found ${hubAuthInfos.length} DevHubs`);
@@ -435,9 +435,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
             logger.debug(`error updating auth file for ${orgAuthInfo.getUsername()}`, error);
           }
         } catch (error) {
-          if (error instanceof Error && error.name === 'SingleRecordQuery_NoRecords' && fields.orgId) {
-            // Not a scratch org owned by this hub. Check if it's a sandbox.
-            await AuthInfo.identifyPossibleSandbox(hubAuthInfo, fields, orgAuthInfo, logger);
+          if (error instanceof Error && error.name === 'NoActiveScratchOrgFound') {
+            logger.error(`devhub ${hubAuthInfo.username} has no scratch orgs`, error);
           } else {
             logger.error(`Error connecting to devhub ${hubAuthInfo.username}`, error);
           }
