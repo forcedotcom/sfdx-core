@@ -507,8 +507,6 @@ const levelFromOption = (value?: string | number): string => {
       return numberToLevel(value);
     case 'string':
       return value;
-    case 'undefined':
-      return pino.levels.labels[Logger.DEFAULT_LEVEL];
     default:
       return pino.levels.labels[Logger.DEFAULT_LEVEL];
   }
