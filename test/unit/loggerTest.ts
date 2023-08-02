@@ -48,7 +48,7 @@ describe('Logger', () => {
   });
 
   describe('levels', () => {
-    describe.only('level computation', () => {
+    describe('level computation', () => {
       afterEach(() => {
         delete process.env.SF_LOG_LEVEL;
       });
