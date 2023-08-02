@@ -9,7 +9,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
 import { expect, config as chaiConfig } from 'chai';
-import { Logger, LoggerLevel } from '../../src/logger/logger';
+import { Logger, LoggerLevel, computeLevel } from '../../src/logger/logger';
 import { shouldThrowSync, TestContext } from '../../src/testSetup';
 
 // NOTE: These tests still use 'await' which is how it use to work and were left to make
@@ -48,6 +48,51 @@ describe('Logger', () => {
   });
 
   describe('levels', () => {
+    describe.only('level computation', () => {
+      afterEach(() => {
+        delete process.env.SF_LOG_LEVEL;
+      });
+      it('should use a matching a level name when passed in', () => {
+        expect(computeLevel('error')).to.equal('error');
+      });
+      it('number passed in matching a level number', () => {
+        expect(computeLevel(30)).to.equal('info');
+      });
+      it('number passed in not matching a level number', () => {
+        expect(computeLevel(28)).to.equal('info');
+        expect(computeLevel(1)).to.equal('trace');
+      });
+      it('should use default level when nothing passed in and no env', () => {
+        expect(computeLevel()).to.equal('warn');
+      });
+      it('env var set to a level name', () => {
+        process.env.SF_LOG_LEVEL = 'warn';
+        expect(computeLevel()).to.equal('warn');
+      });
+      it('env var set to a level number matching a level number', () => {
+        process.env.SF_LOG_LEVEL = '30';
+        expect(computeLevel()).to.equal('info');
+      });
+      it('env var set to a level number not matching a level number', () => {
+        process.env.SF_LOG_LEVEL = '28';
+        expect(computeLevel()).to.equal('info');
+        process.env.SF_LOG_LEVEL = '1';
+        expect(computeLevel()).to.equal('trace');
+      });
+      it('env var set to an invalid level name', () => {
+        process.env.SF_LOG_LEVEL = 'goat';
+        expect(computeLevel()).to.equal('goat');
+      });
+      it('should use the env var when env var and value passed in', () => {
+        process.env.SF_LOG_LEVEL = 'debug';
+        expect(computeLevel('error')).to.equal('debug');
+      });
+      it('should use the env var when env var and value passed in', () => {
+        process.env.SF_LOG_LEVEL = '30';
+        expect(computeLevel('error')).to.equal('info');
+      });
+    });
+
     it('should set the log level using a number', () => {
       const logger = new Logger({ name: 'testLogger', useMemoryLogger: true });
       logger.setLevel(LoggerLevel.ERROR);

@@ -162,7 +162,7 @@ export class Logger {
       this.memoryLogger = Logger.rootLogger.memoryLogger; // if the root was constructed with memory logging, keep that
       this.pinoLogger.trace(`Created '${options.name}' child logger instance`);
     } else {
-      const level = new Env().getString('SF_LOG_LEVEL') ?? pino.levels.labels[options.level ?? Logger.DEFAULT_LEVEL];
+      const level = computeLevel(options.level);
       const commonOptions = {
         name: options.name ?? Logger.ROOT_NAME,
         base: options.fields ?? {},
@@ -488,3 +488,33 @@ const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
     },
   };
 };
+
+export const computeLevel = (optionsLevel?: number | string): string => {
+  const env = new Env();
+  const envValue = isNaN(env.getNumber('SF_LOG_LEVEL') ?? NaN)
+    ? env.getString('SF_LOG_LEVEL')
+    : env.getNumber('SF_LOG_LEVEL');
+
+  if (typeof envValue !== 'undefined') {
+    return typeof envValue === 'string' ? envValue : numberToLevel(envValue);
+  }
+  return levelFromOption(optionsLevel);
+};
+
+const levelFromOption = (value?: string | number): string => {
+  switch (typeof value) {
+    case 'number':
+      return numberToLevel(value);
+    case 'string':
+      return value;
+    case 'undefined':
+      return pino.levels.labels[Logger.DEFAULT_LEVEL];
+    default:
+      return pino.levels.labels[Logger.DEFAULT_LEVEL];
+  }
+};
+// /** match a number to a pino level, or if a match isn't found, the next highest level */
+const numberToLevel = (level: number): string =>
+  pino.levels.labels[level] ??
+  Object.entries(pino.levels.labels).find(([value]) => Number(value) > level)?.[1] ??
+  'warn';
