@@ -1,3 +1,12 @@
+## [5.1.6](https://github.com/forcedotcom/sfdx-core/compare/5.1.5...5.1.6) (2023-08-03)
+
+
+### Bug Fixes
+
+* use debug levels that are numbers from the env ([f051963](https://github.com/forcedotcom/sfdx-core/commit/f051963272c91ace99e948ba36de8f7e29952796))
+
+
+
 ## [5.1.5](https://github.com/forcedotcom/sfdx-core/compare/5.1.4...5.1.5) (2023-08-02)
 
 
