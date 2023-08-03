@@ -19,7 +19,7 @@ import { expect } from 'chai';
 import { Transport } from 'jsforce/lib/transport';
 
 import { OAuth2 } from 'jsforce';
-import { SinonSpy, SinonStub } from 'sinon';
+import { SinonSpy, SinonStub, match } from 'sinon';
 import { AuthFields, AuthInfo, Org } from '../../../src/org';
 import { JwtOAuth2Config } from '../../../src/org/authInfo';
 import { MockTestOrgData, shouldThrow, shouldThrowSync, TestContext } from '../../../src/testSetup';
@@ -47,6 +47,7 @@ class AuthInfoMockOrg extends MockTestOrgData {
       privateKey: this.privateKey,
       username: this.username,
       orgId: this.orgId,
+      namespacePrefix: this.namespacePrefix,
     };
   }
 }
@@ -1114,6 +1115,7 @@ describe('AuthInfo', () => {
         accessToken: '',
       });
       stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
 
       await AuthInfo.create({
         username: testOrg.username,
@@ -1407,6 +1409,61 @@ describe('AuthInfo', () => {
     it('should return true', async () => {
       await $$.stubAuths(testOrg);
       expect(await AuthInfo.hasAuthentications()).to.be.true;
+    });
+  });
+  describe('getNamespacePrefix', () => {
+    it('should get the namespace associated to the org', async () => {
+      $$.setConfigStubContents('AuthInfoConfig', { contents: await testOrg.getConfig() });
+
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .withArgs(
+          match({
+            url: `${testOrg.instanceUrl}//services/data/v51.0/query?q=Select%20Namespaceprefix%20FROM%20Organization`,
+          })
+        )
+        .resolves({
+          statusCode: 200,
+          body: JSON.stringify({
+            records: [
+              {
+                NamespacePrefix: `acme_${testOrg.testId}`,
+              },
+            ],
+          }),
+        });
+      const authInfo = await AuthInfo.create({ username: testOrg.username });
+      // @ts-expect-error because private method
+      expect(await authInfo.getNamespacePrefix(testOrg.instanceUrl, testOrg.accessToken)).to.equal(
+        `acme_${testOrg.testId}`
+      );
+
+      expect(authInfo.getFields().namespacePrefix).to.equal(`acme_${testOrg.testId}`);
+    });
+    it('should not set namespace prop if org doesn not have one', async () => {
+      const orgConfig = await testOrg.getConfig();
+      orgConfig.namespacePrefix = undefined;
+      $$.setConfigStubContents('AuthInfoConfig', { contents: orgConfig });
+
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest')
+        .withArgs(
+          match({
+            url: `${testOrg.instanceUrl}//services/data/v51.0/query?q=Select%20Namespaceprefix%20FROM%20Organization`,
+          })
+        )
+        .resolves({
+          statusCode: 200,
+          body: JSON.stringify({
+            records: [
+              {
+                NamespacePrefix: null,
+              },
+            ],
+          }),
+        });
+      const authInfo = await AuthInfo.create({ username: testOrg.username });
+      // @ts-expect-error because private method
+      expect(await authInfo.getNamespacePrefix(testOrg.instanceUrl, testOrg.accessToken)).to.be.undefined;
+      expect(authInfo.getFields().namespacePrefix).to.be.undefined;
     });
   });
 

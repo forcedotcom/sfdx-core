@@ -963,6 +963,7 @@ export class MockTestOrgData {
   public isScratchOrg?: boolean;
   public isExpired?: boolean | 'unknown';
   public password?: string;
+  public namespacePrefix?: string;
 
   public constructor(id: string = uniqid(), options?: { username: string }) {
     this.testId = id;
@@ -977,6 +978,7 @@ export class MockTestOrgData {
     this.accessToken = `${this.testId}/accessToken`;
     this.refreshToken = `${this.testId}/refreshToken`;
     this.redirectUri = 'http://localhost:1717/OauthRedirect';
+    this.namespacePrefix = `acme_${this.testId}`;
   }
 
   /**
