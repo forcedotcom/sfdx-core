@@ -1,5 +1,7 @@
 [![NPM](https://img.shields.io/npm/v/@salesforce/core.svg)](https://www.npmjs.com/package/@salesforce/core)
 
+- Foo
+
 - [Description](#description)
 - [Usage](#usage)
   - [Contributing](#contributing)
