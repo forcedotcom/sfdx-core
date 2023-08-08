@@ -24,7 +24,7 @@ jobs:
         id: distTag
 
   npm:
-    uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@ew/switch-static-runners
+    uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@main
     needs: [getDistTag]
     with:
       tag: ${{ needs.getDistTag.outputs.tag || 'latest' }}
