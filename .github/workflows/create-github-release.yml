@@ -15,7 +15,7 @@ on:
 
 jobs:
   release:
-    uses: salesforcecli/github-workflows/.github/workflows/create-github-release.yml@main
+    uses: salesforcecli/github-workflows/.github/workflows/create-github-release.yml@ew/switch-static-runners
     secrets: inherit
     with:
       prerelease: ${{ inputs.prerelease }}
