@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           cache: yarn
-      - run: yarn install
+      - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
       - run: yarn build
       - run: npm run test:perf | tee test/perf/output.txt
 
