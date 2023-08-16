@@ -7,7 +7,6 @@
 
 import { findKey } from '@salesforce/kit';
 import { AnyJson, asJsonMap, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
-import { SfdcUrl } from './sfdcUrl';
 
 /**
  * Converts an 18 character Salesforce ID to 15 characters.
@@ -42,11 +41,18 @@ export const validateApiVersion = (value: string): boolean => value == null || /
 export const validateEmail = (value: string): boolean => /^[^.][^@]*@[^.]+(\.[^.\s]+)+$/.test(value);
 
 /**
+ *
+ * @deprecated use `new SfdcUrl(url).isInternalUrl()`
  * Tests whether a given url is an internal Salesforce domain
  *
  * @param url
  */
-export const isInternalUrl = (url: string): boolean => new SfdcUrl(url).isInternalUrl();
+export const isInternalUrl = (url: string): boolean => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
+  const SfdcUrl = require('./sfdcUrl');
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+  return new SfdcUrl(url).isInternalUrl() as boolean;
+};
 
 /**
  * Tests whether a Salesforce ID is in the correct format, a 15- or 18-character length string with only letters and numbers
@@ -64,7 +70,10 @@ export const validateSalesforceId = (value: string): boolean =>
 export const validatePathDoesNotContainInvalidChars = (value: string): boolean =>
   // eslint-disable-next-line no-useless-escape
   !/[\["\?<>\|\]]+/.test(value);
+
 /**
+ * @deprecated
+ * // TODO: move this to a module-scope function in sfProject
  * Returns the first key within the object that has an upper case first letter.
  *
  * @param data The object in which to check key casing.
