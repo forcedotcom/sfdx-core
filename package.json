@@ -74,7 +74,7 @@
     "chai": "^4.3.7",
     "chai-string": "^1.5.0",
     "eslint": "^8.47.0",
-    "eslint-config-prettier": "^8.9.0",
+    "eslint-config-prettier": "^8.10.0",
     "eslint-config-salesforce": "^2.0.2",
     "eslint-config-salesforce-license": "^0.2.0",
     "eslint-config-salesforce-typescript": "^1.1.2",
