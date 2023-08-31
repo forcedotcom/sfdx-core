@@ -1,3 +1,12 @@
+## [5.2.4](https://github.com/forcedotcom/sfdx-core/compare/5.2.3...5.2.4) (2023-08-31)
+
+
+### Bug Fixes
+
+* **perf:** perf tweaks, semver is a dep ([#918](https://github.com/forcedotcom/sfdx-core/issues/918)) ([5636083](https://github.com/forcedotcom/sfdx-core/commit/563608375fa23d1831673503bee501e487a8b1e4))
+
+
+
 ## [5.2.3](https://github.com/forcedotcom/sfdx-core/compare/5.2.2...5.2.3) (2023-08-27)
 
 
