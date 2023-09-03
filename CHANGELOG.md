@@ -1,3 +1,12 @@
+## [5.2.6](https://github.com/forcedotcom/sfdx-core/compare/5.2.5...5.2.6) (2023-09-03)
+
+
+### Bug Fixes
+
+* **deps:** bump jsonwebtoken from 9.0.1 to 9.0.2 ([8323f3c](https://github.com/forcedotcom/sfdx-core/commit/8323f3cd253527210050b87b9936fb210ea74974))
+
+
+
 ## [5.2.5](https://github.com/forcedotcom/sfdx-core/compare/5.2.4...5.2.5) (2023-09-01)
 
 
