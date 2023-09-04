@@ -56,7 +56,7 @@
     "pino-pretty": "^10.2.0",
     "proper-lockfile": "^4.1.2",
     "semver": "^7.5.4",
-    "ts-retry-promise": "^0.7.0"
+    "ts-retry-promise": "^0.7.1"
   },
   "devDependencies": {
     "@salesforce/dev-config": "^4.0.1",
