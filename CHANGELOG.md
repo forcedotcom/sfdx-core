@@ -1,3 +1,12 @@
+## [5.2.7](https://github.com/forcedotcom/sfdx-core/compare/5.2.6...5.2.7) (2023-09-04)
+
+
+### Bug Fixes
+
+* **deps:** bump ts-retry-promise from 0.7.0 to 0.7.1 ([d71420a](https://github.com/forcedotcom/sfdx-core/commit/d71420a7360e81c8c561e07becbb085ddaf5f6ce))
+
+
+
 ## [5.2.6](https://github.com/forcedotcom/sfdx-core/compare/5.2.5...5.2.6) (2023-09-03)
 
 
