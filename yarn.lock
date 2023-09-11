@@ -701,10 +701,10 @@
   resolved "https://registry.yarnpkg.com/@types/benchmark/-/benchmark-2.1.2.tgz#b7838408c93dc08ceb4e6e13147dbfbe6a151f82"
   integrity sha512-EDKtLYNMKrig22jEvhXq8TBFyFgVNSPmDF2b9UzJ7+eylPqdZVo17PCUMkn1jP6/1A/0u78VqYC6VrX6b8pDWA==
 
-"@types/chai-string@^1.4.2":
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/@types/chai-string/-/chai-string-1.4.2.tgz#0f116504a666b6c6a3c42becf86634316c9a19ac"
-  integrity sha512-ld/1hV5qcPRGuwlPdvRfvM3Ka/iofOk2pH4VkasK4b1JJP1LjNmWWn0LsISf6RRzyhVOvs93rb9tM09e+UuF8Q==
+"@types/chai-string@^1.4.3":
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/@types/chai-string/-/chai-string-1.4.3.tgz#06e02d74deed77c2bfccccae44ece6e57a8ecedd"
+  integrity sha512-bLp5xMQ7Ml0fWa05IPpLjIznTkNbuBE3GtRTzKrp0d10IavlBFcu9vXP2liWaXta79unO693q3kuRxD7g2YYGw==
   dependencies:
     "@types/chai" "*"
 
