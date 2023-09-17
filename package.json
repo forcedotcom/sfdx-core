@@ -65,7 +65,7 @@
     "@salesforce/ts-sinon": "^1.4.15",
     "@types/benchmark": "^2.1.2",
     "@types/chai-string": "^1.4.3",
-    "@types/jsonwebtoken": "9.0.2",
+    "@types/jsonwebtoken": "9.0.3",
     "@types/lodash": "^4.14.198",
     "@types/proper-lockfile": "^4.1.2",
     "@types/shelljs": "0.8.12",
