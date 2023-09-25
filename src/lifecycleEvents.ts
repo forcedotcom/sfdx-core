@@ -47,7 +47,10 @@ export class Lifecycle {
   public static readonly warningEventName = 'warning';
   private logger?: Logger;
 
-  private constructor(private readonly listeners: Dictionary<callback[]> = {}) {}
+  private constructor(
+    private readonly listeners: Dictionary<callback[]> = {},
+    private readonly uniqueListeners: Map<string, Map<string, callback>> = new Map<string, Map<string, callback>>()
+  ) {}
 
   /**
    * return the package.json version of the sfdx-core library.
@@ -87,7 +90,7 @@ export class Lifecycle {
       const oldInstance = global.salesforceCoreLifecycle;
       // use the newer version and transfer any listeners from the old version
       // object spread keeps them from being references
-      global.salesforceCoreLifecycle = new Lifecycle({ ...oldInstance.listeners });
+      global.salesforceCoreLifecycle = new Lifecycle({ ...oldInstance.listeners }, oldInstance.uniqueListeners);
       // clean up any listeners on the old version
       Object.keys(oldInstance.listeners).map((eventName) => {
         oldInstance.removeAllListeners(eventName);
@@ -111,6 +114,7 @@ export class Lifecycle {
    */
   public removeAllListeners(eventName: string): void {
     this.listeners[eventName] = [];
+    this.uniqueListeners.delete(eventName);
   }
 
   /**
@@ -119,7 +123,9 @@ export class Lifecycle {
    * @param eventName The name of the event to get listeners of
    */
   public getListeners(eventName: string): callback[] {
-    const listeners = this.listeners[eventName];
+    const listeners = this.listeners[eventName]?.concat(
+      Array.from((this.uniqueListeners.get(eventName) ?? []).values()) ?? []
+    );
     if (listeners) {
       return listeners;
     } else {
@@ -150,8 +156,9 @@ export class Lifecycle {
    *
    * @param eventName The name of the event that is being listened for
    * @param cb The callback function to run when the event is emitted
+   * @param uniqueListenerIdentifier A unique identifier for the listener. If a listener with the same identifier is already registered, a new one will not be added
    */
-  public on<T = AnyJson>(eventName: string, cb: (data: T) => Promise<void>): void {
+  public on<T = AnyJson>(eventName: string, cb: (data: T) => Promise<void>, uniqueListenerIdentifier?: string): void {
     const listeners = this.getListeners(eventName);
     if (listeners.length !== 0) {
       if (!this.logger) {
@@ -165,8 +172,19 @@ export class Lifecycle {
         } listeners will fire.`
       );
     }
-    listeners.push(cb);
-    this.listeners[eventName] = listeners;
+
+    if (uniqueListenerIdentifier) {
+      if (!this.uniqueListeners.has(eventName)) {
+        // nobody is listening to the event yet
+        this.uniqueListeners.set(eventName, new Map<string, callback>([[uniqueListenerIdentifier, cb]]));
+      } else if (!this.uniqueListeners.get(eventName)?.has(uniqueListenerIdentifier)) {
+        // the unique listener identifier is not already registered
+        this.uniqueListeners.get(eventName)?.set(uniqueListenerIdentifier, cb);
+      }
+    } else {
+      listeners.push(cb);
+      this.listeners[eventName] = listeners;
+    }
   }
 
   /**
