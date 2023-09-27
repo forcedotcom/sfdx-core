@@ -1,3 +1,9 @@
+# [5.3.0](https://github.com/forcedotcom/sfdx-core/compare/5.2.10...5.3.0) (2023-09-27)
+
+### Features
+
+- unique listener names for lifecycle events ([#941](https://github.com/forcedotcom/sfdx-core/issues/941)) ([c5d60ae](https://github.com/forcedotcom/sfdx-core/commit/c5d60ae62e4bbcacdd3a496d17fbd3ce0cfbafba))
+
 ## [5.2.10](https://github.com/forcedotcom/sfdx-core/compare/5.2.9...5.2.10) (2023-09-17)
 
 ### Bug Fixes
