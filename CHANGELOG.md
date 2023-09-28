@@ -1,3 +1,9 @@
+## [5.3.1](https://github.com/forcedotcom/sfdx-core/compare/5.3.0...5.3.1) (2023-09-28)
+
+### Bug Fixes
+
+- **deps:** bump get-func-name from 2.0.0 to 2.0.2 ([19aeb98](https://github.com/forcedotcom/sfdx-core/commit/19aeb98c16297da433f3227e413fe92833929108))
+
 # [5.3.0](https://github.com/forcedotcom/sfdx-core/compare/5.2.10...5.3.0) (2023-09-27)
 
 ### Features
