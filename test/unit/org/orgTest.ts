@@ -8,17 +8,19 @@ import { deepStrictEqual, fail } from 'assert';
 import * as fs from 'fs';
 import { constants as fsConstants } from 'fs';
 import { join as pathJoin } from 'path';
+import { format } from 'node:util';
 import { Duration, set } from '@salesforce/kit';
-import { stubMethod } from '@salesforce/ts-sinon';
+import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, ensureJsonArray, ensureJsonMap, ensureString, JsonMap, Optional } from '@salesforce/ts-types';
 import { assert, expect, config as chaiConfig } from 'chai';
 import { OAuth2 } from 'jsforce';
 import { Transport } from 'jsforce/lib/transport';
-import { SinonStub } from 'sinon';
+import { SinonSpy, SinonStub } from 'sinon';
 import {
   AuthInfo,
   Connection,
   Org,
+  SandboxEvents,
   SandboxProcessObject,
   SandboxUserAuthResponse,
   SingleRecordQueryErrors,
@@ -34,6 +36,7 @@ import { StateAggregator } from '../../../src/stateAggregator';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { Messages } from '../../../src/messages';
 import { SfError } from '../../../src/sfError';
+import { Lifecycle } from '../../../src/lifecycleEvents';
 
 /* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -437,167 +440,6 @@ describe('Org Tests', () => {
           expect(prodDelete.firstCall.args).to.deep.equal(['SandboxInfo', orgTestData.orgId]);
           expect(removeSpy.calledOnce).to.be.true;
         });
-      });
-    });
-
-    describe('createSandbox', () => {
-      let prod: Org;
-      let createStub: SinonStub;
-      let querySandboxProcessStub: SinonStub;
-      let pollStatusAndAuthStub: SinonStub;
-
-      beforeEach(async () => {
-        const prodTestData = new MockTestOrgData();
-        prod = await createOrgViaAuthInfo(prodTestData.username);
-        createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
-          id: '0GQ4p000000U6nFGAS',
-          success: true,
-        });
-        querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves();
-        pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves();
-      });
-
-      it('will create the SandboxInfo sObject correctly', async () => {
-        await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
-        expect(createStub.calledOnce).to.be.true;
-        expect(querySandboxProcessStub.calledOnce).to.be.true;
-        expect(pollStatusAndAuthStub.calledOnce).to.be.true;
-      });
-
-      it('will throw an error if it fails to create SandboxInfo', async () => {
-        createStub.restore();
-        createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
-          error: 'duplicate value found: SandboxName duplicates value on record with id: 0GQ4p000000U6rv',
-          success: false,
-        });
-        try {
-          await shouldThrow(prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) }));
-        } catch (e) {
-          expect(createStub.calledOnce).to.be.true;
-          expect((e as Error).message).to.include('The sandbox org creation failed with a result of');
-          expect((e as Error).message).to.include(
-            'duplicate value found: SandboxName duplicates value on record with id: 0GQ4p000000U6rv'
-          );
-          expect((e as SfError).exitCode).to.equal(1);
-        }
-      });
-
-      it('will auth sandbox user correctly', async () => {
-        const sandboxResponse = {
-          SandboxName: 'test',
-          EndDate: '2021-19-06T20:25:46.000+0000',
-        } as SandboxProcessObject;
-        const requestStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'request').resolves();
-        const instanceUrl = 'http://instance.123.salesforce.com.services/data/v50.0/tooling/';
-        stubMethod($$.SANDBOX, prod.getConnection().tooling, '_baseUrl').returns(instanceUrl);
-
-        // @ts-expect-error because private method
-        await prod.sandboxSignupComplete(sandboxResponse);
-        expect(requestStub.firstCall.args).to.deep.include({
-          body: JSON.stringify({
-            clientId: prod.getConnection().getAuthInfoFields().clientId,
-            sandboxName: sandboxResponse.SandboxName,
-            callbackUrl: 'http://localhost:1717/OauthRedirect',
-          }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          method: 'POST',
-          url: `${instanceUrl}/sandboxAuth`,
-        });
-      });
-
-      it('will fail to auth sandbox user correctly - but will swallow the error', async () => {
-        // @ts-expect-error because private member
-        const logStub = stubMethod($$.SANDBOX, prod.logger, 'debug');
-        const sandboxResponse = {
-          SandboxName: 'test',
-          EndDate: '2021-19-06T20:25:46.000+0000',
-        } as SandboxProcessObject;
-        // @ts-expect-error - type not assignable
-        stubMethod<SandboxUserAuthResponse>($$.SANDBOX, prod.getConnection().tooling, 'request').throws({
-          name: 'INVALID_STATUS',
-        });
-
-        // @ts-expect-error because private method
-        await prod.sandboxSignupComplete(sandboxResponse);
-        expect(logStub.callCount).to.equal(3);
-        // error swallowed
-        expect(logStub.thirdCall.args[0]).to.equal('Error while authenticating the user');
-      });
-    });
-
-    describe('cloneSandbox', () => {
-      let prod: Org;
-      let createStub: sinon.SinonStub;
-      let querySandboxProcessStub: sinon.SinonStub;
-      let pollStatusAndAuthStub: sinon.SinonStub;
-      let devHubQueryStub: sinon.SinonStub;
-
-      const orgId = '0GQ4p000000U6nFGAS';
-
-      beforeEach(async () => {
-        const prodTestData = new MockTestOrgData();
-        prod = await createOrgViaAuthInfo(prodTestData.username);
-        createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
-          id: orgId,
-          success: true,
-        });
-        querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves({
-          Id: '00D56000000CDsAKJS',
-        });
-        pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves();
-        devHubQueryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').resolves({
-          records: [
-            {
-              Id: orgId,
-            },
-          ],
-        });
-
-        // SourceSandbox
-        await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
-
-        // reset the history of these stubs so we only look at what happens with `cloneSandbox()`
-        createStub.resetHistory();
-        pollStatusAndAuthStub.resetHistory();
-        querySandboxProcessStub.resetHistory();
-        devHubQueryStub.resetHistory();
-      });
-
-      it('will clone the sandbox given a SandBoxName', async () => {
-        await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
-        expect(createStub.calledOnce).to.be.true;
-        expect(querySandboxProcessStub.calledTwice).to.be.true;
-        expect(pollStatusAndAuthStub.calledOnce).to.be.true;
-      });
-
-      it('fails to get sanboxInfo from tooling.query', async () => {
-        querySandboxProcessStub.restore();
-        devHubQueryStub.restore();
-        devHubQueryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').throws();
-        try {
-          await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
-          fail('the above should throw an error');
-        } catch (e) {
-          expect(devHubQueryStub.calledOnce).to.be.true;
-          expect(createStub.called).to.be.false;
-          expect(pollStatusAndAuthStub.called).to.be.false;
-        }
-      });
-
-      it('when creating sandbox tooling create rejects', async () => {
-        createStub.restore();
-        createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').rejects();
-        try {
-          await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
-          fail('the above should throw an error');
-        } catch (e) {
-          expect(createStub.calledOnce).to.be.true;
-          expect(querySandboxProcessStub.calledOnce).to.be.true;
-          expect(pollStatusAndAuthStub.called).to.be.false;
-          expect(devHubQueryStub.called).to.be.false;
-        }
       });
     });
 
@@ -1043,72 +885,380 @@ describe('Org Tests', () => {
     });
   });
 
-  describe('sandboxStatus', () => {
-    let prod: Org;
-    let queryStub: SinonStub;
-    let pollStatusAndAuthStub: SinonStub;
-    const sandboxNameIn = 'test-sandbox';
-    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxName='${sandboxNameIn}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;
-
+  describe('Sandboxes', () => {
     const statusResult = {
       records: [
         {
-          Id: '00D1u000001QQZz',
-          Status: 'Active',
+          Id: '0GR1Q000000LVf8WAG',
           SandboxName: 'test-sandbox',
-          SandboxInfoId: '00D1u000001QQZz',
-          LicenseType: 'Developer',
-          CreatedDate: '2022-01-01',
+          Status: 'Pending',
+          LicenseType: 'DEVELOPER',
+          SandboxInfoId: '0GQB0000000TVobOAG',
+          CreatedDate: '2023-09-27T20:50:26.000+0000',
+          SandboxOrg: '00D1u000001QQZz',
         },
       ],
     };
+
+    let prodTestData: MockTestOrgData;
+    let prod: Org;
+
     beforeEach(async () => {
-      const prodTestData = new MockTestOrgData();
+      prodTestData = new MockTestOrgData();
       prod = await createOrgViaAuthInfo(prodTestData.username);
-      queryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').resolves(statusResult);
-      pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves(statusResult.records[0]);
     });
 
-    it('should return sandbox status', async () => {
-      const result = await prod.sandboxStatus(sandboxNameIn, { wait: Duration.minutes(10) });
-      expect(queryStub.calledOnce).to.be.true;
-      expect(queryStub.firstCall.firstArg).to.be.equal(queryStr);
-      expect(pollStatusAndAuthStub.calledOnce).to.be.true;
-      expect(result).to.be.equal(statusResult.records[0]);
-    });
+    describe('createSandbox', () => {
+      let createStub: SinonStub;
+      let querySandboxProcessStub: SinonStub;
+      let pollStatusAndAuthStub: SinonStub;
 
-    it('should fail when query returns empty records for the sandbox', async () => {
-      queryStub.restore();
-      queryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').resolves({
-        records: [],
+      beforeEach(async () => {
+        createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
+          id: '0GQ4p000000U6nFGAS',
+          success: true,
+        });
+        querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves();
+        pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves();
       });
-      try {
-        await shouldThrow(prod.sandboxStatus(sandboxNameIn, { wait: Duration.minutes(10) }));
-      } catch (e) {
-        expect((e as Error).message).to.be.equal(
-          messages.getMessage('SandboxProcessNotFoundBySandboxName', [sandboxNameIn])
-        );
+
+      it('will create the SandboxInfo sObject correctly', async () => {
+        await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
+        expect(createStub.calledOnce).to.be.true;
+        expect(querySandboxProcessStub.calledOnce).to.be.true;
+        expect(pollStatusAndAuthStub.calledOnce).to.be.true;
+      });
+
+      it('will throw an error if it fails to create SandboxInfo', async () => {
+        createStub.restore();
+        createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
+          error: 'duplicate value found: SandboxName duplicates value on record with id: 0GQ4p000000U6rv',
+          success: false,
+        });
+        try {
+          await shouldThrow(prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) }));
+        } catch (e) {
+          expect(createStub.calledOnce).to.be.true;
+          expect((e as Error).message).to.include('The sandbox org creation failed with a result of');
+          expect((e as Error).message).to.include(
+            'duplicate value found: SandboxName duplicates value on record with id: 0GQ4p000000U6rv'
+          );
+          expect((e as SfError).exitCode).to.equal(1);
+        }
+      });
+
+      it('will auth sandbox user correctly', async () => {
+        const sandboxResponse = {
+          SandboxName: 'test',
+          EndDate: '2021-19-06T20:25:46.000+0000',
+        } as SandboxProcessObject;
+        const requestStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'request').resolves();
+        const instanceUrl = 'http://instance.123.salesforce.com.services/data/v50.0/tooling/';
+        stubMethod($$.SANDBOX, prod.getConnection().tooling, '_baseUrl').returns(instanceUrl);
+
+        // @ts-expect-error because private method
+        await prod.sandboxSignupComplete(sandboxResponse);
+        expect(requestStub.firstCall.args).to.deep.include({
+          body: JSON.stringify({
+            clientId: prod.getConnection().getAuthInfoFields().clientId,
+            sandboxName: sandboxResponse.SandboxName,
+            callbackUrl: 'http://localhost:1717/OauthRedirect',
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          method: 'POST',
+          url: `${instanceUrl}/sandboxAuth`,
+        });
+      });
+
+      it('will fail to auth sandbox user correctly - but will swallow the error', async () => {
+        // @ts-expect-error because private member
+        const logStub = stubMethod($$.SANDBOX, prod.logger, 'debug');
+        const sandboxResponse = {
+          SandboxName: 'test',
+          EndDate: '2021-19-06T20:25:46.000+0000',
+        } as SandboxProcessObject;
+        // @ts-expect-error - type not assignable
+        stubMethod<SandboxUserAuthResponse>($$.SANDBOX, prod.getConnection().tooling, 'request').throws({
+          name: 'INVALID_STATUS',
+        });
+
+        // @ts-expect-error because private method
+        await prod.sandboxSignupComplete(sandboxResponse);
+        expect(logStub.callCount).to.equal(3);
+        // error swallowed
+        expect(logStub.thirdCall.args[0]).to.equal('Error while authenticating the user');
+      });
+    });
+
+    describe('cloneSandbox', () => {
+      let createStub: sinon.SinonStub;
+      let querySandboxProcessStub: sinon.SinonStub;
+      let pollStatusAndAuthStub: sinon.SinonStub;
+      let devHubQueryStub: sinon.SinonStub;
+
+      const orgId = '0GQ4p000000U6nFGAS';
+
+      beforeEach(async () => {
+        createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
+          id: orgId,
+          success: true,
+        });
+        querySandboxProcessStub = stubMethod($$.SANDBOX, prod, 'querySandboxProcess').resolves({
+          Id: '00D56000000CDsAKJS',
+        });
+        pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves();
+        devHubQueryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').resolves({
+          records: [
+            {
+              Id: orgId,
+            },
+          ],
+        });
+
+        // SourceSandbox
+        await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
+
+        // reset the history of these stubs so we only look at what happens with `cloneSandbox()`
+        createStub.resetHistory();
+        pollStatusAndAuthStub.resetHistory();
+        querySandboxProcessStub.resetHistory();
+        devHubQueryStub.resetHistory();
+      });
+
+      it('will clone the sandbox given a SandBoxName', async () => {
+        await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
+        expect(createStub.calledOnce).to.be.true;
+        expect(querySandboxProcessStub.calledTwice).to.be.true;
+        expect(pollStatusAndAuthStub.calledOnce).to.be.true;
+      });
+
+      it('fails to get sanboxInfo from tooling.query', async () => {
+        querySandboxProcessStub.restore();
+        devHubQueryStub.restore();
+        devHubQueryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').throws();
+        try {
+          await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
+          fail('the above should throw an error');
+        } catch (e) {
+          expect(devHubQueryStub.calledOnce).to.be.true;
+          expect(createStub.called).to.be.false;
+          expect(pollStatusAndAuthStub.called).to.be.false;
+        }
+      });
+
+      it('when creating sandbox tooling create rejects', async () => {
+        createStub.restore();
+        createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').rejects();
+        try {
+          await prod.cloneSandbox({ SandboxName: 'testSandbox' }, 'testSandbox', { wait: Duration.seconds(30) });
+          fail('the above should throw an error');
+        } catch (e) {
+          expect(createStub.calledOnce).to.be.true;
+          expect(querySandboxProcessStub.calledOnce).to.be.true;
+          expect(pollStatusAndAuthStub.called).to.be.false;
+          expect(devHubQueryStub.called).to.be.false;
+        }
+      });
+    });
+
+    describe('resumeSandbox', () => {
+      const expectedSoql =
+        'SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE %s ORDER BY CreatedDate DESC';
+      let lifecycleSpy: SinonSpy;
+      let queryStub: SinonStub;
+      let pollStatusAndAuthStub: SinonStub;
+
+      beforeEach(async () => {
+        queryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query');
+        pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves(statusResult.records[0]);
+        lifecycleSpy = spyMethod($$.SANDBOX, Lifecycle.prototype, 'emit');
+      });
+
+      it('should resume a sandbox process by SandboxProcess ID', async () => {
+        queryStub.resolves(statusResult);
+        const sbxProcessId = statusResult.records[0].Id;
+
+        try {
+          await shouldThrow(prod.resumeSandbox({ SandboxProcessObjId: sbxProcessId }));
+        } catch (err) {
+          // Expect a "SandboxCreateNotCompleteError" since the status is Pending
+          const error = err as SfError;
+          expect(error.name).to.equal('SandboxCreateNotCompleteError');
+          expect(queryStub.firstCall.firstArg).to.equal(format(expectedSoql, `Id='${sbxProcessId}'`));
+          expect(pollStatusAndAuthStub.called).to.be.false;
+          expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_RESUME, statusResult.records[0])).to.be.true;
+          expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_ASYNC_RESULT, statusResult.records[0])).to.be.true;
+        }
+      });
+
+      it('should resume a sandbox process by SandboxName', async () => {
+        queryStub.resolves(statusResult);
+        const sbxName = statusResult.records[0].SandboxName;
+
+        try {
+          await shouldThrow(prod.resumeSandbox({ SandboxName: sbxName }));
+        } catch (err) {
+          // Expect a "SandboxCreateNotCompleteError" since the status is Pending
+          const error = err as SfError;
+          expect(error.name).to.equal('SandboxCreateNotCompleteError');
+          expect(queryStub.firstCall.firstArg).to.equal(format(expectedSoql, `SandboxName='${sbxName}'`));
+          expect(pollStatusAndAuthStub.called).to.be.false;
+          expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_RESUME, statusResult.records[0])).to.be.true;
+          expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_ASYNC_RESULT, statusResult.records[0])).to.be.true;
+        }
+      });
+
+      it('should resume a sandbox process by SandboxName that returns multiple SandboxProcesses', async () => {
+        const completedSbxProcess = Object.assign({}, statusResult.records[0], {
+          CreatedDate: '2023-09-25T20:50:26.000+0000',
+          Status: 'Completed',
+        });
+        const pendingSbxProcess = Object.assign({}, statusResult.records[0]);
+        queryStub.resolves({ records: [pendingSbxProcess, completedSbxProcess] });
+        const sbxName = statusResult.records[0].SandboxName;
+
+        try {
+          await shouldThrow(prod.resumeSandbox({ SandboxName: sbxName }));
+        } catch (err) {
+          // Expect a "SandboxCreateNotCompleteError" since the status is Pending
+          const error = err as SfError;
+          expect(error.name).to.equal('SandboxCreateNotCompleteError');
+          expect(queryStub.firstCall.firstArg).to.equal(format(expectedSoql, `SandboxName='${sbxName}'`));
+          expect(pollStatusAndAuthStub.called).to.be.false;
+          expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_RESUME, pendingSbxProcess)).to.be.true;
+          expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_ASYNC_RESULT, pendingSbxProcess)).to.be.true;
+
+          // Ensure this event is fired with the correct payload, since it communicates all the
+          // SandboxProcesses that can be resumed to any listeners, such as the `org resume sandbox` command.
+          expect(
+            lifecycleSpy.calledWith(SandboxEvents.EVENT_MULTIPLE_SBX_PROCESSES, [
+              pendingSbxProcess,
+              completedSbxProcess,
+            ])
+          ).to.be.true;
+        }
+      });
+
+      it('should resume a sandbox process and poll', async () => {
+        queryStub.resolves(statusResult);
+        const sbxProcessId = statusResult.records[0].Id;
+
+        const result = await prod.resumeSandbox({ SandboxProcessObjId: sbxProcessId }, { wait: Duration.minutes(1) });
+
+        expect(queryStub.firstCall.firstArg).to.equal(format(expectedSoql, `Id='${sbxProcessId}'`));
+        expect(pollStatusAndAuthStub.called).to.be.true;
+        expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_RESUME, statusResult.records[0])).to.be.true;
+        expect(result).to.deep.equal(statusResult.records[0]);
+      });
+    });
+
+    describe('sandboxStatus', () => {
+      let queryStub: SinonStub;
+      let pollStatusAndAuthStub: SinonStub;
+      const sandboxNameIn = 'test-sandbox';
+      const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxName='${sandboxNameIn}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;
+
+      beforeEach(async () => {
+        queryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query');
+        pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves(statusResult.records[0]);
+      });
+
+      it('should return sandbox status', async () => {
+        queryStub.resolves(statusResult);
+        const result = await prod.sandboxStatus(sandboxNameIn, { wait: Duration.minutes(10) });
         expect(queryStub.calledOnce).to.be.true;
         expect(queryStub.firstCall.firstArg).to.be.equal(queryStr);
-        expect(pollStatusAndAuthStub.called).to.be.false;
-      }
+        expect(pollStatusAndAuthStub.calledOnce).to.be.true;
+        expect(result).to.be.equal(statusResult.records[0]);
+      });
+
+      it('should fail when query returns empty records for the sandbox', async () => {
+        queryStub.resolves({ records: [] });
+        try {
+          await shouldThrow(prod.sandboxStatus(sandboxNameIn, { wait: Duration.minutes(10) }));
+        } catch (e) {
+          expect((e as Error).message).to.be.equal(
+            messages.getMessage('SandboxProcessNotFoundBySandboxName', [sandboxNameIn])
+          );
+          expect(queryStub.calledOnce).to.be.true;
+          expect(queryStub.firstCall.firstArg).to.be.equal(queryStr);
+          expect(pollStatusAndAuthStub.called).to.be.false;
+        }
+      });
+
+      it('should fail when query returns multiple records for the sandbox', async () => {
+        queryStub.resolves({ records: [...statusResult.records, ...statusResult.records] });
+        try {
+          await shouldThrow(prod.sandboxStatus(sandboxNameIn, { wait: Duration.minutes(10) }));
+        } catch (e) {
+          expect((e as Error).message).to.be.equal(
+            messages.getMessage('MultiSandboxProcessNotFoundBySandboxName', [sandboxNameIn])
+          );
+          expect(queryStub.calledOnce).to.be.true;
+          expect(queryStub.firstCall.firstArg).to.be.equal(queryStr);
+          expect(pollStatusAndAuthStub.called).to.be.false;
+        }
+      });
     });
 
-    it('should fail when query returns multiple records for the sandbox', async () => {
-      queryStub.restore();
-      queryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query').resolves({
-        records: [...statusResult.records, ...statusResult.records],
+    describe('querySandboxProcess', () => {
+      let queryStub: SinonStub;
+
+      beforeEach(async () => {
+        queryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query');
       });
-      try {
-        await shouldThrow(prod.sandboxStatus(sandboxNameIn, { wait: Duration.minutes(10) }));
-      } catch (e) {
-        expect((e as Error).message).to.be.equal(
-          messages.getMessage('MultiSandboxProcessNotFoundBySandboxName', [sandboxNameIn])
-        );
+
+      it('removes SandboxProcesses of Deleting or Deleted', async () => {
+        const deletingSbxProcess = Object.assign({}, statusResult.records[0], { Status: 'Deleting' });
+        const deletedSbxProcess = Object.assign({}, statusResult.records[0], { Status: 'Deleted' });
+        queryStub.resolves({ records: [deletingSbxProcess, statusResult.records[0], deletedSbxProcess] });
+        const where = 'name="foo"';
+        const expectedSoql = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE ${where} ORDER BY CreatedDate DESC`;
+
+        // @ts-ignore Testing a private method
+        const sbxProcess = await prod.querySandboxProcess(where);
+        expect(sbxProcess).to.deep.equal(statusResult.records[0]);
         expect(queryStub.calledOnce).to.be.true;
-        expect(queryStub.firstCall.firstArg).to.be.equal(queryStr);
-        expect(pollStatusAndAuthStub.called).to.be.false;
-      }
+        expect(queryStub.firstCall.firstArg).to.equal(expectedSoql);
+      });
+
+      it('should throw error when no records found', async () => {
+        queryStub.resolves({ records: [] });
+        try {
+          // @ts-ignore Testing a private method
+          await shouldThrow(prod.querySandboxProcess(''));
+        } catch (e) {
+          expect(queryStub.calledOnce).to.be.true;
+          const err = e as SfError;
+          expect(err.name).to.equal(SingleRecordQueryErrors.NoRecords);
+          expect(err.message).to.include('No record found for');
+        }
+      });
+
+      it('should throw error when multiple found and provide the SbxProcesses on err.data, sorting DESC', async () => {
+        const sbxProcess0925 = Object.assign({}, statusResult.records[0], {
+          CreatedDate: '2023-09-25T20:50:26.000+0000',
+        });
+        const sbxProcess0927 = Object.assign({}, statusResult.records[0]);
+        const sbxProcess0930 = Object.assign({}, statusResult.records[0], {
+          CreatedDate: '2023-09-30T20:50:26.000+0000',
+        });
+        const expectedSbxProcesses = [sbxProcess0930, sbxProcess0927, sbxProcess0925];
+        queryStub.resolves({ records: expectedSbxProcesses });
+
+        try {
+          // @ts-ignore Testing a private method
+          await shouldThrow(prod.querySandboxProcess(''));
+        } catch (e) {
+          expect(queryStub.calledOnce).to.be.true;
+          const err = e as SfError;
+          expect(err.name).to.equal(SingleRecordQueryErrors.MultipleRecords);
+          expect(err.message).to.equal('The query returned more than 1 record');
+          expect(err.data).to.deep.equal(expectedSbxProcesses);
+        }
+      });
     });
   });
 

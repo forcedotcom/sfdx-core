@@ -83,6 +83,7 @@ export enum SandboxEvents {
   EVENT_RESULT = 'result',
   EVENT_AUTH = 'auth',
   EVENT_RESUME = 'resume',
+  EVENT_MULTIPLE_SBX_PROCESSES = 'multipleMatchingSbxProcesses',
 }
 
 export interface SandboxUserAuthResponse {
@@ -246,11 +247,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
-   * resume a sandbox creation from a production org
-   * 'this' needs to be a production org with sandbox licenses available
+   * Resume a sandbox creation from a production org.
+   * `this` needs to be a production org with sandbox licenses available.
    *
    * @param resumeSandboxRequest SandboxRequest options to create the sandbox with
-   * @param options Wait: The amount of time to wait (default: 30 minutes) before timing out,
+   * @param options Wait: The amount of time to wait (default: 0 minutes) before timing out,
    * Interval: The time interval (default: 30 seconds) between polling
    */
   public async resumeSandbox(
@@ -264,10 +265,23 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     this.logger.debug(resumeSandboxRequest, 'ResumeSandbox called with ResumeSandboxRequest');
     let sandboxCreationProgress: SandboxProcessObject;
     // seed the sandboxCreationProgress via the resumeSandboxRequest options
-    if (resumeSandboxRequest.SandboxName) {
-      sandboxCreationProgress = await this.querySandboxProcessBySandboxName(resumeSandboxRequest.SandboxName);
-    } else if (resumeSandboxRequest.SandboxProcessObjId) {
+    if (resumeSandboxRequest.SandboxProcessObjId) {
       sandboxCreationProgress = await this.querySandboxProcessById(resumeSandboxRequest.SandboxProcessObjId);
+    } else if (resumeSandboxRequest.SandboxName) {
+      try {
+        // There can be multiple sandbox processes returned when querying by name. Use the most recent
+        // process and fire a warning event with all processes.
+        sandboxCreationProgress = await this.querySandboxProcessBySandboxName(resumeSandboxRequest.SandboxName);
+      } catch (err) {
+        if (err instanceof SfError && err.name === 'SingleRecordQuery_MultipleRecords' && err.data) {
+          const sbxProcesses = err.data as SandboxProcessObject[];
+          // 0 index will always be the most recently created process since the query sorts on created date desc.
+          sandboxCreationProgress = sbxProcesses[0];
+          await Lifecycle.getInstance().emit(SandboxEvents.EVENT_MULTIPLE_SBX_PROCESSES, sbxProcesses);
+        } else {
+          throw err;
+        }
+      }
     } else {
       throw messages.createError('sandboxNotFound', [
         resumeSandboxRequest.SandboxName ?? resumeSandboxRequest.SandboxProcessObjId,
@@ -1377,10 +1391,19 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * @private
    */
   private async querySandboxProcess(where: string): Promise<SandboxProcessObject> {
-    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE ${where} AND Status != 'D'`;
-    return this.connection.singleRecordQuery(queryStr, {
-      tooling: true,
-    });
+    const soql = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE ${where} ORDER BY CreatedDate DESC`;
+    const result = (await this.connection.tooling.query<SandboxProcessObject>(soql)).records.filter(
+      (item) => !item.Status.startsWith('Del')
+    );
+    if (result.length === 0) {
+      throw new SfError(`No record found for ${soql}`, SingleRecordQueryErrors.NoRecords);
+    }
+    if (result.length > 1) {
+      const err = new SfError('The query returned more than 1 record', SingleRecordQueryErrors.MultipleRecords);
+      err.data = result;
+      throw err;
+    }
+    return result[0];
   }
   /**
    * determines if the sandbox has successfully been created
