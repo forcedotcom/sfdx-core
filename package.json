@@ -68,7 +68,7 @@
     "@types/jsonwebtoken": "9.0.3",
     "@types/lodash": "^4.14.199",
     "@types/proper-lockfile": "^4.1.2",
-    "@types/shelljs": "0.8.12",
+    "@types/shelljs": "0.8.13",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "benchmark": "^2.1.4",
