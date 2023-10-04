@@ -1,3 +1,9 @@
+## [5.3.4](https://github.com/forcedotcom/sfdx-core/compare/5.3.3...5.3.4) (2023-10-04)
+
+### Bug Fixes
+
+- handle multiple sandbox processes in resumable state ([#944](https://github.com/forcedotcom/sfdx-core/issues/944)) ([a49409d](https://github.com/forcedotcom/sfdx-core/commit/a49409d05ce7edbea861eaa0de91c2c9d8a70ddd))
+
 ## [5.3.3](https://github.com/forcedotcom/sfdx-core/compare/5.3.2...5.3.3) (2023-10-01)
 
 ### Bug Fixes
