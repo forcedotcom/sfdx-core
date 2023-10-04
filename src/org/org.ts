@@ -1346,9 +1346,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     let waitingOnAuth = false;
     const pollingClient = await PollingClient.create({
       poll: async (): Promise<StatusResult> => {
-        const sandboxProcessObj = await this.querySandboxProcessBySandboxInfoId(
-          options.sandboxProcessObj.SandboxInfoId
-        );
+        const sandboxProcessObj = await this.querySandboxProcessById(options.sandboxProcessObj.Id);
         // check to see if sandbox can authenticate via sandboxAuth endpoint
         const sandboxInfo = await this.sandboxSignupComplete(sandboxProcessObj);
         if (sandboxInfo) {

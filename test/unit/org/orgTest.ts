@@ -1068,11 +1068,11 @@ describe('Org Tests', () => {
         'SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE %s ORDER BY CreatedDate DESC';
       let lifecycleSpy: SinonSpy;
       let queryStub: SinonStub;
-      let pollStatusAndAuthStub: SinonStub;
+      let pollStatusAndAuthSpy: SinonSpy;
 
       beforeEach(async () => {
         queryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query');
-        pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves(statusResult.records[0]);
+        pollStatusAndAuthSpy = spyMethod($$.SANDBOX, prod, 'pollStatusAndAuth');
         lifecycleSpy = spyMethod($$.SANDBOX, Lifecycle.prototype, 'emit');
       });
 
@@ -1087,7 +1087,7 @@ describe('Org Tests', () => {
           const error = err as SfError;
           expect(error.name).to.equal('SandboxCreateNotCompleteError');
           expect(queryStub.firstCall.firstArg).to.equal(format(expectedSoql, `Id='${sbxProcessId}'`));
-          expect(pollStatusAndAuthStub.called).to.be.false;
+          expect(pollStatusAndAuthSpy.called).to.be.false;
           expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_RESUME, statusResult.records[0])).to.be.true;
           expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_ASYNC_RESULT, statusResult.records[0])).to.be.true;
         }
@@ -1104,7 +1104,7 @@ describe('Org Tests', () => {
           const error = err as SfError;
           expect(error.name).to.equal('SandboxCreateNotCompleteError');
           expect(queryStub.firstCall.firstArg).to.equal(format(expectedSoql, `SandboxName='${sbxName}'`));
-          expect(pollStatusAndAuthStub.called).to.be.false;
+          expect(pollStatusAndAuthSpy.called).to.be.false;
           expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_RESUME, statusResult.records[0])).to.be.true;
           expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_ASYNC_RESULT, statusResult.records[0])).to.be.true;
         }
@@ -1126,7 +1126,7 @@ describe('Org Tests', () => {
           const error = err as SfError;
           expect(error.name).to.equal('SandboxCreateNotCompleteError');
           expect(queryStub.firstCall.firstArg).to.equal(format(expectedSoql, `SandboxName='${sbxName}'`));
-          expect(pollStatusAndAuthStub.called).to.be.false;
+          expect(pollStatusAndAuthSpy.called).to.be.false;
           expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_RESUME, pendingSbxProcess)).to.be.true;
           expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_ASYNC_RESULT, pendingSbxProcess)).to.be.true;
 
@@ -1141,16 +1141,57 @@ describe('Org Tests', () => {
         }
       });
 
-      it('should resume a sandbox process and poll', async () => {
+      it('should resume a sandbox process by ID and poll by ID', async () => {
         queryStub.resolves(statusResult);
+        const querySbxProcessIdSpy = spyMethod($$.SANDBOX, prod, 'querySandboxProcessById');
         const sbxProcessId = statusResult.records[0].Id;
 
-        const result = await prod.resumeSandbox({ SandboxProcessObjId: sbxProcessId }, { wait: Duration.minutes(1) });
+        try {
+          await shouldThrow(
+            prod.resumeSandbox(
+              { SandboxProcessObjId: sbxProcessId },
+              { wait: Duration.milliseconds(500), interval: Duration.milliseconds(100) }
+            )
+          );
+        } catch (err) {
+          // Expect a client timed out error
+          const error = err as SfError;
+          expect(error.name).to.equal('PollingClientTimeout');
+          expect(queryStub.firstCall.firstArg).to.equal(format(expectedSoql, `Id='${sbxProcessId}'`));
+          expect(queryStub.secondCall.firstArg).to.equal(format(expectedSoql, `Id='${sbxProcessId}'`));
+          expect(pollStatusAndAuthSpy.called).to.be.true;
+          expect(querySbxProcessIdSpy.called).to.be.true;
+          expect(querySbxProcessIdSpy.firstCall.firstArg).to.equal(statusResult.records[0].Id);
+          expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_RESUME, statusResult.records[0])).to.be.true;
+          expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_STATUS)).to.be.true;
+        }
+      });
 
-        expect(queryStub.firstCall.firstArg).to.equal(format(expectedSoql, `Id='${sbxProcessId}'`));
-        expect(pollStatusAndAuthStub.called).to.be.true;
-        expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_RESUME, statusResult.records[0])).to.be.true;
-        expect(result).to.deep.equal(statusResult.records[0]);
+      it('should resume a sandbox process by Name and poll by ID', async () => {
+        queryStub.resolves(statusResult);
+        const querySbxProcessIdSpy = spyMethod($$.SANDBOX, prod, 'querySandboxProcessById');
+        const sbxProcessId = statusResult.records[0].Id;
+        const sbxName = statusResult.records[0].SandboxName;
+
+        try {
+          await shouldThrow(
+            prod.resumeSandbox(
+              { SandboxName: sbxName },
+              { wait: Duration.milliseconds(500), interval: Duration.milliseconds(100) }
+            )
+          );
+        } catch (err) {
+          // Expect a client timed out error
+          const error = err as SfError;
+          expect(error.name).to.equal('PollingClientTimeout');
+          expect(queryStub.firstCall.firstArg).to.equal(format(expectedSoql, `SandboxName='${sbxName}'`));
+          expect(queryStub.secondCall.firstArg).to.equal(format(expectedSoql, `Id='${sbxProcessId}'`));
+          expect(pollStatusAndAuthSpy.called).to.be.true;
+          expect(querySbxProcessIdSpy.called).to.be.true;
+          expect(querySbxProcessIdSpy.firstCall.firstArg).to.equal(statusResult.records[0].Id);
+          expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_RESUME, statusResult.records[0])).to.be.true;
+          expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_STATUS)).to.be.true;
+        }
       });
     });
 
