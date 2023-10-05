@@ -4,6 +4,9 @@
   "compilerOptions": {
     "noEmit": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "moduleResolution": "Node16",
+    "module": "Node16",
+    "esModuleInterop": true
   }
 }
