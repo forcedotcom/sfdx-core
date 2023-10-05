@@ -9,9 +9,9 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import * as pathImport from 'path';
-import * as dns from 'dns';
-import * as jwt from 'jsonwebtoken';
+import path from 'path';
+import dns from 'dns';
+import jwt from 'jsonwebtoken';
 import { cloneJson, env, includes } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, getJsonMap, JsonMap, toJsonMap } from '@salesforce/ts-types';
@@ -1107,7 +1107,7 @@ describe('AuthInfo', () => {
     });
 
     it('should path.resolve jwtkeyfilepath', async () => {
-      const resolveSpy = $$.SANDBOX.spy(pathImport, 'resolve');
+      const resolveSpy = $$.SANDBOX.spy(path, 'resolve');
 
       authInfoStubs.authJwt.restore();
       stubMethod($$.SANDBOX, AuthInfo.prototype, 'authJwt').resolves({

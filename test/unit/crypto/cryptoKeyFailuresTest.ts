@@ -6,9 +6,9 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import * as childProcess from 'child_process';
-import * as _crypto from 'crypto';
-import * as os from 'os';
+import childProcess from 'child_process';
+import crypto from 'crypto';
+import os from 'os';
 import { AnyJson } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import { Crypto } from '../../../src/crypto/crypto';
@@ -67,7 +67,7 @@ if (os.platform() === 'darwin') {
       // Setup stubs so that the spawn process to the encryption program returns
       // a fake to cause errors.
       // @ts-expect-error - type mismatch
-      $$.SANDBOX.stub(_crypto, 'randomBytes').returns(buf);
+      $$.SANDBOX.stub(crypto, 'randomBytes').returns(buf);
       const spawnStub = $$.SANDBOX.stub(childProcess, 'spawn');
       // @ts-expect-error - number of arguments
       spawnStub.withArgs(programArg, getOptionsArg).returns(spawnReturnFake);

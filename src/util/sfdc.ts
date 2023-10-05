@@ -81,7 +81,7 @@ export const validatePathDoesNotContainInvalidChars = (value: string): boolean =
  */
 export const findUpperCaseKeys = (data?: JsonMap, sectionBlocklist: string[] = []): Optional<string> => {
   let key: Optional<string>;
-  findKey(data, (val: AnyJson, k: string) => {
+  findKey(data, (val: AnyJson | undefined, k: string) => {
     if (/^[A-Z]/.test(k)) {
       key = k;
     } else if (isJsonMap(val)) {

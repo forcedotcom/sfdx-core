@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { deepStrictEqual, fail } from 'assert';
-import * as fs from 'fs';
+import fs from 'fs';
 import { constants as fsConstants } from 'fs';
 import { join as pathJoin } from 'path';
 import { Duration, set } from '@salesforce/kit';

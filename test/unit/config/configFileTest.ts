@@ -7,8 +7,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
-import * as Path from 'path';
-import * as fs from 'fs';
+import path from 'path';
+import fs from 'fs';
 import { expect } from 'chai';
 
 import { assert } from '@salesforce/ts-types';
@@ -71,10 +71,10 @@ describe('Config', () => {
       expect(config.getPath()).to.not.contain('.sf');
     });
     it('using local custom folder', () => {
-      const config = new TestConfig(TestConfig.getOptions('test', false, false, Path.join('my', 'path')));
+      const config = new TestConfig(TestConfig.getOptions('test', false, false, path.join('my', 'path')));
       expect(config.getPath()).to.contain(TestConfig.getTestLocalPath());
       expect(config.getPath()).to.not.contain('.sf');
-      expect(config.getPath()).to.contain(Path.join('my', 'path', 'test'));
+      expect(config.getPath()).to.contain(path.join('my', 'path', 'test'));
     });
   });
   describe('creation', () => {
@@ -102,10 +102,10 @@ describe('Config', () => {
       expect(config.getPath()).to.not.contain('.sf');
     });
     it('using local custom folder', async () => {
-      const config = await TestConfig.create(TestConfig.getOptions('test', false, false, Path.join('my', 'path')));
+      const config = await TestConfig.create(TestConfig.getOptions('test', false, false, path.join('my', 'path')));
       expect(config.getPath()).to.contain(TestConfig.getTestLocalPath());
       expect(config.getPath()).to.not.contain('.sf');
-      expect(config.getPath()).to.contain(Path.join('my', 'path', 'test'));
+      expect(config.getPath()).to.contain(path.join('my', 'path', 'test'));
     });
   });
 
