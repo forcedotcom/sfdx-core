@@ -1,3 +1,9 @@
+## [5.3.5](https://github.com/forcedotcom/sfdx-core/compare/5.3.4...5.3.5) (2023-10-06)
+
+### Bug Fixes
+
+- allow padding on id and secret ([b93ac50](https://github.com/forcedotcom/sfdx-core/commit/b93ac504d09145dad3d5b5beea4ce1d5a56985cd))
+
 ## [5.3.4](https://github.com/forcedotcom/sfdx-core/compare/5.3.3...5.3.4) (2023-10-04)
 
 ### Bug Fixes
