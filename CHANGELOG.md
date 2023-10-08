@@ -1,3 +1,9 @@
+## [5.3.6](https://github.com/forcedotcom/sfdx-core/compare/5.3.5...5.3.6) (2023-10-08)
+
+### Bug Fixes
+
+- **deps:** bump pino-pretty from 10.2.0 to 10.2.3 ([9e925c5](https://github.com/forcedotcom/sfdx-core/commit/9e925c599cbb7f5826ac6a0afe6043f6465e7dcf))
+
 ## [5.3.5](https://github.com/forcedotcom/sfdx-core/compare/5.3.4...5.3.5) (2023-10-06)
 
 ### Bug Fixes
