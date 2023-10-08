@@ -39,7 +39,7 @@
     "messageTransformer/messageTransformer.ts"
   ],
   "dependencies": {
-    "@salesforce/kit": "^3.0.12",
+    "@salesforce/kit": "^3.0.13",
     "@salesforce/schemas": "^1.6.0",
     "@salesforce/ts-types": "^2.0.8",
     "@types/semver": "^7.5.3",
