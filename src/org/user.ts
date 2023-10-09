@@ -6,7 +6,9 @@
  */
 
 import { EOL } from 'os';
-import { AsyncCreatable, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
+import { default as mapKeys } from 'lodash.mapkeys';
+import { default as omit } from 'lodash.omit';
+import { AsyncCreatable, lowerFirst, parseJsonMap, upperFirst } from '@salesforce/kit';
 import { asJsonArray, asNumber, ensureJsonMap, ensureString, isJsonMap, Many } from '@salesforce/ts-types';
 import type { HttpRequest, HttpResponse, QueryResult, Schema, SObjectUpdateRecord } from 'jsforce';
 import { HttpApi } from 'jsforce/lib/http-api';

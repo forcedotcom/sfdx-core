@@ -12,7 +12,8 @@
 import path from 'path';
 import dns from 'dns';
 import jwt from 'jsonwebtoken';
-import { cloneJson, env, includes } from '@salesforce/kit';
+import { default as includes } from 'lodash.includes';
+import { cloneJson, env } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, getJsonMap, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';

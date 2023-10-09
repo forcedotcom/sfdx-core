@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncOptionalCreatable, cloneJson, set } from '@salesforce/kit';
+import { AsyncOptionalCreatable, cloneJson } from '@salesforce/kit';
+import { default as set } from 'lodash.set';
 import { isPlainObject } from '@salesforce/ts-types';
 import {
   AnyJson,

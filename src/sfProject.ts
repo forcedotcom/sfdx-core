@@ -6,7 +6,8 @@
  */
 import { basename, dirname, isAbsolute, normalize, resolve, sep } from 'path';
 import * as fs from 'fs';
-import { defaults, env } from '@salesforce/kit';
+import { default as defaults } from 'lodash.defaults';
+import { env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import { SfdcUrl } from './util/sfdcUrl';
 import { ConfigAggregator } from './config/configAggregator';

@@ -9,7 +9,8 @@
 
 import { URL } from 'url';
 import type { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/lib/api/metadata';
-import { Duration, env, maxBy } from '@salesforce/kit';
+import { default as maxBy } from 'lodash.maxby';
+import { Duration, env } from '@salesforce/kit';
 import { asString, ensure, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import {
   Connection as JSForceConnection,

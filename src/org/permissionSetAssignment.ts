@@ -6,7 +6,8 @@
  */
 
 import { EOL } from 'os';
-import { mapKeys, upperFirst } from '@salesforce/kit';
+import { default as mapKeys } from 'lodash.mapkeys';
+import { upperFirst } from '@salesforce/kit';
 import { hasArray, Optional } from '@salesforce/ts-types';
 import { QueryResult, Record } from 'jsforce';
 import { Logger } from '../logger/logger';

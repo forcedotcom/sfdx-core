@@ -7,7 +7,9 @@
 
 import { dirname as pathDirname, join as pathJoin } from 'path';
 import * as fs from 'fs';
-import { keyBy, parseJsonMap, set } from '@salesforce/kit';
+import { default as keyBy } from 'lodash.keyby';
+import { default as set } from 'lodash.set';
+import { parseJsonMap } from '@salesforce/kit';
 import { Dictionary, ensure, isString, JsonPrimitive, Nullable } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { Logger } from '../logger/logger';

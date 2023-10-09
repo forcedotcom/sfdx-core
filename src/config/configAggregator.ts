@@ -4,8 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { AsyncOptionalCreatable, merge, sortBy } from '@salesforce/kit';
+import { default as merge } from 'lodash.merge';
+import { default as sortBy } from 'lodash.sortby';
+import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { AnyJson, Dictionary, isArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
