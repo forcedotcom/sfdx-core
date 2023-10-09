@@ -7,8 +7,8 @@
 
 import { dirname as pathDirname, join as pathJoin } from 'path';
 import * as fs from 'fs';
-import { keyBy, parseJsonMap, set } from '@salesforce/kit';
-import { Dictionary, ensure, isString, JsonPrimitive, Nullable } from '@salesforce/ts-types';
+import { keyBy, parseJsonMap } from '@salesforce/kit';
+import { Dictionary, ensure, isString, JsonCollection, JsonPrimitive, Nullable } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
@@ -17,7 +17,7 @@ import { SfdcUrl } from '../util/sfdcUrl';
 import { ORG_CONFIG_ALLOWED_PROPERTIES, OrgConfigProperties } from '../org/orgConfigProperties';
 import { Lifecycle } from '../lifecycleEvents';
 import { ConfigFile } from './configFile';
-import { ConfigContents, ConfigValue } from './configStore';
+import { ConfigContents, ConfigValue } from './configStackTypes';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
@@ -381,15 +381,14 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   public static async update(isGlobal: boolean, propertyName: string, value?: ConfigValue): Promise<ConfigContents> {
     const config = await Config.create({ isGlobal });
 
-    const content = await config.read();
+    await config.read();
 
-    if (value == null) {
-      delete content[propertyName];
+    if (value == null || value === undefined) {
+      config.unset(propertyName);
     } else {
-      set(content, propertyName, value);
+      config.set(propertyName, value);
     }
-
-    return config.write(content);
+    return config.write();
   }
 
   /**
@@ -484,7 +483,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    * @param key The property to set.
    * @param value The value of the property.
    */
-  public set(key: string, value: JsonPrimitive): ConfigProperties {
+  public set(key: string, value: JsonPrimitive | JsonCollection): ConfigProperties {
     const property = Config.allowedProperties.find((allowedProp) => allowedProp.key === key);
 
     if (!property) {

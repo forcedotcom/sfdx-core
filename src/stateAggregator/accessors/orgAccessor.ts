@@ -13,7 +13,7 @@ import { AuthInfoConfig } from '../../config/authInfoConfig';
 import { Global } from '../../global';
 import { AuthFields } from '../../org';
 import { ConfigFile } from '../../config/configFile';
-import { ConfigContents } from '../../config/configStore';
+import { ConfigContents } from '../../config/configStackTypes';
 import { Logger } from '../../logger/logger';
 import { Messages } from '../../messages';
 import { Lifecycle } from '../../lifecycleEvents';
@@ -26,6 +26,7 @@ function chunk<T>(array: T[], chunkSize: number): T[][] {
 
 export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigContents> extends AsyncOptionalCreatable {
   private configs: Map<string, Nullable<T>> = new Map();
+  /** map of Org files by username  */
   private contents: Map<string, P> = new Map();
   private logger!: Logger;
 

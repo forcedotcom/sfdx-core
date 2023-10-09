@@ -6,7 +6,8 @@
  */
 import { expect } from 'chai';
 import { StateAggregator } from '../../../../src/stateAggregator';
-import { MockTestOrgData, TestContext, uniqid } from '../../../../src/testSetup';
+import { MockTestOrgData, TestContext } from '../../../../src/testSetup';
+import { uniqid } from '../../../../src/util/uniqid';
 
 const username = 'espresso@coffee.com';
 const alias = 'MyAlias';

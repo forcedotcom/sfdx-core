@@ -309,14 +309,14 @@ describe('SfProject', () => {
       const read = async function () {
         // @ts-expect-error this is any
         if (this.isGlobal()) {
-          return { 'org-api-version': 38.0 };
+          return { 'org-api-version': '38.0' };
         } else {
-          return { 'org-api-version': 39.0 };
+          return { 'org-api-version': '39.0' };
         }
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
       $$.configStubs.Config = {
-        contents: { 'org-api-version': 40.0, 'org-instance-url': 'https://usethis.my.salesforce.com' },
+        contents: { 'org-api-version': '40.0', 'org-instance-url': 'https://usethis.my.salesforce.com' },
       };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
@@ -326,14 +326,14 @@ describe('SfProject', () => {
       const read = async function () {
         // @ts-expect-error this is any
         if (this.isGlobal()) {
-          return { 'org-api-version': 38.0, sfdcLoginUrl: 'https://fromfiles.com' };
+          return { 'org-api-version': '38.0', sfdcLoginUrl: 'https://fromfiles.com' };
         } else {
-          return { 'org-api-version': 39.0, sfdcLoginUrl: 'https://fromfiles.com' };
+          return { 'org-api-version': '39.0', sfdcLoginUrl: 'https://fromfiles.com' };
         }
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
       $$.configStubs.Config = {
-        contents: { 'org-api-version': 40.0, 'org-instance-url': 'https://dontusethis.my.salesforce.com' },
+        contents: { 'org-api-version': '40.0', 'org-instance-url': 'https://dontusethis.my.salesforce.com' },
       };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
@@ -343,16 +343,16 @@ describe('SfProject', () => {
       const read = async function () {
         // @ts-expect-error this is any
         if (this.isGlobal()) {
-          return { 'org-api-version': 38.0 };
+          return { 'org-api-version': '38.0' };
         } else {
-          return { 'org-api-version': 39.0 };
+          return { 'org-api-version': '39.0' };
         }
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
-      $$.configStubs.Config = { contents: { 'org-api-version': 40.0 } };
+      $$.configStubs.Config = { contents: { 'org-api-version': '40.0' } };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
-      expect(config['org-api-version']).to.equal(40.0);
+      expect(config['org-api-version']).to.equal('40.0');
     });
   });
 

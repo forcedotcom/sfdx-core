@@ -26,7 +26,7 @@ import {
 import { HttpRequest, SaveResult } from 'jsforce';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
-import { ConfigContents } from '../config/configStore';
+import { ConfigContents } from '../config/configStackTypes';
 import { OrgUsersConfig } from '../config/orgUsersConfig';
 import { Global } from '../global';
 import { Lifecycle } from '../lifecycleEvents';

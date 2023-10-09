@@ -10,11 +10,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import * as fs from 'node:fs';
-import { randomBytes } from 'crypto';
 import { EventEmitter } from 'events';
 import { tmpdir as osTmpdir } from 'os';
 import { basename, join as pathJoin, dirname } from 'path';
-import * as util from 'util';
 import { SinonSandbox, SinonStatic, SinonStub } from 'sinon';
 
 import { stubMethod } from '@salesforce/ts-sinon';
@@ -32,7 +30,7 @@ import {
 } from '@salesforce/ts-types';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
-import { ConfigContents } from './config/configStore';
+import { ConfigContents } from './config/configStackTypes';
 import { Connection } from './org/connection';
 import { Crypto } from './crypto/crypto';
 import { Logger } from './logger/logger';
@@ -45,6 +43,7 @@ import { OrgAccessor, StateAggregator } from './stateAggregator';
 import { AuthFields, Org, SandboxFields, User, UserFields } from './org';
 import { SandboxAccessor } from './stateAggregator/accessors/sandboxAccessor';
 import { Global } from './global';
+import { uniqid } from './util/uniqid';
 
 /**
  * Different parts of the system that are mocked out. They can be restored for
@@ -432,28 +431,6 @@ export class TestContext {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return sinon!;
   }
-}
-
-/**
- * A function to generate a unique id and return it in the context of a template, if supplied.
- *
- * A template is a string that can contain `${%s}` to be replaced with a unique id.
- * If the template contains the "%s" placeholder, it will be replaced with the unique id otherwise the id will be appended to the template.
- *
- * @param options an object with the following properties:
- * - template: a template string.
- * - length: the length of the unique id as presented in hexadecimal.
- */
-export function uniqid(options?: { template?: string; length?: number }): string {
-  const uniqueString = randomBytes(Math.ceil((options?.length ?? 32) / 2.0))
-    .toString('hex')
-    .slice(0, options?.length ?? 32);
-  if (!options?.template) {
-    return uniqueString;
-  }
-  return options.template.includes('%s')
-    ? util.format(options.template, uniqueString)
-    : `${options.template}${uniqueString}`;
 }
 
 function getTestLocalPath(uid: string): string {
@@ -1073,7 +1050,8 @@ export class MockTestOrgData {
       config.password = crypto.encrypt(this.password);
     }
 
-    return config as AuthFields;
+    // remove "undefined" properties that don't exist in actual files
+    return Object.fromEntries(Object.entries(config).filter(([, v]) => v !== undefined)) as AuthFields;
   }
 
   /**

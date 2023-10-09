@@ -10,8 +10,9 @@ import { rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { expect } from 'chai';
 import { FILENAME, StateAggregator } from '../../../../src/stateAggregator';
-import { MockTestOrgData, TestContext, uniqid } from '../../../../src/testSetup';
+import { MockTestOrgData, TestContext } from '../../../../src/testSetup';
 import { Global } from '../../../../src/global';
+import { uniqid } from '../../../../src/util/uniqid';
 
 const username1 = 'espresso@coffee.com';
 const username2 = 'foobar@salesforce.com';

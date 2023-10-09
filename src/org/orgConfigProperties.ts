@@ -7,7 +7,7 @@
 
 import { join as pathJoin } from 'path';
 import { isString } from '@salesforce/ts-types';
-import { ConfigValue } from '../config/configStore';
+import { ConfigValue } from '../config/configStackTypes';
 import { Messages } from '../messages';
 import { SfdcUrl } from '../util/sfdcUrl';
 import { validateApiVersion } from '../util/sfdc';

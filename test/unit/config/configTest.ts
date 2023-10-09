@@ -15,7 +15,7 @@ import { ensureString, JsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { Config, ConfigPropertyMeta } from '../../../src/config/config';
 import { ConfigFile } from '../../../src/config/configFile';
-import { ConfigContents } from '../../../src/config/configStore';
+import { ConfigContents } from '../../../src/config/configStackTypes';
 import { OrgConfigProperties } from '../../../src/exported';
 import { shouldThrowSync, TestContext } from '../../../src/testSetup';
 

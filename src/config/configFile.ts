@@ -15,7 +15,8 @@ import { Global } from '../global';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { resolveProjectPath, resolveProjectPathSync } from '../util/internal';
-import { BaseConfigStore, ConfigContents } from './configStore';
+import { BaseConfigStore } from './configStore';
+import { ConfigContents } from './configStackTypes';
 
 /**
  * Represents a json config file used to manage settings and state. Global config
@@ -160,8 +161,12 @@ export class ConfigFile<
       // Only need to read config files once.  They are kept up to date
       // internally and updated persistently via write().
       if (!this.hasRead || force) {
-        this.logger.info(`Reading config file: ${this.getPath()}`);
-        const obj = parseJsonMap(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath());
+        this.logger.info(
+          `Reading config file: ${this.getPath()} because ${
+            !this.hasRead ? 'hasRead is false' : 'force parameter is true'
+          }`
+        );
+        const obj = parseJsonMap<P>(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath());
         this.setContentsFromObject(obj);
       }
       // Necessarily set this even when an error happens to avoid infinite re-reading.
@@ -197,7 +202,7 @@ export class ConfigFile<
       // internally and updated persistently via write().
       if (!this.hasRead || force) {
         this.logger.info(`Reading config file: ${this.getPath()}`);
-        const obj = parseJsonMap(fs.readFileSync(this.getPath(), 'utf8'));
+        const obj = parseJsonMap<P>(fs.readFileSync(this.getPath(), 'utf8'));
         this.setContentsFromObject(obj);
       }
       return this.getContents();

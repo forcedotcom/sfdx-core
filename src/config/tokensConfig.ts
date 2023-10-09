@@ -9,7 +9,7 @@
 import { Optional } from '@salesforce/ts-types';
 import { SfTokens } from '../stateAggregator';
 import { ConfigFile } from './configFile';
-import { ConfigContents, ConfigValue } from './configStore';
+import { ConfigContents, ConfigValue } from './configStackTypes';
 
 export class TokensConfig extends ConfigFile<ConfigFile.Options, SfTokens> {
   protected static encryptedKeys = [/token/i, /password/i, /secret/i];

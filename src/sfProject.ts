@@ -11,7 +11,7 @@ import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-
 import { SfdcUrl } from './util/sfdcUrl';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
-import { ConfigContents } from './config/configStore';
+import { ConfigContents } from './config/configStackTypes';
 
 import { SchemaValidator } from './schema/validator';
 import { resolveProjectPath, resolveProjectPathSync, SFDX_PROJECT_JSON } from './util/internal';

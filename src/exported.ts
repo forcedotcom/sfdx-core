@@ -16,8 +16,8 @@ export { TTLConfig } from './config/ttlConfig';
 
 export { envVars, EnvironmentVariable, SUPPORTED_ENV_VARS, EnvVars } from './config/envVars';
 
-export { ConfigContents, ConfigEntry, ConfigStore, ConfigValue } from './config/configStore';
-
+export { ConfigStore } from './config/configStore';
+export { ConfigEntry, ConfigContents, ConfigValue } from './config/configStackTypes';
 export { SfTokens, StateAggregator } from './stateAggregator';
 
 export { DeviceOauthService, DeviceCodeResponse, DeviceCodePollingResponse } from './deviceOauthService';

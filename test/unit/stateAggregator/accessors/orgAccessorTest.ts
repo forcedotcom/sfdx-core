@@ -7,7 +7,8 @@
 import { expect } from 'chai';
 import { StateAggregator } from '../../../../src/stateAggregator';
 import { AuthFields } from '../../../../src/org';
-import { MockTestOrgData, shouldThrowSync, TestContext, uniqid } from '../../../../src/testSetup';
+import { MockTestOrgData, shouldThrowSync, TestContext } from '../../../../src/testSetup';
+import { uniqid } from '../../../../src/util/uniqid';
 
 const username = 'espresso@coffee.com';
 const org = new MockTestOrgData(uniqid(), { username });

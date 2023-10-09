@@ -6,7 +6,8 @@
  */
 import { expect } from 'chai';
 import { StateAggregator } from '../../../../src/stateAggregator';
-import { MockTestOrgData, MockTestSandboxData, TestContext, uniqid } from '../../../../src/testSetup';
+import { MockTestOrgData, MockTestSandboxData, TestContext } from '../../../../src/testSetup';
+import { uniqid } from '../../../../src/util/uniqid';
 
 const sandboxUsername = 'espresso@coffee.com.mysandbox';
 const prodOrgUsername = 'espresso@coffee.com';
