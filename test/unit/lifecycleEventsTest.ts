@@ -6,7 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import { Duration, sleep } from '@salesforce/kit/lib/duration';
+import { Duration, sleep } from '@salesforce/kit';
 import { spyMethod } from '@salesforce/ts-sinon';
 import * as chai from 'chai';
 import { Lifecycle } from '../../src/lifecycleEvents';

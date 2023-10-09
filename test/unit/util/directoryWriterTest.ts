@@ -8,13 +8,11 @@ import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Readable } from 'stream';
-import * as chai from 'chai';
-import * as chaiString from 'chai-string';
+import { expect, use } from 'chai';
+import chaiString from 'chai-string';
 import { DirectoryWriter } from '../../../src/util/directoryWriter';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { expect } = chai;
-chai.use(chaiString);
+use(chaiString);
 
 function validateFileContents(filePath: string, expectedContents: string): void {
   const fileContents = fs.readFileSync(filePath, 'utf8');

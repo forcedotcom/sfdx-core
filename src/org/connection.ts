@@ -8,7 +8,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
 import { URL } from 'url';
-import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
+import type { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/lib/api/metadata';
 import { Duration, env, maxBy } from '@salesforce/kit';
 import { asString, ensure, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import {

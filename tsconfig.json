@@ -4,6 +4,9 @@
     "outDir": "./lib",
     "resolveJsonModule": true,
     "rootDir": "./src",
+    "moduleResolution": "Node16",
+    "module": "Node16",
+    "esModuleInterop": true,
     "plugins": [{ "transform": "./src/messageTransformer.ts" }]
   },
   "include": ["./src/**/*.ts"]
