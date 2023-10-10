@@ -9,14 +9,17 @@ import * as fs from 'fs';
 import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
+import { lock, lockSync } from 'proper-lockfile';
 import { isPlainObject } from '@salesforce/ts-types';
 import { parseJsonMap } from '@salesforce/kit';
 import { Global } from '../global';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { resolveProjectPath, resolveProjectPathSync } from '../util/internal';
+import { lockOptions, lockRetryOptions } from '../util/lockRetryOptions';
 import { BaseConfigStore } from './configStore';
 import { ConfigContents } from './configStackTypes';
+import { stateFromContents } from './lwwMap';
 
 /**
  * Represents a json config file used to manage settings and state. Global config
@@ -167,7 +170,7 @@ export class ConfigFile<
           }`
         );
         const obj = parseJsonMap<P>(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath());
-        this.setContentsFromObject(obj);
+        this.setContentsFromFileContents(obj, (await fs.promises.stat(this.getPath(), { bigint: true })).mtimeNs);
       }
       // Necessarily set this even when an error happens to avoid infinite re-reading.
       // To attempt another read, pass `force=true`.
@@ -177,7 +180,7 @@ export class ConfigFile<
       this.hasRead = true;
       if ((err as SfError).code === 'ENOENT') {
         if (!throwOnNotFound) {
-          this.setContents();
+          this.setContentsFromFileContents({} as P, process.hrtime.bigint());
           return this.getContents();
         }
       }
@@ -203,13 +206,17 @@ export class ConfigFile<
       if (!this.hasRead || force) {
         this.logger.info(`Reading config file: ${this.getPath()}`);
         const obj = parseJsonMap<P>(fs.readFileSync(this.getPath(), 'utf8'));
-        this.setContentsFromObject(obj);
+        this.setContentsFromFileContents(obj, fs.statSync(this.getPath(), { bigint: true }).mtimeNs);
       }
+      // Necessarily set this even when an error happens to avoid infinite re-reading.
+      // To attempt another read, pass `force=true`.
+      this.hasRead = true;
       return this.getContents();
     } catch (err) {
+      this.hasRead = true;
       if ((err as SfError).code === 'ENOENT') {
         if (!throwOnNotFound) {
-          this.setContents();
+          this.setContentsFromFileContents({} as P, process.hrtime.bigint());
           return this.getContents();
         }
       }
@@ -228,18 +235,37 @@ export class ConfigFile<
    * @param newContents The new contents of the file.
    */
   public async write(newContents?: P): Promise<P> {
-    if (newContents) {
-      this.setContents(newContents);
-    }
-
+    // make sure we can write to the directory
     try {
       await fs.promises.mkdir(pathDirname(this.getPath()), { recursive: true });
     } catch (err) {
       throw SfError.wrap(err as Error);
     }
 
+    // lock the file.  Returns an unlock function to call when done.
+    const unlockFn = await lock(this.getPath(), lockRetryOptions);
+    // get the file modstamp.  Do this after the lock acquisition in case the file is being written to.
+    const fileTimestamp = (await fs.promises.stat(this.getPath(), { bigint: true })).mtimeNs;
+
+    if (isPlainObject(newContents)) {
+      this.setContents(newContents);
+    }
+
+    // read the file contents into a LWWMap using the modstamp
+    const stateFromFile = stateFromContents<P>(
+      parseJsonMap<P>(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath()),
+      fileTimestamp,
+      this.getPath()
+    );
+    // merge the new contents into the in-memory LWWMap
+    this.contents.merge(stateFromFile);
+
+    // write the merged LWWMap to file
     this.logger.info(`Writing to config file: ${this.getPath()}`);
     await fs.promises.writeFile(this.getPath(), JSON.stringify(this.toObject(), null, 2));
+
+    // unlock the file
+    await unlockFn();
 
     return this.getContents();
   }
@@ -251,19 +277,41 @@ export class ConfigFile<
    * @param newContents The new contents of the file.
    */
   public writeSync(newContents?: P): P {
-    if (isPlainObject(newContents)) {
-      this.setContents(newContents);
-    }
-
     try {
       fs.mkdirSync(pathDirname(this.getPath()), { recursive: true });
     } catch (err) {
       throw SfError.wrap(err as Error);
     }
 
+    if (isPlainObject(newContents)) {
+      this.setContents(newContents);
+    }
+
+    // lock the file.  Returns an unlock function to call when done.
+    const unlockFn = lockSync(this.getPath(), lockOptions);
+    // get the file modstamp.  Do this after the lock acquisition in case the file is being written to.
+    const fileTimestamp = fs.statSync(this.getPath(), { bigint: true }).mtimeNs;
+
+    if (isPlainObject(newContents)) {
+      this.setContents(newContents);
+    }
+
+    // read the file contents into a LWWMap using the modstamp
+    const stateFromFile = stateFromContents<P>(
+      parseJsonMap<P>(fs.readFileSync(this.getPath(), 'utf8'), this.getPath()),
+      fileTimestamp,
+      this.getPath()
+    );
+    // merge the new contents into the in-memory LWWMap
+    this.contents.merge(stateFromFile);
+
+    // write the merged LWWMap to file
+
     this.logger.info(`Writing to config file: ${this.getPath()}`);
     fs.writeFileSync(this.getPath(), JSON.stringify(this.toObject(), null, 2));
 
+    // unlock the file
+    unlockFn();
     return this.getContents();
   }
 

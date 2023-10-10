@@ -12,16 +12,34 @@ import { ConfigContents, Key } from './configStackTypes';
 
 export const SYMBOL_FOR_DELETED = 'UNIQUE_IDENTIFIER_FOR_DELETED' as const;
 
-type State<P> = {
+export type LWWState<P> = {
   [Property in keyof P]: LWWRegister<P[Property] | typeof SYMBOL_FOR_DELETED>['state'];
 };
+
+/**
+ * @param contents object aligning with ConfigContents
+ * @param timestamp a bigInt that sets the timestamp.  Defaults to the current time
+ * construct a LWWState from an object
+ *
+ * */
+export const stateFromContents = <P extends ConfigContents>(
+  contents: P,
+  timestamp = process.hrtime.bigint(),
+  id?: string
+): LWWState<P> =>
+  Object.fromEntries(
+    entriesOf(contents).map(([key, value]) => [
+      key,
+      new LWWRegister(id ?? uniqid(), { peer: 'file', timestamp, value }),
+    ])
+  ) as unknown as LWWState<P>;
 
 export class LWWMap<P extends ConfigContents> {
   public readonly id: string;
   /** map of key to LWWRegister.  Used for managing conflicts */
   #data = new Map<string, LWWRegister<unknown | typeof SYMBOL_FOR_DELETED>>();
 
-  public constructor(id?: string, state?: State<P>) {
+  public constructor(id?: string, state?: LWWState<P>) {
     this.id = id ?? uniqid();
 
     // create a new register for each key in the initial state
@@ -38,15 +56,15 @@ export class LWWMap<P extends ConfigContents> {
     ) as P;
   }
 
-  public get state(): State<P> {
+  public get state(): LWWState<P> {
     return Object.fromEntries(
       Array.from(this.#data.entries())
         // .filter(([, register]) => Boolean(register))
         .map(([key, register]) => [key, register.state])
-    ) as State<P>;
+    ) as LWWState<P>;
   }
 
-  public merge(state: State<P>): State<P> {
+  public merge(state: LWWState<P>): LWWState<P> {
     // recursively merge each key's register with the incoming state for that key
     for (const [key, remote] of entriesOf(state)) {
       const local = this.#data.get(key);

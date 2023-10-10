@@ -10,7 +10,7 @@ import { entriesOf, isPlainObject } from '@salesforce/ts-types';
 import { definiteEntriesOf, definiteValuesOf, get, isJsonMap, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import { Crypto } from '../crypto/crypto';
 import { SfError } from '../sfError';
-import { LWWMap } from './lwwMap';
+import { LWWMap, stateFromContents } from './lwwMap';
 import { ConfigContents, ConfigEntry, ConfigValue, Key } from './configStackTypes';
 
 /**
@@ -60,7 +60,7 @@ export abstract class BaseConfigStore<
   protected crypto?: Crypto;
 
   // Initialized in setContents
-  private contents = new LWWMap<P>();
+  protected contents = new LWWMap<P>();
   private statics = this.constructor as typeof BaseConfigStore;
 
   /**
@@ -282,6 +282,11 @@ export abstract class BaseConfigStore<
     entriesOf(objForWrite).map(([key, value]) => {
       this.set(key, value);
     });
+  }
+
+  protected setContentsFromFileContents(contents: P, timestamp: bigint): void {
+    const state = stateFromContents(contents, timestamp, this.contents.id);
+    this.contents = new LWWMap<P>(this.contents.id, state);
   }
 
   protected getEncryptedKeys(): Array<string | RegExp> {
