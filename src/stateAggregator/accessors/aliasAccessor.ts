@@ -18,17 +18,13 @@ import { Global } from '../../global';
 import { AuthFields } from '../../org/authInfo';
 import { ConfigContents } from '../../config/configStackTypes';
 import { SfError } from '../../sfError';
+import { lockRetryOptions, lockOptions } from '../../util/lockRetryOptions';
 import { SfToken } from './tokenAccessor';
 
 export type Aliasable = string | (Partial<AuthFields> & Partial<SfToken>);
 export const DEFAULT_GROUP = 'orgs';
 export const FILENAME = 'alias.json';
 
-const lockOptions = { stale: 10_000 };
-const lockRetryOptions = {
-  ...lockOptions,
-  retries: { retries: 10, maxTimeout: 1000, factor: 2 },
-};
 export class AliasAccessor extends AsyncOptionalCreatable {
   // set in init method
   private fileLocation!: string;
