@@ -12,6 +12,7 @@ import * as fs from 'fs';
 import { expect } from 'chai';
 
 import { assert } from '@salesforce/ts-types';
+import * as lockfileLib from 'proper-lockfile';
 import { ConfigFile } from '../../../src/config/configFile';
 import { SfError } from '../../../src/exported';
 import { shouldThrow, TestContext } from '../../../src/testSetup';
@@ -205,19 +206,30 @@ describe('Config', () => {
       $$.SANDBOXES.CONFIG.restore();
     });
     it('uses passed in contents', async () => {
-      // const mkdirpStub = $$.SANDBOX.stub(mkdirp, 'native');
+      $$.SANDBOX.stub(fs.promises, 'readFile').resolves('{}');
+      // @ts-expect-error --> we're only mocking on prop of many
+      $$.SANDBOX.stub(fs.promises, 'stat').resolves({ mtimeNs: BigInt(new Date().valueOf() - 1_000 * 60 * 5) });
+      $$.SANDBOX.stub(fs.promises, 'mkdir').resolves();
+      const lockStub = $$.SANDBOX.stub(lockfileLib, 'lock').resolves(() => Promise.resolve());
+
       const writeJson = $$.SANDBOX.stub(fs.promises, 'writeFile');
 
       const config = await TestConfig.create({ isGlobal: true });
 
       const expected = { test: 'test' };
       const actual = await config.write(expected);
+      expect(lockStub.callCount).to.equal(1);
       expect(expected).to.deep.equal(actual);
       expect(expected).to.deep.equal(config.getContents());
-      // expect(mkdirpStub.called).to.be.true;
+      // // expect(mkdirpStub.called).to.be.true;
       expect(writeJson.called).to.be.true;
     });
     it('sync uses passed in contents', async () => {
+      $$.SANDBOX.stub(fs, 'readFileSync').returns('{}');
+      // @ts-expect-error --> we're only mocking on prop of many
+      $$.SANDBOX.stub(fs, 'statSync').returns({ mtimeNs: BigInt(new Date().valueOf() - 1_000 * 60 * 5) });
+      const lockStub = $$.SANDBOX.stub(lockfileLib, 'lockSync').returns(() => undefined);
+
       const mkdirpStub = $$.SANDBOX.stub(fs, 'mkdirSync');
       const writeJson = $$.SANDBOX.stub(fs, 'writeFileSync');
 
@@ -225,176 +237,184 @@ describe('Config', () => {
 
       const expected = { test: 'test' };
       const actual = config.writeSync(expected);
+      expect(lockStub.callCount).to.equal(1);
       expect(expected).to.deep.equal(actual);
       expect(expected).to.deep.equal(config.getContents());
       expect(mkdirpStub.called).to.be.true;
       expect(writeJson.called).to.be.true;
     });
   });
-  const testFileContentsString = '{"foo":"bar"}';
-  const testFileContentsJson = { foo: 'bar' };
 
-  describe('read()', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let readFileStub: any;
-    let config: TestConfig;
+  describe('read', () => {
+    const testFileContentsString = '{"foo":"bar"}';
+    const testFileContentsJson = { foo: 'bar' };
 
-    beforeEach(async () => {
-      $$.SANDBOXES.CONFIG.restore();
-      readFileStub = $$.SANDBOX.stub(fs.promises, 'readFile');
+    describe('read()', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let readFileStub: any;
+      let config: TestConfig;
+
+      beforeEach(async () => {
+        $$.SANDBOXES.CONFIG.restore();
+        readFileStub = $$.SANDBOX.stub(fs.promises, 'readFile');
+        // @ts-expect-error --> we're only mocking on prop of many
+        $$.SANDBOX.stub(fs.promises, 'stat').resolves({ mtimeNs: BigInt(new Date().valueOf() - 1_000 * 60 * 5) });
+      });
+
+      it('caches file contents', async () => {
+        readFileStub.resolves(testFileContentsString);
+        // TestConfig.create() calls read()
+        config = await TestConfig.create(TestConfig.getOptions('test', false, true));
+        expect(readFileStub.calledOnce).to.be.true;
+
+        // @ts-expect-error -> hasRead is protected. Ignore for testing.
+        expect(config.hasRead).to.be.true;
+        expect(config.getContents()).to.deep.equal(testFileContentsJson);
+
+        // Read again.  Stub should still only be called once.
+        const contents2 = await config.read(false, false);
+        expect(readFileStub.calledOnce).to.be.true;
+        expect(contents2).to.deep.equal(testFileContentsJson);
+      });
+
+      it('sets contents as empty object when file does not exist', async () => {
+        const err = SfError.wrap(new Error());
+        err.code = 'ENOENT';
+        readFileStub.throws(err);
+
+        config = await TestConfig.create(TestConfig.getOptions('test', false, true));
+        expect(readFileStub.calledOnce).to.be.true;
+
+        // @ts-expect-error -> hasRead is protected. Ignore for testing.
+        expect(config.hasRead).to.be.true;
+        expect(config.getContents()).to.deep.equal({});
+      });
+
+      it('throws when file does not exist and throwOnNotFound=true', async () => {
+        const err = new Error('not here');
+        err.name = 'FileNotFound';
+        (err as any).code = 'ENOENT';
+        readFileStub.throws(SfError.wrap(err));
+
+        const configOptions = {
+          filename: 'test',
+          isGlobal: true,
+          throwOnNotFound: true,
+        };
+
+        try {
+          await shouldThrow(TestConfig.create(configOptions));
+        } catch (e) {
+          expect(e).to.have.property('name', 'FileNotFound');
+        }
+      });
+
+      it('sets hasRead=false by default', async () => {
+        const configOptions = TestConfig.getOptions('test', false, true);
+        const testConfig = new TestConfig(configOptions);
+        // @ts-expect-error -> hasRead is protected. Ignore for testing.
+        expect(testConfig.hasRead).to.be.false;
+      });
+
+      it('forces another read of the config file with force=true', async () => {
+        readFileStub.resolves(testFileContentsString);
+        // TestConfig.create() calls read()
+        config = await TestConfig.create(TestConfig.getOptions('test', false, true));
+        expect(readFileStub.calledOnce).to.be.true;
+
+        // @ts-expect-error -> hasRead is protected. Ignore for testing.
+        expect(config.hasRead).to.be.true;
+        expect(config.getContents()).to.deep.equal(testFileContentsJson);
+
+        // Read again.  Stub should now be called twice.
+        const contents2 = await config.read(false, true);
+        expect(readFileStub.calledTwice).to.be.true;
+        expect(contents2).to.deep.equal(testFileContentsJson);
+      });
     });
 
-    it('caches file contents', async () => {
-      readFileStub.resolves(testFileContentsString);
-      // TestConfig.create() calls read()
-      config = await TestConfig.create(TestConfig.getOptions('test', false, true));
-      expect(readFileStub.calledOnce).to.be.true;
+    describe('readSync()', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let readFileStub: any;
+      let config: TestConfig;
 
-      // @ts-expect-error -> hasRead is protected. Ignore for testing.
-      expect(config.hasRead).to.be.true;
-      expect(config.getContents()).to.deep.equal(testFileContentsJson);
+      beforeEach(async () => {
+        $$.SANDBOXES.CONFIG.restore();
+        readFileStub = $$.SANDBOX.stub(fs, 'readFileSync');
+        // @ts-expect-error --> we're only mocking on prop of many
+        $$.SANDBOX.stub(fs, 'statSync').returns({ mtimeNs: BigInt(new Date().valueOf() - 1_000 * 60 * 5) });
+      });
 
-      // Read again.  Stub should still only be called once.
-      const contents2 = await config.read(false, false);
-      expect(readFileStub.calledOnce).to.be.true;
-      expect(contents2).to.deep.equal(testFileContentsJson);
-    });
+      it('caches file contents', () => {
+        readFileStub.returns(testFileContentsString);
+        // TestConfig.create() calls read()
+        config = new TestConfig(TestConfig.getOptions('test', false, true));
+        expect(readFileStub.calledOnce).to.be.false;
 
-    it('sets contents as empty object when file does not exist', async () => {
-      const err = SfError.wrap(new Error());
-      err.code = 'ENOENT';
-      readFileStub.throws(err);
+        // @ts-expect-error -> hasRead is protected. Ignore for testing.
+        expect(config.hasRead).to.be.false;
 
-      config = await TestConfig.create(TestConfig.getOptions('test', false, true));
-      expect(readFileStub.calledOnce).to.be.true;
+        config.readSync(false, false);
+        // @ts-expect-error -> hasRead is protected. Ignore for testing.
+        expect(config.hasRead).to.be.true;
+        expect(config.getContents()).to.deep.equal(testFileContentsJson);
 
-      // @ts-expect-error -> hasRead is protected. Ignore for testing.
-      expect(config.hasRead).to.be.true;
-      expect(config.getContents()).to.deep.equal({});
-    });
+        // Read again.  Stub should still only be called once.
+        const contents2 = config.readSync(false, false);
+        expect(readFileStub.calledOnce).to.be.true;
+        expect(contents2).to.deep.equal(testFileContentsJson);
+      });
 
-    it('throws when file does not exist and throwOnNotFound=true', async () => {
-      const err = new Error('not here');
-      err.name = 'FileNotFound';
-      (err as any).code = 'ENOENT';
-      readFileStub.throws(SfError.wrap(err));
+      it('sets contents as empty object when file does not exist', () => {
+        const err = SfError.wrap(new Error());
+        err.code = 'ENOENT';
+        readFileStub.throws(err);
 
-      const configOptions = {
-        filename: 'test',
-        isGlobal: true,
-        throwOnNotFound: true,
-      };
+        config = new TestConfig(TestConfig.getOptions('test', false, true));
+        config.readSync();
+        expect(readFileStub.calledOnce).to.be.true;
 
-      try {
-        await shouldThrow(TestConfig.create(configOptions));
-      } catch (e) {
-        expect(e).to.have.property('name', 'FileNotFound');
-      }
-    });
+        // @ts-expect-error -> hasRead is protected. Ignore for testing.
+        expect(config.hasRead).to.be.true;
+        expect(config.getContents()).to.deep.equal({});
+      });
 
-    it('sets hasRead=false by default', async () => {
-      const configOptions = TestConfig.getOptions('test', false, true);
-      const testConfig = new TestConfig(configOptions);
-      // @ts-expect-error -> hasRead is protected. Ignore for testing.
-      expect(testConfig.hasRead).to.be.false;
-    });
+      it('throws when file does not exist and throwOnNotFound=true on method call', () => {
+        const err = new Error('not here');
+        err.name = 'FileNotFound';
+        (err as any).code = 'ENOENT';
+        readFileStub.throws(SfError.wrap(err));
 
-    it('forces another read of the config file with force=true', async () => {
-      readFileStub.resolves(testFileContentsString);
-      // TestConfig.create() calls read()
-      config = await TestConfig.create(TestConfig.getOptions('test', false, true));
-      expect(readFileStub.calledOnce).to.be.true;
+        const configOptions = {
+          filename: 'test',
+          isGlobal: true,
+          throwOnNotFound: false,
+        };
 
-      // @ts-expect-error -> hasRead is protected. Ignore for testing.
-      expect(config.hasRead).to.be.true;
-      expect(config.getContents()).to.deep.equal(testFileContentsJson);
+        try {
+          // The above config doesn't matter because we don't read on creation and it is overridden in the read method.
+          new TestConfig(configOptions).readSync(true);
+          assert(false, 'should throw');
+        } catch (e) {
+          expect(e).to.have.property('name', 'FileNotFound');
+        }
+      });
 
-      // Read again.  Stub should now be called twice.
-      const contents2 = await config.read(false, true);
-      expect(readFileStub.calledTwice).to.be.true;
-      expect(contents2).to.deep.equal(testFileContentsJson);
-    });
-  });
+      it('forces another read of the config file with force=true', () => {
+        readFileStub.returns(testFileContentsString);
+        // TestConfig.create() calls read()
+        config = new TestConfig(TestConfig.getOptions('test', false, true));
+        config.readSync();
 
-  describe('readSync()', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let readFileStub: any;
-    let config: TestConfig;
+        // -> hasRead is protected. Ignore for testing.
+        // @ts-expect-error -> hasRead is protected. Ignore for testing.
+        expect(config.hasRead).to.be.true;
 
-    beforeEach(async () => {
-      $$.SANDBOXES.CONFIG.restore();
-      readFileStub = $$.SANDBOX.stub(fs, 'readFileSync');
-    });
-
-    it('caches file contents', () => {
-      readFileStub.returns(testFileContentsString);
-      // TestConfig.create() calls read()
-      config = new TestConfig(TestConfig.getOptions('test', false, true));
-      expect(readFileStub.calledOnce).to.be.false;
-
-      // @ts-expect-error -> hasRead is protected. Ignore for testing.
-      expect(config.hasRead).to.be.false;
-
-      config.readSync(false, false);
-      // @ts-expect-error -> hasRead is protected. Ignore for testing.
-      expect(config.hasRead).to.be.true;
-      expect(config.getContents()).to.deep.equal(testFileContentsJson);
-
-      // Read again.  Stub should still only be called once.
-      const contents2 = config.readSync(false, false);
-      expect(readFileStub.calledOnce).to.be.true;
-      expect(contents2).to.deep.equal(testFileContentsJson);
-    });
-
-    it('sets contents as empty object when file does not exist', () => {
-      const err = SfError.wrap(new Error());
-      err.code = 'ENOENT';
-      readFileStub.throws(err);
-
-      config = new TestConfig(TestConfig.getOptions('test', false, true));
-      config.readSync();
-      expect(readFileStub.calledOnce).to.be.true;
-
-      // @ts-expect-error -> hasRead is protected. Ignore for testing.
-      expect(config.hasRead).to.be.true;
-      expect(config.getContents()).to.deep.equal({});
-    });
-
-    it('throws when file does not exist and throwOnNotFound=true on method call', () => {
-      const err = new Error('not here');
-      err.name = 'FileNotFound';
-      (err as any).code = 'ENOENT';
-      readFileStub.throws(SfError.wrap(err));
-
-      const configOptions = {
-        filename: 'test',
-        isGlobal: true,
-        throwOnNotFound: false,
-      };
-
-      try {
-        // The above config doesn't matter because we don't read on creation and it is overridden in the read method.
-        new TestConfig(configOptions).readSync(true);
-        assert(false, 'should throw');
-      } catch (e) {
-        expect(e).to.have.property('name', 'FileNotFound');
-      }
-    });
-
-    it('forces another read of the config file with force=true', () => {
-      readFileStub.returns(testFileContentsString);
-      // TestConfig.create() calls read()
-      config = new TestConfig(TestConfig.getOptions('test', false, true));
-      config.readSync();
-
-      // -> hasRead is protected. Ignore for testing.
-      // @ts-expect-error -> hasRead is protected. Ignore for testing.
-      expect(config.hasRead).to.be.true;
-
-      // Read again.  Stub should now be called twice.
-      const contents2 = config.readSync(false, true);
-      expect(readFileStub.calledTwice).to.be.true;
-      expect(contents2).to.deep.equal(testFileContentsJson);
+        // Read again.  Stub should now be called twice.
+        const contents2 = config.readSync(false, true);
+        expect(readFileStub.calledTwice).to.be.true;
+        expect(contents2).to.deep.equal(testFileContentsJson);
+      });
     });
   });
 });

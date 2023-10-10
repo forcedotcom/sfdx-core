@@ -53,6 +53,10 @@ describe('ConfigAggregator', () => {
   });
 
   describe('locations', () => {
+    beforeEach(() => {
+      // @ts-expect-error there's a lot more properties we're not mocking
+      $$.SANDBOX.stub(fs.promises, 'stat').resolves({ mtimeNs: BigInt(new Date().valueOf() - 1_000 * 60 * 5) });
+    });
     it('local', async () => {
       // @ts-expect-error async function signature not quite same as expected
       $$.SANDBOX.stub(fs.promises, 'readFile').callsFake(async (path: string) => {
