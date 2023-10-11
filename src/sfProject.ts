@@ -129,12 +129,7 @@ export class SfProjectJson extends ConfigFile {
 
   // eslint-disable-next-line class-methods-use-this
   public getDefaultOptions(options?: ConfigFile.Options): ConfigFile.Options {
-    const defaultOptions: ConfigFile.Options = {
-      isState: false,
-    };
-
-    Object.assign(defaultOptions, options ?? {});
-    return defaultOptions;
+    return { ...{ isState: false }, ...(options ?? {}) };
   }
 
   /**
