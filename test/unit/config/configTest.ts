@@ -276,7 +276,7 @@ describe('Config', () => {
       expect(writeStub.called).to.be.true;
     });
 
-    it.skip('calls ConfigFile.read with unknown key and does not throw on crypt', async () => {
+    it('calls ConfigFile.read with unknown key and does not throw on crypt', async () => {
       stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.readSync.name).callsFake(async () => {});
       stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.read.name).callsFake(async function () {
         // @ts-expect-error -> this is any
