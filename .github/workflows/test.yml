@@ -15,7 +15,7 @@ jobs:
     needs: linux-unit-tests
     uses: salesforcecli/github-workflows/.github/workflows/unitTestsWindows.yml@main
   nuts:
-    needs: linux-unit-tests
+    # needs: linux-unit-tests
     uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
     strategy:
       fail-fast: false
