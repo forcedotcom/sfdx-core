@@ -517,6 +517,7 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
   stubMethod(testContext.SANDBOXES.PROJECT, SfProjectJson.prototype, 'doesPackageExist').callsFake(() => true);
 
   const initStubForRead = (configFile: ConfigFile<ConfigFile.Options>): ConfigStub => {
+    testContext.configStubs[configFile.constructor.name] ??= {};
     const stub: ConfigStub = testContext.configStubs[configFile.constructor.name] ?? {};
     // init calls read calls getPath which sets the path on the config file the first time.
     // Since read is now stubbed, make sure to call getPath to initialize it.
