@@ -113,18 +113,12 @@ export class SfProjectJson extends ConfigFile {
     return contents;
   }
 
-  public async write(newContents?: ConfigContents): Promise<ConfigContents> {
-    if (newContents) {
-      this.setContents(newContents);
-    }
+  public async write(): Promise<ConfigContents> {
     this.validateKeys();
     return super.write();
   }
 
-  public writeSync(newContents?: ConfigContents): ConfigContents {
-    if (newContents) {
-      this.setContents(newContents);
-    }
+  public writeSync(): ConfigContents {
     this.validateKeys();
     return super.writeSync();
   }
@@ -334,13 +328,8 @@ export class SfProjectJson extends ConfigFile {
     if (!/^.{15,18}$/.test(id)) {
       throw messages.createError('invalidId', [id]);
     }
-
-    const contents = this.getContents();
-    if (!contents.packageAliases) {
-      contents.packageAliases = {};
-    }
-    contents.packageAliases[alias] = id;
-    this.setContents(contents);
+    const newAliases = { ...(this.getContents().packageAliases ?? {}), [alias]: id };
+    this.contents.set('packageAliases', newAliases);
   }
 
   /**

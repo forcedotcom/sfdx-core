@@ -10,7 +10,6 @@ import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { homedir as osHomedir } from 'os';
 import { dirname as pathDirname, join as pathJoin } from 'path';
 import { lock, lockSync } from 'proper-lockfile';
-import { isPlainObject } from '@salesforce/ts-types';
 import { parseJsonMap } from '@salesforce/kit';
 import { Global } from '../global';
 import { Logger } from '../logger/logger';
@@ -234,7 +233,7 @@ export class ConfigFile<
    *
    * @param newContents The new contents of the file.
    */
-  public async write(newContents?: P): Promise<P> {
+  public async write(): Promise<P> {
     // make sure we can write to the directory
     try {
       await fs.promises.mkdir(pathDirname(this.getPath()), { recursive: true });
@@ -246,10 +245,6 @@ export class ConfigFile<
     const unlockFn = await lock(this.getPath(), lockRetryOptions);
     // get the file modstamp.  Do this after the lock acquisition in case the file is being written to.
     const fileTimestamp = (await fs.promises.stat(this.getPath(), { bigint: true })).mtimeNs;
-
-    if (isPlainObject(newContents)) {
-      this.setContents(newContents);
-    }
 
     // read the file contents into a LWWMap using the modstamp
     const stateFromFile = stateFromContents<P>(
@@ -276,25 +271,17 @@ export class ConfigFile<
    *
    * @param newContents The new contents of the file.
    */
-  public writeSync(newContents?: P): P {
+  public writeSync(): P {
     try {
       fs.mkdirSync(pathDirname(this.getPath()), { recursive: true });
     } catch (err) {
       throw SfError.wrap(err as Error);
     }
 
-    if (isPlainObject(newContents)) {
-      this.setContents(newContents);
-    }
-
     // lock the file.  Returns an unlock function to call when done.
     const unlockFn = lockSync(this.getPath(), lockOptions);
     // get the file modstamp.  Do this after the lock acquisition in case the file is being written to.
     const fileTimestamp = fs.statSync(this.getPath(), { bigint: true }).mtimeNs;
-
-    if (isPlainObject(newContents)) {
-      this.setContents(newContents);
-    }
 
     // read the file contents into a LWWMap using the modstamp
     const stateFromFile = stateFromContents<P>(

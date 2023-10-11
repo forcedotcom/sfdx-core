@@ -446,11 +446,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    *
    * @param newContents The new Config value to persist.
    */
-  public async write(newContents?: ConfigProperties): Promise<ConfigProperties> {
-    if (newContents != null) {
-      this.setContents(newContents);
-    }
-
+  public async write(): Promise<ConfigProperties> {
     await this.cryptProperties(true);
 
     await super.write();

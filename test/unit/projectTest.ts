@@ -28,7 +28,8 @@ describe('SfProject', () => {
   describe('json', () => {
     it('allows uppercase packaging aliases on write', async () => {
       const json = await SfProjectJson.create();
-      await json.write({ packageAliases: { MyName: 'somePackage' } });
+      json.set('packageAliases', { MyName: 'somePackage' });
+      await json.write();
       // @ts-expect-error possibly undefined
       expect($$.getConfigStubContents('SfProjectJson').packageAliases['MyName']).to.equal('somePackage');
     });

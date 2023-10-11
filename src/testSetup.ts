@@ -86,10 +86,6 @@ export interface ConfigStub {
    * A function to conditionally read based on the config instance. The `this` value will be the config instance.
    */
   retrieveContents?: () => Promise<JsonMap>;
-  /**
-   * A function to conditionally set based on the config instance. The `this` value will be the config instance.
-   */
-  updateContents?: () => Promise<JsonMap>;
 }
 
 /**
@@ -533,7 +529,7 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
 
   const readSync = function (this: ConfigFile<ConfigFile.Options>, newContents?: JsonMap): JsonMap {
     const stub = initStubForRead(this);
-    this.setContentsFromObject(newContents ?? stub.contents ?? {});
+    this.setContentsFromFileContents(newContents ?? stub.contents ?? {}, BigInt(Date.now()));
     return this.getContents();
   };
 
@@ -556,33 +552,22 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
   // @ts-expect-error: muting exact type match for stub readSync
   stubs.configReadSync = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'readSync').callsFake(readSync);
 
-  const writeSync = function (this: ConfigFile<ConfigFile.Options>, newContents?: ConfigContents): void {
-    if (!testContext.configStubs[this.constructor.name]) {
-      testContext.configStubs[this.constructor.name] = {};
-    }
-    const stub = testContext.configStubs[this.constructor.name];
-    if (!stub) return;
+  const writeSync = function (this: ConfigFile<ConfigFile.Options>): void {
+    testContext.configStubs[this.constructor.name] ??= {};
+    const stub = testContext.configStubs[this.constructor.name] ?? {};
 
-    this.setContents(newContents ?? this.getContents());
     stub.contents = this.toObject();
   };
 
-  const write = async function (this: ConfigFile<ConfigFile.Options>, newContents?: ConfigContents): Promise<void> {
-    if (!testContext.configStubs[this.constructor.name]) {
-      testContext.configStubs[this.constructor.name] = {};
-    }
-    const stub = testContext.configStubs[this.constructor.name];
-    if (!stub) return;
+  const write = async function (this: ConfigFile<ConfigFile.Options>): Promise<void> {
+    testContext.configStubs[this.constructor.name] ??= {};
+    const stub = testContext.configStubs[this.constructor.name] ?? {};
 
     if (stub.writeFn) {
-      return stub.writeFn.call(this, newContents);
+      return stub.writeFn.call(this);
     }
 
-    if (stub.updateContents) {
-      writeSync.call(this, await stub.updateContents.call(this));
-    } else {
-      writeSync.call(this);
-    }
+    writeSync.call(this);
   };
 
   stubs.configWriteSync = stubMethod(testContext.SANDBOXES.CONFIG, ConfigFile.prototype, 'writeSync').callsFake(

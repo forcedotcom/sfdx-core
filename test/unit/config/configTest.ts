@@ -281,7 +281,7 @@ describe('Config', () => {
       stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.read.name).callsFake(async function () {
         // @ts-expect-error -> this is any
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        this.setContentsFromObject({ unknown: 'unknown config key and value' });
+        this.setContentsFromFileContents({ unknown: 'unknown config key and value' }, BigInt(Date.now()));
       });
 
       const config = await Config.create({ isGlobal: true });
