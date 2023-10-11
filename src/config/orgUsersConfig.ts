@@ -8,10 +8,13 @@
 import { Global } from '../global';
 import { ConfigFile } from './configFile';
 
+type UserConfig = {
+  usernames: string[];
+};
 /**
  * A config file that stores usernames for an org.
  */
-export class OrgUsersConfig extends ConfigFile<OrgUsersConfig.Options> {
+export class OrgUsersConfig extends ConfigFile<OrgUsersConfig.Options, UserConfig> {
   /**
    * Constructor.
    * **Do not directly construct instances of this class -- use {@link OrgUsersConfig.create} instead.**
