@@ -798,13 +798,13 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     this.logger.debug(`removing username ${authInfo.getFields().username}`);
 
     const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
-
-    const contents: ConfigContents = await orgConfig.read();
+    const contents = await orgConfig.read();
 
     const targetUser = authInfo.getFields().username;
-    const usernames = (contents.usernames ?? []) as string[];
-    contents.usernames = usernames.filter((username) => username !== targetUser);
 
+    const usernames = (contents.usernames ?? []).filter((username) => username !== targetUser);
+
+    orgConfig.set('usernames', usernames);
     await orgConfig.write();
     return this;
   }
