@@ -1272,7 +1272,7 @@ describe('AuthInfo', () => {
       expect(authInfo.getSfdxAuthUrl()).to.contain(`force://PlatformCLI::${testOrg.refreshToken}@${instanceUrl}`);
     });
 
-    it.skip('should handle undefined refresh token', async () => {
+    it('should handle undefined refresh token', async () => {
       const authResponse = {
         access_token: testOrg.accessToken,
         instance_url: testOrg.instanceUrl,
@@ -1292,12 +1292,11 @@ describe('AuthInfo', () => {
       });
 
       // delete the refresh token
-      delete authInfo.getFields().refreshToken;
-
+      authInfo.update({ ...authInfo.getFields(), refreshToken: undefined });
       expect(() => authInfo.getSfdxAuthUrl()).to.throw('undefined refreshToken');
     });
 
-    it.skip('should handle undefined instance url', async () => {
+    it('should handle undefined instance url', async () => {
       const authResponse = {
         access_token: testOrg.accessToken,
         instance_url: testOrg.instanceUrl,
@@ -1317,7 +1316,7 @@ describe('AuthInfo', () => {
       });
 
       // delete the instance url
-      delete authInfo.getFields().instanceUrl;
+      authInfo.update({ ...authInfo.getFields(), instanceUrl: undefined });
 
       expect(() => authInfo.getSfdxAuthUrl()).to.throw('undefined instanceUrl');
     });
