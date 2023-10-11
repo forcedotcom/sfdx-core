@@ -241,26 +241,36 @@ export class ConfigFile<
       throw SfError.wrap(err as Error);
     }
 
+    let unlockFn: (() => Promise<void>) | undefined;
     // lock the file.  Returns an unlock function to call when done.
-    const unlockFn = await lock(this.getPath(), lockRetryOptions);
-    // get the file modstamp.  Do this after the lock acquisition in case the file is being written to.
-    const fileTimestamp = (await fs.promises.stat(this.getPath(), { bigint: true })).mtimeNs;
+    try {
+      unlockFn = await lock(this.getPath(), lockRetryOptions);
+      // get the file modstamp.  Do this after the lock acquisition in case the file is being written to.
+      const fileTimestamp = (await fs.promises.stat(this.getPath(), { bigint: true })).mtimeNs;
 
-    // read the file contents into a LWWMap using the modstamp
-    const stateFromFile = stateFromContents<P>(
-      parseJsonMap<P>(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath()),
-      fileTimestamp,
-      this.getPath()
-    );
-    // merge the new contents into the in-memory LWWMap
-    this.contents.merge(stateFromFile);
-
+      // read the file contents into a LWWMap using the modstamp
+      const stateFromFile = stateFromContents<P>(
+        parseJsonMap<P>(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath()),
+        fileTimestamp,
+        this.getPath()
+      );
+      // merge the new contents into the in-memory LWWMap
+      this.contents.merge(stateFromFile);
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('ENOENT')) {
+        this.logger.debug(`No file found at ${this.getPath()}.  Write will create it.`);
+      } else {
+        throw err;
+      }
+    }
     // write the merged LWWMap to file
     this.logger.info(`Writing to config file: ${this.getPath()}`);
     await fs.promises.writeFile(this.getPath(), JSON.stringify(this.toObject(), null, 2));
 
     // unlock the file
-    await unlockFn();
+    if (typeof unlockFn !== 'undefined') {
+      await unlockFn();
+    }
 
     return this.getContents();
   }
@@ -278,27 +288,38 @@ export class ConfigFile<
       throw SfError.wrap(err as Error);
     }
 
-    // lock the file.  Returns an unlock function to call when done.
-    const unlockFn = lockSync(this.getPath(), lockOptions);
-    // get the file modstamp.  Do this after the lock acquisition in case the file is being written to.
-    const fileTimestamp = fs.statSync(this.getPath(), { bigint: true }).mtimeNs;
+    let unlockFn: (() => void) | undefined;
+    try {
+      // lock the file.  Returns an unlock function to call when done.
+      unlockFn = lockSync(this.getPath(), lockOptions);
+      // get the file modstamp.  Do this after the lock acquisition in case the file is being written to.
+      const fileTimestamp = fs.statSync(this.getPath(), { bigint: true }).mtimeNs;
 
-    // read the file contents into a LWWMap using the modstamp
-    const stateFromFile = stateFromContents<P>(
-      parseJsonMap<P>(fs.readFileSync(this.getPath(), 'utf8'), this.getPath()),
-      fileTimestamp,
-      this.getPath()
-    );
-    // merge the new contents into the in-memory LWWMap
-    this.contents.merge(stateFromFile);
+      // read the file contents into a LWWMap using the modstamp
+      const stateFromFile = stateFromContents<P>(
+        parseJsonMap<P>(fs.readFileSync(this.getPath(), 'utf8'), this.getPath()),
+        fileTimestamp,
+        this.getPath()
+      );
+      // merge the new contents into the in-memory LWWMap
+      this.contents.merge(stateFromFile);
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('ENOENT')) {
+        this.logger.debug(`No file found at ${this.getPath()}.  Write will create it.`);
+      } else {
+        throw err;
+      }
+    }
 
     // write the merged LWWMap to file
 
     this.logger.info(`Writing to config file: ${this.getPath()}`);
     fs.writeFileSync(this.getPath(), JSON.stringify(this.toObject(), null, 2));
 
-    // unlock the file
-    unlockFn();
+    if (typeof unlockFn !== 'undefined') {
+      // unlock the file
+      unlockFn();
+    }
     return this.getContents();
   }
 
