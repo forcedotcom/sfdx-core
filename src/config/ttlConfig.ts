@@ -48,7 +48,7 @@ export class TTLConfig<T extends TTLConfig.Options, P extends JsonMap> extends C
     const date = new Date().getTime();
     // delete all the expired entries
     Object.entries(contents)
-      .filter(([, value]) => !this.isExpired(date, value))
+      .filter(([, value]) => this.isExpired(date, value))
       .map(([key]) => this.unset(key));
   }
 
