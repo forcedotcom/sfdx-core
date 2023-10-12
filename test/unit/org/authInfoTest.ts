@@ -1267,7 +1267,7 @@ describe('AuthInfo', () => {
       });
 
       // delete the client secret
-      delete authInfo.getFields().clientSecret;
+      authInfo.update({ clientSecret: undefined });
       const instanceUrl = testOrg.instanceUrl.replace('https://', '');
       expect(authInfo.getSfdxAuthUrl()).to.contain(`force://PlatformCLI::${testOrg.refreshToken}@${instanceUrl}`);
     });

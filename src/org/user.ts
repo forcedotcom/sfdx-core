@@ -389,8 +389,7 @@ export class User extends AsyncCreatable<User.Options> {
     });
 
     // Update the auth info object with created user id.
-    const newUserAuthFields: AuthFields = newUserAuthInfo.getFields();
-    newUserAuthFields.userId = refreshTokenSecret.userId;
+    newUserAuthInfo.update({ userId: refreshTokenSecret.userId });
 
     // Make sure we can connect and if so save the auth info.
     await this.describeUserAndSave(newUserAuthInfo);

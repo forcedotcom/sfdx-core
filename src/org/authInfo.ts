@@ -664,8 +664,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * Get the authorization fields.
    *
    * @param decrypt Decrypt the fields.
+   *
+   * Returns a ReadOnly object of the fields.  If you need to modify the fields, use AuthInfo.update()
    */
-  public getFields(decrypt?: boolean): AuthFields {
+  public getFields(decrypt?: boolean): Readonly<AuthFields> {
     return this.stateAggregator.orgs.get(this.username, decrypt) ?? {};
   }
 
