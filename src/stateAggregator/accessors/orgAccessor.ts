@@ -7,7 +7,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { Nullable } from '@salesforce/ts-types';
+import { Nullable, entriesOf } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, isEmpty } from '@salesforce/kit';
 import { AuthInfoConfig } from '../../config/authInfoConfig';
 import { Global } from '../../global';
@@ -168,10 +168,10 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
   public set(username: string, org: P): void {
     const config = this.configs.get(username);
     if (config) {
-      config.setContentsFromObject(org);
-      const contents = config.getContents();
-      contents.username ??= username;
-      this.contents.set(username, contents as P);
+      entriesOf(org).map(([key, value]) => config.set(key, value));
+      if (!config.has('username')) {
+        config.set('username', username);
+      }
     } else {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore

@@ -222,7 +222,7 @@ export abstract class BaseConfigStore<
    * @param decrypt: decrypt all data in the config. A clone of the data will be returned.
    *
    */
-  public getContents(decrypt = false): P {
+  public getContents(decrypt = false): Readonly<P> {
     if (this.hasEncryption() && decrypt) {
       return this.recursiveDecrypt(cloneJson(this.contents?.value ?? {})) as P;
     }
