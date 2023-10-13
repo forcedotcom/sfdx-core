@@ -45,6 +45,8 @@ import { SandboxAccessor } from './stateAggregator/accessors/sandboxAccessor';
 import { Global } from './global';
 import { uniqid } from './util/uniqid';
 
+// this was previously exported from the testSetup module
+export { uniqid };
 /**
  * Different parts of the system that are mocked out. They can be restored for
  * individual tests. Test's stubs should always go on the DEFAULT which is exposed
