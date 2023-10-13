@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@salesforce/dev-config": "^4.0.1",
-    "@salesforce/dev-scripts": "^5.4.2",
+    "@salesforce/dev-scripts": "^5.11.0",
     "@salesforce/prettier-config": "^0.0.3",
     "@salesforce/ts-sinon": "^1.4.16",
     "@types/benchmark": "^2.1.3",

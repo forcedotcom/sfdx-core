@@ -526,10 +526,10 @@
   resolved "https://registry.yarnpkg.com/@salesforce/dev-config/-/dev-config-4.0.1.tgz#662ffaa4409713553aaf68eed93e7d2429c3ff0e"
   integrity sha512-0zMjXG4Vjlu/mB7zbuKSXfXiP7CEZBwsPtYqNgburk/wZIU9KcMspLwVBDUxmUj9ltRksD9o1ubRUblN5M3Z0g==
 
-"@salesforce/dev-scripts@^5.4.2":
-  version "5.4.2"
-  resolved "https://registry.yarnpkg.com/@salesforce/dev-scripts/-/dev-scripts-5.4.2.tgz#77aacf9a4743fe951d9de9cbc9524a70bb46054e"
-  integrity sha512-D54yF+NDDa+50A28YyvG8aO5t3tIMIIZ7Q+ewWmUXdpFhqUfwq1k6/Y2tZy+rE9Z8fwWB2DQSD9dhaZavxOgrw==
+"@salesforce/dev-scripts@^5.11.0":
+  version "5.11.0"
+  resolved "https://registry.yarnpkg.com/@salesforce/dev-scripts/-/dev-scripts-5.11.0.tgz#e5632f0e46f2d821710ca06bb6d60378399b17cd"
+  integrity sha512-DLgjqBsYc0AiBb5BPiSMSJrwoP9ceAFePPcB6xvLrH9gas+8X3z79vc4xzlBhwzsF1WJsSOoVVTtJbPDwxvF0g==
   dependencies:
     "@commitlint/cli" "^17.1.2"
     "@commitlint/config-conventional" "^17.1.0"
@@ -539,7 +539,7 @@
     "@types/mocha" "^9.0.0"
     "@types/node" "^15.6.1"
     "@types/sinon" "10.0.11"
-    chai "^4.3.7"
+    chai "^4.3.8"
     chalk "^4.0.0"
     cosmiconfig "^7.0.0"
     eslint "^8.41.0"
@@ -1321,7 +1321,7 @@ chai-string@^1.5.0:
   resolved "https://registry.yarnpkg.com/chai-string/-/chai-string-1.5.0.tgz#0bdb2d8a5f1dbe90bc78ec493c1c1c180dd4d3d2"
   integrity sha512-sydDC3S3pNAQMYwJrs6dQX0oBQ6KfIPuOZ78n7rocW0eJJlsHPh2t3kwW7xfwYA/1Bf6/arGtSUo16rxR2JFlw==
 
-chai@^4.3.10, chai@^4.3.7:
+chai@^4.3.10, chai@^4.3.8:
   version "4.3.10"
   resolved "https://registry.yarnpkg.com/chai/-/chai-4.3.10.tgz#d784cec635e3b7e2ffb66446a63b4e33bd390384"
   integrity sha512-0UXG04VuVbruMUYbJ6JctvH0YnC/4q3/AkT18q4NaITo91CUm0liMS9VqzT9vZhVQ/1eqPanMWjBM+Juhfb/9g==
