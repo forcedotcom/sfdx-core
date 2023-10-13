@@ -39,10 +39,10 @@
     "messageTransformer/messageTransformer.ts"
   ],
   "dependencies": {
-    "@salesforce/kit": "^3.0.12",
+    "@salesforce/kit": "^3.0.13",
     "@salesforce/schemas": "^1.6.0",
     "@salesforce/ts-types": "^2.0.8",
-    "@types/semver": "^7.5.2",
+    "@types/semver": "^7.5.3",
     "ajv": "^8.12.0",
     "change-case": "^4.1.2",
     "faye": "^1.4.0",
@@ -51,9 +51,9 @@
     "jsforce": "^2.0.0-beta.28",
     "jsonwebtoken": "9.0.2",
     "jszip": "3.10.1",
-    "pino": "^8.15.1",
+    "pino": "^8.15.6",
     "pino-abstract-transport": "^1.0.0",
-    "pino-pretty": "^10.2.0",
+    "pino-pretty": "^10.2.3",
     "proper-lockfile": "^4.1.2",
     "semver": "^7.5.4",
     "ts-retry-promise": "^0.7.1"

@@ -1,3 +1,33 @@
+## [5.3.9](https://github.com/forcedotcom/sfdx-core/compare/5.3.8...5.3.9) (2023-10-09)
+
+### Bug Fixes
+
+- **deps:** bump @salesforce/kit from 3.0.12 to 3.0.13 ([08fb56b](https://github.com/forcedotcom/sfdx-core/commit/08fb56b1a14385168adba81bc44d67fc987040e6))
+
+## [5.3.8](https://github.com/forcedotcom/sfdx-core/compare/5.3.7...5.3.8) (2023-10-08)
+
+### Bug Fixes
+
+- **deps:** bump pino from 8.15.1 to 8.15.6 ([2a5a9cc](https://github.com/forcedotcom/sfdx-core/commit/2a5a9cc69e6616ed6b4338c3ce26e5c5dbd9abab))
+
+## [5.3.7](https://github.com/forcedotcom/sfdx-core/compare/5.3.6...5.3.7) (2023-10-08)
+
+### Bug Fixes
+
+- **deps:** bump @types/semver from 7.5.2 to 7.5.3 ([9e8a0a7](https://github.com/forcedotcom/sfdx-core/commit/9e8a0a7e53d8b5900baf00e01548ea81c1ecfd4e))
+
+## [5.3.6](https://github.com/forcedotcom/sfdx-core/compare/5.3.5...5.3.6) (2023-10-08)
+
+### Bug Fixes
+
+- **deps:** bump pino-pretty from 10.2.0 to 10.2.3 ([9e925c5](https://github.com/forcedotcom/sfdx-core/commit/9e925c599cbb7f5826ac6a0afe6043f6465e7dcf))
+
+## [5.3.5](https://github.com/forcedotcom/sfdx-core/compare/5.3.4...5.3.5) (2023-10-06)
+
+### Bug Fixes
+
+- allow padding on id and secret ([b93ac50](https://github.com/forcedotcom/sfdx-core/commit/b93ac504d09145dad3d5b5beea4ce1d5a56985cd))
+
 ## [5.3.4](https://github.com/forcedotcom/sfdx-core/compare/5.3.3...5.3.4) (2023-10-04)
 
 ### Bug Fixes
