@@ -578,16 +578,16 @@
   resolved "https://registry.yarnpkg.com/@salesforce/schemas/-/schemas-1.6.0.tgz#14505ebad2fb2d4f7b14837545d662766d293561"
   integrity sha512-SwhDTLucj/GRbPpxlEoDZeqlX22o+G6fiebTXTu1cZKmd1oE0W2L7SlTTgJnWck8bhTeBIgQi9cpD8c2t5ISKA==
 
-"@salesforce/ts-sinon@^1.4.16":
-  version "1.4.16"
-  resolved "https://registry.yarnpkg.com/@salesforce/ts-sinon/-/ts-sinon-1.4.16.tgz#44ca058279d4009d7cc5d2de04d0ff764897f7c2"
-  integrity sha512-nl/zQ0z+W3C5VUgOh5i7N9ZgI7cEboDGBfPk7JXIz1R3U8yjSr3IIrJgmB3XSHFRNOQ/BjxdO8XSeuOehlaX3g==
+"@salesforce/ts-sinon@^1.4.17":
+  version "1.4.17"
+  resolved "https://registry.yarnpkg.com/@salesforce/ts-sinon/-/ts-sinon-1.4.17.tgz#e4454cd6f2edb54425a6336c5f8a7062b9e6d22c"
+  integrity sha512-hJi+0oE7F70AFtru+KF1AKSin1lzvrU/aXkxPzqJ3obR6Q86Q4LgIl/ekiXv2u2k4GN21KPpkhBEQJuf3qiI8Q==
   dependencies:
-    "@salesforce/ts-types" "^2.0.7"
+    "@salesforce/ts-types" "^2.0.8"
     sinon "^5.1.1"
     tslib "^2.6.1"
 
-"@salesforce/ts-types@^2.0.7", "@salesforce/ts-types@^2.0.8":
+"@salesforce/ts-types@^2.0.8":
   version "2.0.8"
   resolved "https://registry.yarnpkg.com/@salesforce/ts-types/-/ts-types-2.0.8.tgz#e732b5a42cbec6bda79c089a0633fc643daf8bca"
   integrity sha512-vuzLcxtThBhpuhmnoh8GFrVU8XjdoNyQm9gPtmcjUyUD/9nQIBTAX8oGoUvCiiq93c4LFEmSua+xm3yu0bbNfg==
