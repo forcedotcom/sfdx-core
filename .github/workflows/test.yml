@@ -40,7 +40,7 @@ jobs:
       os: ${{ matrix.os }}
       useCache: false
       preSwapCommands: 'yarn upgrade jsforce@2.0.0-beta.27; npx yarn-deduplicate; yarn install'
-      preExternalBuildCommands: 'shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core node_modules/@salesforce/cli-plugins-testkit/node_modules/@salesforce/core'
+      preExternalBuildCommands: 'shx rm -rf node_modules/@salesforce/core/node_modules/jsforce shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core node_modules/@salesforce/cli-plugins-testkit/node_modules/@salesforce/core'
     secrets: inherit
   # hidden until we fix source-testkit to better handle jwt
   deployRetrieveNuts:
@@ -71,6 +71,6 @@ jobs:
       preSwapCommands: 'yarn upgrade jsforce@2.0.0-beta.27; npx yarn-deduplicate; yarn install'
       command: ${{ matrix.command }}
       os: ${{ matrix.os }}
-      preExternalBuildCommands: 'shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core node_modules/@salesforce/source-deploy-retrieve/node_modules/@salesforce/core node_modules/@salesforce/source-tracking/node_modules/@salesforce/core node_modules/@salesforce/cli-plugins-testkit/node_modules/@salesforce/core node_modules/@salesforce/source-testkit/node_modules/@salesforce/core'
+      preExternalBuildCommands: 'shx rm -rf node_modules/@salesforce/core/node_modules/jsforce shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core node_modules/@salesforce/cli-plugins-testkit/node_modules/@salesforce/core'
     secrets:
       TESTKIT_AUTH_URL: ${{ secrets.TESTKIT_AUTH_URL }}
