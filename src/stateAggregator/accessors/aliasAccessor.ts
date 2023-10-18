@@ -19,9 +19,8 @@ import { AuthFields } from '../../org/authInfo';
 import { ConfigContents } from '../../config/configStackTypes';
 import { SfError } from '../../sfError';
 import { lockRetryOptions, lockOptions } from '../../util/lockRetryOptions';
-import { SfToken } from './tokenAccessor';
 
-export type Aliasable = string | (Partial<AuthFields> & Partial<SfToken>);
+export type Aliasable = string | Partial<AuthFields>;
 export const DEFAULT_GROUP = 'orgs';
 export const FILENAME = 'alias.json';
 
@@ -264,7 +263,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
  */
 const getNameOf = (entity: Aliasable): string => {
   if (typeof entity === 'string') return entity;
-  const aliaseeName = entity.username ?? entity.user;
+  const aliaseeName = entity.username;
   if (!aliaseeName) {
     throw new SfError(`Invalid aliasee, it must contain a user or username property: ${JSON.stringify(entity)}`);
   }

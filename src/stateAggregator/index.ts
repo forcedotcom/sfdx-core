@@ -7,5 +7,4 @@
 
 export * from './accessors/orgAccessor';
 export * from './accessors/aliasAccessor';
-export * from './accessors/tokenAccessor';
 export * from './stateAggregator';

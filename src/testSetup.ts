@@ -121,7 +121,6 @@ export class TestContext {
     AuthInfoConfig?: ConfigStub;
     Config?: ConfigStub;
     SfProjectJson?: ConfigStub;
-    TokensConfig?: ConfigStub;
     OrgUsersConfig?: ConfigStub;
   } = {};
   /**
@@ -386,13 +385,6 @@ export class TestContext {
     // configAggregator may have already loaded an instance.  We're not sure why this happens.
     // This seems to solve the problem by forcing a load of the new stubbed config.
     await ConfigAggregator.create();
-  }
-
-  /**
-   * Stub the tokens in the global token config file.
-   */
-  public stubTokens(tokens: Record<string, string>): void {
-    this.configStubs.TokensConfig = { contents: tokens };
   }
 
   public restore(): void {

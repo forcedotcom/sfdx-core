@@ -46,6 +46,7 @@ export class TTLConfig<T extends TTLConfig.Options, P extends JsonMap> extends C
   protected async init(): Promise<void> {
     const contents = await this.read(this.options.throwOnNotFound);
     const date = new Date().getTime();
+
     // delete all the expired entries
     Object.entries(contents)
       .filter(([, value]) => this.isExpired(date, value))
