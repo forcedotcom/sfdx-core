@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncOptionalCreatable, cloneJson, set } from '@salesforce/kit';
+import { AsyncOptionalCreatable, cloneJson } from '@salesforce/kit';
 import { entriesOf, isPlainObject } from '@salesforce/ts-types';
-import { definiteEntriesOf, definiteValuesOf, get, isJsonMap, isString, JsonMap, Optional } from '@salesforce/ts-types';
+import { definiteEntriesOf, definiteValuesOf, isJsonMap, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import { Crypto } from '../crypto/crypto';
 import { SfError } from '../sfError';
 import { LWWMap, stateFromContents } from './lwwMap';
@@ -85,24 +85,23 @@ export abstract class BaseConfigStore<
   /**
    * Returns the value associated to the key, or undefined if there is none.
    *
-   * @param key The key. Supports query key like `a.b[0]`.
+   * @param key The key (object property)
    * @param decrypt If it is an encrypted key, decrypt the value.
    * If the value is an object, a clone will be returned.
    */
   public get<K extends Key<P>>(key: K, decrypt?: boolean): P[K];
   public get<V = ConfigValue>(key: string, decrypt?: boolean): V;
   public get<K extends Key<P>>(key: K | string, decrypt = false): P[K] | ConfigValue {
-    const k = key as string;
-    let value = this.getMethod(this.contents.value ?? {}, k);
+    const rawValue = this.contents.get(key as K);
 
     if (this.hasEncryption() && decrypt) {
-      if (isJsonMap(value)) {
-        value = this.recursiveDecrypt(cloneJson(value), k);
-      } else if (this.isCryptoKey(k)) {
-        value = this.decrypt(value);
+      if (isJsonMap(rawValue)) {
+        return this.recursiveDecrypt(cloneJson(rawValue), key);
+      } else if (this.isCryptoKey(key)) {
+        return this.decrypt(rawValue) as P[K] | ConfigValue;
       }
     }
-    return value as P[K];
+    return rawValue as P[K] | ConfigValue;
   }
 
   /**
@@ -302,21 +301,6 @@ export abstract class BaseConfigStore<
     return this.getEncryptedKeys().length > 0;
   }
 
-  // Allows extended classes the ability to override the set method. i.e. maybe they want
-  // nested object set from kit.
-  // eslint-disable-next-line class-methods-use-this
-  protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue): void {
-    set(contents, key, value);
-  }
-
-  // Allows extended classes the ability to override the get method. i.e. maybe they want
-  // nested object get from ts-types.
-  // NOTE: Key must stay string to be reliably overwritten.
-  // eslint-disable-next-line class-methods-use-this
-  protected getMethod(contents: ConfigContents, key: string): Optional<ConfigValue> {
-    return get(contents, key) as ConfigValue;
-  }
-
   // eslint-disable-next-line class-methods-use-this
   protected initialContents(): P {
     return {} as P;
@@ -389,7 +373,7 @@ export abstract class BaseConfigStore<
     return this.crypto.isEncrypted(value) ? value : this.crypto.encrypt(value);
   }
 
-  protected decrypt(value: unknown): Optional<string> {
+  protected decrypt(value: unknown): string | undefined {
     if (!value) return;
     if (!this.crypto) throw new SfError('crypto is not initialized', 'CryptoNotInitializedError');
     if (!isString(value))

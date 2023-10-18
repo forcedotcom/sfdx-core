@@ -68,7 +68,6 @@ describe('ConfigStore', () => {
     config.get('1').a = 'b';
 
     expect(config.get('1').a).to.equal('b');
-    expect(config.get('1.a')).to.equal('b');
   });
 
   it('updates the object reference', async () => {
@@ -146,60 +145,6 @@ describe('ConfigStore', () => {
       expect(config.get('owner', true).superPassword).to.equal(expected);
     });
 
-    describe.skip('TODO: set with deep (dots/accessors) keys', () => {
-      it('encrypts nested query key using dot notation', async () => {
-        const expected = 'a29djf0kq3dj90d3q';
-        const config = await CarConfig.create();
-        config.set('owner.creditCardNumber', expected);
-        // encrypted
-        expect(config.get('owner.creditCardNumber')).to.not.equal(expected);
-        // decrypted
-        expect(config.get('owner.creditCardNumber', true)).to.equal(expected);
-      });
-
-      it('encrypts nested query key using accessor with single quotes', async () => {
-        const expected = 'a29djf0kq3dj90d3q';
-        const config = await CarConfig.create();
-        config.set('owner["creditCardNumber"]', expected);
-        // encrypted
-        expect(config.get("owner['creditCardNumber']")).to.not.equal(expected);
-        // decrypted
-        expect(config.get("owner['creditCardNumber']", true)).to.equal(expected);
-      });
-
-      it('encrypts nested query key using accessor with double quotes', async () => {
-        const expected = 'a29djf0kq3dj90d3q';
-        const config = await CarConfig.create();
-        config.set('owner["creditCardNumber"]', expected);
-        // encrypted
-        expect(config.get('owner["creditCardNumber"]')).to.not.equal(expected);
-        // decrypted
-        expect(config.get('owner["creditCardNumber"]', true)).to.equal(expected);
-      });
-
-      it('encrypts nested query special key using accessor with single quotes', async () => {
-        const expected = 'a29djf0kq3dj90d3q';
-        const config = await CarConfig.create();
-        const query = `owner['${specialKey}']`;
-        config.set(query, expected);
-        // encrypted
-        expect(config.get(query)).to.not.equal(expected);
-        // decrypted
-        expect(config.get(query, true)).to.equal(expected);
-      });
-
-      it('encrypts nested query special key using accessor with double quotes', async () => {
-        const expected = 'a29djf0kq3dj90d3q';
-        const config = await CarConfig.create();
-        const query = `owner["${specialKey}"]`;
-        config.set(query, expected);
-        // encrypted
-        expect(config.get(query)).to.not.equal(expected);
-        // decrypted
-        expect(config.get(query, true)).to.equal(expected);
-      });
-    });
-
     it('decrypt returns copies', async () => {
       const expected = 'a29djf0kq3dj90d3q';
       const config = await CarConfig.create();
@@ -213,7 +158,6 @@ describe('ConfigStore', () => {
       decryptedOwner.creditCardNumber = 'invalid';
       expect(config.get('owner').creditCardNumber).to.not.equal('invalid');
       expect(config.get('owner', true).creditCardNumber).to.equal(expected);
-      expect(config.get('owner.creditCardNumber', true)).to.equal(expected);
     });
 
     // Ensures accessToken and refreshToken are both decrypted upon config.get()
@@ -236,12 +180,12 @@ describe('ConfigStore', () => {
       const config = await CarConfig.create();
       const owner = { name: 'Bob', creditCardNumber: expected };
       config.set('owner', owner);
-      const encryptedCreditCardNumber = config.get('owner.creditCardNumber');
+      const encryptedCreditCardNumber = config.get('owner').creditCardNumber;
       const contents = config.getContents();
       contents.owner.name = 'Tim';
       config.setContents(contents);
-      expect(config.get('owner.name')).to.equal(contents.owner.name);
-      expect(config.get('owner.creditCardNumber')).to.equal(encryptedCreditCardNumber);
+      expect(config.get('owner').name).to.equal(contents.owner.name);
+      expect(config.get('owner').creditCardNumber).to.equal(encryptedCreditCardNumber);
     });
 
     it('updates encrypted object', async () => {
@@ -252,8 +196,8 @@ describe('ConfigStore', () => {
 
       config.update('owner', { creditCardNumber: expected });
 
-      expect(config.get('owner.name')).to.equal(owner.name);
-      expect(config.get('owner.creditCardNumber', true)).to.equal(expected);
+      expect(config.get('owner').name).to.equal(owner.name);
+      expect(config.get('owner', true).creditCardNumber).to.equal(expected);
     });
   });
 });

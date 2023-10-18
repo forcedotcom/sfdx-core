@@ -86,7 +86,6 @@ export class LWWMap<P extends ConfigContents> {
     else this.#data.set(key, new LWWRegister(this.id, { peer: this.id, timestamp: process.hrtime.bigint(), value }));
   }
 
-  // TODO: how to handle the deep `get` that is currently allowed ex: get('foo.bar.baz')
   public get<K extends Key<P>>(key: K): P[K] | undefined {
     // map loses the typing
     const value = this.#data.get(key)?.value;
