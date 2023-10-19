@@ -17,8 +17,8 @@ import { SchemaValidator } from './schema/validator';
 import { resolveProjectPath, resolveProjectPathSync, SFDX_PROJECT_JSON } from './util/internal';
 
 import { SfError } from './sfError';
-import { findUpperCaseKeys } from './util/sfdc';
 import { Messages } from './messages';
+import { findUpperCaseKeys } from './util/findUppercaseKeys';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
