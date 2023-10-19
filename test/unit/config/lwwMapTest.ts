@@ -8,6 +8,8 @@ import { expect, config } from 'chai';
 import { LWWMap, LWWState, SYMBOL_FOR_DELETED } from '../../../src/config/lwwMap';
 
 config.truncateThreshold = 0;
+const OLD_TIMESTAMP_OFFSET = BigInt(10_000_000_000_000);
+
 describe('LWWMap', () => {
   type TestType = { foo: string; baz: string; opt?: number; optNull?: null };
   describe('all properties are known', () => {
@@ -93,8 +95,8 @@ describe('LWWMap', () => {
       });
       it('none are updated', () => {
         const remoteState = {
-          foo: { value: 'bar2', timestamp: process.hrtime.bigint() - BigInt(10000000000) },
-          baz: { value: 'qux2', timestamp: process.hrtime.bigint() - BigInt(10000000000) },
+          foo: { value: 'bar2', timestamp: process.hrtime.bigint() - OLD_TIMESTAMP_OFFSET },
+          baz: { value: 'qux2', timestamp: process.hrtime.bigint() - OLD_TIMESTAMP_OFFSET },
         } satisfies LWWState<TestType>;
         lwwMap.merge(remoteState);
         expect(lwwMap.state).to.deep.equal(state);
@@ -104,7 +106,7 @@ describe('LWWMap', () => {
         lwwMap.set('opt', 4);
         const remoteState = {
           foo: { value: 'bar2', timestamp: process.hrtime.bigint() },
-          baz: { value: 'qux2', timestamp: process.hrtime.bigint() - BigInt(10000000000) },
+          baz: { value: 'qux2', timestamp: process.hrtime.bigint() - OLD_TIMESTAMP_OFFSET },
           opt: { value: SYMBOL_FOR_DELETED, timestamp: process.hrtime.bigint() },
           optNull: { value: null, timestamp: process.hrtime.bigint() },
         } satisfies LWWState<TestType>;
