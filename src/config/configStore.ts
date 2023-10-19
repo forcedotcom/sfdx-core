@@ -38,7 +38,6 @@ export interface ConfigStore<P extends ConfigContents = ConfigContents> {
 
   // Content methods
   getContents(): P;
-  setContents(contents?: P): void;
 }
 
 /**
@@ -229,20 +228,6 @@ export abstract class BaseConfigStore<
   }
 
   /**
-   * Sets the entire config contents.
-   *
-   * @param contents The contents.
-   */
-  public setContents(contents: P = {} as P): void {
-    if (this.hasEncryption()) {
-      contents = this.recursiveEncrypt(contents);
-    }
-    entriesOf(contents).map(([key, value]) => {
-      this.contents.set(key, value);
-    });
-  }
-
-  /**
    * Invokes `actionFn` once for each key-value pair present in the config object.
    *
    * @param {function} actionFn The function `(key: string, value: ConfigValue) => void` to be called for each element.
@@ -286,6 +271,20 @@ export abstract class BaseConfigStore<
   protected setContentsFromFileContents(contents: P, timestamp: bigint): void {
     const state = stateFromContents(contents, timestamp, this.contents.id);
     this.contents = new LWWMap<P>(this.contents.id, state);
+  }
+
+  /**
+   * Sets the entire config contents.
+   *
+   * @param contents The contents.
+   */
+  protected setContents(contents: P = {} as P): void {
+    if (this.hasEncryption()) {
+      contents = this.recursiveEncrypt(contents);
+    }
+    entriesOf(contents).map(([key, value]) => {
+      this.contents.set(key, value);
+    });
   }
 
   protected getEncryptedKeys(): Array<string | RegExp> {

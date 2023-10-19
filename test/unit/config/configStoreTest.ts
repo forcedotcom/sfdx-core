@@ -183,6 +183,7 @@ describe('ConfigStore', () => {
       const encryptedCreditCardNumber = config.get('owner').creditCardNumber;
       const contents = config.getContents();
       contents.owner.name = 'Tim';
+      // @ts-expect-error private method
       config.setContents(contents);
       expect(config.get('owner').name).to.equal(contents.owner.name);
       expect(config.get('owner').creditCardNumber).to.equal(encryptedCreditCardNumber);
