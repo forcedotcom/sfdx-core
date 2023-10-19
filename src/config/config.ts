@@ -402,13 +402,12 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    * Clear all the configured properties both local and global.
    */
   public static async clear(): Promise<void> {
-    const globalConfig = await Config.create({ isGlobal: true });
-    globalConfig.clear();
-    await globalConfig.write();
+    const [globalConfig, localConfig] = await Promise.all([Config.create({ isGlobal: true }), Config.create()]);
 
-    const localConfig = await Config.create();
+    globalConfig.clear();
     localConfig.clear();
-    await localConfig.write();
+
+    await Promise.all([globalConfig.write(), localConfig.write()]);
   }
 
   public static getPropertyConfigMeta(propertyName: string): Nullable<ConfigPropertyMeta> {
