@@ -136,9 +136,7 @@ export abstract class BaseConfigStore<
    * @param key The key.
    * @param value The value.
    */
-  public set<K extends Key<P>>(key: K, value: P[K]): void;
-  public set<V = ConfigValue>(key: string, value: V): void;
-  public set<K extends Key<P>>(key: K | string, value: P[K] | ConfigValue): void {
+  public set<K extends Key<P>>(key: K, value: P[K]): void {
     if (this.hasEncryption()) {
       if (isJsonMap(value)) {
         value = this.recursiveEncrypt(value, key as string) as P[K];
@@ -146,11 +144,10 @@ export abstract class BaseConfigStore<
         value = this.encrypt(value) as P[K];
       }
     }
-    // undefined value means unset
+    // set(key, undefined) means unset
     if (value === undefined) {
-      this.unset(key as string);
+      this.unset(key);
     } else {
-      // @ts-expect-error TODO: why isn't key guaranteed to be a string
       this.contents.set(key, value);
     }
   }
@@ -159,17 +156,17 @@ export abstract class BaseConfigStore<
    * Updates the value for the key in the config object. If the value is an object, it
    * will be merged with the existing object.
    *
-   * @param key The key. Supports query key like `a.b[0]`.
+   * @param key The key.
    * @param value The value.
    */
-  public update<K extends Key<P>>(key: K, value: Partial<P[K]>): void;
-  public update<V = ConfigValue>(key: string, value: Partial<V>): void;
-  public update<K extends Key<P>>(key: K | string, value: Partial<P[K]> | Partial<ConfigValue>): void {
+  public update<K extends Key<P>>(key: K, value: Partial<P[K]>): void {
     const existingValue = this.get(key, true);
     if (isPlainObject(existingValue) && isPlainObject(value)) {
-      value = Object.assign({}, existingValue, value);
+      const mergedValue = Object.assign({}, existingValue, value);
+      this.set(key, mergedValue as P[K]);
+    } else {
+      this.set(key, value as P[K]);
     }
-    this.set(key, value);
   }
 
   /**
@@ -178,9 +175,8 @@ export abstract class BaseConfigStore<
    *
    * @param key The key
    */
-  public unset(key: string): boolean {
+  public unset<K extends Key<P>>(key: K): boolean {
     if (this.has(key)) {
-      // @ts-expect-error TODO: why can't TS compile tighter types for keys of P
       this.contents.delete(key);
       return true;
     }
@@ -193,7 +189,7 @@ export abstract class BaseConfigStore<
    *
    * @param keys The keys. Supports query keys like `a.b[0]`.
    */
-  public unsetAll(keys: string[]): boolean {
+  public unsetAll(keys: Array<Key<P>>): boolean {
     return keys.map((key) => this.unset(key)).every(Boolean);
   }
 
@@ -262,7 +258,7 @@ export abstract class BaseConfigStore<
    *
    * @param obj The object.
    */
-  public setContentsFromObject<U extends P>(obj: U): void {
+  public setContentsFromObject(obj: P): void {
     const objForWrite = this.hasEncryption() ? this.recursiveEncrypt(obj) : obj;
     entriesOf(objForWrite).map(([key, value]) => {
       this.set(key, value);

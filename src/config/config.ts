@@ -8,7 +8,7 @@
 import { dirname as pathDirname, join as pathJoin } from 'path';
 import * as fs from 'fs';
 import { keyBy, parseJsonMap } from '@salesforce/kit';
-import { Dictionary, ensure, isString, JsonCollection, JsonPrimitive, Nullable } from '@salesforce/ts-types';
+import { Dictionary, ensure, isString, Nullable } from '@salesforce/ts-types';
 import { Global } from '../global';
 import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
@@ -17,7 +17,7 @@ import { SfdcUrl } from '../util/sfdcUrl';
 import { ORG_CONFIG_ALLOWED_PROPERTIES, OrgConfigProperties } from '../org/orgConfigProperties';
 import { Lifecycle } from '../lifecycleEvents';
 import { ConfigFile } from './configFile';
-import { ConfigContents, ConfigValue } from './configStackTypes';
+import { ConfigContents, ConfigValue, Key } from './configStackTypes';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
@@ -287,7 +287,10 @@ export const SFDX_ALLOWED_PROPERTIES = [
 // Generic global config properties. Specific properties can be loaded like orgConfigProperties.ts.
 export const SfProperty: { [index: string]: ConfigPropertyMeta } = {};
 
-export type ConfigProperties = { [index: string]: JsonPrimitive };
+/* A very loose type to account for the possibility of plugins adding properties via configMeta.
+ * The class itself is doing runtime validation to check property keys and values.
+ */
+export type ConfigProperties = ConfigContents;
 
 /**
  * The files where sfdx config values are stored for projects and the global space.
@@ -378,7 +381,11 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    * @param propertyName The name of the property to set.
    * @param value The property value.
    */
-  public static async update(isGlobal: boolean, propertyName: string, value?: ConfigValue): Promise<ConfigContents> {
+  public static async update<K extends Key<ConfigProperties>>(
+    isGlobal: boolean,
+    propertyName: K,
+    value?: ConfigProperties[K]
+  ): Promise<ConfigContents> {
     const config = await Config.create({ isGlobal });
 
     await config.read();
@@ -479,7 +486,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    * @param key The property to set.
    * @param value The value of the property.
    */
-  public set(key: string, value: JsonPrimitive | JsonCollection): ConfigProperties {
+  public set<K extends Key<ConfigProperties>>(key: K, value: ConfigProperties[K]): ConfigProperties {
     const property = Config.allowedProperties.find((allowedProp) => allowedProp.key === key);
 
     if (!property) {
@@ -491,7 +498,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
       return this.set(property.newKey, value);
     }
 
-    if (property.input) {
+    if (value !== undefined && property.input) {
       if (property.input?.validator(value)) {
         super.set(property.key, value);
       } else {

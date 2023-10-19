@@ -94,7 +94,7 @@ describe('ConfigStore', () => {
 
     it('throws if value is not strings', async () => {
       const config = await CarConfig.create();
-      // // @ts-expect-error it should be a string, but testing what happens when it's not
+      // @ts-expect-error it should be a string, but testing what happens when it's not
       expect(() => config.update('owner', { creditCardNumber: 12 }))
         .to.throw()
         .property('name', 'InvalidCryptoValueError');
@@ -149,7 +149,7 @@ describe('ConfigStore', () => {
       const expected = 'a29djf0kq3dj90d3q';
       const config = await CarConfig.create();
       const owner = { name: 'Bob', creditCardNumber: expected };
-      // // @ts-expect-error that's not a full owner, not all required props are set
+      // @ts-expect-error that's not a full owner, not all required props are set
       config.set('owner', owner);
 
       const decryptedOwner = config.get('owner', true);
@@ -179,7 +179,7 @@ describe('ConfigStore', () => {
       const expected = 'a29djf0kq3dj90d3q';
       const config = await CarConfig.create();
       const owner = { name: 'Bob', creditCardNumber: expected };
-      // // @ts-expect-error incomplete owner
+      // @ts-expect-error incomplete owner
       config.set('owner', owner);
       const encryptedCreditCardNumber = config.get('owner').creditCardNumber;
       const contents = config.getContents();
@@ -194,7 +194,7 @@ describe('ConfigStore', () => {
       const expected = 'a29djf0kq3dj90d3q';
       const config = await CarConfig.create();
       const owner = { name: 'Bob', creditCardNumber: 'old credit card number' };
-      // // @ts-expect-error incomplete owner
+      // @ts-expect-error incomplete owner
       config.set('owner', owner);
 
       config.update('owner', { creditCardNumber: expected });
