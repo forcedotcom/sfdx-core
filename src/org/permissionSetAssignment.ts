@@ -7,8 +7,8 @@
 
 import { EOL } from 'os';
 import { mapKeys, upperFirst } from '@salesforce/kit';
-import { hasArray, Optional } from '@salesforce/ts-types';
-import { QueryResult, Record } from 'jsforce';
+import type { Optional } from '@salesforce/ts-types';
+import type { QueryResult, Record } from 'jsforce';
 import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
@@ -94,19 +94,18 @@ export class PermissionSetAssignment {
       .sobject('PermissionSetAssignment')
       .create(mapKeys(assignment, (value: unknown, key: string) => upperFirst(key)));
 
-    if (hasArray(createResponse, 'errors') && createResponse.errors.length > 0) {
-      let message = messages.getMessage('errorsEncounteredCreatingAssignment');
-
-      const errors = createResponse.errors;
-      if (errors && errors.length > 0) {
-        message = `${message}:${EOL}`;
-        errors.forEach((_message) => {
-          message = `${message}${_message as string}${EOL}`;
-        });
-        throw new SfError(message, 'errorsEncounteredCreatingAssignment');
-      } else {
+    if (createResponse.success === false) {
+      if (!createResponse.errors?.length) {
         throw messages.createError('notSuccessfulButNoErrorsReported');
       }
+      const message = [messages.getMessage('errorsEncounteredCreatingAssignment')]
+        .concat(
+          (createResponse.errors ?? []).map((error) =>
+            error.fields ? `${error.message} on fields ${error.fields.join(',')}` : error.message
+          )
+        )
+        .join(EOL);
+      throw new SfError(message, 'errorsEncounteredCreatingAssignment');
     } else {
       return assignment;
     }
