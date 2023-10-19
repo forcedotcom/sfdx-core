@@ -6,7 +6,6 @@
  */
 
 import { entriesOf } from '@salesforce/ts-types';
-import { uniqid } from '../util/uniqid';
 import { LWWRegister } from './lwwRegister';
 import { ConfigContents, Key } from './configStackTypes';
 
@@ -24,27 +23,20 @@ export type LWWState<P> = {
  * */
 export const stateFromContents = <P extends ConfigContents>(
   contents: P,
-  timestamp = process.hrtime.bigint(),
-  id?: string
+  timestamp = process.hrtime.bigint()
 ): LWWState<P> =>
   Object.fromEntries(
-    entriesOf(contents).map(([key, value]) => [
-      key,
-      new LWWRegister(id ?? uniqid(), { peer: 'file', timestamp, value }),
-    ])
+    entriesOf(contents).map(([key, value]) => [key, new LWWRegister({ timestamp, value })])
   ) as unknown as LWWState<P>;
 
 export class LWWMap<P extends ConfigContents> {
-  public readonly id: string;
   /** map of key to LWWRegister.  Used for managing conflicts */
   #data = new Map<string, LWWRegister<unknown | typeof SYMBOL_FOR_DELETED>>();
 
-  public constructor(id?: string, state?: LWWState<P>) {
-    this.id = id ?? uniqid();
-
+  public constructor(state?: LWWState<P>) {
     // create a new register for each key in the initial state
     for (const [key, register] of entriesOf(state ?? {})) {
-      this.#data.set(key, new LWWRegister(this.id, register));
+      this.#data.set(key, new LWWRegister(register));
     }
   }
 
@@ -71,7 +63,7 @@ export class LWWMap<P extends ConfigContents> {
       // if the register already exists, merge it with the incoming state
       if (local) local.merge(remote);
       // otherwise, instantiate a new `LWWRegister` with the incoming state
-      else this.#data.set(key, new LWWRegister(this.id, remote));
+      else this.#data.set(key, new LWWRegister(remote));
     }
     return this.state;
   }
@@ -83,7 +75,7 @@ export class LWWMap<P extends ConfigContents> {
     // if the register already exists, set the value
     if (register) register.set(value);
     // otherwise, instantiate a new `LWWRegister` with the value
-    else this.#data.set(key, new LWWRegister(this.id, { peer: this.id, timestamp: process.hrtime.bigint(), value }));
+    else this.#data.set(key, new LWWRegister({ timestamp: process.hrtime.bigint(), value }));
   }
 
   public get<K extends Key<P>>(key: K): P[K] | undefined {
@@ -93,9 +85,11 @@ export class LWWMap<P extends ConfigContents> {
     return value as P[K];
   }
 
-  public delete(key: string): void {
-    // set the register to null, if it exists
-    this.#data.get(key)?.set(SYMBOL_FOR_DELETED);
+  public delete<K extends Key<P>>(key: K): void {
+    this.#data.set(
+      key,
+      new LWWRegister<typeof SYMBOL_FOR_DELETED>({ timestamp: process.hrtime.bigint(), value: SYMBOL_FOR_DELETED })
+    );
   }
 
   public has(key: string): boolean {

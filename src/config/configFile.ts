@@ -251,8 +251,7 @@ export class ConfigFile<
       // read the file contents into a LWWMap using the modstamp
       const stateFromFile = stateFromContents<P>(
         parseJsonMap<P>(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath()),
-        fileTimestamp,
-        this.getPath()
+        fileTimestamp
       );
       // merge the new contents into the in-memory LWWMap
       this.contents.merge(stateFromFile);
@@ -298,8 +297,7 @@ export class ConfigFile<
       // read the file contents into a LWWMap using the modstamp
       const stateFromFile = stateFromContents<P>(
         parseJsonMap<P>(fs.readFileSync(this.getPath(), 'utf8'), this.getPath()),
-        fileTimestamp,
-        this.getPath()
+        fileTimestamp
       );
       // merge the new contents into the in-memory LWWMap
       this.contents.merge(stateFromFile);

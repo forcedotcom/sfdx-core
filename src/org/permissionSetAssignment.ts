@@ -100,9 +100,13 @@ export class PermissionSetAssignment {
       }
       const message = [messages.getMessage('errorsEncounteredCreatingAssignment')]
         .concat(
-          (createResponse.errors ?? []).map((error) =>
-            error.fields ? `${error.message} on fields ${error.fields.join(',')}` : error.message
-          )
+          (createResponse.errors ?? []).map((error) => {
+            // note: the types for jsforce SaveError don't have "string[]" error,
+            // but there was a UT for that at https://github.com/forcedotcom/sfdx-core/blob/7412d103703cfe2df2211546fcf2e6d93a689bc0/test/unit/org/permissionSetAssignmentTest.ts#L146
+            // which could either be hallucination or a real response we've seen, so I'm preserving that behavior.
+            if (typeof error === 'string') return error;
+            return error.fields ? `${error.message} on fields ${error.fields.join(',')}` : error.message;
+          })
         )
         .join(EOL);
       throw new SfError(message, 'errorsEncounteredCreatingAssignment');

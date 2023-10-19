@@ -4,12 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
+import { expect, config } from 'chai';
 import { AuthInfo } from '../../../src/org/authInfo';
 import { Connection } from '../../../src/org/connection';
 import { Org } from '../../../src/org/org';
 import { PermissionSetAssignment } from '../../../src/org/permissionSetAssignment';
 import { MockTestOrgData, shouldThrow, TestContext } from '../../../src/testSetup';
+
+config.truncateThreshold = 0;
 
 describe('permission set assignment tests', () => {
   const $$ = new TestContext();
@@ -144,7 +146,7 @@ describe('permission set assignment tests', () => {
       $$.SANDBOX.stub(Connection.prototype, 'sobject').callsFake(() => ({
         // @ts-expect-error - type mismatch
         create() {
-          return Promise.resolve({ errors: ['error one', 'error two'] });
+          return Promise.resolve({ success: false, errors: ['error one', 'error two'] });
         },
       }));
 

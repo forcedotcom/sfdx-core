@@ -8,7 +8,6 @@ import { expect } from 'chai';
 import { AuthInfoConfig } from '../../../src/config/authInfoConfig';
 import { BaseConfigStore } from '../../../src/config/configStore';
 import { ConfigContents } from '../../../src/config/configStackTypes';
-import { AuthFields } from '../../../src/org/authInfo';
 import { TestContext } from '../../../src/testSetup';
 
 const specialKey = 'spe@cial.property';
@@ -88,14 +87,15 @@ describe('ConfigStore', () => {
 
     it('throws if crypto is not initialized', () => {
       const config = new CarConfig({});
-      expect(() => config.set('owner.creditCardNumber', 'n/a'))
+      expect(() => config.update('owner', { creditCardNumber: 'n/a' }))
         .to.throw()
         .property('name', 'CryptoNotInitializedError');
     });
 
     it('throws if value is not strings', async () => {
       const config = await CarConfig.create();
-      expect(() => config.set('owner.creditCardNumber', 12))
+      // // @ts-expect-error it should be a string, but testing what happens when it's not
+      expect(() => config.update('owner', { creditCardNumber: 12 }))
         .to.throw()
         .property('name', 'InvalidCryptoValueError');
     });
@@ -113,7 +113,7 @@ describe('ConfigStore', () => {
     it('encrypts nested key', async () => {
       const expected = 'a29djf0kq3dj90d3q';
       const config = await CarConfig.create();
-      config.set('owner', {
+      config.update('owner', {
         name: 'Bob',
         creditCardNumber: expected,
         phone: '707-bob-cell',
@@ -149,7 +149,7 @@ describe('ConfigStore', () => {
       const expected = 'a29djf0kq3dj90d3q';
       const config = await CarConfig.create();
       const owner = { name: 'Bob', creditCardNumber: expected };
-      // I would love for this to throw an error, but the current typing doesn't quite work like get does.
+      // // @ts-expect-error that's not a full owner, not all required props are set
       config.set('owner', owner);
 
       const decryptedOwner = config.get('owner', true);
@@ -167,18 +167,19 @@ describe('ConfigStore', () => {
       const refreshToken = '5678';
       const config = await AuthInfoConfig.create({});
       const auth = { accessToken, refreshToken };
-      config.set('auth', auth);
+      config.setContentsFromObject(auth);
 
-      expect(config.get<AuthFields>('auth').accessToken).to.not.equal(accessToken);
-      expect(config.get<AuthFields>('auth').refreshToken).to.not.equal(refreshToken);
-      expect(config.get<AuthFields>('auth', true).accessToken).to.equal(accessToken);
-      expect(config.get<AuthFields>('auth', true).refreshToken).to.equal(refreshToken);
+      expect(config.get('accessToken')).to.not.equal(accessToken);
+      expect(config.get('refreshToken')).to.not.equal(refreshToken);
+      expect(config.get('accessToken', true)).to.equal(accessToken);
+      expect(config.get('refreshToken', true)).to.equal(refreshToken);
     });
 
     it('does not fail when saving an already encrypted object', async () => {
       const expected = 'a29djf0kq3dj90d3q';
       const config = await CarConfig.create();
       const owner = { name: 'Bob', creditCardNumber: expected };
+      // // @ts-expect-error incomplete owner
       config.set('owner', owner);
       const encryptedCreditCardNumber = config.get('owner').creditCardNumber;
       const contents = config.getContents();
@@ -193,6 +194,7 @@ describe('ConfigStore', () => {
       const expected = 'a29djf0kq3dj90d3q';
       const config = await CarConfig.create();
       const owner = { name: 'Bob', creditCardNumber: 'old credit card number' };
+      // // @ts-expect-error incomplete owner
       config.set('owner', owner);
 
       config.update('owner', { creditCardNumber: expected });

@@ -180,6 +180,7 @@ export abstract class BaseConfigStore<
    */
   public unset(key: string): boolean {
     if (this.has(key)) {
+      // @ts-expect-error TODO: why can't TS compile tighter types for keys of P
       this.contents.delete(key);
       return true;
     }
@@ -269,8 +270,8 @@ export abstract class BaseConfigStore<
   }
 
   protected setContentsFromFileContents(contents: P, timestamp: bigint): void {
-    const state = stateFromContents(contents, timestamp, this.contents.id);
-    this.contents = new LWWMap<P>(this.contents.id, state);
+    const state = stateFromContents(contents, timestamp);
+    this.contents = new LWWMap<P>(state);
   }
 
   /**
