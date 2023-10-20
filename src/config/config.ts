@@ -18,6 +18,7 @@ import { ORG_CONFIG_ALLOWED_PROPERTIES, OrgConfigProperties } from '../org/orgCo
 import { Lifecycle } from '../lifecycleEvents';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue, Key } from './configStackTypes';
+import { LWWState, stateFromContents } from './lwwMap';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
@@ -292,6 +293,8 @@ export const SfProperty: { [index: string]: ConfigPropertyMeta } = {};
  */
 export type ConfigProperties = ConfigContents;
 
+const sfdxPropKeys = new Set(Object.values(SfdxPropertyKeys) as string[]);
+
 /**
  * The files where sfdx config values are stored for projects and the global space.
  *
@@ -312,28 +315,24 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     ...ORG_CONFIG_ALLOWED_PROPERTIES,
   ];
 
-  private sfdxConfig: SfdxConfig;
+  private sfdxPath?: string;
 
   public constructor(options?: ConfigFile.Options) {
-    super(
-      Object.assign(
-        {
-          isGlobal: false,
-        },
-        options ?? {},
-        {
-          // Don't let consumers of config override this. If they really really want to,
-          // they can extend this class.
-          isState: true,
-          filename: Config.getFileName(),
-          stateFolder: Global.SF_STATE_FOLDER,
-        }
-      )
-    );
+    super({
+      ...{ isGlobal: false },
+      ...(options ?? {}),
+      // Don't let consumers of config override this. If they really really want to,
+      // they can extend this class.
+      isState: true,
+      filename: Config.getFileName(),
+      stateFolder: Global.SF_STATE_FOLDER,
+    });
 
     // Resolve the config path on creation.
     this.getPath();
-    this.sfdxConfig = new SfdxConfig(this.options, this);
+    if (Global.SFDX_INTEROPERABILITY) {
+      this.sfdxPath = buildSfdxPath(this.options);
+    }
   }
 
   /**
@@ -428,10 +427,12 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    */
   public async read(force = true): Promise<ConfigProperties> {
     try {
-      const config = await super.read(false, force);
-      // Merge .sfdx/sfdx-config.json and .sf/config.json
-      const merged = this.sfdxConfig.merge(config);
-      this.setContents(merged);
+      await super.read(false, force);
+      if (Global.SFDX_INTEROPERABILITY) {
+        // will exist if Global.SFDX_INTEROPERABILITY is enabled
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        this.contents.merge(stateFromSfdxFileSync(this.sfdxPath!, this));
+      }
       await this.cryptProperties(false);
       return this.getContents();
     } finally {
@@ -440,10 +441,13 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   }
 
   public readSync(force = true): ConfigProperties {
-    const config = super.readSync(false, force);
-    // Merge .sfdx/sfdx-config.json and .sf/config.json
-    const merged = this.sfdxConfig.merge(config);
-    this.setContents(merged);
+    super.readSync(false, force);
+    if (Global.SFDX_INTEROPERABILITY) {
+      // will exist if Global.SFDX_INTEROPERABILITY is enabled
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.contents.merge(stateFromSfdxFileSync(this.sfdxPath!, this));
+    }
+
     return this.getContents();
   }
 
@@ -455,9 +459,14 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   public async write(): Promise<ConfigProperties> {
     await this.cryptProperties(true);
 
+    // super.write will merge the contents if the target file had newer properties
     await super.write();
-    if (Global.SFDX_INTEROPERABILITY) await this.sfdxConfig.write();
 
+    if (Global.SFDX_INTEROPERABILITY) {
+      // will exist if Global.SFDX_INTEROPERABILITY is enabled
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      await writeToSfdx(this.sfdxPath!, this.getContents());
+    }
     await this.cryptProperties(false);
 
     return this.getContents();
@@ -593,7 +602,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
 export class SfdxConfig {
   private sfdxPath: string;
   public constructor(private options: ConfigFile.Options = {}, private config: Config) {
-    this.sfdxPath = this.getSfdxPath();
+    this.sfdxPath = buildSfdxPath(this.options);
   }
 
   /**
@@ -603,11 +612,9 @@ export class SfdxConfig {
     if (!Global.SFDX_INTEROPERABILITY) return config;
     const sfdxConfig = this.readSync();
 
-    const sfdxPropKeys = Object.values(SfdxPropertyKeys) as string[];
-
     // Get a list of config keys that are NOT provided by SfdxPropertyKeys
     const nonSfdxPropKeys = Config.getAllowedProperties()
-      .filter((p) => !sfdxPropKeys.includes(p.key))
+      .filter((p) => !sfdxPropKeys.has(p.key))
       .map((p) => p.key);
 
     // Remove any config from .sf that isn't also in .sfdx
@@ -620,67 +627,72 @@ export class SfdxConfig {
     return Object.assign(config, sfdxConfig);
   }
 
-  public async write(config = this.config.toObject()): Promise<void> {
-    try {
-      const translated = this.translate(config as ConfigProperties, 'toOld');
-      const sfdxPath = this.getSfdxPath();
-      await fs.promises.mkdir(pathDirname(sfdxPath), { recursive: true });
-      await fs.promises.writeFile(sfdxPath, JSON.stringify(translated, null, 2));
-    } catch (error) {
-      /* Do nothing */
-    }
-  }
-
   private readSync(): ConfigProperties {
     try {
-      const contents = parseJsonMap<ConfigProperties>(fs.readFileSync(this.getSfdxPath(), 'utf8'));
-      return this.translate(contents, 'toNew');
+      const contents = parseJsonMap<ConfigProperties>(fs.readFileSync(this.sfdxPath, 'utf8'));
+      return translateToSf(contents, this.config);
     } catch (error) {
       /* Do nothing */
       return {};
     }
   }
-
-  private getSfdxPath(): string {
-    if (!this.sfdxPath) {
-      const stateFolder = Global.SFDX_STATE_FOLDER;
-      const fileName = SFDX_CONFIG_FILE_NAME;
-
-      // Don't let users store config files in homedir without being in the state folder.
-      let configRootFolder = this.options.rootFolder
-        ? this.options.rootFolder
-        : ConfigFile.resolveRootFolderSync(!!this.options.isGlobal);
-
-      if (this.options.isGlobal === true || this.options.isState === true) {
-        configRootFolder = pathJoin(configRootFolder, stateFolder);
-      }
-
-      this.sfdxPath = pathJoin(configRootFolder, fileName);
-    }
-    return this.sfdxPath;
-  }
-
-  /**
-   * If toNew is specified: migrate all deprecated configs with a newKey to the newKey.
-   * - For example, defaultusername will be renamed to target-org.
-   *
-   * If toOld is specified: migrate all deprecated configs back to their original key.
-   * - For example, target-org will be renamed to defaultusername.
-   */
-  private translate(contents: ConfigProperties, direction: 'toNew' | 'toOld'): ConfigProperties {
-    const translated = {} as ConfigProperties;
-    for (const [key, value] of Object.entries(contents)) {
-      const propConfig =
-        direction === 'toNew'
-          ? this.config.getPropertyConfig(key)
-          : Config.getAllowedProperties().find((c) => c.newKey === key) ?? ({} as ConfigPropertyMeta);
-      if (propConfig.deprecated && propConfig.newKey) {
-        const normalizedKey = direction === 'toNew' ? propConfig.newKey : propConfig.key;
-        translated[normalizedKey] = value;
-      } else {
-        translated[key] = value;
-      }
-    }
-    return translated;
-  }
 }
+
+/**
+ * If toOld is specified: migrate all deprecated configs back to their original key.
+ * - For example, target-org will be renamed to defaultusername.
+ */
+const translateToSfdx = (sfContents: ConfigProperties): ConfigProperties =>
+  Object.fromEntries(
+    Object.entries(sfContents).map(([key, value]) => {
+      const propConfig = Config.getAllowedProperties().find((c) => c.newKey === key) ?? ({} as ConfigPropertyMeta);
+      return propConfig.deprecated && propConfig.newKey ? [propConfig.key, value] : [key, value];
+    })
+  );
+
+/**
+ * If toOld is specified: migrate all deprecated configs to the new key.
+ * - For example, target-org will be renamed to defaultusername.
+ */
+const translateToSf = (sfdxContents: ConfigProperties, SfConfig: Config): ConfigProperties =>
+  Object.fromEntries(
+    Object.entries(sfdxContents).map(([key, value]) => {
+      const propConfig = SfConfig.getPropertyConfig(key);
+      return propConfig.deprecated && propConfig.newKey ? [propConfig.newKey, value] : [key, value];
+    })
+  );
+
+/** given the ConfigFile options, calculate the full path where the config file goes */
+const buildSfdxPath = (options: ConfigFile.Options): string => {
+  // Don't let users store config files in homedir without being in the state folder.
+  const configRootFolder = options.rootFolder ?? ConfigFile.resolveRootFolderSync(!!options.isGlobal);
+  const rootWithState =
+    options.isGlobal === true || options.isState === true
+      ? pathJoin(configRootFolder, Global.SFDX_STATE_FOLDER)
+      : configRootFolder;
+
+  return pathJoin(rootWithState, SFDX_CONFIG_FILE_NAME);
+};
+
+/**
+ * writes (in an unsafe way) the configuration file to the sfdx file location.
+ * Make sure you call ConfigFile.write and getContents so that the contents passed here are not cross-saving something
+ */
+const writeToSfdx = async (path: string, contents: ConfigProperties): Promise<void> => {
+  try {
+    const translated = translateToSfdx(contents);
+    await fs.promises.mkdir(pathDirname(path), { recursive: true });
+    await fs.promises.writeFile(path, JSON.stringify(translated, null, 2));
+  } catch (error) {
+    /* Do nothing */
+  }
+};
+
+/** turn the sfdx config file into a LWWState based on its contents and its timestamp */
+const stateFromSfdxFileSync = (filePath: string, config: Config): LWWState<ConfigProperties> => {
+  const fileContents = fs.readFileSync(filePath, 'utf8');
+  const mtimeNs = fs.statSync(filePath, { bigint: true }).mtimeNs;
+  const translatedContents = translateToSf(parseJsonMap<ConfigProperties>(fileContents, filePath), config);
+  // get the file timestamp
+  return stateFromContents(translatedContents, mtimeNs);
+};
