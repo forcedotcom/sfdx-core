@@ -18,7 +18,7 @@ import { ORG_CONFIG_ALLOWED_PROPERTIES, OrgConfigProperties } from '../org/orgCo
 import { Lifecycle } from '../lifecycleEvents';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue, Key } from './configStackTypes';
-import { LWWState, stateFromContents } from './lwwMap';
+import { LWWMap, LWWState, stateFromContents } from './lwwMap';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
@@ -690,9 +690,13 @@ const writeToSfdx = async (path: string, contents: ConfigProperties): Promise<vo
 
 /** turn the sfdx config file into a LWWState based on its contents and its timestamp */
 const stateFromSfdxFileSync = (filePath: string, config: Config): LWWState<ConfigProperties> => {
-  const fileContents = fs.readFileSync(filePath, 'utf8');
-  const mtimeNs = fs.statSync(filePath, { bigint: true }).mtimeNs;
-  const translatedContents = translateToSf(parseJsonMap<ConfigProperties>(fileContents, filePath), config);
-  // get the file timestamp
-  return stateFromContents(translatedContents, mtimeNs);
+  try {
+    const fileContents = fs.readFileSync(filePath, 'utf8');
+    const mtimeNs = fs.statSync(filePath, { bigint: true }).mtimeNs;
+    const translatedContents = translateToSf(parseJsonMap<ConfigProperties>(fileContents, filePath), config);
+    // get the file timestamp
+    return stateFromContents(translatedContents, mtimeNs);
+  } catch (e) {
+    return {};
+  }
 };
