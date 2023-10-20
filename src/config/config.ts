@@ -18,7 +18,7 @@ import { ORG_CONFIG_ALLOWED_PROPERTIES, OrgConfigProperties } from '../org/orgCo
 import { Lifecycle } from '../lifecycleEvents';
 import { ConfigFile } from './configFile';
 import { ConfigContents, ConfigValue, Key } from './configStackTypes';
-import { LWWMap, LWWState, stateFromContents } from './lwwMap';
+import { LWWState, stateFromContents } from './lwwMap';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
