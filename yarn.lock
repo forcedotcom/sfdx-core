@@ -560,10 +560,10 @@
     typescript "^4.9.5"
     wireit "^0.9.5"
 
-"@salesforce/kit@^3.0.13":
-  version "3.0.13"
-  resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-3.0.13.tgz#10b47ad6e0e27c3a9f97eb6a5cdcfffa9ba1f163"
-  integrity sha512-HLQ5L5bBi0tsMeH5ZHJAhHUpvNUNPQoNJt2O82Jf6C60GGsrlzwzQ5ONAHGNBgKSZ7HLr0UGL5xaA+hE9uOcgw==
+"@salesforce/kit@^3.0.14":
+  version "3.0.14"
+  resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-3.0.14.tgz#b2231c856531eca86fa2d9779c7852c820d7c3ed"
+  integrity sha512-NkUlztz+ArRrUKexIxVOlBJxIovjCuyk3SbW7mQv2klwp/OH/HoR6PDZU0gxLBglum/Dd4BgB+HN2FNqg8jmoQ==
   dependencies:
     "@salesforce/ts-types" "^2.0.8"
     tslib "^2.6.2"
@@ -578,16 +578,16 @@
   resolved "https://registry.yarnpkg.com/@salesforce/schemas/-/schemas-1.6.0.tgz#14505ebad2fb2d4f7b14837545d662766d293561"
   integrity sha512-SwhDTLucj/GRbPpxlEoDZeqlX22o+G6fiebTXTu1cZKmd1oE0W2L7SlTTgJnWck8bhTeBIgQi9cpD8c2t5ISKA==
 
-"@salesforce/ts-sinon@^1.4.16":
-  version "1.4.16"
-  resolved "https://registry.yarnpkg.com/@salesforce/ts-sinon/-/ts-sinon-1.4.16.tgz#44ca058279d4009d7cc5d2de04d0ff764897f7c2"
-  integrity sha512-nl/zQ0z+W3C5VUgOh5i7N9ZgI7cEboDGBfPk7JXIz1R3U8yjSr3IIrJgmB3XSHFRNOQ/BjxdO8XSeuOehlaX3g==
+"@salesforce/ts-sinon@^1.4.18":
+  version "1.4.18"
+  resolved "https://registry.yarnpkg.com/@salesforce/ts-sinon/-/ts-sinon-1.4.18.tgz#a9ff91370bc3f682fbf964afcbc0fcf5f04d2912"
+  integrity sha512-YR+L5JEZRfZmPGYvamPs+urd753PfS/K6foygYdR9F6MM+e0VMbAQ8Zq2lmJKoZy4aDEencspmp+72wtZKJJpg==
   dependencies:
-    "@salesforce/ts-types" "^2.0.7"
+    "@salesforce/ts-types" "^2.0.8"
     sinon "^5.1.1"
     tslib "^2.6.1"
 
-"@salesforce/ts-types@^2.0.7", "@salesforce/ts-types@^2.0.8":
+"@salesforce/ts-types@^2.0.8":
   version "2.0.8"
   resolved "https://registry.yarnpkg.com/@salesforce/ts-types/-/ts-types-2.0.8.tgz#e732b5a42cbec6bda79c089a0633fc643daf8bca"
   integrity sha512-vuzLcxtThBhpuhmnoh8GFrVU8XjdoNyQm9gPtmcjUyUD/9nQIBTAX8oGoUvCiiq93c4LFEmSua+xm3yu0bbNfg==
@@ -738,10 +738,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/lodash@^4.14.199":
-  version "4.14.199"
-  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.199.tgz#c3edb5650149d847a277a8961a7ad360c474e9bf"
-  integrity sha512-Vrjz5N5Ia4SEzWWgIVwnHNEnb1UE1XMkvY5DGXrAeOGE9imk0hgTHh5GyDjLDJi9OTCn9oo9dXH1uToK1VRfrg==
+"@types/lodash@^4.14.200":
+  version "4.14.200"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.200.tgz#435b6035c7eba9cdf1e039af8212c9e9281e7149"
+  integrity sha512-YI/M/4HRImtNf3pJgbF+W6FrXovqj+T+/HpENLTooK9PnkacBsDpeP3IpHab40CClUfhNmdM2WTNP2sa2dni5Q==
 
 "@types/minimatch@*", "@types/minimatch@^3.0.3":
   version "3.0.5"
@@ -3032,7 +3032,7 @@ jsesc@^2.5.1:
   resolved "https://registry.yarnpkg.com/jsesc/-/jsesc-2.5.2.tgz#80564d2e483dacf6e8ef209650a67df3f0c283a4"
   integrity sha512-OYu7XEzjkCQ3C5Ps3QIZsQfNpqoJyZZA99wd9aWd05NCtC5pWOkShK2mkL6HXQR6/Cy2lbNdPlZBpuQHXE63gA==
 
-jsforce@^2.0.0-beta.27:
+jsforce@^2.0.0-beta.28:
   version "2.0.0-beta.28"
   resolved "https://registry.yarnpkg.com/jsforce/-/jsforce-2.0.0-beta.28.tgz#5fd8d9b8e5efc798698793b147e00371f3d74e8f"
   integrity sha512-tTmKRhr4yWNinhmurY/tiiltLFQq9RQ+gpYAt3wjFdCGjzd49/wqYQIFw4SsI3+iLjxXnc0uTgGwdAkDjxDWnA==

@@ -1,3 +1,15 @@
+## [5.3.11](https://github.com/forcedotcom/sfdx-core/compare/5.3.10...5.3.11) (2023-10-22)
+
+### Bug Fixes
+
+- **deps:** bump @salesforce/kit from 3.0.13 to 3.0.14 ([9e366de](https://github.com/forcedotcom/sfdx-core/commit/9e366de1c4d674ae9cc83f5f0cff6859edd18974))
+
+## [5.3.10](https://github.com/forcedotcom/sfdx-core/compare/5.3.9...5.3.10) (2023-10-20)
+
+### Bug Fixes
+
+- bump jsforce ([#958](https://github.com/forcedotcom/sfdx-core/issues/958)) ([98a6fef](https://github.com/forcedotcom/sfdx-core/commit/98a6fef4b21320b57f2e0730f94918cdb590953c))
+
 ## [5.3.9](https://github.com/forcedotcom/sfdx-core/compare/5.3.8...5.3.9) (2023-10-09)
 
 ### Bug Fixes
