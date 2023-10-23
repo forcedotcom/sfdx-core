@@ -39,8 +39,7 @@ jobs:
       command: 'yarn test:nuts'
       os: ${{ matrix.os }}
       useCache: false
-      # we shouldn't be hardcoding the jsforce version here, but 28 is broken.
-      preSwapCommands: 'yarn upgrade jsforce@2.0.0-beta.27; npx yarn-deduplicate; yarn install'
+      preSwapCommands: 'yarn upgrade jsforce@beta; npx yarn-deduplicate; yarn install'
       preExternalBuildCommands: 'shx rm -rf node_modules/@salesforce/core/node_modules/jsforce shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core node_modules/@salesforce/cli-plugins-testkit/node_modules/@salesforce/core node_modules/@salesforce/source-tracking/node_modules/@salesforce/core node_modules/@salesforce/source-deploy-retrieve/node_modules/@salesforce/core'
     secrets: inherit
   # hidden until we fix source-testkit to better handle jwt
@@ -69,8 +68,7 @@ jobs:
     with:
       packageName: '@salesforce/core'
       externalProjectGitUrl: 'https://github.com/salesforcecli/plugin-deploy-retrieve'
-      # we shouldn't be hardcoding the jsforce version here, but 28 is broken.
-      preSwapCommands: 'yarn upgrade jsforce@2.0.0-beta.27; npx yarn-deduplicate; yarn install'
+      preSwapCommands: 'yarn upgrade jsforce@beta; npx yarn-deduplicate; yarn install'
       command: ${{ matrix.command }}
       os: ${{ matrix.os }}
       preExternalBuildCommands: 'shx rm -rf node_modules/@salesforce/core/node_modules/jsforce shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core node_modules/@salesforce/cli-plugins-testkit/node_modules/@salesforce/core node_modules/@salesforce/source-tracking/node_modules/@salesforce/core node_modules/@salesforce/source-deploy-retrieve/node_modules/@salesforce/core'
