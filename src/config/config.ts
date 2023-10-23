@@ -293,8 +293,6 @@ export const SfProperty: { [index: string]: ConfigPropertyMeta } = {};
  */
 export type ConfigProperties = ConfigContents;
 
-const sfdxPropKeys = new Set(Object.values(SfdxPropertyKeys) as string[]);
-
 /**
  * The files where sfdx config values are stored for projects and the global space.
  *
@@ -595,45 +593,6 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
           this.set(key, ensure(encrypt ? crypto.encrypt(value) : crypto.decrypt(value)));
         }
       });
-    }
-  }
-}
-
-export class SfdxConfig {
-  private sfdxPath: string;
-  public constructor(private options: ConfigFile.Options = {}, private config: Config) {
-    this.sfdxPath = buildSfdxPath(this.options);
-  }
-
-  /**
-   * If Global.SFDX_INTEROPERABILITY is enabled, merge the sfdx config into the sf config
-   */
-  public merge(config: ConfigProperties): ConfigProperties | undefined {
-    if (!Global.SFDX_INTEROPERABILITY) return config;
-    const sfdxConfig = this.readSync();
-
-    // Get a list of config keys that are NOT provided by SfdxPropertyKeys
-    const nonSfdxPropKeys = Config.getAllowedProperties()
-      .filter((p) => !sfdxPropKeys.has(p.key))
-      .map((p) => p.key);
-
-    // Remove any config from .sf that isn't also in .sfdx
-    // This handles the scenario where a config has been deleted
-    // from .sfdx and we want to mirror that change in .sf
-    for (const key of nonSfdxPropKeys) {
-      if (!sfdxConfig[key]) delete config[key];
-    }
-
-    return Object.assign(config, sfdxConfig);
-  }
-
-  private readSync(): ConfigProperties {
-    try {
-      const contents = parseJsonMap<ConfigProperties>(fs.readFileSync(this.sfdxPath, 'utf8'));
-      return translateToSf(contents, this.config);
-    } catch (error) {
-      /* Do nothing */
-      return {};
     }
   }
 }
