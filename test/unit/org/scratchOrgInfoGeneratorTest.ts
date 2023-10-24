@@ -10,7 +10,8 @@ import * as sinon from 'sinon';
 import { expect } from 'chai';
 import { stubMethod, stubInterface } from '@salesforce/ts-sinon';
 import { MockTestOrgData, shouldThrow, TestContext } from '../../../src/testSetup';
-import { Org, Connection } from '../../../src/org';
+import { Org } from '../../../src/org/org';
+import { Connection } from '../../../src/org/connection';
 import {
   ScratchOrgInfoPayload,
   getAncestorIds,

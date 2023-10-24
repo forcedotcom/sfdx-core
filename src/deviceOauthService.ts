@@ -13,7 +13,8 @@ import { HttpRequest, OAuth2Config } from 'jsforce';
 import { ensureString, JsonMap, Nullable } from '@salesforce/ts-types';
 import * as FormData from 'form-data';
 import { Logger } from './logger/logger';
-import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, SFDX_HTTP_HEADERS } from './org';
+import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org/authInfo';
+import { SFDX_HTTP_HEADERS } from './org/connection';
 import { SfError } from './sfError';
 import { Messages } from './messages';
 

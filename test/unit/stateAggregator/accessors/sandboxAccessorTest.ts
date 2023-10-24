@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { StateAggregator } from '../../../../src/stateAggregator';
+import { StateAggregator } from '../../../../src/stateAggregator/stateAggregator';
 import { MockTestOrgData, MockTestSandboxData, TestContext } from '../../../../src/testSetup';
 import { uniqid } from '../../../../src/util/uniqid';
 

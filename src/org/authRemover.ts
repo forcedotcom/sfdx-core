@@ -10,9 +10,9 @@ import { JsonMap } from '@salesforce/ts-types';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
-import { StateAggregator } from '../stateAggregator';
+import { StateAggregator } from '../stateAggregator/stateAggregator';
 import { OrgConfigProperties } from './orgConfigProperties';
-import { AuthFields } from '.';
+import { AuthFields } from './authInfo';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'auth');

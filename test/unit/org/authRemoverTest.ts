@@ -9,10 +9,10 @@ import { spyMethod } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
 import { AuthRemover } from '../../../src/org/authRemover';
 import { Config } from '../../../src/config/config';
-import { AliasAccessor } from '../../../src/stateAggregator';
+import { AliasAccessor } from '../../../src/stateAggregator/accessors/aliasAccessor';
 import { MockTestOrgData, shouldThrow, TestContext } from '../../../src/testSetup';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
-import { AuthFields } from '../../../src/org';
+import { AuthFields } from '../../../src/org/authInfo';
 import { SfError } from '../../../src/sfError';
 
 describe('AuthRemover', () => {

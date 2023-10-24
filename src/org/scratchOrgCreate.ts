@@ -11,7 +11,7 @@ import { Logger } from '../logger/logger';
 import { ConfigAggregator } from '../config/configAggregator';
 import { OrgConfigProperties } from '../org/orgConfigProperties';
 import { SfProject } from '../sfProject';
-import { StateAggregator } from '../stateAggregator';
+import { StateAggregator } from '../stateAggregator/stateAggregator';
 import { Org } from './org';
 import {
   authorizeScratchOrg,

@@ -20,11 +20,14 @@ import { Transport } from 'jsforce/lib/transport';
 
 import { OAuth2 } from 'jsforce';
 import { SinonSpy, SinonStub, match } from 'sinon';
-import { AuthFields, AuthInfo, Org } from '../../../src/org';
+import { Org } from '../../../src/org/org';
+import { AuthFields, AuthInfo } from '../../../src/org/authInfo';
 import { JwtOAuth2Config } from '../../../src/org/authInfo';
 import { MockTestOrgData, shouldThrow, shouldThrowSync, TestContext } from '../../../src/testSetup';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
-import { AliasAccessor, OrgAccessor, StateAggregator } from '../../../src/stateAggregator';
+import { StateAggregator } from '../../../src/stateAggregator/stateAggregator';
+import { AliasAccessor } from '../../../src/stateAggregator/accessors/aliasAccessor';
+import { OrgAccessor } from '../../../src/stateAggregator/accessors/orgAccessor';
 import { Crypto } from '../../../src/crypto/crypto';
 import { Config } from '../../../src/config/config';
 import { SfdcUrl } from '../../../src/util/sfdcUrl';

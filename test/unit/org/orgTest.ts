@@ -16,15 +16,10 @@ import { assert, expect, config as chaiConfig } from 'chai';
 import { OAuth2 } from 'jsforce';
 import { Transport } from 'jsforce/lib/transport';
 import { SinonSpy, SinonStub } from 'sinon';
-import {
-  AuthInfo,
-  Connection,
-  Org,
-  SandboxEvents,
-  SandboxProcessObject,
-  SandboxUserAuthResponse,
-  SingleRecordQueryErrors,
-} from '../../../src/org';
+import { Org, SandboxEvents, SandboxProcessObject, SandboxUserAuthResponse } from '../../../src/org/org';
+import { AuthInfo } from '../../../src/org/authInfo';
+import {} from '../../../src/org/connection';
+import { Connection, SingleRecordQueryErrors } from '../../../src/org/connection';
 import { Config } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
@@ -32,7 +27,7 @@ import { OrgUsersConfig } from '../../../src/config/orgUsersConfig';
 import { Global } from '../../../src/global';
 import { MockTestOrgData, shouldThrow, shouldThrowSync, TestContext } from '../../../src/testSetup';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
-import { StateAggregator } from '../../../src/stateAggregator';
+import { StateAggregator } from '../../../src/stateAggregator/stateAggregator';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { Messages } from '../../../src/messages';
 import { SfError } from '../../../src/sfError';

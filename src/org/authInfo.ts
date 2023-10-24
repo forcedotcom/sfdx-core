@@ -34,7 +34,7 @@ import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { matchesAccessToken, trimTo15 } from '../util/sfdc';
-import { StateAggregator } from '../stateAggregator';
+import { StateAggregator } from '../stateAggregator/stateAggregator';
 import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';

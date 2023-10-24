@@ -8,7 +8,8 @@
 import * as path from 'path';
 import * as sinon from 'sinon';
 import { expect } from 'chai';
-import { Org, Connection } from '../../../src/org';
+import { Org } from '../../../src/org/org';
+import { Connection } from '../../../src/org/connection';
 import { validateApiVersion } from '../../../src/util/sfdc';
 import { ZipWriter } from '../../../src/util/zipWriter';
 import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';

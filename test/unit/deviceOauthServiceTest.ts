@@ -12,7 +12,8 @@ import { StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
 import { MockTestOrgData, TestContext } from '../../src/testSetup';
 import { DeviceOauthService } from '../../src/deviceOauthService';
-import { AuthFields, AuthInfo, DEFAULT_CONNECTED_APP_INFO, SFDX_HTTP_HEADERS } from '../../src/org';
+import { AuthFields, AuthInfo, DEFAULT_CONNECTED_APP_INFO } from '../../src/org/authInfo';
+import { SFDX_HTTP_HEADERS } from '../../src/org/connection';
 
 const deviceCodeResponse = {
   device_code: '1234',

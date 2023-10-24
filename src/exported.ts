@@ -18,7 +18,7 @@ export { envVars, EnvironmentVariable, SUPPORTED_ENV_VARS, EnvVars } from './con
 
 export { ConfigStore } from './config/configStore';
 export { ConfigEntry, ConfigContents, ConfigValue } from './config/configStackTypes';
-export { StateAggregator } from './stateAggregator';
+export { StateAggregator } from './stateAggregator/stateAggregator';
 
 export { DeviceOauthService, DeviceCodeResponse, DeviceCodePollingResponse } from './deviceOauthService';
 
@@ -70,7 +70,7 @@ export {
   OrgTypes,
   ResultEvent,
   ScratchOrgRequest,
-} from './org';
+} from './org/org';
 
 export { OrgConfigProperties, ORG_CONFIG_ALLOWED_PROPERTIES } from './org/orgConfigProperties';
 

@@ -11,7 +11,7 @@ import { Nullable, entriesOf } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, isEmpty } from '@salesforce/kit';
 import { AuthInfoConfig } from '../../config/authInfoConfig';
 import { Global } from '../../global';
-import { AuthFields } from '../../org';
+import { AuthFields } from '../../org/authInfo';
 import { ConfigFile } from '../../config/configFile';
 import { ConfigContents } from '../../config/configStackTypes';
 import { Logger } from '../../logger/logger';
