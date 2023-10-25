@@ -281,6 +281,10 @@ const fileContentsRawToAliasStore = (contents: string): Map<string, string> => {
     [DEFAULT_GROUP]: { [alias: string]: string };
   };
 
+  // old alias file may not have `orgs` prop
+  if (!fileContents[DEFAULT_GROUP]) {
+    fileContents[DEFAULT_GROUP] = {};
+  }
   return new Map(Object.entries(fileContents[DEFAULT_GROUP]));
 };
 
