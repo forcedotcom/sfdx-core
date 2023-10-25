@@ -527,7 +527,7 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
 
   const readSync = function (this: ConfigFile<ConfigFile.Options>, newContents?: JsonMap): JsonMap {
     const stub = initStubForRead(this);
-    this.setContentsFromFileContents(newContents ?? stub.contents ?? {}, BigInt(Date.now()));
+    this.setContentsFromFileContents(newContents ?? stub.contents ?? {});
     return this.getContents();
   };
 

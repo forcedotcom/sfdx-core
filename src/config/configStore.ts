@@ -10,6 +10,7 @@ import { entriesOf, isPlainObject } from '@salesforce/ts-types';
 import { definiteEntriesOf, definiteValuesOf, isJsonMap, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import { Crypto } from '../crypto/crypto';
 import { SfError } from '../sfError';
+import { nowBigInt } from '../util/time';
 import { LWWMap, stateFromContents } from './lwwMap';
 import { ConfigContents, ConfigEntry, ConfigValue, Key } from './configStackTypes';
 
@@ -265,8 +266,12 @@ export abstract class BaseConfigStore<
     });
   }
 
-  protected setContentsFromFileContents(contents: P, timestamp: bigint): void {
-    const state = stateFromContents(contents, timestamp);
+  /** Keep ConfigFile concurrency-friendly.
+   * Avoid using this unless you're reading the file for the first time
+   * and guaranteed to no be cross-saving existing contents
+   * */
+  protected setContentsFromFileContents(contents: P, timestamp?: bigint): void {
+    const state = stateFromContents(contents, timestamp ?? nowBigInt());
     this.contents = new LWWMap<P>(state);
   }
 

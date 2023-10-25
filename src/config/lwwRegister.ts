@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { nowBigInt } from '../util/time';
+
 type LWWRegisterState<T> = { timestamp: bigint; value: T };
 
 /** a CRDT implementation.  Uses timestamps to resolve conflicts when updating the value (last write wins)
@@ -19,8 +21,12 @@ export class LWWRegister<T> {
     return this.state.value;
   }
 
+  public get timestamp(): bigint {
+    return this.state.timestamp;
+  }
+
   public set(value: T): void {
-    this.state = { timestamp: process.hrtime.bigint(), value };
+    this.state = { timestamp: nowBigInt(), value };
   }
 
   public merge(incoming: LWWRegisterState<T>): LWWRegisterState<T> {

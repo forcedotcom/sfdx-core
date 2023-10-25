@@ -1,6 +1,6 @@
 import { AuthInfo } from '../src/org/authInfo';
 import { Connection } from '../src/org/connection';
-import { Org } from '../src/org';
+import { Org } from '../src/org/org';
 
 // tslint:disable
 export const orgExamples = {
