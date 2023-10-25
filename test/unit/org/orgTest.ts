@@ -640,9 +640,8 @@ describe('Org Tests', () => {
       expect(info).has.property('value', org0Username);
 
       const org1Username = orgs[1].getUsername();
-
+      assert(org1Username);
       const stateAggregator = await StateAggregator.getInstance();
-      // @ts-expect-error: user is nullable
       stateAggregator.aliases.set('foo', org1Username);
       const user = stateAggregator.aliases.getUsername('foo');
       expect(user).eq(org1Username);

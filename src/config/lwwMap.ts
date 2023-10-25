@@ -6,6 +6,7 @@
  */
 
 import { entriesOf } from '@salesforce/ts-types';
+import { nowBigInt } from '../util/time';
 import { LWWRegister } from './lwwRegister';
 import { ConfigContents, Key } from './configStackTypes';
 
@@ -19,15 +20,18 @@ export type LWWState<P> = {
  * @param contents object aligning with ConfigContents
  * @param timestamp a bigInt that sets the timestamp.  Defaults to the current time
  * construct a LWWState from an object
- *
+ * @param keysToCheckForDeletion if a key is in this array, AND not in the contents, it will be marked as deleted
  * */
-export const stateFromContents = <P extends ConfigContents>(
-  contents: P,
-  timestamp = process.hrtime.bigint()
-): LWWState<P> =>
+export const stateFromContents = <P extends ConfigContents>(contents: P, timestamp?: bigint): LWWState<P> =>
   Object.fromEntries(
-    entriesOf(contents).map(([key, value]) => [key, new LWWRegister({ timestamp, value })])
-  ) as unknown as LWWState<P>;
+    entriesOf(contents).map(
+      ([key, value]): [keyof P, LWWRegister<P[typeof key] | typeof SYMBOL_FOR_DELETED>['state']] => [
+        key,
+        new LWWRegister<typeof value>({ timestamp: timestamp ?? nowBigInt(), value }),
+      ]
+    )
+    // I'd love to get rid of this ASsertion but don't know how.
+  ) as LWWState<P>;
 
 export class LWWMap<P extends ConfigContents> {
   /** map of key to LWWRegister.  Used for managing conflicts */
@@ -56,7 +60,10 @@ export class LWWMap<P extends ConfigContents> {
     ) as LWWState<P>;
   }
 
+  // Merge top-level properties of the incoming state with the current state.
+  // The value with the latest timestamp wins.
   public merge(state: LWWState<P>): LWWState<P> {
+    // properties that are in the incoming state but not the current state might have been deleted.
     // recursively merge each key's register with the incoming state for that key
     for (const [key, remote] of entriesOf(state)) {
       const local = this.#data.get(key);
@@ -75,7 +82,7 @@ export class LWWMap<P extends ConfigContents> {
     // if the register already exists, set the value
     if (register) register.set(value);
     // otherwise, instantiate a new `LWWRegister` with the value
-    else this.#data.set(key, new LWWRegister({ timestamp: process.hrtime.bigint(), value }));
+    else this.#data.set(key, new LWWRegister({ timestamp: nowBigInt(), value }));
   }
 
   public get<K extends Key<P>>(key: K): P[K] | undefined {
@@ -88,7 +95,10 @@ export class LWWMap<P extends ConfigContents> {
   public delete<K extends Key<P>>(key: K): void {
     this.#data.set(
       key,
-      new LWWRegister<typeof SYMBOL_FOR_DELETED>({ timestamp: process.hrtime.bigint(), value: SYMBOL_FOR_DELETED })
+      new LWWRegister<typeof SYMBOL_FOR_DELETED>({
+        timestamp: nowBigInt(),
+        value: SYMBOL_FOR_DELETED,
+      })
     );
   }
 

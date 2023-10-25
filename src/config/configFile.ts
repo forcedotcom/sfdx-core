@@ -8,7 +8,7 @@
 import * as fs from 'fs';
 import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { homedir as osHomedir } from 'os';
-import { dirname as pathDirname, join as pathJoin } from 'path';
+import { basename, dirname as pathDirname, join as pathJoin } from 'path';
 import { lock, lockSync } from 'proper-lockfile';
 import { parseJsonMap } from '@salesforce/kit';
 import { Global } from '../global';
@@ -179,7 +179,7 @@ export class ConfigFile<
       this.hasRead = true;
       if ((err as SfError).code === 'ENOENT') {
         if (!throwOnNotFound) {
-          this.setContentsFromFileContents({} as P, process.hrtime.bigint());
+          this.setContentsFromFileContents({} as P);
           return this.getContents();
         }
       }
@@ -215,7 +215,7 @@ export class ConfigFile<
       this.hasRead = true;
       if ((err as SfError).code === 'ENOENT') {
         if (!throwOnNotFound) {
-          this.setContentsFromFileContents({} as P, process.hrtime.bigint());
+          this.setContentsFromFileContents({} as P);
           return this.getContents();
         }
       }
@@ -244,7 +244,16 @@ export class ConfigFile<
     let unlockFn: (() => Promise<void>) | undefined;
     // lock the file.  Returns an unlock function to call when done.
     try {
-      unlockFn = await lock(this.getPath(), lockRetryOptions);
+      if (await this.exists()) {
+        unlockFn = await lock(this.getPath(), lockRetryOptions);
+      } else {
+        // lock the entire directory to keep others from trying to create the file while we are
+        unlockFn = await lock(basename(this.getPath()), lockRetryOptions);
+        this.logger.debug(
+          `No file found at ${this.getPath()}.  Write will create it.  Locking the entire directory until file is written.`
+        );
+      }
+
       // get the file modstamp.  Do this after the lock acquisition in case the file is being written to.
       const fileTimestamp = (await fs.promises.stat(this.getPath(), { bigint: true })).mtimeNs;
 
@@ -253,6 +262,7 @@ export class ConfigFile<
         parseJsonMap<P>(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath()),
         fileTimestamp
       );
+
       // merge the new contents into the in-memory LWWMap
       this.contents.merge(stateFromFile);
     } catch (err) {

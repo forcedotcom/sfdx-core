@@ -9,18 +9,21 @@ import { LWWMap, LWWState, SYMBOL_FOR_DELETED } from '../../../src/config/lwwMap
 import { nowBigInt } from '../../../src/util/time';
 
 config.truncateThreshold = 0;
-const TIMESTAMP_OFFSET = BigInt(1_000_000);
+// unit is ns. 1_000_000_000 ns = 1s
+const TIMESTAMP_OFFSET = BigInt(1_000_000_000);
 
 describe('LWWMap', () => {
   type TestType = { foo: string; baz: string; opt?: number; optNull?: null };
+  let state: LWWState<TestType>;
+
   describe('all properties are known', () => {
-    const state = {
-      foo: { value: 'bar', timestamp: nowBigInt() },
-      baz: { value: 'qux', timestamp: nowBigInt() },
-    };
     let lwwMap: LWWMap<TestType>;
 
     beforeEach(() => {
+      state = {
+        foo: { value: 'bar', timestamp: nowBigInt() },
+        baz: { value: 'qux', timestamp: nowBigInt() },
+      };
       lwwMap = new LWWMap(state);
     });
 
@@ -154,24 +157,28 @@ describe('LWWMap', () => {
       expect(lwwMap.state.gone.value).to.equal(SYMBOL_FOR_DELETED);
     });
   });
-  describe('nested objects', () => {
-    const state = {
+});
+
+describe('nested objects', () => {
+  type NestedOpenEndedObject = { foo: string; baz: string; opt?: number; optNull?: null; obj: Record<string, number> };
+
+  let state: LWWState<NestedOpenEndedObject>;
+  let lwwMap: LWWMap<NestedOpenEndedObject>;
+
+  beforeEach(() => {
+    state = {
       foo: { value: 'bar', timestamp: nowBigInt() },
       baz: { value: 'qux', timestamp: nowBigInt() },
       obj: { value: { a: 1, b: 2, c: 3 }, timestamp: nowBigInt() },
     };
-    let lwwMap: LWWMap<{ foo: string; baz: string; opt?: number; optNull?: null }>;
+    lwwMap = new LWWMap(state);
+  });
 
-    beforeEach(() => {
-      lwwMap = new LWWMap(state);
-    });
+  it('should initialize with the correct state', () => {
+    expect(lwwMap.state).to.deep.equal(state);
+  });
 
-    it('should initialize with the correct state', () => {
-      expect(lwwMap.state).to.deep.equal(state);
-    });
-
-    it('should get the correct value for the entire object', () => {
-      expect(lwwMap.value).to.deep.equal({ foo: 'bar', baz: 'qux', obj: { a: 1, b: 2, c: 3 } });
-    });
+  it('should get the correct value for the entire object', () => {
+    expect(lwwMap.value).to.deep.equal({ foo: 'bar', baz: 'qux', obj: { a: 1, b: 2, c: 3 } });
   });
 });
