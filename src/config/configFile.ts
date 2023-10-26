@@ -163,7 +163,7 @@ export class ConfigFile<
       // Only need to read config files once.  They are kept up to date
       // internally and updated persistently via write().
       if (!this.hasRead || force) {
-        this.logger.info(
+        this.logger.debug(
           `Reading config file: ${this.getPath()} because ${
             !this.hasRead ? 'hasRead is false' : 'force parameter is true'
           }`
@@ -203,7 +203,7 @@ export class ConfigFile<
       // Only need to read config files once.  They are kept up to date
       // internally and updated persistently via write().
       if (!this.hasRead || force) {
-        this.logger.info(`Reading config file: ${this.getPath()}`);
+        this.logger.debug(`Reading config file: ${this.getPath()}`);
         const obj = parseJsonMap<P>(fs.readFileSync(this.getPath(), 'utf8'));
         this.setContentsFromFileContents(obj, fs.statSync(this.getPath(), { bigint: true }).mtimeNs);
       }
@@ -256,25 +256,14 @@ export class ConfigFile<
 
       // get the file modstamp.  Do this after the lock acquisition in case the file is being written to.
       const fileTimestamp = (await fs.promises.stat(this.getPath(), { bigint: true })).mtimeNs;
-
-      // read the file contents into a LWWMap using the modstamp
-      const stateFromFile = stateFromContents<P>(
-        parseJsonMap<P>(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath()),
-        fileTimestamp
-      );
-
-      // merge the new contents into the in-memory LWWMap
-      this.contents.merge(stateFromFile);
+      const fileContents = parseJsonMap<P>(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath());
+      this.logAndMergeContents(fileTimestamp, fileContents);
     } catch (err) {
-      if (err instanceof Error && err.message.includes('ENOENT')) {
-        this.logger.debug(`No file found at ${this.getPath()}.  Write will create it.`);
-      } else {
-        throw err;
-      }
+      this.handleWriteError(err);
     }
     // write the merged LWWMap to file
-    this.logger.info(`Writing to config file: ${this.getPath()}`);
-    await fs.promises.writeFile(this.getPath(), JSON.stringify(this.toObject(), null, 2));
+    this.logger.debug(`Writing to config file: ${this.getPath()}`);
+    await fs.promises.writeFile(this.getPath(), JSON.stringify(this.getContents(), null, 2));
 
     // unlock the file
     if (typeof unlockFn !== 'undefined') {
@@ -303,25 +292,15 @@ export class ConfigFile<
       unlockFn = lockSync(this.getPath(), lockOptions);
       // get the file modstamp.  Do this after the lock acquisition in case the file is being written to.
       const fileTimestamp = fs.statSync(this.getPath(), { bigint: true }).mtimeNs;
-
-      // read the file contents into a LWWMap using the modstamp
-      const stateFromFile = stateFromContents<P>(
-        parseJsonMap<P>(fs.readFileSync(this.getPath(), 'utf8'), this.getPath()),
-        fileTimestamp
-      );
-      // merge the new contents into the in-memory LWWMap
-      this.contents.merge(stateFromFile);
+      const fileContents = parseJsonMap<P>(fs.readFileSync(this.getPath(), 'utf8'), this.getPath());
+      this.logAndMergeContents(fileTimestamp, fileContents);
     } catch (err) {
-      if (err instanceof Error && err.message.includes('ENOENT')) {
-        this.logger.debug(`No file found at ${this.getPath()}.  Write will create it.`);
-      } else {
-        throw err;
-      }
+      this.handleWriteError(err);
     }
 
     // write the merged LWWMap to file
 
-    this.logger.info(`Writing to config file: ${this.getPath()}`);
+    this.logger.trace(`Writing to config file: ${this.getPath()}`);
     fs.writeFileSync(this.getPath(), JSON.stringify(this.toObject(), null, 2));
 
     if (typeof unlockFn !== 'undefined') {
@@ -436,6 +415,27 @@ export class ConfigFile<
 
     // Read the file, which also sets the path and throws any errors around project paths.
     await this.read(this.options.throwOnNotFound);
+  }
+
+  // method exists to share code between write() and writeSync()
+  private logAndMergeContents(fileTimestamp: bigint, fileContents: P): void {
+    this.logger.debug(`Existing file contents on filesystem (timestamp: ${fileTimestamp.toString()}`, fileContents);
+    this.logger.debug('Contents in configFile in-memory', this.getContents());
+
+    // read the file contents into a LWWMap using the modstamp
+    const stateFromFile = stateFromContents<P>(fileContents, fileTimestamp);
+    // merge the new contents into the in-memory LWWMap
+    this.contents.merge(stateFromFile);
+    this.logger.debug('Result from merge', this.getContents());
+  }
+
+  // shared error handling for both write() and writeSync()
+  private handleWriteError(err: unknown): void {
+    if (err instanceof Error && err.message.includes('ENOENT')) {
+      this.logger.debug(`No file found at ${this.getPath()}.  Write will create it.`);
+    } else {
+      throw err;
+    }
   }
 }
 
