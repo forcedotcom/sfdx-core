@@ -1,3 +1,12 @@
+## [5.3.13](https://github.com/forcedotcom/sfdx-core/compare/5.3.12...5.3.13) (2023-10-26)
+
+
+### Bug Fixes
+
+* handle alias file with no `orgs` prop ([c59c7c7](https://github.com/forcedotcom/sfdx-core/commit/c59c7c7387f159537b9d352057299842f864b864))
+
+
+
 ## [5.3.12](https://github.com/forcedotcom/sfdx-core/compare/5.3.11...5.3.12) (2023-10-24)
 
 
