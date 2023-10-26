@@ -40,7 +40,7 @@
   ],
   "dependencies": {
     "@salesforce/kit": "^3.0.14",
-    "@salesforce/schemas": "^1.6.0",
+    "@salesforce/schemas": "^1.6.1",
     "@salesforce/ts-types": "^2.0.8",
     "@types/semver": "^7.5.3",
     "ajv": "^8.12.0",
