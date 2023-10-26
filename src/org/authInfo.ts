@@ -362,7 +362,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     sfdxAuthUrl: string
   ): Pick<AuthFields, 'clientId' | 'clientSecret' | 'refreshToken' | 'loginUrl'> {
     const match = sfdxAuthUrl.match(
-      /^force:\/\/([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]*):([a-zA-Z0-9._-]+={0,2})@([a-zA-Z0-9._-]+)/
+      /^force:\/\/([a-zA-Z0-9._-]+={0,2}):([a-zA-Z0-9._-]*={0,2}):([a-zA-Z0-9._-]+={0,2})@([a-zA-Z0-9._-]+)/
     );
 
     if (!match) {
