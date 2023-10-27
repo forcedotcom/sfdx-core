@@ -54,9 +54,7 @@ export class LWWMap<P extends ConfigContents> {
 
   public get state(): LWWState<P> {
     return Object.fromEntries(
-      Array.from(this.#data.entries())
-        // .filter(([, register]) => Boolean(register))
-        .map(([key, register]) => [key, register.state])
+      Array.from(this.#data.entries()).map(([key, register]) => [key, register.state])
     ) as LWWState<P>;
   }
 

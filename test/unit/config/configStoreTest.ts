@@ -48,17 +48,6 @@ describe('ConfigStore', () => {
     });
     expect(st).to.equal('1a2b');
   });
-  it('await each value', async () => {
-    const config = await TestConfig.create();
-    config.set('1', 'a');
-    config.set('2', 'b');
-
-    let st = '';
-    await config.awaitEach(async (key, val) => {
-      st += `${key}${val}`;
-    });
-    expect(st).to.equal('1a2b');
-  });
 
   it('returns the object reference', async () => {
     const config = new TestConfig<{ '1': { a: string } }>();

@@ -13,8 +13,9 @@ But that comes with breaking changes to to reduce the risk of "getting around" t
 - AuthInfo.getFields now returns a read-only object. Use AuthInfo.update to change values in the fields.
 - `setContents` method is no longer available in the ConfigFile stack. Use `update` to merge in multiple props, or `set/unset` on a single prop.
 - `write` and `writeSync` method no longer accepts a param. Use other methods (`set`, `unset`, `update) to make modifications, then call write()/writeSync() to do the write.
-- the use of lodash-style `get`/`set` (ex: `set('foo.bar.baz[0]', 3)`) no longer works.
-- You can no longer override the `setMethod` and `getMethod`` when extending classes built on ConfigFile. Technically you could override get/set, but DON'T!
+- the use of lodash-style `get`/`set`/`unset`/`unsetAll` (ex: `set('foo.bar.baz[0]', 3)`) no longer works.
+- `awaitEach` is removed
+- You can no longer override the `setMethod` and `getMethod` when extending classes built on ConfigFile. Technically you could override get/set, but DON'T!
 - Everything related to tokens/tokenConfig is gone
 
 ## Unrelated changes that we did because it's a major version

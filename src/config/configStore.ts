@@ -35,7 +35,6 @@ export interface ConfigStore<P extends ConfigContents = ConfigContents> {
   values(): ConfigValue[];
 
   forEach(actionFn: (key: string, value: ConfigValue) => void): void;
-  awaitEach(actionFn: (key: string, value: ConfigValue) => Promise<void>): Promise<void>;
 
   // Content methods
   getContents(): P;
@@ -188,7 +187,7 @@ export abstract class BaseConfigStore<
    * Returns `true` if all elements in the config object existed and have been removed, or `false` if all the elements
    * do not exist (some may have been removed). {@link BaseConfigStore.has(key)} will return false afterwards.
    *
-   * @param keys The keys. Supports query keys like `a.b[0]`.
+   * @param keys The keys
    */
   public unsetAll(keys: Array<Key<P>>): boolean {
     return keys.map((key) => this.unset(key)).every(Boolean);
@@ -235,18 +234,6 @@ export abstract class BaseConfigStore<
   }
 
   /**
-   * Asynchronously invokes `actionFn` once for each key-value pair present in the config object.
-   *
-   * @param {function} actionFn The function `(key: string, value: ConfigValue) => Promise<void>` to be called for
-   * each element.
-   * @returns {Promise<void>}
-   */
-  public async awaitEach(actionFn: (key: string, value: ConfigValue) => Promise<void>): Promise<void> {
-    const entries = this.entries();
-    await Promise.all(entries.map((entry) => actionFn(entry[0], entry[1])));
-  }
-
-  /**
    * Convert the config object to a JSON object. Returns the config contents.
    * Same as calling {@link ConfigStore.getContents}
    */
@@ -266,7 +253,8 @@ export abstract class BaseConfigStore<
     });
   }
 
-  /** Keep ConfigFile concurrency-friendly.
+  /**
+   * Keep ConfigFile concurrency-friendly.
    * Avoid using this unless you're reading the file for the first time
    * and guaranteed to no be cross-saving existing contents
    * */
