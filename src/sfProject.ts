@@ -43,6 +43,7 @@ export type PackageDir = {
   postInstallScript?: string;
   postInstallUrl?: string;
   releaseNotesUrl?: string;
+  scopeProfiles?: boolean;
   uninstallScript?: string;
   versionDescription?: string;
   versionName?: string;

@@ -1,3 +1,16 @@
+## [5.3.14](https://github.com/forcedotcom/sfdx-core/compare/5.3.13...5.3.14) (2023-10-26)
+
+### Bug Fixes
+
+- add scopeProfiles to project type ([b130982](https://github.com/forcedotcom/sfdx-core/commit/b1309829cbcc8511e60cb6c88a5721edb3c060dd))
+- update schemas dep ([3f70e8f](https://github.com/forcedotcom/sfdx-core/commit/3f70e8fcc64aff0a0a10a864f32aa6325a2ba144))
+
+## [5.3.13](https://github.com/forcedotcom/sfdx-core/compare/5.3.12...5.3.13) (2023-10-26)
+
+### Bug Fixes
+
+- handle alias file with no `orgs` prop ([c59c7c7](https://github.com/forcedotcom/sfdx-core/commit/c59c7c7387f159537b9d352057299842f864b864))
+
 ## [5.3.12](https://github.com/forcedotcom/sfdx-core/compare/5.3.11...5.3.12) (2023-10-24)
 
 ### Bug Fixes
