@@ -254,7 +254,6 @@ export class ConfigFile<
         );
       }
 
-      // get the file modstamp.  Do this after the lock acquisition in case the file is being written to.
       const fileTimestamp = (await fs.promises.stat(this.getPath(), { bigint: true })).mtimeNs;
       const fileContents = parseJsonMap<P>(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath());
       this.logAndMergeContents(fileTimestamp, fileContents);
@@ -263,11 +262,13 @@ export class ConfigFile<
     }
     // write the merged LWWMap to file
     this.logger.debug(`Writing to config file: ${this.getPath()}`);
-    await fs.promises.writeFile(this.getPath(), JSON.stringify(this.getContents(), null, 2));
-
-    // unlock the file
-    if (typeof unlockFn !== 'undefined') {
-      await unlockFn();
+    try {
+      await fs.promises.writeFile(this.getPath(), JSON.stringify(this.getContents(), null, 2));
+    } finally {
+      // unlock the file
+      if (typeof unlockFn !== 'undefined') {
+        await unlockFn();
+      }
     }
 
     return this.getContents();
@@ -301,12 +302,15 @@ export class ConfigFile<
     // write the merged LWWMap to file
 
     this.logger.trace(`Writing to config file: ${this.getPath()}`);
-    fs.writeFileSync(this.getPath(), JSON.stringify(this.toObject(), null, 2));
-
-    if (typeof unlockFn !== 'undefined') {
-      // unlock the file
-      unlockFn();
+    try {
+      fs.writeFileSync(this.getPath(), JSON.stringify(this.toObject(), null, 2));
+    } finally {
+      if (typeof unlockFn !== 'undefined') {
+        // unlock the file
+        unlockFn();
+      }
     }
+
     return this.getContents();
   }
 

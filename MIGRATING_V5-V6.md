@@ -6,7 +6,7 @@ We've had a series of bugs where files controlled by the config stack could lose
 
 V6 introducing a file locking mechanism previously only available on the `alias` file and a process of resolving conflicts based on timestamps.
 
-But that comes with breaking changes to to reduce the risk of "getting around" the safeties.
+But that comes with breaking changes to reduce the risk of "getting around" the safeties.
 
 ## Breaking changes related to the Config Stack
 

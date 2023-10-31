@@ -387,7 +387,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
 
     await config.read();
 
-    if (value == null || value === undefined) {
+    if (value == null) {
       config.unset(propertyName);
     } else {
       config.set(propertyName, value);
@@ -598,8 +598,8 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
 }
 
 /**
- * If toOld is specified: migrate all deprecated configs back to their original key.
- * - For example, target-org will be renamed to defaultusername.
+ * convert from "new" to "old" config names
+ * - For example, `target-org` will be renamed to `defaultusername`.
  */
 const translateToSfdx = (sfContents: ConfigProperties): ConfigProperties =>
   Object.fromEntries(
@@ -610,8 +610,8 @@ const translateToSfdx = (sfContents: ConfigProperties): ConfigProperties =>
   );
 
 /**
- * If toOld is specified: migrate all deprecated configs to the new key.
- * - For example, target-org will be renamed to defaultusername.
+ * convert from "old" to "new" config names
+ * - For example, `defaultusername` will be renamed to `target-org`
  */
 const translateToSf = (sfdxContents: ConfigProperties, SfConfig: Config): ConfigProperties =>
   Object.fromEntries(
@@ -642,20 +642,23 @@ const writeToSfdx = async (path: string, contents: ConfigProperties): Promise<vo
     const translated = translateToSfdx(contents);
     await fs.promises.mkdir(pathDirname(path), { recursive: true });
     await fs.promises.writeFile(path, JSON.stringify(translated, null, 2));
-  } catch (error) {
-    /* Do nothing */
+  } catch (e) {
+    const logger = Logger.childFromRoot('core:config:writeToSfdx');
+    logger.debug(`Error writing to sfdx config file at ${path}: ${e instanceof Error ? e.message : ''}`);
   }
 };
 
 /** turn the sfdx config file into a LWWState based on its contents and its timestamp */
-const stateFromSfdxFileSync = (filePath: string, config: Config): LWWState<ConfigProperties> => {
+const stateFromSfdxFileSync = (path: string, config: Config): LWWState<ConfigProperties> => {
   try {
-    const fileContents = fs.readFileSync(filePath, 'utf8');
-    const mtimeNs = fs.statSync(filePath, { bigint: true }).mtimeNs;
-    const translatedContents = translateToSf(parseJsonMap<ConfigProperties>(fileContents, filePath), config);
+    const fileContents = fs.readFileSync(path, 'utf8');
+    const mtimeNs = fs.statSync(path, { bigint: true }).mtimeNs;
+    const translatedContents = translateToSf(parseJsonMap<ConfigProperties>(fileContents, path), config);
     // get the file timestamp
     return stateFromContents(translatedContents, mtimeNs);
   } catch (e) {
+    const logger = Logger.childFromRoot('core:config:stateFromSfdxFileSync');
+    logger.debug(`Error reading state from sfdx config file at ${path}: ${e instanceof Error ? e.message : ''}`);
     return {};
   }
 };
