@@ -39,7 +39,7 @@
     "messageTransformer/messageTransformer.ts"
   ],
   "dependencies": {
-    "@salesforce/kit": "^3.0.14",
+    "@salesforce/kit": "^3.0.15",
     "@salesforce/schemas": "^1.6.1",
     "@salesforce/ts-types": "^2.0.9",
     "@types/semver": "^7.5.3",
@@ -59,7 +59,7 @@
     "ts-retry-promise": "^0.7.1"
   },
   "devDependencies": {
-    "@salesforce/dev-config": "^4.0.1",
+    "@salesforce/dev-config": "^4.1.0",
     "@salesforce/dev-scripts": "^5.11.0",
     "@salesforce/prettier-config": "^0.0.3",
     "@salesforce/ts-sinon": "^1.4.18",
@@ -74,7 +74,7 @@
     "benchmark": "^2.1.4",
     "chai": "^4.3.10",
     "chai-string": "^1.5.0",
-    "eslint": "^8.51.0",
+    "eslint": "^8.52.0",
     "eslint-config-prettier": "^8.10.0",
     "eslint-config-salesforce": "^2.0.2",
     "eslint-config-salesforce-license": "^0.2.0",

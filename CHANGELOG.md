@@ -1,3 +1,15 @@
+## [5.3.16](https://github.com/forcedotcom/sfdx-core/compare/5.3.15...5.3.16) (2023-10-29)
+
+### Bug Fixes
+
+- **deps:** bump @salesforce/kit from 3.0.14 to 3.0.15 ([6189030](https://github.com/forcedotcom/sfdx-core/commit/61890307e557962cc44e02d542c276c56a9329f7))
+
+## [5.3.15](https://github.com/forcedotcom/sfdx-core/compare/5.3.14...5.3.15) (2023-10-29)
+
+### Bug Fixes
+
+- **deps:** bump @salesforce/ts-types from 2.0.8 to 2.0.9 ([80dea3d](https://github.com/forcedotcom/sfdx-core/commit/80dea3dd60e36be37852177b11f4db18e9a8653a))
+
 ## [5.3.14](https://github.com/forcedotcom/sfdx-core/compare/5.3.13...5.3.14) (2023-10-26)
 
 ### Bug Fixes
