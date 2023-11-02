@@ -340,10 +340,11 @@ export class TestContext {
       })
     );
 
-    this.SANDBOX.stub(User.prototype, 'retrieve').callsFake(
-      // @ts-expect-error the real method guarantees a user, but find might not return one
-      (username): Promise<UserFields | undefined> => Promise.resolve(mockUsers.find((org) => org.username === username))
-    );
+    this.SANDBOX.stub(User.prototype, 'retrieve').callsFake((username): Promise<UserFields> => {
+      const user = mockUsers.find((org) => org.username === username);
+      if (!user) throw new SfError('User not found', 'UserNotFoundError');
+      return Promise.resolve(user);
+    });
 
     const retrieveContents = async function (this: { path: string }): Promise<{ usernames?: string[] }> {
       const orgId = basename(this.path.replace('.json', ''));
