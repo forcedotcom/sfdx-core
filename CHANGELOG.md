@@ -1,3 +1,12 @@
+## [5.3.17](https://github.com/forcedotcom/sfdx-core/compare/5.3.16...5.3.17) (2023-11-02)
+
+
+### Bug Fixes
+
+* **deps:** testSetup has non ts-sinon dependency ([9fcb206](https://github.com/forcedotcom/sfdx-core/commit/9fcb206220174af1c20fcc041e127409a41c3593))
+
+
+
 ## [5.3.16](https://github.com/forcedotcom/sfdx-core/compare/5.3.15...5.3.16) (2023-10-29)
 
 
