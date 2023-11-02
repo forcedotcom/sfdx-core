@@ -17,7 +17,6 @@ import { basename, join as pathJoin, dirname } from 'path';
 import * as util from 'util';
 import { SinonSandbox, SinonStatic, SinonStub } from 'sinon';
 
-import { stubMethod } from '@salesforce/ts-sinon';
 import {
   AnyFunction,
   AnyJson,
@@ -291,9 +290,12 @@ export class TestContext {
     );
     const orgMap = new Map(entries);
 
-    stubMethod(this.SANDBOX, OrgAccessor.prototype, 'getAllFiles').resolves([...orgMap.keys()].map((o) => `${o}.json`));
+    // @ts-expect-error because private method
+    this.SANDBOX.stub(OrgAccessor.prototype, 'getAllFiles').resolves([...orgMap.keys()].map((o) => `${o}.json`));
 
-    stubMethod(this.SANDBOX, OrgAccessor.prototype, 'hasFile').callsFake((username: string) => orgMap.has(username));
+    this.SANDBOX.stub(OrgAccessor.prototype, 'hasFile').callsFake((username: string) =>
+      Promise.resolve(orgMap.has(username))
+    );
 
     const retrieveContents = async function (this: { path: string }): Promise<AuthFields> {
       const username = basename(this.path.replace('.json', ''));
@@ -338,7 +340,8 @@ export class TestContext {
       })
     );
 
-    stubMethod(this.SANDBOX, User.prototype, 'retrieve').callsFake(
+    this.SANDBOX.stub(User.prototype, 'retrieve').callsFake(
+      // @ts-expect-error the real method guarantees a user, but find might not return one
       (username): Promise<UserFields | undefined> => Promise.resolve(mockUsers.find((org) => org.username === username))
     );
 
@@ -359,7 +362,8 @@ export class TestContext {
     )) as Array<[string, SandboxFields]>;
     const sandboxMap = new Map(entries);
 
-    stubMethod(this.SANDBOX, SandboxAccessor.prototype, 'getAllFiles').resolves(
+    // @ts-expect-error because private method
+    this.SANDBOX.stub(SandboxAccessor.prototype, 'getAllFiles').resolves(
       [...sandboxMap.keys()].map((o) => `${o}.sandbox.json`)
     );
 
@@ -531,8 +535,8 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
   const stubs: Record<string, SinonStub> = {};
 
   // Most core files create a child logger so stub this to return our test logger.
-  stubMethod(testContext.SANDBOX, Logger, 'child').resolves(testContext.TEST_LOGGER);
-  stubMethod(testContext.SANDBOX, Logger, 'childFromRoot').returns(testContext.TEST_LOGGER);
+  testContext.SANDBOX.stub(Logger, 'child').resolves(testContext.TEST_LOGGER);
+  testContext.SANDBOX.stub(Logger, 'childFromRoot').returns(testContext.TEST_LOGGER);
   testContext.inProject(true);
   testContext.SANDBOXES.CONFIG.stub(ConfigFile, 'resolveRootFolder').callsFake((isGlobal: boolean) =>
     testContext.rootPathRetriever(isGlobal, testContext.id)
@@ -541,7 +545,8 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
     testContext.rootPathRetrieverSync(isGlobal, testContext.id)
   );
 
-  stubMethod(testContext.SANDBOXES.PROJECT, SfProjectJson.prototype, 'doesPackageExist').callsFake(() => true);
+  // @ts-expect-error using private method
+  testContext.SANDBOXES.PROJECT.stub(SfProjectJson.prototype, 'doesPackageExist').callsFake(() => true);
 
   const initStubForRead = (configFile: ConfigFile<ConfigFile.Options>): ConfigStub => {
     const stub: ConfigStub = testContext.configStubs[configFile.constructor.name] ?? {};
@@ -608,13 +613,13 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
     }
   };
 
-  stubs.configWriteSync = stubMethod(testContext.SANDBOXES.CONFIG, ConfigFile.prototype, 'writeSync').callsFake(
-    writeSync
-  );
+  stubs.configWriteSync = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'writeSync').callsFake(writeSync);
 
-  stubs.configWrite = stubMethod(testContext.SANDBOXES.CONFIG, ConfigFile.prototype, 'write').callsFake(write);
+  stubs.configWrite = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(write);
 
-  stubMethod(testContext.SANDBOXES.CRYPTO, Crypto.prototype, 'getKeyChain').callsFake(() =>
+  // @ts-expect-error: getKeyChain is private
+  testContext.SANDBOXES.CRYPTO.stub(Crypto.prototype, 'getKeyChain').callsFake(() =>
+    // @ts-expect-error: not the full type
     Promise.resolve({
       setPassword: () => Promise.resolve(),
       getPassword: (data: Record<string, unknown>, cb: AnyFunction) =>
@@ -622,9 +627,10 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
     })
   );
 
-  stubMethod(testContext.SANDBOXES.CONNECTION, Connection.prototype, 'isResolvable').resolves(true);
+  testContext.SANDBOXES.CONNECTION.stub(Connection.prototype, 'isResolvable').resolves(true);
 
-  stubMethod(testContext.SANDBOXES.CONNECTION, Connection.prototype, 'request').callsFake(function (
+  // @ts-expect-error: just enough of an httpResponse for testing
+  testContext.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(function (
     this: Connection,
     request: string,
     options?: Dictionary
@@ -635,23 +641,25 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
     return testContext.fakeConnectionRequest.call(this, request, options as AnyJson);
   });
 
-  stubMethod(testContext.SANDBOX, aliasAccessorEntireFile, 'getFileLocation').returns(getAliasFileLocation());
+  testContext.SANDBOX.stub(aliasAccessorEntireFile, 'getFileLocation').returns(getAliasFileLocation());
 
-  stubs.configExists = stubMethod(testContext.SANDBOXES.ORGS, OrgAccessor.prototype, 'exists').callsFake(
-    async function (this: OrgAccessor, username: string): Promise<boolean | undefined> {
-      // @ts-expect-error because private member
-      if ([...this.contents.keys()].includes(username)) return Promise.resolve(true);
-      else return Promise.resolve(false);
-    }
-  );
+  stubs.configExists = testContext.SANDBOXES.ORGS.stub(OrgAccessor.prototype, 'exists').callsFake(async function (
+    this: OrgAccessor,
+    username: string
+  ): Promise<boolean> {
+    // @ts-expect-error because private member
+    if ([...this.contents.keys()].includes(username)) return Promise.resolve(true);
+    else return Promise.resolve(false);
+  });
 
-  stubs.configRemove = stubMethod(testContext.SANDBOXES.ORGS, OrgAccessor.prototype, 'remove').callsFake(
-    async function (this: OrgAccessor, username: string): Promise<boolean | undefined> {
-      // @ts-expect-error because private member
-      if ([...this.contents.keys()].includes(username)) return Promise.resolve(true);
-      else return Promise.resolve(false);
-    }
-  );
+  stubs.configRemove = testContext.SANDBOXES.ORGS.stub(OrgAccessor.prototype, 'remove').callsFake(async function (
+    this: OrgAccessor,
+    username: string
+  ): Promise<void> {
+    // @ts-expect-error because private member
+    if ([...this.contents.keys()].includes(username)) return Promise.resolve();
+    else return Promise.resolve();
+  });
 
   // Always start with the default and tests beforeEach or it methods can override it.
   testContext.fakeConnectionRequest = defaultFakeConnectionRequest;
