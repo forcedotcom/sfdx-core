@@ -45,6 +45,23 @@ describe('Logger', () => {
       const logger2 = await Logger.root();
       expect(logger2).to.not.equal(logger1);
     });
+
+    describe('DISABLE_LOG_FILE', () => {
+      const LOG_FILES_DISABLED = process.env.SF_DISABLE_LOG_FILE;
+      before(() => {
+        process.env.SF_DISABLE_LOG_FILE = 'true';
+      });
+      after(() => {
+        process.env.SF_DISABLE_LOG_FILE = LOG_FILES_DISABLED;
+      });
+      it('should construct a new named logger', async () => {
+        const logger1 = new Logger({ name: 'testLogger-noop' });
+        expect(logger1).to.be.instanceof(Logger);
+        // @ts-expect-error testing a private property
+        expect(logger1.memoryLogger).to.be.ok;
+        expect(logger1.getName()).to.equal('testLogger-noop');
+      });
+    });
   });
 
   describe('levels', () => {
