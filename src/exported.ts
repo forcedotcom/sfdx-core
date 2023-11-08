@@ -89,7 +89,7 @@ export { MyDomainResolver } from './status/myDomainResolver';
 export { DefaultUserFields, REQUIRED_FIELDS, User, UserFields } from './org/user';
 
 export { PermissionSetAssignment, PermissionSetAssignmentFields } from './org/permissionSetAssignment';
-
+export { lockInit } from './util/fileLocking';
 export {
   ScratchOrgCreateOptions,
   ScratchOrgCreateResult,

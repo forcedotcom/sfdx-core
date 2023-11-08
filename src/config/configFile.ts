@@ -8,14 +8,13 @@
 import * as fs from 'fs';
 import { constants as fsConstants, Stats as fsStats } from 'fs';
 import { homedir as osHomedir } from 'os';
-import { basename, dirname as pathDirname, join as pathJoin } from 'path';
-import { lock, lockSync } from 'proper-lockfile';
+import { join as pathJoin } from 'path';
 import { parseJsonMap } from '@salesforce/kit';
 import { Global } from '../global';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { resolveProjectPath, resolveProjectPathSync } from '../util/internal';
-import { lockOptions, lockRetryOptions } from '../util/lockRetryOptions';
+import { lockInit, lockInitSync } from '../util/fileLocking';
 import { BaseConfigStore } from './configStore';
 import { ConfigContents } from './configStackTypes';
 import { stateFromContents } from './lwwMap';
@@ -168,6 +167,7 @@ export class ConfigFile<
             !this.hasRead ? 'hasRead is false' : 'force parameter is true'
           }`
         );
+
         const obj = parseJsonMap<P>(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath());
         this.setContentsFromFileContents(obj, (await fs.promises.stat(this.getPath(), { bigint: true })).mtimeNs);
       }
@@ -234,26 +234,10 @@ export class ConfigFile<
    * @param newContents The new contents of the file.
    */
   public async write(): Promise<P> {
-    // make sure we can write to the directory
-    try {
-      await fs.promises.mkdir(pathDirname(this.getPath()), { recursive: true });
-    } catch (err) {
-      throw SfError.wrap(err as Error);
-    }
+    const lockResponse = await lockInit(this.getPath());
 
-    let unlockFn: (() => Promise<void>) | undefined;
     // lock the file.  Returns an unlock function to call when done.
     try {
-      if (await this.exists()) {
-        unlockFn = await lock(this.getPath(), lockRetryOptions);
-      } else {
-        // lock the entire directory to keep others from trying to create the file while we are
-        unlockFn = await lock(basename(this.getPath()), lockRetryOptions);
-        this.logger.debug(
-          `No file found at ${this.getPath()}.  Write will create it.  Locking the entire directory until file is written.`
-        );
-      }
-
       const fileTimestamp = (await fs.promises.stat(this.getPath(), { bigint: true })).mtimeNs;
       const fileContents = parseJsonMap<P>(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath());
       this.logAndMergeContents(fileTimestamp, fileContents);
@@ -261,15 +245,7 @@ export class ConfigFile<
       this.handleWriteError(err);
     }
     // write the merged LWWMap to file
-    this.logger.debug(`Writing to config file: ${this.getPath()}`);
-    try {
-      await fs.promises.writeFile(this.getPath(), JSON.stringify(this.getContents(), null, 2));
-    } finally {
-      // unlock the file
-      if (typeof unlockFn !== 'undefined') {
-        await unlockFn();
-      }
-    }
+    await lockResponse.writeAndUnlock(JSON.stringify(this.getContents(), null, 2));
 
     return this.getContents();
   }
@@ -281,16 +257,8 @@ export class ConfigFile<
    * @param newContents The new contents of the file.
    */
   public writeSync(): P {
+    const lockResponse = lockInitSync(this.getPath());
     try {
-      fs.mkdirSync(pathDirname(this.getPath()), { recursive: true });
-    } catch (err) {
-      throw SfError.wrap(err as Error);
-    }
-
-    let unlockFn: (() => void) | undefined;
-    try {
-      // lock the file.  Returns an unlock function to call when done.
-      unlockFn = lockSync(this.getPath(), lockOptions);
       // get the file modstamp.  Do this after the lock acquisition in case the file is being written to.
       const fileTimestamp = fs.statSync(this.getPath(), { bigint: true }).mtimeNs;
       const fileContents = parseJsonMap<P>(fs.readFileSync(this.getPath(), 'utf8'), this.getPath());
@@ -300,16 +268,7 @@ export class ConfigFile<
     }
 
     // write the merged LWWMap to file
-
-    this.logger.trace(`Writing to config file: ${this.getPath()}`);
-    try {
-      fs.writeFileSync(this.getPath(), JSON.stringify(this.toObject(), null, 2));
-    } finally {
-      if (typeof unlockFn !== 'undefined') {
-        // unlock the file
-        unlockFn();
-      }
-    }
+    lockResponse.writeAndUnlock(JSON.stringify(this.getContents(), null, 2));
 
     return this.getContents();
   }
