@@ -1,3 +1,12 @@
+## [5.3.19](https://github.com/forcedotcom/sfdx-core/compare/5.3.18...5.3.19) (2023-11-08)
+
+
+### Bug Fixes
+
+* use memory logger instance when disabled ([c2ef3a0](https://github.com/forcedotcom/sfdx-core/commit/c2ef3a0f8fea0518b5eec2f6f515064e9741b46e))
+
+
+
 ## [5.3.18](https://github.com/forcedotcom/sfdx-core/compare/5.3.17...5.3.18) (2023-11-05)
 
 
