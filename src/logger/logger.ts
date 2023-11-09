@@ -147,6 +147,8 @@ export class Logger {
    * `Logger`.
    */
   public constructor(optionsOrName: LoggerOptions | string) {
+    const enabled = process.env.SFDX_DISABLE_LOG_FILE !== 'true' && process.env.SF_DISABLE_LOG_FILE !== 'true';
+
     const options: LoggerOptions =
       typeof optionsOrName === 'string'
         ? { name: optionsOrName, level: Logger.DEFAULT_LEVEL, fields: {} }
@@ -167,9 +169,9 @@ export class Logger {
         name: options.name ?? Logger.ROOT_NAME,
         base: options.fields ?? {},
         level,
-        enabled: process.env.SFDX_DISABLE_LOG_FILE !== 'true' && process.env.SF_DISABLE_LOG_FILE !== 'true',
+        enabled,
       };
-      if (options.useMemoryLogger || Global.getEnvironmentMode() === Mode.TEST) {
+      if (options.useMemoryLogger || Global.getEnvironmentMode() === Mode.TEST || !enabled) {
         this.memoryLogger = new MemoryLogger();
         this.pinoLogger = pino(
           {

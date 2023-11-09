@@ -1,3 +1,21 @@
+## [5.3.19](https://github.com/forcedotcom/sfdx-core/compare/5.3.18...5.3.19) (2023-11-08)
+
+### Bug Fixes
+
+- use memory logger instance when disabled ([c2ef3a0](https://github.com/forcedotcom/sfdx-core/commit/c2ef3a0f8fea0518b5eec2f6f515064e9741b46e))
+
+## [5.3.18](https://github.com/forcedotcom/sfdx-core/compare/5.3.17...5.3.18) (2023-11-05)
+
+### Bug Fixes
+
+- **deps:** bump @types/semver from 7.5.3 to 7.5.4 ([a3be392](https://github.com/forcedotcom/sfdx-core/commit/a3be3922f96f8420eb871c413858eac395a95ad3))
+
+## [5.3.17](https://github.com/forcedotcom/sfdx-core/compare/5.3.16...5.3.17) (2023-11-02)
+
+### Bug Fixes
+
+- **deps:** testSetup has non ts-sinon dependency ([9fcb206](https://github.com/forcedotcom/sfdx-core/commit/9fcb206220174af1c20fcc041e127409a41c3593))
+
 ## [5.3.16](https://github.com/forcedotcom/sfdx-core/compare/5.3.15...5.3.16) (2023-10-29)
 
 ### Bug Fixes
