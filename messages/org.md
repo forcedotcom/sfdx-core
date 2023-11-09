@@ -74,4 +74,4 @@ Unexpected response from the platform
 
 - Check that the instance URL is correct and the org still exists.
 
-See what's at the URL that's causing the problem: %s.
+- See what's at the URL that's causing the problem: %s.
