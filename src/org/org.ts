@@ -699,7 +699,24 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       method: 'GET',
     };
     const conn = this.getConnection();
-    await conn.request(requestInfo);
+    try {
+      await conn.request(requestInfo);
+    } catch (e) {
+      // an html error page like https://computing-connect-6970-dev-ed.scratch.my.salesforce.com/services/data/v50.0
+      // where the message is an entire html page
+      if (e instanceof Error && (e.name.includes('ERROR_HTTP') || e.message.includes('<html '))) {
+        throw new SfError(
+          'Unexpected response from the platform',
+          'UnexpectedResponse',
+          [
+            'Check that the instance URL is correct and the org still exists.',
+            `See what's at the URL that's causing the problem: ${conn.baseUrl()}`,
+          ],
+          e
+        );
+      }
+      throw e;
+    }
   }
 
   /**
