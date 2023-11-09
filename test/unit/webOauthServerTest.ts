@@ -6,7 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import * as http from 'http';
+import * as http from 'node:http';
 import { expect } from 'chai';
 
 import { assert } from '@salesforce/ts-types';

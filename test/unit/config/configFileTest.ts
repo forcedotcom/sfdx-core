@@ -7,8 +7,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
-import * as Path from 'path';
-import * as fs from 'fs';
+import * as Path from 'node:path';
+import * as fs from 'node:fs';
 import { expect } from 'chai';
 
 import { assert } from '@salesforce/ts-types';

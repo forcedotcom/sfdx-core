@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { basename, dirname, isAbsolute, normalize, resolve, sep } from 'path';
-import * as fs from 'fs';
+import { basename, dirname, isAbsolute, normalize, resolve, sep } from 'node:path';
+import * as fs from 'node:fs';
 import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import { SfdcUrl } from './util/sfdcUrl';

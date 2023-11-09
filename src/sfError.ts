@@ -75,7 +75,7 @@ export class SfError extends NamedError {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public get code(): string | undefined | any {
+  public get code(): any {
     return this.#code ?? this.name;
   }
 

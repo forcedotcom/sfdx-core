@@ -7,7 +7,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
-import { join, sep } from 'path';
+import { join, sep } from 'node:path';
 import { expect } from 'chai';
 
 import { env } from '@salesforce/kit';

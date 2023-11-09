@@ -6,9 +6,9 @@
  */
 /* eslint-disable @typescript-eslint/ban-types */
 
-import * as crypto from 'crypto';
-import * as os from 'os';
-import { join as pathJoin } from 'path';
+import * as crypto from 'node:crypto';
+import * as os from 'node:os';
+import { join as pathJoin } from 'node:path';
 import { ensure, Nullable, Optional } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, env } from '@salesforce/kit';
 import { Logger } from '../logger/logger';

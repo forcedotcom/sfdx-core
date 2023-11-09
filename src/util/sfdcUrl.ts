@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { URL } from 'url';
+import { URL } from 'node:url';
 import { Env, Duration } from '@salesforce/kit';
 import { ensureNumber, ensureArray } from '@salesforce/ts-types';
 import { MyDomainResolver } from '../status/myDomainResolver';
@@ -83,7 +83,10 @@ export class SfdcUrl extends URL {
       return envVarVal;
     }
 
-    if ((createdOrgInstance && /^gs1/gi.test(createdOrgInstance)) || /(gs1.my.salesforce.com)/gi.test(this.origin)) {
+    if (
+      Boolean(createdOrgInstance && /^gs1/gi.test(createdOrgInstance)) ||
+      /(gs1.my.salesforce.com)/gi.test(this.origin)
+    ) {
       return 'https://gs1.salesforce.com';
     }
 
@@ -173,7 +176,7 @@ export class SfdcUrl extends URL {
    * @returns {Promise<true | never>} The resolved ip address or never
    * @throws {@link SfError} If can't resolve DNS.
    */
-  public async checkLightningDomain(): Promise<true | never> {
+  public async checkLightningDomain(): Promise<true> {
     const quantity = ensureNumber(new Env().getNumber('SFDX_DOMAIN_RETRY', 240));
     const timeout = new Duration(quantity, Duration.Unit.SECONDS);
 

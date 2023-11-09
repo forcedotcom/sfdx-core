@@ -6,10 +6,10 @@
  */
 /* eslint-disable class-methods-use-this */
 
-import { randomBytes } from 'crypto';
-import { resolve as pathResolve } from 'path';
-import * as os from 'os';
-import * as fs from 'fs';
+import { randomBytes } from 'node:crypto';
+import { resolve as pathResolve } from 'node:path';
+import * as os from 'node:os';
+import * as fs from 'node:fs';
 import { Record as RecordType } from 'jsforce';
 import { AsyncOptionalCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
@@ -394,7 +394,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const logger = await Logger.child('Common', { tag: 'identifyPossibleScratchOrgs' });
 
     // return if we already know the hub org, we know it is a devhub or prod-like, or no orgId present
-    if (fields.isDevHub || fields.devHubUsername || !fields.orgId) return;
+    if (Boolean(fields.isDevHub) || Boolean(fields.devHubUsername) || !fields.orgId) return;
 
     logger.debug('getting devHubs and prod orgs to identify scratch orgs and sandboxes');
 
@@ -715,7 +715,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public async handleAliasAndDefaultSettings(sideEffects: AuthSideEffects): Promise<void> {
     if (
-      sideEffects.alias ||
+      Boolean(sideEffects.alias) ||
       sideEffects.setDefault ||
       sideEffects.setDefaultDevHub ||
       typeof sideEffects.setTracksSource === 'boolean'

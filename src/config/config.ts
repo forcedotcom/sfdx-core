@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { dirname as pathDirname, join as pathJoin } from 'path';
-import * as fs from 'fs';
+import { dirname as pathDirname, join as pathJoin } from 'node:path';
+import * as fs from 'node:fs';
 import { keyBy, parseJsonMap } from '@salesforce/kit';
 import { Dictionary, ensure, isString, Nullable } from '@salesforce/ts-types';
 import { Global } from '../global';
@@ -96,7 +96,7 @@ export const SF_ALLOWED_PROPERTIES = [
     key: SfConfigProperties.DISABLE_TELEMETRY,
     description: messages.getMessage(SfConfigProperties.DISABLE_TELEMETRY),
     input: {
-      validator: (value: ConfigValue): boolean => value == null || ['true', 'false'].includes(value.toString()),
+      validator: (value: ConfigValue): boolean => value == null || isBooleanOrBooleanString(value),
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
     },
   },
@@ -248,7 +248,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     deprecated: true,
     description: messages.getMessage(SfdxPropertyKeys.DISABLE_TELEMETRY),
     input: {
-      validator: (value: ConfigValue): boolean => value == null || ['true', 'false'].includes(value.toString()),
+      validator: (value: ConfigValue): boolean => value == null || isBooleanOrBooleanString(value),
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
     },
   },
@@ -265,7 +265,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     newKey: 'org-metadata-rest-deploy',
     deprecated: true,
     input: {
-      validator: (value: ConfigValue): boolean => value != null && ['true', 'false'].includes(value.toString()),
+      validator: (value: ConfigValue): boolean => value != null && isBooleanOrBooleanString(value),
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
     },
   },
@@ -662,3 +662,6 @@ const stateFromSfdxFileSync = (path: string, config: Config): LWWState<ConfigPro
     return {};
   }
 };
+
+const isBooleanOrBooleanString = (value: unknown): boolean =>
+  (typeof value === 'string' && ['true', 'false'].includes(value)) || typeof value === 'boolean';

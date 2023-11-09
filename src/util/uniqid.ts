@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { randomBytes } from 'crypto';
-import * as util from 'util';
+import { randomBytes } from 'node:crypto';
+import * as util from 'node:util';
 
 /**
  * A function to generate a unique id and return it in the context of a template, if supplied.

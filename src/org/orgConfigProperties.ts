@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { join as pathJoin } from 'path';
+import { join as pathJoin } from 'node:path';
 import { isString } from '@salesforce/ts-types';
 import { ConfigValue } from '../config/configStackTypes';
 import { Messages } from '../messages';

@@ -356,7 +356,7 @@ export abstract class BaseConfigStore<
     if (!this.crypto) throw new SfError('crypto is not initialized', 'CryptoNotInitializedError');
     if (!isString(value))
       throw new SfError(
-        `can only encrypt strings but found: ${typeof value} : ${value.toString()}`,
+        `can only encrypt strings but found: ${typeof value} : ${JSON.stringify(value)}`,
         'InvalidCryptoValueError'
       );
     return this.crypto.isEncrypted(value) ? value : this.crypto.encrypt(value);
@@ -367,7 +367,7 @@ export abstract class BaseConfigStore<
     if (!this.crypto) throw new SfError('crypto is not initialized', 'CryptoNotInitializedError');
     if (!isString(value))
       throw new SfError(
-        `can only encrypt strings but found: ${typeof value} : ${value.toString()}`,
+        `can only encrypt strings but found: ${typeof value} : ${JSON.stringify(value)}`,
         'InvalidCryptoValueError'
       );
     return this.crypto.isEncrypted(value) ? this.crypto.decrypt(value) : value;

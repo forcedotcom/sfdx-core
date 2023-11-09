@@ -10,9 +10,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import * as fs from 'node:fs';
-import { EventEmitter } from 'events';
-import { tmpdir as osTmpdir } from 'os';
-import { basename, join as pathJoin, dirname } from 'path';
+import { EventEmitter } from 'node:events';
+import { tmpdir as osTmpdir } from 'node:os';
+import { basename, join as pathJoin, dirname } from 'node:path';
 import { SinonSandbox, SinonStatic, SinonStub } from 'sinon';
 
 import {

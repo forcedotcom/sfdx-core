@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
-import * as util from 'util';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import * as util from 'node:util';
 import { AnyJson, asString, ensureJsonMap, ensureString, isJsonMap, isObject } from '@salesforce/ts-types';
 import { ensureArray, NamedError, upperFirst } from '@salesforce/kit';
 import { SfError } from './sfError';
@@ -544,7 +544,7 @@ export class Messages<T extends string> {
     //     'myMessage' -> `MyMessageWarning`
     //     'myMessageError' -> `MyMessageError`
     //     'warning.myMessage' -> `MyMessageWarning`
-    const name = `${upperFirst(key.replace(searchValue, ''))}${labelRegExp.exec(key) || preserveName ? '' : label}`;
+    const name = `${upperFirst(key.replace(searchValue, ''))}${labelRegExp.exec(key) ?? preserveName ? '' : label}`;
     const message = this.getMessage(key, tokens);
     let actions;
     try {
