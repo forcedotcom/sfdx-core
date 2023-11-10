@@ -29,7 +29,7 @@ export const messageTransformer = (): ts.TransformerFactory<ts.SourceFile> => {
       if (ts.isExpressionStatement(node) && node.getText().includes('importMessagesDirectory')) {
         // importMessagesDirectory now happens at compile, not in runtime
         // returning undefined removes the node
-        return undefined;
+        return ts.factory.createEmptyStatement();
       }
       if (
         // transform a runtime load call into hardcoded messages values
@@ -57,7 +57,7 @@ export const messageTransformer = (): ts.TransformerFactory<ts.SourceFile> => {
       // it might be a node that contains one of the things we're interested in, so keep digging
       return ts.visitEachChild(node, visitor, context);
     };
-    return ts.visitNode(sourceFile, visitor);
+    return ts.visitNode(sourceFile, visitor, ts.isSourceFile);
   };
   return transformerFactory;
 };

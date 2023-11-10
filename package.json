@@ -68,8 +68,8 @@
     "benchmark": "^2.1.4",
     "chai-string": "^1.5.0",
     "ts-node": "^10.9.1",
-    "ttypescript": "^1.5.15",
-    "typescript": "^4.9.5"
+    "ts-patch": "^3.0.2",
+    "typescript": "^5.2.2"
   },
   "repository": {
     "type": "git",
@@ -86,7 +86,7 @@
       ]
     },
     "compile": {
-      "command": "ttsc -p . --pretty --incremental",
+      "command": "tspc -p . --pretty --incremental",
       "files": [
         "src/**/*.ts",
         "tsconfig.json",
