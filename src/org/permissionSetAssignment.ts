@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { EOL } from 'os';
+import { EOL } from 'node:os';
 import { mapKeys, upperFirst } from '@salesforce/kit';
 import type { Optional } from '@salesforce/ts-types';
 import type { QueryResult, Record } from 'jsforce';

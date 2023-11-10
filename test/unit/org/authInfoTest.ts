@@ -9,8 +9,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import * as pathImport from 'path';
-import * as dns from 'dns';
+import * as pathImport from 'node:path';
+import * as dns from 'node:dns';
 import * as jwt from 'jsonwebtoken';
 import { cloneJson, env, includes } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';

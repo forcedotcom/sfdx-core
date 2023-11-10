@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Readable, Writable } from 'stream';
+import { Readable, Writable } from 'node:stream';
 import * as JSZip from 'jszip';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';

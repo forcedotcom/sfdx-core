@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { deepStrictEqual, fail } from 'assert';
-import * as fs from 'fs';
-import { constants as fsConstants } from 'fs';
-import { join as pathJoin } from 'path';
+import { deepStrictEqual, fail } from 'node:assert';
+import * as fs from 'node:fs';
+import { constants as fsConstants } from 'node:fs';
+import { join as pathJoin } from 'node:path';
 import { format } from 'node:util';
 import { Duration, set } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';

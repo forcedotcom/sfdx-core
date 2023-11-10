@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
-import { constants as fsConstants, Stats as fsStats } from 'fs';
-import { homedir as osHomedir } from 'os';
-import { join as pathJoin } from 'path';
+import * as fs from 'node:fs';
+import { constants as fsConstants, Stats as fsStats } from 'node:fs';
+import { homedir as osHomedir } from 'node:os';
+import { join as pathJoin } from 'node:path';
 import { parseJsonMap } from '@salesforce/kit';
 import { Global } from '../global';
 import { Logger } from '../logger/logger';

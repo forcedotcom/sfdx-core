@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { lookup, resolveCname } from 'dns';
-import { URL } from 'url';
-import { promisify } from 'util';
+import { lookup, resolveCname } from 'node:dns';
+import { URL } from 'node:url';
+import { promisify } from 'node:util';
 
 import { ensureString } from '@salesforce/ts-types';
 

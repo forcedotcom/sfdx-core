@@ -35,7 +35,7 @@ export const stateFromContents = <P extends ConfigContents>(contents: P, timesta
 
 export class LWWMap<P extends ConfigContents> {
   /** map of key to LWWRegister.  Used for managing conflicts */
-  #data = new Map<string, LWWRegister<unknown | typeof SYMBOL_FOR_DELETED>>();
+  #data = new Map<string, LWWRegister<unknown>>();
 
   public constructor(state?: LWWState<P>) {
     // create a new register for each key in the initial state

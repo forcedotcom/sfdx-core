@@ -6,8 +6,8 @@
  */
 /* eslint-disable class-methods-use-this */
 
-import { join as pathJoin } from 'path';
-import * as fs from 'fs';
+import { join as pathJoin } from 'node:path';
+import * as fs from 'node:fs';
 import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
 import {
   AnyFunction,

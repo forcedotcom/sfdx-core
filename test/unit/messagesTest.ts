@@ -7,9 +7,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { EOL } from 'os';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { EOL } from 'node:os';
 import { cloneJson } from '@salesforce/kit';
 import { assert, expect } from 'chai';
 import { SinonStub } from 'sinon';
