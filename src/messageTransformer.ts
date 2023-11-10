@@ -28,7 +28,7 @@ export const messageTransformer = (): ts.TransformerFactory<ts.SourceFile> => {
     const visitor = (node: ts.Node): ts.VisitResult<ts.Node> => {
       if (ts.isExpressionStatement(node) && node.getText().includes('importMessagesDirectory')) {
         // importMessagesDirectory now happens at compile, not in runtime
-        // returning undefined removes the node
+        // so we can remove it
         return ts.factory.createEmptyStatement();
       }
       if (
