@@ -65,3 +65,13 @@ We found more than one SandboxProcess with the SandboxName %s.
 # sandboxNotResumable
 
 The sandbox %s cannot resume with status of %s.
+
+# UnexpectedResponse
+
+Unexpected response from the platform
+
+# UnexpectedResponse.actions
+
+- Check that the instance URL is correct and the org still exists.
+
+- See what's at the URL that's causing the problem: %s.

@@ -1,3 +1,9 @@
+## [5.3.20](https://github.com/forcedotcom/sfdx-core/compare/5.3.19...5.3.20) (2023-11-10)
+
+### Bug Fixes
+
+- http 420 errors ([6deabcd](https://github.com/forcedotcom/sfdx-core/commit/6deabcd603055786311994cb25c8c9282ff9971d))
+
 ## [5.3.19](https://github.com/forcedotcom/sfdx-core/compare/5.3.18...5.3.19) (2023-11-08)
 
 ### Bug Fixes
