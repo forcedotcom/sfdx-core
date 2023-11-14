@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { deepStrictEqual, fail } from 'assert';
-import * as fs from 'fs';
-import { constants as fsConstants } from 'fs';
-import { join as pathJoin } from 'path';
+import { deepStrictEqual, fail } from 'node:assert';
+import * as fs from 'node:fs';
+import { constants as fsConstants } from 'node:fs';
+import { join as pathJoin } from 'node:path';
 import { format } from 'node:util';
 import { Duration, set } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
@@ -16,15 +16,10 @@ import { assert, expect, config as chaiConfig } from 'chai';
 import { OAuth2 } from 'jsforce';
 import { Transport } from 'jsforce/lib/transport';
 import { SinonSpy, SinonStub } from 'sinon';
-import {
-  AuthInfo,
-  Connection,
-  Org,
-  SandboxEvents,
-  SandboxProcessObject,
-  SandboxUserAuthResponse,
-  SingleRecordQueryErrors,
-} from '../../../src/org';
+import { Org, SandboxEvents, SandboxProcessObject, SandboxUserAuthResponse } from '../../../src/org/org';
+import { AuthInfo } from '../../../src/org/authInfo';
+import {} from '../../../src/org/connection';
+import { Connection, SingleRecordQueryErrors } from '../../../src/org/connection';
 import { Config } from '../../../src/config/config';
 import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
@@ -32,7 +27,7 @@ import { OrgUsersConfig } from '../../../src/config/orgUsersConfig';
 import { Global } from '../../../src/global';
 import { MockTestOrgData, shouldThrow, shouldThrowSync, TestContext } from '../../../src/testSetup';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
-import { StateAggregator } from '../../../src/stateAggregator';
+import { StateAggregator } from '../../../src/stateAggregator/stateAggregator';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { Messages } from '../../../src/messages';
 import { SfError } from '../../../src/sfError';
@@ -645,9 +640,8 @@ describe('Org Tests', () => {
       expect(info).has.property('value', org0Username);
 
       const org1Username = orgs[1].getUsername();
-
+      assert(org1Username);
       const stateAggregator = await StateAggregator.getInstance();
-      // @ts-expect-error: user is nullable
       stateAggregator.aliases.set('foo', org1Username);
       const user = stateAggregator.aliases.getUsername('foo');
       expect(user).eq(org1Username);

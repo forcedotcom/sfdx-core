@@ -6,7 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { assert, expect, config as chaiConfig } from 'chai';
 import { Config, ConfigProperties, SFDX_ALLOWED_PROPERTIES, SfdxPropertyKeys } from '../../../src/config/config';
 import { ConfigAggregator, ConfigInfo } from '../../../src/config/configAggregator';
@@ -53,6 +53,10 @@ describe('ConfigAggregator', () => {
   });
 
   describe('locations', () => {
+    beforeEach(() => {
+      // @ts-expect-error there's a lot more properties we're not mocking
+      $$.SANDBOX.stub(fs.promises, 'stat').resolves({ mtimeNs: BigInt(new Date().valueOf() - 1_000 * 60 * 5) });
+    });
     it('local', async () => {
       // @ts-expect-error async function signature not quite same as expected
       $$.SANDBOX.stub(fs.promises, 'readFile').callsFake(async (path: string) => {

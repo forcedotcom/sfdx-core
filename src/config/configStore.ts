@@ -5,38 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncOptionalCreatable, cloneJson, set } from '@salesforce/kit';
-import { isPlainObject } from '@salesforce/ts-types';
-import {
-  AnyJson,
-  definiteEntriesOf,
-  definiteValuesOf,
-  Dictionary,
-  get,
-  isJsonMap,
-  isString,
-  JsonMap,
-  Optional,
-} from '@salesforce/ts-types';
+import { AsyncOptionalCreatable, cloneJson } from '@salesforce/kit';
+import { entriesOf, isPlainObject } from '@salesforce/ts-types';
+import { definiteEntriesOf, definiteValuesOf, isJsonMap, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import { Crypto } from '../crypto/crypto';
 import { SfError } from '../sfError';
-
-/**
- * The allowed types stored in a config store.
- */
-export type ConfigValue = AnyJson;
-
-/**
- * The type of entries in a config store defined by the key and value type of {@link ConfigContents}.
- */
-export type ConfigEntry = [string, ConfigValue];
-
-/**
- * The type of content a config stores.
- */
-export type ConfigContents<T = ConfigValue> = Dictionary<T>;
-
-export type Key<P extends ConfigContents> = Extract<keyof P, string>;
+import { nowBigInt } from '../util/time';
+import { LWWMap, stateFromContents } from './lwwMap';
+import { ConfigContents, ConfigEntry, ConfigValue, Key } from './configStackTypes';
 
 /**
  * An interface for a config object with a persistent store.
@@ -59,11 +35,9 @@ export interface ConfigStore<P extends ConfigContents = ConfigContents> {
   values(): ConfigValue[];
 
   forEach(actionFn: (key: string, value: ConfigValue) => void): void;
-  awaitEach(actionFn: (key: string, value: ConfigValue) => Promise<void>): Promise<void>;
 
   // Content methods
   getContents(): P;
-  setContents(contents?: P): void;
 }
 
 /**
@@ -85,7 +59,7 @@ export abstract class BaseConfigStore<
   protected crypto?: Crypto;
 
   // Initialized in setContents
-  private contents!: P;
+  protected contents = new LWWMap<P>();
   private statics = this.constructor as typeof BaseConfigStore;
 
   /**
@@ -104,30 +78,29 @@ export abstract class BaseConfigStore<
    * Returns an array of {@link ConfigEntry} for each element in the config.
    */
   public entries(): ConfigEntry[] {
-    return definiteEntriesOf(this.contents);
+    return definiteEntriesOf(this.contents.value ?? {});
   }
 
   /**
    * Returns the value associated to the key, or undefined if there is none.
    *
-   * @param key The key. Supports query key like `a.b[0]`.
+   * @param key The key (object property)
    * @param decrypt If it is an encrypted key, decrypt the value.
    * If the value is an object, a clone will be returned.
    */
   public get<K extends Key<P>>(key: K, decrypt?: boolean): P[K];
   public get<V = ConfigValue>(key: string, decrypt?: boolean): V;
   public get<K extends Key<P>>(key: K | string, decrypt = false): P[K] | ConfigValue {
-    const k = key as string;
-    let value = this.getMethod(this.contents, k);
+    const rawValue = this.contents.get(key as K);
 
     if (this.hasEncryption() && decrypt) {
-      if (isJsonMap(value)) {
-        value = this.recursiveDecrypt(cloneJson(value), k);
-      } else if (this.isCryptoKey(k)) {
-        value = this.decrypt(value);
+      if (isJsonMap(rawValue)) {
+        return this.recursiveDecrypt(cloneJson(rawValue), key);
+      } else if (this.isCryptoKey(key)) {
+        return this.decrypt(rawValue) as P[K] | ConfigValue;
       }
     }
-    return value as P[K];
+    return rawValue as P[K] | ConfigValue;
   }
 
   /**
@@ -144,29 +117,26 @@ export abstract class BaseConfigStore<
   /**
    * Returns a boolean asserting whether a value has been associated to the key in the config object or not.
    *
-   * @param key The key. Supports query key like `a.b[0]`.
    */
   public has(key: string): boolean {
-    return !!this.getMethod(this.contents, key);
+    return this.contents.has(key) ?? false;
   }
 
   /**
    * Returns an array that contains the keys for each element in the config object.
    */
   public keys(): Array<Key<P>> {
-    return Object.keys(this.contents) as Array<Key<P>>;
+    return Object.keys(this.contents.value ?? {}) as Array<Key<P>>;
   }
 
   /**
    * Sets the value for the key in the config object. This will override the existing value.
    * To do a partial update, use {@link BaseConfigStore.update}.
    *
-   * @param key The key. Supports query key like `a.b[0]`.
+   * @param key The key.
    * @param value The value.
    */
-  public set<K extends Key<P>>(key: K, value: P[K]): void;
-  public set<V = ConfigValue>(key: string, value: V): void;
-  public set<K extends Key<P>>(key: K | string, value: P[K] | ConfigValue): void {
+  public set<K extends Key<P>>(key: K, value: P[K]): void {
     if (this.hasEncryption()) {
       if (isJsonMap(value)) {
         value = this.recursiveEncrypt(value, key as string) as P[K];
@@ -174,40 +144,40 @@ export abstract class BaseConfigStore<
         value = this.encrypt(value) as P[K];
       }
     }
-    this.setMethod(this.contents, key as string, value);
+    // set(key, undefined) means unset
+    if (value === undefined) {
+      this.unset(key);
+    } else {
+      this.contents.set(key, value);
+    }
   }
 
   /**
    * Updates the value for the key in the config object. If the value is an object, it
    * will be merged with the existing object.
    *
-   * @param key The key. Supports query key like `a.b[0]`.
+   * @param key The key.
    * @param value The value.
    */
-  public update<K extends Key<P>>(key: K, value: Partial<P[K]>): void;
-  public update<V = ConfigValue>(key: string, value: Partial<V>): void;
-  public update<K extends Key<P>>(key: K | string, value: Partial<P[K]> | Partial<ConfigValue>): void {
+  public update<K extends Key<P>>(key: K, value: Partial<P[K]>): void {
     const existingValue = this.get(key, true);
     if (isPlainObject(existingValue) && isPlainObject(value)) {
-      value = Object.assign({}, existingValue, value);
+      const mergedValue = Object.assign({}, existingValue, value);
+      this.set(key, mergedValue as P[K]);
+    } else {
+      this.set(key, value as P[K]);
     }
-    this.set(key, value);
   }
 
   /**
    * Returns `true` if an element in the config object existed and has been removed, or `false` if the element does not
    * exist. {@link BaseConfigStore.has} will return false afterwards.
    *
-   * @param key The key. Supports query key like `a.b[0]`.
+   * @param key The key
    */
-  public unset(key: string): boolean {
+  public unset<K extends Key<P>>(key: K): boolean {
     if (this.has(key)) {
-      if (this.contents[key]) {
-        delete this.contents[key];
-      } else {
-        // It is a query key, so just set it to undefined
-        this.setMethod(this.contents, key, undefined);
-      }
+      this.contents.delete(key);
       return true;
     }
     return false;
@@ -217,24 +187,24 @@ export abstract class BaseConfigStore<
    * Returns `true` if all elements in the config object existed and have been removed, or `false` if all the elements
    * do not exist (some may have been removed). {@link BaseConfigStore.has(key)} will return false afterwards.
    *
-   * @param keys The keys. Supports query keys like `a.b[0]`.
+   * @param keys The keys
    */
-  public unsetAll(keys: string[]): boolean {
-    return keys.reduce((val: boolean, key) => val && this.unset(key), true);
+  public unsetAll(keys: Array<Key<P>>): boolean {
+    return keys.map((key) => this.unset(key)).every(Boolean);
   }
 
   /**
    * Removes all key/value pairs from the config object.
    */
   public clear(): void {
-    this.contents = {} as P;
+    this.keys().map((key) => this.unset(key));
   }
 
   /**
    * Returns an array that contains the values for each element in the config object.
    */
   public values(): ConfigValue[] {
-    return definiteValuesOf(this.contents);
+    return definiteValuesOf(this.contents.value ?? {});
   }
 
   /**
@@ -247,26 +217,11 @@ export abstract class BaseConfigStore<
    * @param decrypt: decrypt all data in the config. A clone of the data will be returned.
    *
    */
-  public getContents(decrypt = false): P {
-    if (!this.contents) {
-      this.setContents();
-    }
+  public getContents(decrypt = false): Readonly<P> {
     if (this.hasEncryption() && decrypt) {
-      return this.recursiveDecrypt(cloneJson(this.contents)) as P;
+      return this.recursiveDecrypt(cloneJson(this.contents?.value ?? {})) as P;
     }
-    return this.contents;
-  }
-
-  /**
-   * Sets the entire config contents.
-   *
-   * @param contents The contents.
-   */
-  public setContents(contents: P = {} as P): void {
-    if (this.hasEncryption()) {
-      contents = this.recursiveEncrypt(contents);
-    }
-    this.contents = contents;
+    return this.contents?.value ?? ({} as P);
   }
 
   /**
@@ -275,26 +230,7 @@ export abstract class BaseConfigStore<
    * @param {function} actionFn The function `(key: string, value: ConfigValue) => void` to be called for each element.
    */
   public forEach(actionFn: (key: string, value: ConfigValue) => void): void {
-    const entries = this.entries();
-    for (const entry of entries) {
-      actionFn(entry[0], entry[1]);
-    }
-  }
-
-  /**
-   * Asynchronously invokes `actionFn` once for each key-value pair present in the config object.
-   *
-   * @param {function} actionFn The function `(key: string, value: ConfigValue) => Promise<void>` to be called for
-   * each element.
-   * @returns {Promise<void>}
-   */
-  public async awaitEach(actionFn: (key: string, value: ConfigValue) => Promise<void>): Promise<void> {
-    const entries = this.entries();
-    for (const entry of entries) {
-      // prevent ConfigFile collision bug
-      // eslint-disable-next-line no-await-in-loop
-      await actionFn(entry[0], entry[1]);
-    }
+    this.entries().map((entry) => actionFn(entry[0], entry[1]));
   }
 
   /**
@@ -302,7 +238,7 @@ export abstract class BaseConfigStore<
    * Same as calling {@link ConfigStore.getContents}
    */
   public toObject(): JsonMap {
-    return this.contents;
+    return this.contents.value ?? {};
   }
 
   /**
@@ -310,15 +246,39 @@ export abstract class BaseConfigStore<
    *
    * @param obj The object.
    */
-  public setContentsFromObject<U extends JsonMap>(obj: U): void {
-    this.contents = (this.hasEncryption() ? this.recursiveEncrypt(obj) : {}) as P;
-    Object.entries(obj).forEach(([key, value]) => {
-      this.setMethod(this.contents, key, value);
+  public setContentsFromObject(obj: P): void {
+    const objForWrite = this.hasEncryption() ? this.recursiveEncrypt(obj) : obj;
+    entriesOf(objForWrite).map(([key, value]) => {
+      this.set(key, value);
+    });
+  }
+
+  /**
+   * Keep ConfigFile concurrency-friendly.
+   * Avoid using this unless you're reading the file for the first time
+   * and guaranteed to no be cross-saving existing contents
+   * */
+  protected setContentsFromFileContents(contents: P, timestamp?: bigint): void {
+    const state = stateFromContents(contents, timestamp ?? nowBigInt());
+    this.contents = new LWWMap<P>(state);
+  }
+
+  /**
+   * Sets the entire config contents.
+   *
+   * @param contents The contents.
+   */
+  protected setContents(contents: P = {} as P): void {
+    if (this.hasEncryption()) {
+      contents = this.recursiveEncrypt(contents);
+    }
+    entriesOf(contents).map(([key, value]) => {
+      this.contents.set(key, value);
     });
   }
 
   protected getEncryptedKeys(): Array<string | RegExp> {
-    return [...(this.options?.encryptedKeys ?? []), ...(this.statics?.encryptedKeys || [])];
+    return [...(this.options?.encryptedKeys ?? []), ...(this.statics?.encryptedKeys ?? [])];
   }
 
   /**
@@ -328,21 +288,6 @@ export abstract class BaseConfigStore<
    */
   protected hasEncryption(): boolean {
     return this.getEncryptedKeys().length > 0;
-  }
-
-  // Allows extended classes the ability to override the set method. i.e. maybe they want
-  // nested object set from kit.
-  // eslint-disable-next-line class-methods-use-this
-  protected setMethod(contents: ConfigContents, key: string, value?: ConfigValue): void {
-    set(contents, key, value);
-  }
-
-  // Allows extended classes the ability to override the get method. i.e. maybe they want
-  // nested object get from ts-types.
-  // NOTE: Key must stay string to be reliably overwritten.
-  // eslint-disable-next-line class-methods-use-this
-  protected getMethod(contents: ConfigContents, key: string): Optional<ConfigValue> {
-    return get(contents, key) as ConfigValue;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -411,18 +356,18 @@ export abstract class BaseConfigStore<
     if (!this.crypto) throw new SfError('crypto is not initialized', 'CryptoNotInitializedError');
     if (!isString(value))
       throw new SfError(
-        `can only encrypt strings but found: ${typeof value} : ${value.toString()}`,
+        `can only encrypt strings but found: ${typeof value} : ${JSON.stringify(value)}`,
         'InvalidCryptoValueError'
       );
     return this.crypto.isEncrypted(value) ? value : this.crypto.encrypt(value);
   }
 
-  protected decrypt(value: unknown): Optional<string> {
+  protected decrypt(value: unknown): string | undefined {
     if (!value) return;
     if (!this.crypto) throw new SfError('crypto is not initialized', 'CryptoNotInitializedError');
     if (!isString(value))
       throw new SfError(
-        `can only encrypt strings but found: ${typeof value} : ${value.toString()}`,
+        `can only encrypt strings but found: ${typeof value} : ${JSON.stringify(value)}`,
         'InvalidCryptoValueError'
       );
     return this.crypto.isEncrypted(value) ? this.crypto.decrypt(value) : value;

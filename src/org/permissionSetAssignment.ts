@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { EOL } from 'os';
+import { EOL } from 'node:os';
 import { mapKeys, upperFirst } from '@salesforce/kit';
-import { hasArray, Optional } from '@salesforce/ts-types';
-import { QueryResult, Record } from 'jsforce';
+import type { Optional } from '@salesforce/ts-types';
+import type { QueryResult, Record } from 'jsforce';
 import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
@@ -94,19 +94,22 @@ export class PermissionSetAssignment {
       .sobject('PermissionSetAssignment')
       .create(mapKeys(assignment, (value: unknown, key: string) => upperFirst(key)));
 
-    if (hasArray(createResponse, 'errors') && createResponse.errors.length > 0) {
-      let message = messages.getMessage('errorsEncounteredCreatingAssignment');
-
-      const errors = createResponse.errors;
-      if (errors && errors.length > 0) {
-        message = `${message}:${EOL}`;
-        errors.forEach((_message) => {
-          message = `${message}${_message as string}${EOL}`;
-        });
-        throw new SfError(message, 'errorsEncounteredCreatingAssignment');
-      } else {
+    if (createResponse.success === false) {
+      if (!createResponse.errors?.length) {
         throw messages.createError('notSuccessfulButNoErrorsReported');
       }
+      const message = [messages.getMessage('errorsEncounteredCreatingAssignment')]
+        .concat(
+          (createResponse.errors ?? []).map((error) => {
+            // note: the types for jsforce SaveError don't have "string[]" error,
+            // but there was a UT for that at https://github.com/forcedotcom/sfdx-core/blob/7412d103703cfe2df2211546fcf2e6d93a689bc0/test/unit/org/permissionSetAssignmentTest.ts#L146
+            // which could either be hallucination or a real response we've seen, so I'm preserving that behavior.
+            if (typeof error === 'string') return error;
+            return error.fields ? `${error.message} on fields ${error.fields.join(',')}` : error.message;
+          })
+        )
+        .join(EOL);
+      throw new SfError(message, 'errorsEncounteredCreatingAssignment');
     } else {
       return assignment;
     }

@@ -10,11 +10,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import * as fs from 'node:fs';
-import { randomBytes } from 'crypto';
-import { EventEmitter } from 'events';
-import { tmpdir as osTmpdir } from 'os';
-import { basename, join as pathJoin, dirname } from 'path';
-import * as util from 'util';
+import { EventEmitter } from 'node:events';
+import { tmpdir as osTmpdir } from 'node:os';
+import { basename, join as pathJoin, dirname } from 'node:path';
 import { SinonSandbox, SinonStatic, SinonStub } from 'sinon';
 
 import {
@@ -31,7 +29,7 @@ import {
 } from '@salesforce/ts-types';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
-import { ConfigContents } from './config/configStore';
+import { ConfigContents } from './config/configStackTypes';
 import { Connection } from './org/connection';
 import { Crypto } from './crypto/crypto';
 import { Logger } from './logger/logger';
@@ -40,11 +38,17 @@ import { SfError } from './sfError';
 import { SfProject, SfProjectJson } from './sfProject';
 import * as aliasAccessorEntireFile from './stateAggregator/accessors/aliasAccessor';
 import { CometClient, CometSubscription, Message, StreamingExtension } from './status/streamingClient';
-import { OrgAccessor, StateAggregator } from './stateAggregator';
-import { AuthFields, Org, SandboxFields, User, UserFields } from './org';
+import { StateAggregator } from './stateAggregator/stateAggregator';
+import { OrgAccessor } from './stateAggregator/accessors/orgAccessor';
+import { Org, SandboxFields } from './org/org';
+import { AuthFields } from './org/authInfo';
+import { User, UserFields } from './org/user';
 import { SandboxAccessor } from './stateAggregator/accessors/sandboxAccessor';
 import { Global } from './global';
+import { uniqid } from './util/uniqid';
 
+// this was previously exported from the testSetup module
+export { uniqid };
 /**
  * Different parts of the system that are mocked out. They can be restored for
  * individual tests. Test's stubs should always go on the DEFAULT which is exposed
@@ -86,10 +90,6 @@ export interface ConfigStub {
    * A function to conditionally read based on the config instance. The `this` value will be the config instance.
    */
   retrieveContents?: () => Promise<JsonMap>;
-  /**
-   * A function to conditionally set based on the config instance. The `this` value will be the config instance.
-   */
-  updateContents?: () => Promise<JsonMap>;
 }
 
 /**
@@ -123,7 +123,6 @@ export class TestContext {
     AuthInfoConfig?: ConfigStub;
     Config?: ConfigStub;
     SfProjectJson?: ConfigStub;
-    TokensConfig?: ConfigStub;
     OrgUsersConfig?: ConfigStub;
   } = {};
   /**
@@ -396,13 +395,6 @@ export class TestContext {
     await ConfigAggregator.create();
   }
 
-  /**
-   * Stub the tokens in the global token config file.
-   */
-  public stubTokens(tokens: Record<string, string>): void {
-    this.configStubs.TokensConfig = { contents: tokens };
-  }
-
   public restore(): void {
     restoreContext(this);
   }
@@ -437,28 +429,6 @@ export class TestContext {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return sinon!;
   }
-}
-
-/**
- * A function to generate a unique id and return it in the context of a template, if supplied.
- *
- * A template is a string that can contain `${%s}` to be replaced with a unique id.
- * If the template contains the "%s" placeholder, it will be replaced with the unique id otherwise the id will be appended to the template.
- *
- * @param options an object with the following properties:
- * - template: a template string.
- * - length: the length of the unique id as presented in hexadecimal.
- */
-export function uniqid(options?: { template?: string; length?: number }): string {
-  const uniqueString = randomBytes(Math.ceil((options?.length ?? 32) / 2.0))
-    .toString('hex')
-    .slice(0, options?.length ?? 32);
-  if (!options?.template) {
-    return uniqueString;
-  }
-  return options.template.includes('%s')
-    ? util.format(options.template, uniqueString)
-    : `${options.template}${uniqueString}`;
 }
 
 function getTestLocalPath(uid: string): string {
@@ -550,6 +520,7 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
   testContext.SANDBOXES.PROJECT.stub(SfProjectJson.prototype, 'doesPackageExist').callsFake(() => true);
 
   const initStubForRead = (configFile: ConfigFile<ConfigFile.Options>): ConfigStub => {
+    testContext.configStubs[configFile.constructor.name] ??= {};
     const stub: ConfigStub = testContext.configStubs[configFile.constructor.name] ?? {};
     // init calls read calls getPath which sets the path on the config file the first time.
     // Since read is now stubbed, make sure to call getPath to initialize it.
@@ -562,7 +533,7 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
 
   const readSync = function (this: ConfigFile<ConfigFile.Options>, newContents?: JsonMap): JsonMap {
     const stub = initStubForRead(this);
-    this.setContentsFromObject(newContents ?? stub.contents ?? {});
+    this.setContentsFromFileContents(newContents ?? stub.contents ?? {});
     return this.getContents();
   };
 
@@ -585,33 +556,22 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
   // @ts-expect-error: muting exact type match for stub readSync
   stubs.configReadSync = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'readSync').callsFake(readSync);
 
-  const writeSync = function (this: ConfigFile<ConfigFile.Options>, newContents?: ConfigContents): void {
-    if (!testContext.configStubs[this.constructor.name]) {
-      testContext.configStubs[this.constructor.name] = {};
-    }
-    const stub = testContext.configStubs[this.constructor.name];
-    if (!stub) return;
+  const writeSync = function (this: ConfigFile<ConfigFile.Options>): void {
+    testContext.configStubs[this.constructor.name] ??= {};
+    const stub = testContext.configStubs[this.constructor.name] ?? {};
 
-    this.setContents(newContents ?? this.getContents());
     stub.contents = this.toObject();
   };
 
-  const write = async function (this: ConfigFile<ConfigFile.Options>, newContents?: ConfigContents): Promise<void> {
-    if (!testContext.configStubs[this.constructor.name]) {
-      testContext.configStubs[this.constructor.name] = {};
-    }
-    const stub = testContext.configStubs[this.constructor.name];
-    if (!stub) return;
+  const write = async function (this: ConfigFile<ConfigFile.Options>): Promise<void> {
+    testContext.configStubs[this.constructor.name] ??= {};
+    const stub = testContext.configStubs[this.constructor.name] ?? {};
 
     if (stub.writeFn) {
-      return stub.writeFn.call(this, newContents);
+      return stub.writeFn.call(this);
     }
 
-    if (stub.updateContents) {
-      writeSync.call(this, await stub.updateContents.call(this));
-    } else {
-      writeSync.call(this);
-    }
+    writeSync.call(this);
   };
 
   stubs.configWriteSync = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'writeSync').callsFake(writeSync);
@@ -1082,7 +1042,8 @@ export class MockTestOrgData {
       config.password = crypto.encrypt(this.password);
     }
 
-    return config as AuthFields;
+    // remove "undefined" properties that don't exist in actual files
+    return Object.fromEntries(Object.entries(config).filter(([, v]) => v !== undefined)) as AuthFields;
   }
 
   /**

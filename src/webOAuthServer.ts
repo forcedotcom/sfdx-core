@@ -7,16 +7,16 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import * as http from 'http';
-import { parse as parseQueryString } from 'querystring';
-import { parse as parseUrl } from 'url';
-import { Socket } from 'net';
-import { EventEmitter } from 'events';
+import * as http from 'node:http';
+import { parse as parseQueryString } from 'node:querystring';
+import { parse as parseUrl } from 'node:url';
+import { Socket } from 'node:net';
+import { EventEmitter } from 'node:events';
 import { OAuth2 } from 'jsforce';
 import { AsyncCreatable, Env, set, toNumber } from '@salesforce/kit';
 import { asString, get, Nullable } from '@salesforce/ts-types';
 import { Logger } from './logger/logger';
-import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org';
+import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org/authInfo';
 import { SfError } from './sfError';
 import { Messages } from './messages';
 import { SfProjectJson } from './sfProject';

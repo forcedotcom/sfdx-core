@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Readable, pipeline as cbPipeline } from 'stream';
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
-import { promisify } from 'util';
+import { Readable, pipeline as cbPipeline } from 'node:stream';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { promisify } from 'node:util';
 import { StructuredWriter } from './structuredWriter';
 
 const pipeline = promisify(cbPipeline);

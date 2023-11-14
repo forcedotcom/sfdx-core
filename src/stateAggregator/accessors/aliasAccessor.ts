@@ -16,19 +16,14 @@ import { AsyncOptionalCreatable, ensureArray } from '@salesforce/kit';
 import { Nullable } from '@salesforce/ts-types';
 import { Global } from '../../global';
 import { AuthFields } from '../../org/authInfo';
-import { ConfigContents } from '../../config/configStore';
+import { ConfigContents } from '../../config/configStackTypes';
 import { SfError } from '../../sfError';
-import { SfToken } from './tokenAccessor';
+import { lockRetryOptions, lockOptions } from '../../util/lockRetryOptions';
 
-export type Aliasable = string | (Partial<AuthFields> & Partial<SfToken>);
+export type Aliasable = string | Partial<AuthFields>;
 export const DEFAULT_GROUP = 'orgs';
 export const FILENAME = 'alias.json';
 
-const lockOptions = { stale: 10_000 };
-const lockRetryOptions = {
-  ...lockOptions,
-  retries: { retries: 10, maxTimeout: 1000, factor: 2 },
-};
 export class AliasAccessor extends AsyncOptionalCreatable {
   // set in init method
   private fileLocation!: string;
@@ -193,7 +188,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   /**
    * @deprecated the set/unset methods now write to the file when called.  Use (un)setAndSave instead of calling (un)set and then calling write()
    */
-  public async write(): Promise<ConfigContents> {
+  public async write(): Promise<ConfigContents<string>> {
     return Promise.resolve(this.getAll());
   }
 
@@ -268,7 +263,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
  */
 const getNameOf = (entity: Aliasable): string => {
   if (typeof entity === 'string') return entity;
-  const aliaseeName = entity.username ?? entity.user;
+  const aliaseeName = entity.username;
   if (!aliaseeName) {
     throw new SfError(`Invalid aliasee, it must contain a user or username property: ${JSON.stringify(entity)}`);
   }

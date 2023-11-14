@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { Nullable } from '@salesforce/ts-types';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { Nullable, entriesOf } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, isEmpty } from '@salesforce/kit';
 import { AuthInfoConfig } from '../../config/authInfoConfig';
 import { Global } from '../../global';
-import { AuthFields } from '../../org';
+import { AuthFields } from '../../org/authInfo';
 import { ConfigFile } from '../../config/configFile';
-import { ConfigContents } from '../../config/configStore';
+import { ConfigContents } from '../../config/configStackTypes';
 import { Logger } from '../../logger/logger';
 import { Messages } from '../../messages';
 import { Lifecycle } from '../../lifecycleEvents';
@@ -26,6 +26,7 @@ function chunk<T>(array: T[], chunkSize: number): T[][] {
 
 export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigContents> extends AsyncOptionalCreatable {
   private configs: Map<string, Nullable<T>> = new Map();
+  /** map of Org files by username  */
   private contents: Map<string, P> = new Map();
   private logger!: Logger;
 
@@ -167,10 +168,10 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
   public set(username: string, org: P): void {
     const config = this.configs.get(username);
     if (config) {
-      config.setContentsFromObject(org);
-      const contents = config.getContents();
-      contents.username ??= username;
-      this.contents.set(username, contents as P);
+      entriesOf(org).map(([key, value]) => config.set(key, value));
+      if (!config.has('username')) {
+        config.set('username', username);
+      }
     } else {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore

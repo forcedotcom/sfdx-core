@@ -1,12 +1,12 @@
 {
   "name": "@salesforce/core",
-  "version": "5.3.20",
+  "version": "6.0.0",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/exported",
   "types": "lib/exported.d.ts",
   "license": "BSD-3-Clause",
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "scripts": {
     "build": "wireit",
@@ -51,49 +51,25 @@
     "jsforce": "^2.0.0-beta.28",
     "jsonwebtoken": "9.0.2",
     "jszip": "3.10.1",
-    "pino": "^8.16.0",
-    "pino-abstract-transport": "^1.0.0",
+    "pino": "^8.16.1",
+    "pino-abstract-transport": "^1.1.0",
     "pino-pretty": "^10.2.3",
     "proper-lockfile": "^4.1.2",
     "semver": "^7.5.4",
     "ts-retry-promise": "^0.7.1"
   },
   "devDependencies": {
-    "@salesforce/dev-config": "^4.1.0",
-    "@salesforce/dev-scripts": "^5.4.2",
-    "@salesforce/prettier-config": "^0.0.3",
+    "@salesforce/dev-scripts": "^6.0.3",
     "@salesforce/ts-sinon": "^1.4.19",
     "@types/benchmark": "^2.1.3",
     "@types/chai-string": "^1.4.5",
     "@types/jsonwebtoken": "9.0.3",
-    "@types/lodash": "^4.14.201",
     "@types/proper-lockfile": "^4.1.2",
-    "@types/shelljs": "0.8.13",
-    "@typescript-eslint/eslint-plugin": "^5.62.0",
-    "@typescript-eslint/parser": "^5.62.0",
     "benchmark": "^2.1.4",
-    "chai": "^4.3.10",
     "chai-string": "^1.5.0",
-    "eslint": "^8.53.0",
-    "eslint-config-prettier": "^8.10.0",
-    "eslint-config-salesforce": "^2.0.2",
-    "eslint-config-salesforce-license": "^0.2.0",
-    "eslint-config-salesforce-typescript": "^1.1.2",
-    "eslint-plugin-header": "^3.1.1",
-    "eslint-plugin-import": "^2.28.1",
-    "eslint-plugin-jsdoc": "^43.2.0",
-    "husky": "^7.0.4",
-    "lodash": "^4.17.21",
-    "mocha": "^9.1.3",
-    "nyc": "^15.1.0",
-    "prettier": "^2.8.7",
-    "pretty-quick": "^3.1.3",
-    "shelljs": "0.8.5",
-    "sinon": "^14.0.2",
-    "ts-node": "^10.4.0",
-    "ttypescript": "^1.5.15",
-    "typescript": "^4.9.5",
-    "wireit": "^0.14.0"
+    "ts-node": "^10.9.1",
+    "ts-patch": "^3.0.2",
+    "typescript": "^5.2.2"
   },
   "repository": {
     "type": "git",
@@ -110,7 +86,7 @@
       ]
     },
     "compile": {
-      "command": "ttsc -p . --pretty --incremental",
+      "command": "tspc -p . --pretty --incremental",
       "files": [
         "src/**/*.ts",
         "tsconfig.json",

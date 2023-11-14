@@ -34,11 +34,11 @@ The Messages class, by default, loads message text during run time. It's optimiz
 
 If you're using @salesforce/core or other code that uses its Messages class in a bundler (webpack, esbuild, etc) it may struggle with these runtime references.
 
-src/messageTransformer will "inline" the messages into the js files during TS compile using `https://github.com/cevek/ttypescript`.
+src/messageTransformer will "inline" the messages into the js files during TS compile using `https://github.com/nonara/ts-patch`.
 
 In your plugin or library,
 
-`yarn add --dev ttypescript`
+`yarn add --dev ts-patch`
 
 > tsconfig.json
 
@@ -54,7 +54,7 @@ In your plugin or library,
 ```json
 "wireit": {
     "compile": {
-      "command": "ttsc -p . --pretty --incremental",
+      "command": "tspc -p . --pretty --incremental",
       "files": [
         "src/**/*.ts",
         "tsconfig.json",

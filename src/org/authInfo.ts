@@ -6,10 +6,10 @@
  */
 /* eslint-disable class-methods-use-this */
 
-import { randomBytes } from 'crypto';
-import { resolve as pathResolve } from 'path';
-import * as os from 'os';
-import * as fs from 'fs';
+import { randomBytes } from 'node:crypto';
+import { resolve as pathResolve } from 'node:path';
+import * as os from 'node:os';
+import * as fs from 'node:fs';
 import { Record as RecordType } from 'jsforce';
 import { AsyncOptionalCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
@@ -34,7 +34,7 @@ import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { matchesAccessToken, trimTo15 } from '../util/sfdc';
-import { StateAggregator } from '../stateAggregator';
+import { StateAggregator } from '../stateAggregator/stateAggregator';
 import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
@@ -394,7 +394,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const logger = await Logger.child('Common', { tag: 'identifyPossibleScratchOrgs' });
 
     // return if we already know the hub org, we know it is a devhub or prod-like, or no orgId present
-    if (fields.isDevHub || fields.devHubUsername || !fields.orgId) return;
+    if (Boolean(fields.isDevHub) || Boolean(fields.devHubUsername) || !fields.orgId) return;
 
     logger.debug('getting devHubs and prod orgs to identify scratch orgs and sandboxes');
 
@@ -664,8 +664,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * Get the authorization fields.
    *
    * @param decrypt Decrypt the fields.
+   *
+   * Returns a ReadOnly object of the fields.  If you need to modify the fields, use AuthInfo.update()
    */
-  public getFields(decrypt?: boolean): AuthFields {
+  public getFields(decrypt?: boolean): Readonly<AuthFields> {
     return this.stateAggregator.orgs.get(this.username, decrypt) ?? {};
   }
 
@@ -713,7 +715,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public async handleAliasAndDefaultSettings(sideEffects: AuthSideEffects): Promise<void> {
     if (
-      sideEffects.alias ||
+      Boolean(sideEffects.alias) ||
       sideEffects.setDefault ||
       sideEffects.setDefaultDevHub ||
       typeof sideEffects.setTracksSource === 'boolean'

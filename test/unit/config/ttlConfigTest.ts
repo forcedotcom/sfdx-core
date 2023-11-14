@@ -96,4 +96,31 @@ describe('TTLConfig', () => {
       expect(isExpired).to.be.false;
     });
   });
+
+  describe('filters expired keys on init', () => {
+    it('should omit expired keys', async () => {
+      $$.setConfigStubContents('TestConfig', {
+        contents: {
+          old: {
+            value: 1,
+            timestamp: new Date().getTime() - Duration.days(7).milliseconds,
+          },
+          current: {
+            value: 2,
+            timestamp: new Date().getTime(),
+          },
+          future: {
+            value: 3,
+            timestamp: new Date().getTime() + Duration.days(7).milliseconds,
+          },
+        },
+      });
+
+      const config = await TestConfig.create();
+      const keys = config.keys();
+      expect(keys).to.include('current');
+      expect(keys).to.include('future');
+      expect(keys).to.not.include('old');
+    });
+  });
 });

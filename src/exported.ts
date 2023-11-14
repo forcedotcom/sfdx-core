@@ -16,9 +16,9 @@ export { TTLConfig } from './config/ttlConfig';
 
 export { envVars, EnvironmentVariable, SUPPORTED_ENV_VARS, EnvVars } from './config/envVars';
 
-export { ConfigContents, ConfigEntry, ConfigStore, ConfigValue } from './config/configStore';
-
-export { SfTokens, StateAggregator } from './stateAggregator';
+export { ConfigStore } from './config/configStore';
+export { ConfigEntry, ConfigContents, ConfigValue } from './config/configStackTypes';
+export { StateAggregator } from './stateAggregator/stateAggregator';
 
 export { DeviceOauthService, DeviceCodeResponse, DeviceCodePollingResponse } from './deviceOauthService';
 
@@ -70,14 +70,13 @@ export {
   OrgTypes,
   ResultEvent,
   ScratchOrgRequest,
-} from './org';
+} from './org/org';
 
 export { OrgConfigProperties, ORG_CONFIG_ALLOWED_PROPERTIES } from './org/orgConfigProperties';
 
 export { PackageDir, NamedPackageDir, PackageDirDependency, SfProject, SfProjectJson } from './sfProject';
 
 export { SchemaValidator } from './schema/validator';
-export { SchemaPrinter } from './schema/printer';
 
 export { SfError } from './sfError';
 
@@ -90,7 +89,7 @@ export { MyDomainResolver } from './status/myDomainResolver';
 export { DefaultUserFields, REQUIRED_FIELDS, User, UserFields } from './org/user';
 
 export { PermissionSetAssignment, PermissionSetAssignmentFields } from './org/permissionSetAssignment';
-
+export { lockInit } from './util/fileLocking';
 export {
   ScratchOrgCreateOptions,
   ScratchOrgCreateResult,
@@ -105,6 +104,6 @@ export {
   scratchOrgLifecycleStages,
 } from './org/scratchOrgLifecycleEvents';
 export { ScratchOrgCache } from './org/scratchOrgCache';
+
 // Utility sub-modules
 export * from './util/sfdc';
-export * from './util/sfdcUrl';

@@ -6,8 +6,8 @@
  */
 /* eslint-disable class-methods-use-this */
 
-import { join as pathJoin } from 'path';
-import * as fs from 'fs';
+import { join as pathJoin } from 'node:path';
+import * as fs from 'node:fs';
 import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
 import {
   AnyFunction,
@@ -26,7 +26,7 @@ import {
 import { HttpRequest, SaveResult } from 'jsforce';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
-import { ConfigContents } from '../config/configStore';
+import { ConfigContents } from '../config/configStackTypes';
 import { OrgUsersConfig } from '../config/orgUsersConfig';
 import { Global } from '../global';
 import { Lifecycle } from '../lifecycleEvents';
@@ -35,7 +35,7 @@ import { SfError } from '../sfError';
 import { trimTo15 } from '../util/sfdc';
 import { WebOAuthServer } from '../webOAuthServer';
 import { Messages } from '../messages';
-import { StateAggregator } from '../stateAggregator';
+import { StateAggregator } from '../stateAggregator/stateAggregator';
 import { PollingClient } from '../status/pollingClient';
 import { StatusResult } from '../status/types';
 import { Connection, SingleRecordQueryErrors } from './connection';
@@ -698,17 +698,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       url: this.getConnection().baseUrl(),
       method: 'GET',
     };
+
     const conn = this.getConnection();
-    try {
-      await conn.request(requestInfo);
-    } catch (e) {
-      // an html error page like https://computing-connect-6970-dev-ed.scratch.my.salesforce.com/services/data/v50.0
-      // where the message is an entire html page
-      if (e instanceof Error && (e.name.includes('ERROR_HTTP') || e.message.includes('<html '))) {
-        throw messages.createError('UnexpectedResponse', [], [conn.baseUrl()], e);
-      }
-      throw e;
-    }
+    await conn.request(requestInfo);
   }
 
   /**
@@ -807,13 +799,13 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     this.logger.debug(`removing username ${authInfo.getFields().username}`);
 
     const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
-
-    const contents: ConfigContents = await orgConfig.read();
+    const contents = await orgConfig.read();
 
     const targetUser = authInfo.getFields().username;
-    const usernames = (contents.usernames ?? []) as string[];
-    contents.usernames = usernames.filter((username) => username !== targetUser);
 
+    const usernames = (contents.usernames ?? []).filter((username) => username !== targetUser);
+
+    orgConfig.set('usernames', usernames);
     await orgConfig.write();
     return this;
   }

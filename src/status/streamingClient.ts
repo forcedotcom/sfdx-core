@@ -7,7 +7,7 @@
 
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
-import { resolve as resolveUrl } from 'url';
+import { resolve as resolveUrl } from 'node:url';
 import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit/lib';
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types/lib';
 import * as Faye from 'faye';
@@ -215,7 +215,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
    * Provides a convenient way to handshake with the server endpoint before trying to subscribe.
    */
   public handshake(): Promise<StreamingClient.ConnectionState> {
-    let timeout: NodeJS.Timer;
+    let timeout: NodeJS.Timeout;
 
     return new Promise((resolve, reject) => {
       timeout = setTimeout(() => {
@@ -243,7 +243,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
    * {@link StatusResult}
    */
   public subscribe(streamInit?: () => Promise<void>): Promise<AnyJson | void> {
-    let timeout: NodeJS.Timer;
+    let timeout: NodeJS.Timeout;
 
     // This outer promise is to hold the streaming promise chain open until the streaming processor
     // says it's complete.
@@ -323,7 +323,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
     cb(message);
   }
 
-  private doTimeout(timeout: NodeJS.Timer, error: SfError): SfError {
+  private doTimeout(timeout: NodeJS.Timeout, error: SfError): SfError {
     this.disconnect();
     clearTimeout(timeout);
     this.log(JSON.stringify(error));

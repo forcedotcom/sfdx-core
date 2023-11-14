@@ -5,9 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { findKey } from '@salesforce/kit';
-import { AnyJson, asJsonMap, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
-
 /**
  * Converts an 18 character Salesforce ID to 15 characters.
  *
@@ -41,20 +38,6 @@ export const validateApiVersion = (value: string): boolean => value == null || /
 export const validateEmail = (value: string): boolean => /^[^.][^@]*@[^.]+(\.[^.\s]+)+$/.test(value);
 
 /**
- *
- * @deprecated use `new SfdcUrl(url).isInternalUrl()`
- * Tests whether a given url is an internal Salesforce domain
- *
- * @param url
- */
-export const isInternalUrl = (url: string): boolean => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires
-  const SfdcUrl = require('./sfdcUrl');
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-  return new SfdcUrl(url).isInternalUrl() as boolean;
-};
-
-/**
  * Tests whether a Salesforce ID is in the correct format, a 15- or 18-character length string with only letters and numbers
  *
  * @param value The ID as a string.
@@ -70,30 +53,6 @@ export const validateSalesforceId = (value: string): boolean =>
 export const validatePathDoesNotContainInvalidChars = (value: string): boolean =>
   // eslint-disable-next-line no-useless-escape
   !/[\["\?<>\|\]]+/.test(value);
-
-/**
- * @deprecated
- * // TODO: move this to a module-scope function in sfProject
- * Returns the first key within the object that has an upper case first letter.
- *
- * @param data The object in which to check key casing.
- * @param sectionBlocklist properties in the object to exclude from the search. e.g. a blocklist of `["a"]` and data of `{ "a": { "B" : "b"}}` would ignore `B` because it is in the object value under `a`.
- */
-export const findUpperCaseKeys = (data?: JsonMap, sectionBlocklist: string[] = []): Optional<string> => {
-  let key: Optional<string>;
-  findKey(data, (val: AnyJson, k: string) => {
-    if (/^[A-Z]/.test(k)) {
-      key = k;
-    } else if (isJsonMap(val)) {
-      if (sectionBlocklist.includes(k)) {
-        return key;
-      }
-      key = findUpperCaseKeys(asJsonMap(val));
-    }
-    return key;
-  });
-  return key;
-};
 
 export const accessTokenRegex = /(00D\w{12,15})![.\w]*/;
 export const sfdxAuthUrlRegex =

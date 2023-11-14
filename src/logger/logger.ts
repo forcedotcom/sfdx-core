@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as os from 'os';
-import * as path from 'path';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
 import { Logger as PinoLogger, pino } from 'pino';
 import { Env } from '@salesforce/kit';
@@ -171,7 +171,7 @@ export class Logger {
         level,
         enabled,
       };
-      if (options.useMemoryLogger || Global.getEnvironmentMode() === Mode.TEST || !enabled) {
+      if (Boolean(options.useMemoryLogger) || Global.getEnvironmentMode() === Mode.TEST || !enabled) {
         this.memoryLogger = new MemoryLogger();
         this.pinoLogger = pino(
           {

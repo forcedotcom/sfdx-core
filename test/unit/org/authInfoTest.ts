@@ -9,8 +9,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import * as pathImport from 'path';
-import * as dns from 'dns';
+import * as pathImport from 'node:path';
+import * as dns from 'node:dns';
 import * as jwt from 'jsonwebtoken';
 import { cloneJson, env, includes } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
@@ -20,11 +20,14 @@ import { Transport } from 'jsforce/lib/transport';
 
 import { OAuth2 } from 'jsforce';
 import { SinonSpy, SinonStub, match } from 'sinon';
-import { AuthFields, AuthInfo, Org } from '../../../src/org';
+import { Org } from '../../../src/org/org';
+import { AuthFields, AuthInfo } from '../../../src/org/authInfo';
 import { JwtOAuth2Config } from '../../../src/org/authInfo';
 import { MockTestOrgData, shouldThrow, shouldThrowSync, TestContext } from '../../../src/testSetup';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
-import { AliasAccessor, OrgAccessor, StateAggregator } from '../../../src/stateAggregator';
+import { StateAggregator } from '../../../src/stateAggregator/stateAggregator';
+import { AliasAccessor } from '../../../src/stateAggregator/accessors/aliasAccessor';
+import { OrgAccessor } from '../../../src/stateAggregator/accessors/orgAccessor';
 import { Crypto } from '../../../src/crypto/crypto';
 import { Config } from '../../../src/config/config';
 import { SfdcUrl } from '../../../src/util/sfdcUrl';
@@ -1267,7 +1270,7 @@ describe('AuthInfo', () => {
       });
 
       // delete the client secret
-      delete authInfo.getFields().clientSecret;
+      authInfo.update({ clientSecret: undefined });
       const instanceUrl = testOrg.instanceUrl.replace('https://', '');
       expect(authInfo.getSfdxAuthUrl()).to.contain(`force://PlatformCLI::${testOrg.refreshToken}@${instanceUrl}`);
     });
@@ -1292,8 +1295,7 @@ describe('AuthInfo', () => {
       });
 
       // delete the refresh token
-      delete authInfo.getFields().refreshToken;
-
+      authInfo.update({ ...authInfo.getFields(), refreshToken: undefined });
       expect(() => authInfo.getSfdxAuthUrl()).to.throw('undefined refreshToken');
     });
 
@@ -1317,7 +1319,7 @@ describe('AuthInfo', () => {
       });
 
       // delete the instance url
-      delete authInfo.getFields().instanceUrl;
+      authInfo.update({ ...authInfo.getFields(), instanceUrl: undefined });
 
       expect(() => authInfo.getSfdxAuthUrl()).to.throw('undefined instanceUrl');
     });

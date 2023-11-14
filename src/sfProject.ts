@@ -4,21 +4,21 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { basename, dirname, isAbsolute, normalize, resolve, sep } from 'path';
-import * as fs from 'fs';
+import { basename, dirname, isAbsolute, normalize, resolve, sep } from 'node:path';
+import * as fs from 'node:fs';
 import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import { SfdcUrl } from './util/sfdcUrl';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
-import { ConfigContents } from './config/configStore';
+import { ConfigContents } from './config/configStackTypes';
 
 import { SchemaValidator } from './schema/validator';
 import { resolveProjectPath, resolveProjectPathSync, SFDX_PROJECT_JSON } from './util/internal';
 
 import { SfError } from './sfError';
-import { findUpperCaseKeys } from './util/sfdc';
 import { Messages } from './messages';
+import { findUpperCaseKeys } from './util/findUppercaseKeys';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
@@ -114,18 +114,12 @@ export class SfProjectJson extends ConfigFile {
     return contents;
   }
 
-  public async write(newContents?: ConfigContents): Promise<ConfigContents> {
-    if (newContents) {
-      this.setContents(newContents);
-    }
+  public async write(): Promise<ConfigContents> {
     this.validateKeys();
     return super.write();
   }
 
-  public writeSync(newContents?: ConfigContents): ConfigContents {
-    if (newContents) {
-      this.setContents(newContents);
-    }
+  public writeSync(): ConfigContents {
     this.validateKeys();
     return super.writeSync();
   }
@@ -136,12 +130,7 @@ export class SfProjectJson extends ConfigFile {
 
   // eslint-disable-next-line class-methods-use-this
   public getDefaultOptions(options?: ConfigFile.Options): ConfigFile.Options {
-    const defaultOptions: ConfigFile.Options = {
-      isState: false,
-    };
-
-    Object.assign(defaultOptions, options ?? {});
-    return defaultOptions;
+    return { ...{ isState: false }, ...(options ?? {}) };
   }
 
   /**
@@ -335,13 +324,8 @@ export class SfProjectJson extends ConfigFile {
     if (!/^.{15,18}$/.test(id)) {
       throw messages.createError('invalidId', [id]);
     }
-
-    const contents = this.getContents();
-    if (!contents.packageAliases) {
-      contents.packageAliases = {};
-    }
-    contents.packageAliases[alias] = id;
-    this.setContents(contents);
+    const newAliases = { ...(this.getContents().packageAliases ?? {}), [alias]: id };
+    this.contents.set('packageAliases', newAliases);
   }
 
   /**

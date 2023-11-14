@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { StateAggregator } from '../../../../src/stateAggregator';
-import { AuthFields } from '../../../../src/org';
-import { MockTestOrgData, shouldThrowSync, TestContext, uniqid } from '../../../../src/testSetup';
+import { StateAggregator } from '../../../../src/stateAggregator/stateAggregator';
+import { AuthFields } from '../../../../src/org/authInfo';
+import { MockTestOrgData, shouldThrowSync, TestContext } from '../../../../src/testSetup';
+import { uniqid } from '../../../../src/util/uniqid';
 
 const username = 'espresso@coffee.com';
 const org = new MockTestOrgData(uniqid(), { username });

@@ -9,9 +9,11 @@ import { existsSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { expect } from 'chai';
-import { FILENAME, StateAggregator } from '../../../../src/stateAggregator';
-import { MockTestOrgData, TestContext, uniqid } from '../../../../src/testSetup';
+import { StateAggregator } from '../../../../src/stateAggregator/stateAggregator';
+import { FILENAME } from '../../../../src/stateAggregator/accessors/aliasAccessor';
+import { MockTestOrgData, TestContext } from '../../../../src/testSetup';
 import { Global } from '../../../../src/global';
+import { uniqid } from '../../../../src/util/uniqid';
 
 const username1 = 'espresso@coffee.com';
 const username2 = 'foobar@salesforce.com';
@@ -19,7 +21,6 @@ const alias1 = 'MyAlias';
 const alias2 = 'MyOtherAlias';
 const alias3 = 'MyThirdAlias';
 const org = new MockTestOrgData(uniqid(), { username: username1 });
-const token = { token: '123', url: 'https://login.salesforce.com', user: username1 };
 
 describe('AliasAccessor', () => {
   const $$ = new TestContext();
@@ -29,10 +30,6 @@ describe('AliasAccessor', () => {
       [alias1]: username1,
       [alias2]: username2,
       [alias3]: username1,
-    });
-
-    $$.setConfigStubContents('TokensConfig', {
-      contents: { [username1]: token },
     });
 
     await $$.stubAuths(org);
@@ -120,13 +117,6 @@ describe('AliasAccessor', () => {
       const aliases = stateAggregator.aliases.getAll(org.username);
       expect(aliases).to.include('foobar');
     });
-
-    it('should set an alias for a token', async () => {
-      const stateAggregator = await StateAggregator.getInstance();
-      stateAggregator.aliases.set('foobar', token);
-      const aliases = stateAggregator.aliases.getAll(token.user);
-      expect(aliases).to.include('foobar');
-    });
   });
 
   describe('setAndSave', () => {
@@ -147,13 +137,6 @@ describe('AliasAccessor', () => {
       const stateAggregator = await StateAggregator.getInstance();
       await stateAggregator.aliases.setAndSave('foobar', await org.getConfig());
       const aliases = stateAggregator.aliases.getAll(org.username);
-      expect(aliases).to.include('foobar');
-    });
-
-    it('should set an alias for a token', async () => {
-      const stateAggregator = await StateAggregator.getInstance();
-      await stateAggregator.aliases.setAndSave('foobar', token);
-      const aliases = stateAggregator.aliases.getAll(token.user);
       expect(aliases).to.include('foobar');
     });
   });
