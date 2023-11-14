@@ -698,17 +698,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       url: this.getConnection().baseUrl(),
       method: 'GET',
     };
+
     const conn = this.getConnection();
-    try {
-      await conn.request(requestInfo);
-    } catch (e) {
-      // an html error page like https://computing-connect-6970-dev-ed.scratch.my.salesforce.com/services/data/v50.0
-      // where the message is an entire html page
-      if (e instanceof Error && (e.name.includes('ERROR_HTTP') || e.message.includes('<html '))) {
-        throw messages.createError('UnexpectedResponse', [], [conn.baseUrl()], e);
-      }
-      throw e;
-    }
+    await conn.request(requestInfo);
   }
 
   /**
