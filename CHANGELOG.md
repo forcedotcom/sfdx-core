@@ -1,3 +1,12 @@
+## [6.1.3](https://github.com/forcedotcom/sfdx-core/compare/6.1.2...6.1.3) (2023-11-15)
+
+
+### Bug Fixes
+
+* no retries on sync lock ([b7f5588](https://github.com/forcedotcom/sfdx-core/commit/b7f55882d10bb69c945ebd0cb89bcc6f1d48b9da))
+
+
+
 ## [6.1.2](https://github.com/forcedotcom/sfdx-core/compare/6.1.1...6.1.2) (2023-11-15)
 
 
