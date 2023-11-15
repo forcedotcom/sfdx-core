@@ -9,7 +9,7 @@ import { dirname } from 'node:path';
 import { lock, lockSync } from 'proper-lockfile';
 import { SfError } from '../sfError';
 import { Logger } from '../logger/logger';
-import { lockRetryOptions } from './lockRetryOptions';
+import { lockOptions, lockRetryOptions } from './lockRetryOptions';
 
 type LockInitResponse = { writeAndUnlock: (data: string) => Promise<void>; unlock: () => Promise<void> };
 type LockInitSyncResponse = { writeAndUnlock: (data: string) => void; unlock: () => void };
@@ -74,10 +74,10 @@ export const lockInitSync = (filePath: string): LockInitSyncResponse => {
 
   const [unlock] = fs.existsSync(filePath)
     ? // if the file exists, wait for it to be unlocked
-      [lockSync(filePath, lockRetryOptions)]
+      [lockSync(filePath, lockOptions)]
     : // lock the entire directory to keep others from trying to create the file while we are
       [
-        lockSync(dirname(filePath), lockRetryOptions),
+        lockSync(dirname(filePath), lockOptions),
         Logger.childFromRoot('fileLocking.lockInit').debug(
           `No file found at ${filePath}.  Write will create it.  Locking the entire directory until file is written.`
         ),
