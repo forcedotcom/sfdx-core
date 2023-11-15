@@ -1,3 +1,12 @@
+## [6.1.2](https://github.com/forcedotcom/sfdx-core/compare/6.1.1...6.1.2) (2023-11-15)
+
+
+### Bug Fixes
+
+* **types:** additional props for packaging lib ([25b3cf1](https://github.com/forcedotcom/sfdx-core/commit/25b3cf1b28d58bdaeebfef13d4463c33ed8a4b8a))
+
+
+
 ## [6.1.1](https://github.com/forcedotcom/sfdx-core/compare/6.1.0...6.1.1) (2023-11-15)
 
 
