@@ -48,6 +48,8 @@ export type PackageDir = {
   versionDescription?: string;
   versionName?: string;
   versionNumber?: string;
+  unpackagedMetadata?: { path: string };
+  seedMetadata?: { path: string };
 };
 
 export type NamedPackageDir = PackageDir & {
