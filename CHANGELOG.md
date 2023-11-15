@@ -1,3 +1,12 @@
+## [6.1.1](https://github.com/forcedotcom/sfdx-core/compare/6.1.0...6.1.1) (2023-11-15)
+
+
+### Bug Fixes
+
+* write safety and valid typing for sfProject ([ff8b066](https://github.com/forcedotcom/sfdx-core/commit/ff8b06696f7ef88ac74a35f60e281b90eb74471b))
+
+
+
 # [6.1.0](https://github.com/forcedotcom/sfdx-core/compare/5.3.20...6.1.0) (2023-11-14)
 
 
