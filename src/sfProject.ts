@@ -89,7 +89,7 @@ export type ProjectJson = ConfigContents & {
  *
  * **See** [force:project:create](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm)
  */
-export class SfProjectJson extends ConfigFile {
+export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
   public static BLOCKLIST = ['packageAliases'];
 
   public static getFileName(): string {
@@ -102,30 +102,26 @@ export class SfProjectJson extends ConfigFile {
     return options;
   }
 
-  public async read(): Promise<ConfigContents> {
+  public async read(): Promise<ProjectJson> {
     const contents = await super.read();
     this.validateKeys();
     return contents;
   }
 
-  public readSync(): ConfigContents {
+  public readSync(): ProjectJson {
     const contents = super.readSync();
     this.validateKeys();
     return contents;
   }
 
-  public async write(): Promise<ConfigContents> {
+  public async write(): Promise<ProjectJson> {
     this.validateKeys();
     return super.write();
   }
 
-  public writeSync(): ConfigContents {
+  public writeSync(): ProjectJson {
     this.validateKeys();
     return super.writeSync();
-  }
-
-  public getContents(): ProjectJson {
-    return super.getContents() as ProjectJson;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -354,12 +350,15 @@ export class SfProjectJson extends ConfigFile {
       dirIndex > -1 ? this.getContents().packageDirectories[dirIndex] : packageDir,
       packageDir
     );
-    // update package dir entries
-    if (dirIndex > -1) {
-      this.getContents().packageDirectories[dirIndex] = packageDirEntry;
-    } else {
-      this.getContents().packageDirectories.push(packageDirEntry);
-    }
+
+    const modifiedPackagesDirs =
+      dirIndex > -1
+        ? // replace the matching entry with the new entry
+          this.getContents().packageDirectories.map((pd, i) => (i === dirIndex ? packageDir : pd))
+        : // add the new entry to the end of the list
+          [...(this.getContents()?.packageDirectories ?? []), packageDirEntry];
+
+    this.set('packageDirectories', modifiedPackagesDirs);
   }
 
   // eslint-disable-next-line class-methods-use-this
