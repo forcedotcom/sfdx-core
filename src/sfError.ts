@@ -72,6 +72,9 @@ export class SfError extends NamedError {
     } else {
       this.exitCode = 1;
     }
+    if (this.fullStack) {
+      this.stack = this.fullStack;
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
