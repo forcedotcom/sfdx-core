@@ -72,6 +72,9 @@ export {
   ScratchOrgRequest,
 } from './org/org';
 
+export { OrgAccessor } from './stateAggregator/accessors/orgAccessor';
+export { SandboxAccessor } from './stateAggregator/accessors/sandboxAccessor';
+
 export { OrgConfigProperties, ORG_CONFIG_ALLOWED_PROPERTIES } from './org/orgConfigProperties';
 
 export { PackageDir, NamedPackageDir, PackageDirDependency, SfProject, SfProjectJson } from './sfProject';
