@@ -24,7 +24,7 @@ import { hasString, isString, JsonMap } from '@salesforce/ts-types';
  * throw new SfError(message.getMessage('myError'), 'MyErrorName');
  * ```
  */
-export class SfError extends NamedError {
+export class SfError<T = unknown> extends NamedError {
   /**
    * Action messages. Hints to the users regarding what can be done to fix related issues.
    */
@@ -41,7 +41,7 @@ export class SfError extends NamedError {
   public context?: string;
 
   // Additional data helpful for consumers of this error.  E.g., API call result
-  public data?: unknown;
+  public data?: T;
 
   /**
    * Some errors support `error.code` instead of `error.name`. This keeps backwards compatability.
@@ -121,7 +121,7 @@ export class SfError extends NamedError {
    *
    * @param data The payload data.
    */
-  public setData(data: unknown): SfError {
+  public setData(data: T): SfError {
     this.data = data;
     return this;
   }
@@ -142,8 +142,7 @@ export class SfError extends NamedError {
     }
 
     if (this.data) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
-      obj.data = this.data as any;
+      obj.data = this.data;
     }
 
     return obj;
