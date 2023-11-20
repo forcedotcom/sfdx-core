@@ -6,7 +6,7 @@
  */
 
 import { NamedError } from '@salesforce/kit';
-import { hasString, isString, JsonMap } from '@salesforce/ts-types';
+import { AnyJson, hasString, isString, JsonMap } from '@salesforce/ts-types';
 
 /**
  * A generalized sfdx error which also contains an action. The action is used in the
@@ -132,7 +132,7 @@ export class SfError<T = unknown> extends NamedError {
   public toObject(): JsonMap {
     const obj: JsonMap = {
       name: this.name,
-      message: this.message || this.name,
+      message: this.message ?? this.name,
       exitCode: this.exitCode,
       actions: this.actions,
     };
@@ -142,7 +142,10 @@ export class SfError<T = unknown> extends NamedError {
     }
 
     if (this.data) {
-      obj.data = this.data;
+      // DANGER: data was previously typed as `unknown` and this assertion was here on the toObject.
+      // TODO in next major release: put proper type constraint on SfError.data to something that can serialize
+      // while we're making breaking changes, provide a more definite type for toObject
+      obj.data = this.data as AnyJson;
     }
 
     return obj;
