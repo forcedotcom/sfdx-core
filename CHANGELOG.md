@@ -1,3 +1,12 @@
+# [6.2.0](https://github.com/forcedotcom/sfdx-core/compare/6.1.4...6.2.0) (2023-11-21)
+
+
+### Features
+
+* generic type for sfError.data ([49beee5](https://github.com/forcedotcom/sfdx-core/commit/49beee53824a843a53e44e6b78f38b628b4eb0f8))
+
+
+
 ## [6.1.4](https://github.com/forcedotcom/sfdx-core/compare/6.1.3...6.1.4) (2023-11-19)
 
 
