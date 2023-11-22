@@ -1564,7 +1564,7 @@ export namespace Org {
      */
     IS_SCRATCH = 'isScratch',
     /**
-     * Is the current org a dev hub org. e.g. Organization has IsSandbox == true and TrialExpirationDate == null.
+     * Is the current org a sandbox (not a scratch org on a non-prod instance), but an actual Sandbox org). e.g. Organization has IsSandbox == true and TrialExpirationDate == null.
      */
     IS_SANDBOX = 'isSandbox',
     /**
