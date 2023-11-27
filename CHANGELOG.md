@@ -1,3 +1,12 @@
+## [6.2.1](https://github.com/forcedotcom/sfdx-core/compare/6.2.0...6.2.1) (2023-11-26)
+
+
+### Bug Fixes
+
+* **deps:** bump @types/semver from 7.5.5 to 7.5.6 ([c12440d](https://github.com/forcedotcom/sfdx-core/commit/c12440de94c8479f4a885157082ee28065e43cff))
+
+
+
 # [6.2.0](https://github.com/forcedotcom/sfdx-core/compare/6.1.4...6.2.0) (2023-11-21)
 
 
