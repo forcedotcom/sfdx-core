@@ -630,7 +630,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   public async determineIfScratch(): Promise<boolean> {
     let cache = this.getField(Org.Fields.IS_SCRATCH);
 
-    if (!cache) {
+    if (cache === undefined) {
       await this.updateLocalInformation();
       cache = this.getField(Org.Fields.IS_SCRATCH);
     }
@@ -647,7 +647,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   public async determineIfSandbox(): Promise<boolean> {
     let cache = this.getField(Org.Fields.IS_SANDBOX);
 
-    if (!cache) {
+    if (cache === undefined) {
       await this.updateLocalInformation();
       cache = this.getField(Org.Fields.IS_SANDBOX);
     }
@@ -877,11 +877,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Returns a map of requested fields.
    */
   public getFields(keys: Org.Fields[]): JsonMap {
-    const json: JsonMap = {};
-    return keys.reduce((map, key) => {
-      map[key] = this.getField(key);
-      return map;
-    }, json);
+    return Object.fromEntries(keys.map((key) => [key, this.getField(key)]));
   }
 
   /**
