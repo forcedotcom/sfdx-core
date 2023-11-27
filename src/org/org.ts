@@ -628,13 +628,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * using {@link Org.retrieveOrganizationInformation}.
    */
   public async determineIfScratch(): Promise<boolean> {
-    let cache = this.getField(Org.Fields.IS_SCRATCH);
-
-    if (cache === undefined) {
-      await this.updateLocalInformation();
-      cache = this.getField(Org.Fields.IS_SCRATCH);
+    const cache = this.getField<boolean | undefined>(Org.Fields.IS_SCRATCH);
+    if (cache !== undefined) {
+      return cache;
     }
-    return cache as boolean;
+    const updated = await this.updateLocalInformation();
+    return updated?.isScratch === true;
   }
 
   /**
@@ -645,13 +644,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * using {@link Org.retrieveOrganizationInformation}.
    */
   public async determineIfSandbox(): Promise<boolean> {
-    let cache = this.getField(Org.Fields.IS_SANDBOX);
-
-    if (cache === undefined) {
-      await this.updateLocalInformation();
-      cache = this.getField(Org.Fields.IS_SANDBOX);
+    const cache = this.getField<boolean | undefined>(Org.Fields.IS_SANDBOX);
+    if (cache !== undefined) {
+      return cache;
     }
-    return cache as boolean;
+    const updated = await this.updateLocalInformation();
+    return updated?.isSandbox === true;
   }
 
   /**
@@ -670,22 +668,32 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Some organization information is locally cached, such as if the org name or if it is a scratch org.
    * This method populates/updates the filesystem from information retrieved from the org.
    */
-  public async updateLocalInformation(): Promise<void> {
+  public async updateLocalInformation(): Promise<
+    | {
+        name: string;
+        instanceName: string;
+        namespacePrefix: string | null;
+        isSandbox: boolean;
+        isScratch: boolean;
+        trailExpirationDate: string | null;
+      }
+    | undefined
+  > {
     const username = this.getUsername();
     if (username) {
       const organization = await this.retrieveOrganizationInformation();
-      const isScratch = organization.IsSandbox && Boolean(organization.TrialExpirationDate);
-      const isSandbox = organization.IsSandbox && !organization.TrialExpirationDate;
-      const stateAggregator = await StateAggregator.getInstance();
-      stateAggregator.orgs.update(username, {
+      const updateFields = {
         [Org.Fields.NAME]: organization.Name,
         [Org.Fields.INSTANCE_NAME]: organization.InstanceName,
         [Org.Fields.NAMESPACE_PREFIX]: organization.NamespacePrefix,
-        [Org.Fields.IS_SANDBOX]: isSandbox,
-        [Org.Fields.IS_SCRATCH]: isScratch,
+        [Org.Fields.IS_SANDBOX]: organization.IsSandbox && Boolean(organization.TrialExpirationDate),
+        [Org.Fields.IS_SCRATCH]: organization.IsSandbox && !organization.TrialExpirationDate,
         [Org.Fields.TRIAL_EXPIRATION_DATE]: organization.TrialExpirationDate,
-      });
+      };
+      const stateAggregator = await StateAggregator.getInstance();
+      stateAggregator.orgs.update(username, updateFields);
       await stateAggregator.orgs.write(username);
+      return updateFields;
     }
   }
 
