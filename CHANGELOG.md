@@ -1,3 +1,12 @@
+## [6.2.2](https://github.com/forcedotcom/sfdx-core/compare/6.2.1...6.2.2) (2023-11-28)
+
+
+### Bug Fixes
+
+* bump jsforce ([#1001](https://github.com/forcedotcom/sfdx-core/issues/1001)) ([bc5a6f0](https://github.com/forcedotcom/sfdx-core/commit/bc5a6f08c25087fb8f63a49882ade9e1a7a63bbc))
+
+
+
 ## [6.2.1](https://github.com/forcedotcom/sfdx-core/compare/6.2.0...6.2.1) (2023-11-26)
 
 
