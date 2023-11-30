@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1701126665709,
+  "lastUpdate": 1701358461779,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -11016,6 +11016,72 @@ window.BENCHMARK_DATA = {
             "range": "±9.09%",
             "unit": "ops/sec",
             "extra": "52 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "snyk-bot@snyk.io",
+            "name": "snyk-bot",
+            "username": "snyk-bot"
+          },
+          "committer": {
+            "email": "snyk-bot@snyk.io",
+            "name": "snyk-bot",
+            "username": "snyk-bot"
+          },
+          "distinct": true,
+          "id": "7aaceeefc48969f93525cbde3ae4169cc331d47a",
+          "message": "fix: examples/package.json & examples/yarn.lock to reduce vulnerabilities\n\nThe following vulnerabilities are fixed with an upgrade:\n- https://snyk.io/vuln/SNYK-JS-INFLIGHT-6095116",
+          "timestamp": "2023-11-30T15:30:53Z",
+          "tree_id": "fc3f9ae50f4e8d16d921736b16bdbcd7e2faa091",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/7aaceeefc48969f93525cbde3ae4169cc331d47a"
+        },
+        "date": 1701358455311,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 482418,
+            "range": "±0.91%",
+            "unit": "ops/sec",
+            "extra": "93 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 810908,
+            "range": "±8.33%",
+            "unit": "ops/sec",
+            "extra": "58 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 664161,
+            "range": "±5.58%",
+            "unit": "ops/sec",
+            "extra": "74 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 4912,
+            "range": "±220.44%",
+            "unit": "ops/sec",
+            "extra": "11 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 459667,
+            "range": "±8.45%",
+            "unit": "ops/sec",
+            "extra": "63 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 383984,
+            "range": "±10.55%",
+            "unit": "ops/sec",
+            "extra": "73 samples"
           }
         ]
       }
