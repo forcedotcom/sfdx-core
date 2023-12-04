@@ -6,18 +6,20 @@
  */
 
 import { Readable, Writable } from 'stream';
-import * as JSZip from 'jszip';
+import JSZip from 'jszip';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { StructuredWriter } from './structuredWriter';
 
 export class ZipWriter extends Writable implements StructuredWriter {
-  private zip = JSZip();
+  private zip: typeof JSZip;
   private zipBuffer?: Buffer;
   private logger: Logger;
 
   public constructor(private readonly rootDestination?: string) {
     super({ objectMode: true });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+    this.zip = new JSZip();
     const destination = rootDestination ? `for: ${rootDestination}` : 'in memory';
     this.logger = Logger.childFromRoot(this.constructor.name);
     this.logger.debug(`generating zip ${destination}`);
@@ -33,6 +35,7 @@ export class ZipWriter extends Writable implements StructuredWriter {
   public async addToStore(contents: string | Readable | Buffer, path: string): Promise<void> {
     // Ensure only posix paths are added to zip files
     const posixPath = path.replace(/\\/g, '/');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     this.zip.file(posixPath, contents);
     return Promise.resolve();
   }
@@ -41,6 +44,7 @@ export class ZipWriter extends Writable implements StructuredWriter {
     // compression-/speed+ (0)<---(3)---------->(9) compression+/speed-
     // 3 appears to be a decent balance of compression and speed. It felt like
     // higher values = diminishing returns on compression and made conversion slower
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     this.zipBuffer = await this.zip.generateAsync({
       type: 'nodebuffer',
       compression: 'DEFLATE',

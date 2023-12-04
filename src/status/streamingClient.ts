@@ -476,11 +476,11 @@ export namespace StreamingClient {
           new Faye.Client(url),
         setLogger: (logLine: (message: string) => void): void => {
           // @ts-ignore
-          Faye.logger = {};
-          ['info', 'error', 'fatal', 'warn', 'debug'].forEach((element) => {
-            // @ts-ignore
-            set(Faye.logger, element, logLine);
-          });
+          // Faye.logger = {};
+          // ['info', 'error', 'fatal', 'warn', 'debug'].forEach((element) => {
+          //   // @ts-ignore
+          //   set(Faye.logger, element, logLine);
+          // });
         },
       };
     }
