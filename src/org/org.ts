@@ -15,13 +15,11 @@ import {
   ensure,
   ensureJsonArray,
   ensureString,
-  isArray,
   isBoolean,
   isString,
   JsonArray,
   JsonMap,
   Nullable,
-  Optional,
 } from '@salesforce/ts-types';
 import { HttpRequest, SaveResult } from 'jsforce';
 import { Config } from '../config/config';
@@ -458,7 +456,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   /**
    * Returns the Org object or null if this org is not affiliated with a Dev Hub (according to the local config).
    */
-  public async getDevHubOrg(): Promise<Optional<Org>> {
+  public async getDevHubOrg(): Promise<Org | undefined> {
     if (this.isDevHubOrg()) {
       return this;
     } else if (this.getField(Org.Fields.DEV_HUB_USERNAME)) {
@@ -682,7 +680,10 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   > {
     const username = this.getUsername();
     if (username) {
-      const organization = await this.retrieveOrganizationInformation();
+      const [stateAggregator, organization] = await Promise.all([
+        StateAggregator.getInstance(),
+        this.retrieveOrganizationInformation(),
+      ]);
       const updateFields = {
         [Org.Fields.NAME]: organization.Name,
         [Org.Fields.INSTANCE_NAME]: organization.InstanceName,
@@ -691,7 +692,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         [Org.Fields.IS_SCRATCH]: organization.IsSandbox && Boolean(organization.TrialExpirationDate),
         [Org.Fields.TRIAL_EXPIRATION_DATE]: organization.TrialExpirationDate,
       };
-      const stateAggregator = await StateAggregator.getInstance();
       stateAggregator.orgs.update(username, updateFields);
       await stateAggregator.orgs.write(username);
       return updateFields;
@@ -708,8 +708,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       method: 'GET',
     };
 
-    const conn = this.getConnection();
-    await conn.request(requestInfo);
+    await this.getConnection().request(requestInfo);
   }
 
   /**
@@ -761,7 +760,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     // needs config refactoring to improve
     const usernames = contents.usernames ?? [];
 
-    if (!isArray(usernames)) {
+    if (!Array.isArray(usernames)) {
       throw new SfError('Usernames is not an array', 'UnexpectedDataFormat');
     }
 
@@ -847,7 +846,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   /**
    * Returns the admin username used to create the org.
    */
-  public getUsername(): Optional<string> {
+  public getUsername(): string | undefined {
     return this.getConnection().getUsername();
   }
 
