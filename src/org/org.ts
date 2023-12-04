@@ -721,15 +721,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const thisUsername = ensure(this.getUsername());
     const usernames: JsonArray = ensureJsonArray(contents.usernames ?? [thisUsername]);
     return Promise.all(
-      usernames.map((username) => {
-        if (username === thisUsername) {
-          return AuthInfo.create({
-            username: this.getConnection().getUsername(),
-          });
-        } else {
-          return AuthInfo.create({ username: ensureString(username) });
-        }
-      })
+      usernames.map((username) =>
+        AuthInfo.create({
+          username: username === thisUsername ? this.getConnection().getUsername() : ensureString(username),
+        })
+      )
     );
   }
 
