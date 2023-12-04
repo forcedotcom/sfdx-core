@@ -669,14 +669,15 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * This method populates/updates the filesystem from information retrieved from the org.
    */
   public async updateLocalInformation(): Promise<
-    | {
-        name: string;
-        instanceName: string;
-        namespacePrefix: string | null;
-        isSandbox: boolean;
-        isScratch: boolean;
-        trailExpirationDate: string | null;
-      }
+    | Pick<
+        AuthFields,
+        | Org.Fields.NAME
+        | Org.Fields.INSTANCE_NAME
+        | Org.Fields.NAMESPACE_PREFIX
+        | Org.Fields.IS_SANDBOX
+        | Org.Fields.IS_SCRATCH
+        | Org.Fields.TRIAL_EXPIRATION_DATE
+      >
     | undefined
   > {
     const username = this.getUsername();
