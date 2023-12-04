@@ -686,8 +686,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         [Org.Fields.NAME]: organization.Name,
         [Org.Fields.INSTANCE_NAME]: organization.InstanceName,
         [Org.Fields.NAMESPACE_PREFIX]: organization.NamespacePrefix,
-        [Org.Fields.IS_SANDBOX]: organization.IsSandbox && Boolean(organization.TrialExpirationDate),
-        [Org.Fields.IS_SCRATCH]: organization.IsSandbox && !organization.TrialExpirationDate,
+        [Org.Fields.IS_SANDBOX]: organization.IsSandbox && !organization.TrialExpirationDate,
+        [Org.Fields.IS_SCRATCH]: organization.IsSandbox && Boolean(organization.TrialExpirationDate),
         [Org.Fields.TRIAL_EXPIRATION_DATE]: organization.TrialExpirationDate,
       };
       const stateAggregator = await StateAggregator.getInstance();
