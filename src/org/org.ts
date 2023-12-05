@@ -15,13 +15,11 @@ import {
   ensure,
   ensureJsonArray,
   ensureString,
-  isArray,
   isBoolean,
   isString,
   JsonArray,
   JsonMap,
   Nullable,
-  Optional,
 } from '@salesforce/ts-types';
 import { HttpRequest, SaveResult } from 'jsforce';
 import { Config } from '../config/config';
@@ -458,7 +456,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   /**
    * Returns the Org object or null if this org is not affiliated with a Dev Hub (according to the local config).
    */
-  public async getDevHubOrg(): Promise<Optional<Org>> {
+  public async getDevHubOrg(): Promise<Org | undefined> {
     if (this.isDevHubOrg()) {
       return this;
     } else if (this.getField(Org.Fields.DEV_HUB_USERNAME)) {
@@ -628,13 +626,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * using {@link Org.retrieveOrganizationInformation}.
    */
   public async determineIfScratch(): Promise<boolean> {
-    let cache = this.getField(Org.Fields.IS_SCRATCH);
-
-    if (!cache) {
-      await this.updateLocalInformation();
-      cache = this.getField(Org.Fields.IS_SCRATCH);
+    const cache = this.getField<boolean | undefined>(Org.Fields.IS_SCRATCH);
+    if (cache !== undefined) {
+      return cache;
     }
-    return cache as boolean;
+    const updated = await this.updateLocalInformation();
+    return updated?.isScratch === true;
   }
 
   /**
@@ -645,13 +642,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * using {@link Org.retrieveOrganizationInformation}.
    */
   public async determineIfSandbox(): Promise<boolean> {
-    let cache = this.getField(Org.Fields.IS_SANDBOX);
-
-    if (!cache) {
-      await this.updateLocalInformation();
-      cache = this.getField(Org.Fields.IS_SANDBOX);
+    const cache = this.getField<boolean | undefined>(Org.Fields.IS_SANDBOX);
+    if (cache !== undefined) {
+      return cache;
     }
-    return cache as boolean;
+    const updated = await this.updateLocalInformation();
+    return updated?.isSandbox === true;
   }
 
   /**
@@ -670,22 +666,35 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Some organization information is locally cached, such as if the org name or if it is a scratch org.
    * This method populates/updates the filesystem from information retrieved from the org.
    */
-  public async updateLocalInformation(): Promise<void> {
+  public async updateLocalInformation(): Promise<
+    | Pick<
+        AuthFields,
+        | Org.Fields.NAME
+        | Org.Fields.INSTANCE_NAME
+        | Org.Fields.NAMESPACE_PREFIX
+        | Org.Fields.IS_SANDBOX
+        | Org.Fields.IS_SCRATCH
+        | Org.Fields.TRIAL_EXPIRATION_DATE
+      >
+    | undefined
+  > {
     const username = this.getUsername();
     if (username) {
-      const organization = await this.retrieveOrganizationInformation();
-      const isScratch = organization.IsSandbox && Boolean(organization.TrialExpirationDate);
-      const isSandbox = organization.IsSandbox && !organization.TrialExpirationDate;
-      const stateAggregator = await StateAggregator.getInstance();
-      stateAggregator.orgs.update(username, {
+      const [stateAggregator, organization] = await Promise.all([
+        StateAggregator.getInstance(),
+        this.retrieveOrganizationInformation(),
+      ]);
+      const updateFields = {
         [Org.Fields.NAME]: organization.Name,
         [Org.Fields.INSTANCE_NAME]: organization.InstanceName,
         [Org.Fields.NAMESPACE_PREFIX]: organization.NamespacePrefix,
-        [Org.Fields.IS_SANDBOX]: isSandbox,
-        [Org.Fields.IS_SCRATCH]: isScratch,
+        [Org.Fields.IS_SANDBOX]: organization.IsSandbox && !organization.TrialExpirationDate,
+        [Org.Fields.IS_SCRATCH]: organization.IsSandbox && Boolean(organization.TrialExpirationDate),
         [Org.Fields.TRIAL_EXPIRATION_DATE]: organization.TrialExpirationDate,
-      });
+      };
+      stateAggregator.orgs.update(username, updateFields);
       await stateAggregator.orgs.write(username);
+      return updateFields;
     }
   }
 
@@ -699,8 +708,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       method: 'GET',
     };
 
-    const conn = this.getConnection();
-    await conn.request(requestInfo);
+    await this.getConnection().request(requestInfo);
   }
 
   /**
@@ -712,15 +720,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const thisUsername = ensure(this.getUsername());
     const usernames: JsonArray = ensureJsonArray(contents.usernames ?? [thisUsername]);
     return Promise.all(
-      usernames.map((username) => {
-        if (username === thisUsername) {
-          return AuthInfo.create({
-            username: this.getConnection().getUsername(),
-          });
-        } else {
-          return AuthInfo.create({ username: ensureString(username) });
-        }
-      })
+      usernames.map((username) =>
+        AuthInfo.create({
+          username: username === thisUsername ? this.getConnection().getUsername() : ensureString(username),
+        })
+      )
     );
   }
 
@@ -756,7 +760,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     // needs config refactoring to improve
     const usernames = contents.usernames ?? [];
 
-    if (!isArray(usernames)) {
+    if (!Array.isArray(usernames)) {
       throw new SfError('Usernames is not an array', 'UnexpectedDataFormat');
     }
 
@@ -842,7 +846,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   /**
    * Returns the admin username used to create the org.
    */
-  public getUsername(): Optional<string> {
+  public getUsername(): string | undefined {
     return this.getConnection().getUsername();
   }
 
@@ -877,11 +881,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Returns a map of requested fields.
    */
   public getFields(keys: Org.Fields[]): JsonMap {
-    const json: JsonMap = {};
-    return keys.reduce((map, key) => {
-      map[key] = this.getField(key);
-      return map;
-    }, json);
+    return Object.fromEntries(keys.map((key) => [key, this.getField(key)]));
   }
 
   /**
@@ -1564,7 +1564,7 @@ export namespace Org {
      */
     IS_SCRATCH = 'isScratch',
     /**
-     * Is the current org a dev hub org. e.g. Organization has IsSandbox == true and TrialExpirationDate == null.
+     * Is the current org a sandbox (not a scratch org on a non-prod instance), but an actual Sandbox org). e.g. Organization has IsSandbox == true and TrialExpirationDate == null.
      */
     IS_SANDBOX = 'isSandbox',
     /**

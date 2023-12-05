@@ -232,7 +232,11 @@ export const authorizeScratchOrg = async (options: {
     clientId: scratchOrgInfoComplete.ConnectedAppConsumerKey,
     createdOrgInstance: scratchOrgInfoComplete.SignupInstance,
     isDevHub: false,
-    snapshot: scratchOrgInfoComplete.Snapshot,
+    isScratch: true,
+    isSandbox: false,
+    // omit optional fields unless they are present
+    ...(scratchOrgInfoComplete.Namespace ? { namespacePrefix: scratchOrgInfoComplete.Namespace } : {}),
+    ...(scratchOrgInfoComplete.Snapshot ? { snapshot: scratchOrgInfoComplete.Snapshot } : {}),
   });
 
   return authInfo;
