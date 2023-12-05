@@ -6,9 +6,9 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import * as childProcess from 'child_process';
-import * as _crypto from 'crypto';
-import * as os from 'os';
+import childProcess from 'child_process';
+import _crypto from 'crypto';
+import os from 'os';
 import { AnyJson } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import { Crypto } from '../../../src/crypto/crypto';

@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import * as JSZip from 'jszip';
+import JSZip from 'jszip';
 import { ZipWriter } from '../../../src/util/zipWriter';
 
 describe('ZipWriter', () => {

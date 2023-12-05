@@ -6,7 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/ban-types */
 
-import * as os from 'os';
+import os from 'os';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
 import { Crypto } from '../../../src/crypto/crypto';
