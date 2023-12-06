@@ -6,7 +6,7 @@
  */
 
 import { Readable, Writable } from 'node:stream';
-import * as JSZip from 'jszip';
+import JSZip from 'jszip';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { StructuredWriter } from './structuredWriter';
