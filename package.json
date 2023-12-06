@@ -3,13 +3,14 @@
   "version": "5.3.17",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "dist/exported",
-  "types": "lib/exported.d.ts",
+  "types": "dist/exported.d.ts",
   "license": "BSD-3-Clause",
   "engines": {
     "node": ">=16.0.0"
   },
   "scripts": {
     "build": "wireit",
+    "bundle": "node ./scripts/build.js",
     "ci-docs": "yarn sf-ci-docs",
     "clean": "sf-clean",
     "clean-all": "sf-clean all",
