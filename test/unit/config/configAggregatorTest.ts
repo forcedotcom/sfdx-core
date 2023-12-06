@@ -6,7 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import * as fs from 'node:fs';
+import fs from 'node:fs';
 import { assert, expect, config as chaiConfig } from 'chai';
 import { Config, ConfigProperties, SFDX_ALLOWED_PROPERTIES, SfdxPropertyKeys } from '../../../src/config/config';
 import { ConfigAggregator, ConfigInfo } from '../../../src/config/configAggregator';
