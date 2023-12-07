@@ -1772,6 +1772,9 @@ declare module '@salesforce/core/global' {
     static createDir(dirPath?: string): Promise<void>;
   }
 }
+declare module '@salesforce/core/index' {
+  export * from '@salesforce/core/exported';
+}
 declare module '@salesforce/core/lifecycleEvents' {
   import { AnyJson } from '@salesforce/ts-types';
   type callback = (data: any) => Promise<void>;
@@ -6744,6 +6747,6 @@ declare module '@salesforce/core/webOAuthServer' {
   export {};
 }
 declare module '@salesforce/core' {
-  import main = require('@salesforce/core/src/exported');
+  import main = require('@salesforce/core/index');
   export = main;
 }
