@@ -9,11 +9,11 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "yarn compile && yarn lint",
+    "build": "wireit",
     "bundle": "node ./scripts/build.js",
     "clean": "sf-clean",
     "clean-all": "sf-clean all",
-    "compile": "yarn bundle",
+    "compile": "wireit",
     "docs": "sf-docs",
     "format": "wireit",
     "lint": "wireit",
