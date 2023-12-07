@@ -186,7 +186,7 @@ export class Logger {
           transport: {
             pipeline: [
               {
-                target: path.join('..', '..', 'lib', 'logger', 'transformStream'),
+                target: path.join('..', '..', 'dist', 'exported'),
               },
               getWriteStream(level),
             ],
