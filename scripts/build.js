@@ -9,7 +9,6 @@ const esbuildPluginPino = require('esbuild-plugin-pino');
 const { Generator } = require('npm-dts');
 
 new Generator({
-  entry: 'src/exported.ts',
   output: 'dist/exported.d.ts',
 }).generate();
 
