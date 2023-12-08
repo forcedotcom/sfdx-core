@@ -9,6 +9,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as util from 'node:util';
+import { fileURLToPath } from 'node:url';
 import { AnyJson, asString, ensureJsonMap, ensureString, isJsonMap, isObject } from '@salesforce/ts-types';
 import { ensureArray, NamedError, upperFirst } from '@salesforce/kit';
 import { SfError } from './sfError';
@@ -172,6 +173,9 @@ const jsAndJsonLoader: FileParser = (filePath: string, fileContents: string): St
  * // Create loader functions for all files in the messages directory
  * Messages.importMessagesDirectory(__dirname);
  *
+ * // or, for ESM code
+ * Messages.importMessagesDirectoryFromMetaUrl(import.meta.url)
+ *
  * // Now you can use the messages from anywhere in your code or file.
  * // If using importMessageDirectory, the bundle name is the file name.
  * const messages: Messages = Messages.loadMessages(packageName, bundleName);
@@ -298,6 +302,22 @@ export class Messages<T extends string> {
     if (!Messages.isCached(packageName, bundleName)) {
       this.setLoaderFunction(packageName, bundleName, Messages.generateFileLoaderFunction(bundleName, filePath));
     }
+  }
+
+  /**
+   * Support ESM plugins who can't use __dirname
+   *
+   * @param metaUrl pass in `import.meta.url`
+   * @param truncateToProjectPath Will look for the messages directory in the project root (where the package.json file is located).
+   * i.e., the module is typescript and the messages folder is in the top level of the module directory.
+   * @param packageName The npm package name. Figured out from the root directory's package.json.
+   */
+  public static importMessagesDirectoryFromMetaUrl(
+    metaUrl: string,
+    truncateToProjectPath = true,
+    packageName?: string
+  ): void {
+    return Messages.importMessagesDirectory(path.dirname(fileURLToPath(metaUrl)), truncateToProjectPath, packageName);
   }
 
   /**
