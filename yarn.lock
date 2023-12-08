@@ -2020,6 +2020,13 @@ esbuild-plugin-pino@^2.1.0:
   resolved "https://registry.yarnpkg.com/esbuild-plugin-pino/-/esbuild-plugin-pino-2.1.0.tgz#1254f534acf1edcd11eeba2679290aceb33fef5e"
   integrity sha512-Uv50QtnJR3x7kWFHrSonEGAlj54V9sJ6sgNUZYpHRXHeIjlGW8vhZy5ZmiWLvJy7peqMLelGnYtuMm2+uophSg==
 
+esbuild-plugin-tsc@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/esbuild-plugin-tsc/-/esbuild-plugin-tsc-0.4.0.tgz#d7d516fda0e0b05c8e0b442152deebdee01ddc61"
+  integrity sha512-q9gWIovt1nkwchMLc2zhyksaiHOv3kDK4b0AUol8lkMCRhJ1zavgfb2fad6BKp7FT9rh/OHmEBXVjczLoi/0yw==
+  dependencies:
+    strip-comments "^2.0.1"
+
 esbuild@^0.19.5:
   version "0.19.8"
   resolved "https://registry.yarnpkg.com/esbuild/-/esbuild-0.19.8.tgz#ad05b72281d84483fa6b5345bd246c27a207b8f1"
@@ -5009,6 +5016,11 @@ strip-bom@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/strip-bom/-/strip-bom-4.0.0.tgz#9c3505c1db45bcedca3d9cf7a16f5c5aa3901878"
   integrity sha512-3xurFv5tEgii33Zi8Jtp55wEIILR9eh34FAW00PZf+JnSsTmV/ioewSgQl97JHvgjoRGwPShsWm+IdrxB35d0w==
+
+strip-comments@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/strip-comments/-/strip-comments-2.0.1.tgz#4ad11c3fbcac177a67a40ac224ca339ca1c1ba9b"
+  integrity sha512-ZprKx+bBLXv067WTCALv8SSz5l2+XhpYCsVtSqlMnkAXMWDq+/ekVbl1ghqP9rUHTzv6sm/DwCOiYutU/yp1fw==
 
 strip-final-newline@^2.0.0:
   version "2.0.0"

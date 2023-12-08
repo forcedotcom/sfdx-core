@@ -1,0 +1,11 @@
+{
+  "extends": "@salesforce/dev-config/tsconfig-strict",
+  "compilerOptions": {
+    "outDir": "../dist",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "rootDir": "../src",
+    "plugins": [{ "transform": "../src/messageTransformer.ts" }]
+  },
+  "include": ["../src/**/*.ts"]
+}
