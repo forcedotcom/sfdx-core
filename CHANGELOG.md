@@ -1,3 +1,12 @@
+# [6.4.0](https://github.com/forcedotcom/sfdx-core/compare/6.3.0...6.4.0) (2023-12-08)
+
+
+### Features
+
+* import messages with 2 fewer imports ([#1003](https://github.com/forcedotcom/sfdx-core/issues/1003)) ([8080fc9](https://github.com/forcedotcom/sfdx-core/commit/8080fc98de2630603422369efd3e3aca101d0087))
+
+
+
 # [6.3.0](https://github.com/forcedotcom/sfdx-core/compare/6.2.3-qa.1...6.3.0) (2023-12-05)
 
 
