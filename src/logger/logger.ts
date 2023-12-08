@@ -181,27 +181,10 @@ export class Logger {
           this.memoryLogger
         );
       } else {
-        // this.pinoLogger = pino({
-        //   ...commonOptions,
-        //   transport: {
-        //     pipeline: [
-        //       {
-        //         target: path.join('..', '..', 'lib', 'logger', 'transformStream'),
-        //       },
-        //       getWriteStream(level),
-        //     ],
-        //   },
-        //   sync: false,
-        // });
-        this.memoryLogger = new MemoryLogger();
-        this.pinoLogger = pino(
-          {
-            ...commonOptions,
-            sync: true,
-          },
-          this.memoryLogger
-        );
-
+        this.pinoLogger = pino({
+          ...commonOptions,
+          sync: false,
+        });
         // when a new file logger root is instantiated, we check for old log files.
         // but we don't want to wait for it
         // and it's async and we can't wait from a ctor anyway
