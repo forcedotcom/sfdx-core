@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1702159712762,
+  "lastUpdate": 1702176907841,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -11940,6 +11940,72 @@ window.BENCHMARK_DATA = {
             "range": "±7.48%",
             "unit": "ops/sec",
             "extra": "56 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "58f1073a1af3fb37014cd0c5ce43194d43c17b56",
+          "message": "chore(dev-deps): bump ts-node from 10.9.1 to 10.9.2\n\nBumps [ts-node](https://github.com/TypeStrong/ts-node) from 10.9.1 to 10.9.2.\n- [Release notes](https://github.com/TypeStrong/ts-node/releases)\n- [Changelog](https://github.com/TypeStrong/ts-node/blob/main/development-docs/release-template.md)\n- [Commits](https://github.com/TypeStrong/ts-node/compare/v10.9.1...v10.9.2)\n\n---\nupdated-dependencies:\n- dependency-name: ts-node\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2023-12-10T02:48:22Z",
+          "tree_id": "743207cbafce2b5dfafbb7a868fd5e234b54c574",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/58f1073a1af3fb37014cd0c5ce43194d43c17b56"
+        },
+        "date": 1702176901954,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 471530,
+            "range": "±1.88%",
+            "unit": "ops/sec",
+            "extra": "86 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 748906,
+            "range": "±8.97%",
+            "unit": "ops/sec",
+            "extra": "58 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 574843,
+            "range": "±9.42%",
+            "unit": "ops/sec",
+            "extra": "68 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 13767,
+            "range": "±197.12%",
+            "unit": "ops/sec",
+            "extra": "29 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 455509,
+            "range": "±6.20%",
+            "unit": "ops/sec",
+            "extra": "67 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 344540,
+            "range": "±9.66%",
+            "unit": "ops/sec",
+            "extra": "54 samples"
           }
         ]
       }
