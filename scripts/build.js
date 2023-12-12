@@ -6,7 +6,7 @@
  */
 const { build } = require('esbuild');
 const esbuildPluginPino = require('esbuild-plugin-pino');
-const esbuildPluginTsc = require('esbuild-plugin-tsc');
+// const esbuildPluginTsc = require('esbuild-plugin-tsc');
 const { Generator } = require('npm-dts');
 
 new Generator({
@@ -19,16 +19,28 @@ const sharedConfig = {
   minify: true,
   plugins: [
     esbuildPluginPino({ transports: ['pino-pretty'] }),
-    esbuildPluginTsc({
-      tsconfigPath: './tsconfig.json',
-    }),
+    // esbuildPluginTsc({
+    //   tsconfigPath: './tsconfig.json',
+    // }),
   ],
 };
 
 build({
   ...sharedConfig,
+  external: ['src/logger/transformStream.ts'],
   platform: 'node', // for CJS
   outdir: 'dist',
+});
+
+build({
+  entryPoints: ['src/logger/transformStream.ts'],
+  bundle: true,
+  minify: true,
+  outdir: 'dist',
+  platform: 'node', // for CJS
+  plugins: [
+    // esbuildPluginPino({ transports: ['pino-pretty'] }),
+  ],
 });
 // build({
 //   ...sharedConfig,

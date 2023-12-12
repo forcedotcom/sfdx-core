@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as os from 'node:os';
-// import * as path from 'node:path';
+import * as path from 'node:path';
 
 import { Logger as PinoLogger, pino } from 'pino';
 import { Env } from '@salesforce/kit';
@@ -183,6 +183,14 @@ export class Logger {
       } else {
         this.pinoLogger = pino({
           ...commonOptions,
+          transport: {
+            pipeline: [
+              {
+                target: path.join('..', '..', 'dist', 'transformStream'),
+              },
+              getWriteStream(level),
+            ],
+          },
           sync: false,
         });
         // when a new file logger root is instantiated, we check for old log files.
@@ -455,33 +463,33 @@ export class Logger {
 }
 
 /** return various streams that the logger could send data to, depending on the options and env  */
-// const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
-//   // used when debug mode, writes to stdout (colorized)
-//   if (process.env.DEBUG) {
-//     return {
-//       target: 'pino-pretty',
-//       options: { colorize: true },
-//     };
-//   }
+const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
+  // used when debug mode, writes to stdout (colorized)
+  if (process.env.DEBUG) {
+    return {
+      target: 'pino-pretty',
+      options: { colorize: true },
+    };
+  }
 
-//   // default: we're writing to a rotating file
-//   const rotator = new Map([
-//     ['1m', new Date().toISOString().split(':').slice(0, 2).join('-')],
-//     ['1h', new Date().toISOString().split(':').slice(0, 1).join('-')],
-//     ['1d', new Date().toISOString().split('T')[0]],
-//   ]);
-//   const logRotationPeriod = new Env().getString('SF_LOG_ROTATION_PERIOD') ?? '1d';
+  // default: we're writing to a rotating file
+  const rotator = new Map([
+    ['1m', new Date().toISOString().split(':').slice(0, 2).join('-')],
+    ['1h', new Date().toISOString().split(':').slice(0, 1).join('-')],
+    ['1d', new Date().toISOString().split('T')[0]],
+  ]);
+  const logRotationPeriod = new Env().getString('SF_LOG_ROTATION_PERIOD') ?? '1d';
 
-//   return {
-//     // write to a rotating file
-//     target: 'pino/file',
-//     options: {
-//       destination: path.join(Global.SF_DIR, `sf-${rotator.get(logRotationPeriod) ?? rotator.get('1d')}.log`),
-//       mkdir: true,
-//       level,
-//     },
-//   };
-// };
+  return {
+    // write to a rotating file
+    target: 'pino/file',
+    options: {
+      destination: path.join(Global.SF_DIR, `sf-${rotator.get(logRotationPeriod) ?? rotator.get('1d')}.log`),
+      mkdir: true,
+      level,
+    },
+  };
+};
 
 export const computeLevel = (optionsLevel?: number | string): string => {
   const env = new Env();

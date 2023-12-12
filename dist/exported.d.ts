@@ -2155,10 +2155,8 @@ declare module '@salesforce/core/logger/logger' {
      */
     fatal(...args: unknown[]): Logger;
   }
-  /** return various streams that the logger could send data to, depending on the options and env  */
   export const computeLevel: (optionsLevel?: number | string) => string;
 }
-declare module '@salesforce/core/logger/loggerTransformer' {}
 declare module '@salesforce/core/logger/memoryLogger' {
   /// <reference types="node" />
   import { Writable } from 'node:stream';
