@@ -1,3 +1,12 @@
+## [6.4.1](https://github.com/forcedotcom/sfdx-core/compare/6.4.0...6.4.1) (2023-12-12)
+
+
+### Bug Fixes
+
+* update max query limit env var ([7b42e94](https://github.com/forcedotcom/sfdx-core/commit/7b42e949a88885c9eea236d667e07aa10a411b49))
+
+
+
 # [6.4.0](https://github.com/forcedotcom/sfdx-core/compare/6.3.0...6.4.0) (2023-12-08)
 
 
