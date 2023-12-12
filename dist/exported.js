@@ -88876,7 +88876,7 @@ var Qh = ((o) => (
           ? ((this.memoryLogger = new i8()), (this.pinoLogger = (0, Zh.pino)({ ...s, sync: !0 }, this.memoryLogger)))
           : ((this.pinoLogger = (0, Zh.pino)({
               ...s,
-              transport: { pipeline: [{ target: xD.join('.', 'transformStream') }, a3t(a)] },
+              transport: { pipeline: [{ target: xD.join('dist', 'transformStream') }, a3t(a)] },
               sync: !1,
             })),
             X_e()),
