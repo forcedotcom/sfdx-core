@@ -382,7 +382,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       void Lifecycle.getInstance().emitWarning(
         `The query result is missing ${
           query.totalSize - query.records.length
-        } records due to a ${maxFetch} record limit. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SFDX_MAX_QUERY_LIMIT" to ${
+        } records due to a ${maxFetch} record limit. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SF_ORG_MAX_QUERY_LIMIT" to ${
           query.totalSize
         } or greater than ${maxFetch}.`
       );
