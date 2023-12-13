@@ -8,6 +8,7 @@ const { build } = require('esbuild');
 const esbuildPluginPino = require('esbuild-plugin-pino');
 // const esbuildPluginTsc = require('esbuild-plugin-tsc');
 const { Generator } = require('npm-dts');
+const fs = require('fs');
 
 new Generator({
   output: 'dist/exported.d.ts',
@@ -27,9 +28,23 @@ const sharedConfig = {
 
 build({
   ...sharedConfig,
-  external: ['src/logger/transformStream.ts'],
+  // external: ['src/logger/transformStream.ts'],
   platform: 'node', // for CJS
   outdir: 'dist',
+}).then((result) => {
+  const filePath = 'dist/exported.js';
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if (err) {
+      console.log(err);
+    }
+    const searchString = /\$\{process\.cwd\(\)\}\$\{require\("path"\)\.sep\}dist/g;
+    const replacementString = `\${__dirname}\${require("path").sep}`;
+
+    const result = data.replace(searchString, replacementString);
+    fs.writeFile(filePath, result, 'utf8', function (err) {
+      if (err) console.log(err);
+    });
+  });
 });
 
 build({
