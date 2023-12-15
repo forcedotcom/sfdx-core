@@ -1774,6 +1774,7 @@ declare module '@salesforce/core/global' {
 }
 declare module '@salesforce/core/index' {
   export * from '@salesforce/core/exported';
+  export * from '@salesforce/core/testSetup';
 }
 declare module '@salesforce/core/lifecycleEvents' {
   import { AnyJson } from '@salesforce/ts-types';

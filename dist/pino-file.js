@@ -1,592 +1,954 @@
 'use strict';
-var E = (e, t) => () => (t || e((t = { exports: {} }).exports, t), t.exports);
-var pe = E((nf, at) => {
-  'use strict';
-  var H = (e) => e && typeof e.message == 'string',
-    me = (e) => {
-      if (!e) return;
-      let t = e.cause;
-      if (typeof t == 'function') {
-        let r = e.cause();
-        return H(r) ? r : void 0;
-      } else return H(t) ? t : void 0;
-    },
-    ut = (e, t) => {
-      if (!H(e)) return '';
-      let r = e.stack || '';
-      if (t.has(e))
-        return (
-          r +
-          `
-causes have become circular...`
-        );
-      let n = me(e);
-      return n
-        ? (t.add(e),
-          r +
-            `
-caused by: ` +
-            ut(n, t))
-        : r;
-    },
-    En = (e) => ut(e, new Set()),
-    ct = (e, t, r) => {
-      if (!H(e)) return '';
-      let n = r ? '' : e.message || '';
-      if (t.has(e)) return n + ': ...';
-      let i = me(e);
-      if (i) {
-        t.add(e);
-        let o = typeof e.cause == 'function';
-        return n + (o ? '' : ': ') + ct(i, t, o);
-      } else return n;
-    },
-    xn = (e) => ct(e, new Set());
-  at.exports = { isErrorLike: H, getErrorCause: me, stackWithCauses: En, messageWithCauses: xn };
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __commonJS = (cb, mod) =>
+  function __require() {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  };
+
+// node_modules/pino-std-serializers/lib/err-helpers.js
+var require_err_helpers = __commonJS({
+  'node_modules/pino-std-serializers/lib/err-helpers.js'(exports2, module2) {
+    'use strict';
+    var isErrorLike = (err) => {
+      return err && typeof err.message === 'string';
+    };
+    var getErrorCause = (err) => {
+      if (!err) return;
+      const cause = err.cause;
+      if (typeof cause === 'function') {
+        const causeResult = err.cause();
+        return isErrorLike(causeResult) ? causeResult : void 0;
+      } else {
+        return isErrorLike(cause) ? cause : void 0;
+      }
+    };
+    var _stackWithCauses = (err, seen) => {
+      if (!isErrorLike(err)) return '';
+      const stack = err.stack || '';
+      if (seen.has(err)) {
+        return stack + '\ncauses have become circular...';
+      }
+      const cause = getErrorCause(err);
+      if (cause) {
+        seen.add(err);
+        return stack + '\ncaused by: ' + _stackWithCauses(cause, seen);
+      } else {
+        return stack;
+      }
+    };
+    var stackWithCauses = (err) => _stackWithCauses(err, /* @__PURE__ */ new Set());
+    var _messageWithCauses = (err, seen, skip) => {
+      if (!isErrorLike(err)) return '';
+      const message = skip ? '' : err.message || '';
+      if (seen.has(err)) {
+        return message + ': ...';
+      }
+      const cause = getErrorCause(err);
+      if (cause) {
+        seen.add(err);
+        const skipIfVErrorStyleCause = typeof err.cause === 'function';
+        return message + (skipIfVErrorStyleCause ? '' : ': ') + _messageWithCauses(cause, seen, skipIfVErrorStyleCause);
+      } else {
+        return message;
+      }
+    };
+    var messageWithCauses = (err) => _messageWithCauses(err, /* @__PURE__ */ new Set());
+    module2.exports = {
+      isErrorLike,
+      getErrorCause,
+      stackWithCauses,
+      messageWithCauses,
+    };
+  },
 });
-var be = E((sf, dt) => {
-  'use strict';
-  var On = Symbol('circular-ref-tag'),
-    Y = Symbol('pino-raw-err-ref'),
-    ht = Object.create(
+
+// node_modules/pino-std-serializers/lib/err-proto.js
+var require_err_proto = __commonJS({
+  'node_modules/pino-std-serializers/lib/err-proto.js'(exports2, module2) {
+    'use strict';
+    var seen = Symbol('circular-ref-tag');
+    var rawSymbol = Symbol('pino-raw-err-ref');
+    var pinoErrProto = Object.create(
       {},
       {
-        type: { enumerable: !0, writable: !0, value: void 0 },
-        message: { enumerable: !0, writable: !0, value: void 0 },
-        stack: { enumerable: !0, writable: !0, value: void 0 },
-        aggregateErrors: { enumerable: !0, writable: !0, value: void 0 },
+        type: {
+          enumerable: true,
+          writable: true,
+          value: void 0,
+        },
+        message: {
+          enumerable: true,
+          writable: true,
+          value: void 0,
+        },
+        stack: {
+          enumerable: true,
+          writable: true,
+          value: void 0,
+        },
+        aggregateErrors: {
+          enumerable: true,
+          writable: true,
+          value: void 0,
+        },
         raw: {
-          enumerable: !1,
+          enumerable: false,
           get: function () {
-            return this[Y];
+            return this[rawSymbol];
           },
-          set: function (e) {
-            this[Y] = e;
+          set: function (val) {
+            this[rawSymbol] = val;
           },
         },
       }
     );
-  Object.defineProperty(ht, Y, { writable: !0, value: {} });
-  dt.exports = { pinoErrProto: ht, pinoErrorSymbols: { seen: On, rawSymbol: Y } };
+    Object.defineProperty(pinoErrProto, rawSymbol, {
+      writable: true,
+      value: {},
+    });
+    module2.exports = {
+      pinoErrProto,
+      pinoErrorSymbols: {
+        seen,
+        rawSymbol,
+      },
+    };
+  },
 });
-var mt = E((of, gt) => {
-  'use strict';
-  gt.exports = Se;
-  var { messageWithCauses: vn, stackWithCauses: $n, isErrorLike: yt } = pe(),
-    { pinoErrProto: An, pinoErrorSymbols: jn } = be(),
-    { seen: we } = jn,
-    { toString: Ln } = Object.prototype;
-  function Se(e) {
-    if (!yt(e)) return e;
-    e[we] = void 0;
-    let t = Object.create(An);
-    (t.type = Ln.call(e.constructor) === '[object Function]' ? e.constructor.name : e.name),
-      (t.message = vn(e)),
-      (t.stack = $n(e)),
-      Array.isArray(e.errors) && (t.aggregateErrors = e.errors.map((r) => Se(r)));
-    for (let r in e)
-      if (t[r] === void 0) {
-        let n = e[r];
-        yt(n) ? r !== 'cause' && !Object.prototype.hasOwnProperty.call(n, we) && (t[r] = Se(n)) : (t[r] = n);
+
+// node_modules/pino-std-serializers/lib/err.js
+var require_err = __commonJS({
+  'node_modules/pino-std-serializers/lib/err.js'(exports2, module2) {
+    'use strict';
+    module2.exports = errSerializer;
+    var { messageWithCauses, stackWithCauses, isErrorLike } = require_err_helpers();
+    var { pinoErrProto, pinoErrorSymbols } = require_err_proto();
+    var { seen } = pinoErrorSymbols;
+    var { toString } = Object.prototype;
+    function errSerializer(err) {
+      if (!isErrorLike(err)) {
+        return err;
       }
-    return delete e[we], (t.raw = e), t;
-  }
-});
-var bt = E((lf, pt) => {
-  'use strict';
-  pt.exports = Z;
-  var { isErrorLike: _e } = pe(),
-    { pinoErrProto: kn, pinoErrorSymbols: Tn } = be(),
-    { seen: Q } = Tn,
-    { toString: Rn } = Object.prototype;
-  function Z(e) {
-    if (!_e(e)) return e;
-    e[Q] = void 0;
-    let t = Object.create(kn);
-    (t.type = Rn.call(e.constructor) === '[object Function]' ? e.constructor.name : e.name),
-      (t.message = e.message),
-      (t.stack = e.stack),
-      Array.isArray(e.errors) && (t.aggregateErrors = e.errors.map((r) => Z(r))),
-      _e(e.cause) && !Object.prototype.hasOwnProperty.call(e.cause, Q) && (t.cause = Z(e.cause));
-    for (let r in e)
-      if (t[r] === void 0) {
-        let n = e[r];
-        _e(n) ? Object.prototype.hasOwnProperty.call(n, Q) || (t[r] = Z(n)) : (t[r] = n);
+      err[seen] = void 0;
+      const _err = Object.create(pinoErrProto);
+      _err.type = toString.call(err.constructor) === '[object Function]' ? err.constructor.name : err.name;
+      _err.message = messageWithCauses(err);
+      _err.stack = stackWithCauses(err);
+      if (Array.isArray(err.errors)) {
+        _err.aggregateErrors = err.errors.map((err2) => errSerializer(err2));
       }
-    return delete e[Q], (t.raw = e), t;
-  }
-});
-var Et = E((ff, _t) => {
-  'use strict';
-  _t.exports = { mapHttpRequest: Bn, reqSerializer: St };
-  var Ee = Symbol('pino-raw-req-ref'),
-    wt = Object.create(
-      {},
-      {
-        id: { enumerable: !0, writable: !0, value: '' },
-        method: { enumerable: !0, writable: !0, value: '' },
-        url: { enumerable: !0, writable: !0, value: '' },
-        query: { enumerable: !0, writable: !0, value: '' },
-        params: { enumerable: !0, writable: !0, value: '' },
-        headers: { enumerable: !0, writable: !0, value: {} },
-        remoteAddress: { enumerable: !0, writable: !0, value: '' },
-        remotePort: { enumerable: !0, writable: !0, value: '' },
-        raw: {
-          enumerable: !1,
-          get: function () {
-            return this[Ee];
-          },
-          set: function (e) {
-            this[Ee] = e;
-          },
-        },
+      for (const key in err) {
+        if (_err[key] === void 0) {
+          const val = err[key];
+          if (isErrorLike(val)) {
+            if (key !== 'cause' && !Object.prototype.hasOwnProperty.call(val, seen)) {
+              _err[key] = errSerializer(val);
+            }
+          } else {
+            _err[key] = val;
+          }
+        }
       }
-    );
-  Object.defineProperty(wt, Ee, { writable: !0, value: {} });
-  function St(e) {
-    let t = e.info || e.socket,
-      r = Object.create(wt);
-    if (
-      ((r.id = typeof e.id == 'function' ? e.id() : e.id || (e.info ? e.info.id : void 0)),
-      (r.method = e.method),
-      e.originalUrl)
-    )
-      r.url = e.originalUrl;
-    else {
-      let n = e.path;
-      r.url = typeof n == 'string' ? n : e.url ? e.url.path || e.url : void 0;
+      delete err[seen];
+      _err.raw = err;
+      return _err;
     }
-    return (
-      e.query && (r.query = e.query),
-      e.params && (r.params = e.params),
-      (r.headers = e.headers),
-      (r.remoteAddress = t && t.remoteAddress),
-      (r.remotePort = t && t.remotePort),
-      (r.raw = e.raw || e),
-      r
-    );
-  }
-  function Bn(e) {
-    return { req: St(e) };
-  }
+  },
 });
-var $t = E((uf, vt) => {
-  'use strict';
-  vt.exports = { mapHttpResponse: qn, resSerializer: Ot };
-  var xe = Symbol('pino-raw-res-ref'),
-    xt = Object.create(
+
+// node_modules/pino-std-serializers/lib/err-with-cause.js
+var require_err_with_cause = __commonJS({
+  'node_modules/pino-std-serializers/lib/err-with-cause.js'(exports2, module2) {
+    'use strict';
+    module2.exports = errWithCauseSerializer;
+    var { isErrorLike } = require_err_helpers();
+    var { pinoErrProto, pinoErrorSymbols } = require_err_proto();
+    var { seen } = pinoErrorSymbols;
+    var { toString } = Object.prototype;
+    function errWithCauseSerializer(err) {
+      if (!isErrorLike(err)) {
+        return err;
+      }
+      err[seen] = void 0;
+      const _err = Object.create(pinoErrProto);
+      _err.type = toString.call(err.constructor) === '[object Function]' ? err.constructor.name : err.name;
+      _err.message = err.message;
+      _err.stack = err.stack;
+      if (Array.isArray(err.errors)) {
+        _err.aggregateErrors = err.errors.map((err2) => errWithCauseSerializer(err2));
+      }
+      if (isErrorLike(err.cause) && !Object.prototype.hasOwnProperty.call(err.cause, seen)) {
+        _err.cause = errWithCauseSerializer(err.cause);
+      }
+      for (const key in err) {
+        if (_err[key] === void 0) {
+          const val = err[key];
+          if (isErrorLike(val)) {
+            if (!Object.prototype.hasOwnProperty.call(val, seen)) {
+              _err[key] = errWithCauseSerializer(val);
+            }
+          } else {
+            _err[key] = val;
+          }
+        }
+      }
+      delete err[seen];
+      _err.raw = err;
+      return _err;
+    }
+  },
+});
+
+// node_modules/pino-std-serializers/lib/req.js
+var require_req = __commonJS({
+  'node_modules/pino-std-serializers/lib/req.js'(exports2, module2) {
+    'use strict';
+    module2.exports = {
+      mapHttpRequest,
+      reqSerializer,
+    };
+    var rawSymbol = Symbol('pino-raw-req-ref');
+    var pinoReqProto = Object.create(
       {},
       {
-        statusCode: { enumerable: !0, writable: !0, value: 0 },
-        headers: { enumerable: !0, writable: !0, value: '' },
+        id: {
+          enumerable: true,
+          writable: true,
+          value: '',
+        },
+        method: {
+          enumerable: true,
+          writable: true,
+          value: '',
+        },
+        url: {
+          enumerable: true,
+          writable: true,
+          value: '',
+        },
+        query: {
+          enumerable: true,
+          writable: true,
+          value: '',
+        },
+        params: {
+          enumerable: true,
+          writable: true,
+          value: '',
+        },
+        headers: {
+          enumerable: true,
+          writable: true,
+          value: {},
+        },
+        remoteAddress: {
+          enumerable: true,
+          writable: true,
+          value: '',
+        },
+        remotePort: {
+          enumerable: true,
+          writable: true,
+          value: '',
+        },
         raw: {
-          enumerable: !1,
+          enumerable: false,
           get: function () {
-            return this[xe];
+            return this[rawSymbol];
           },
-          set: function (e) {
-            this[xe] = e;
+          set: function (val) {
+            this[rawSymbol] = val;
           },
         },
       }
     );
-  Object.defineProperty(xt, xe, { writable: !0, value: {} });
-  function Ot(e) {
-    let t = Object.create(xt);
-    return (
-      (t.statusCode = e.headersSent ? e.statusCode : null),
-      (t.headers = e.getHeaders ? e.getHeaders() : e._headers),
-      (t.raw = e),
-      t
+    Object.defineProperty(pinoReqProto, rawSymbol, {
+      writable: true,
+      value: {},
+    });
+    function reqSerializer(req) {
+      const connection = req.info || req.socket;
+      const _req = Object.create(pinoReqProto);
+      _req.id = typeof req.id === 'function' ? req.id() : req.id || (req.info ? req.info.id : void 0);
+      _req.method = req.method;
+      if (req.originalUrl) {
+        _req.url = req.originalUrl;
+      } else {
+        const path = req.path;
+        _req.url = typeof path === 'string' ? path : req.url ? req.url.path || req.url : void 0;
+      }
+      if (req.query) {
+        _req.query = req.query;
+      }
+      if (req.params) {
+        _req.params = req.params;
+      }
+      _req.headers = req.headers;
+      _req.remoteAddress = connection && connection.remoteAddress;
+      _req.remotePort = connection && connection.remotePort;
+      _req.raw = req.raw || req;
+      return _req;
+    }
+    function mapHttpRequest(req) {
+      return {
+        req: reqSerializer(req),
+      };
+    }
+  },
+});
+
+// node_modules/pino-std-serializers/lib/res.js
+var require_res = __commonJS({
+  'node_modules/pino-std-serializers/lib/res.js'(exports2, module2) {
+    'use strict';
+    module2.exports = {
+      mapHttpResponse,
+      resSerializer,
+    };
+    var rawSymbol = Symbol('pino-raw-res-ref');
+    var pinoResProto = Object.create(
+      {},
+      {
+        statusCode: {
+          enumerable: true,
+          writable: true,
+          value: 0,
+        },
+        headers: {
+          enumerable: true,
+          writable: true,
+          value: '',
+        },
+        raw: {
+          enumerable: false,
+          get: function () {
+            return this[rawSymbol];
+          },
+          set: function (val) {
+            this[rawSymbol] = val;
+          },
+        },
+      }
     );
-  }
-  function qn(e) {
-    return { res: Ot(e) };
-  }
+    Object.defineProperty(pinoResProto, rawSymbol, {
+      writable: true,
+      value: {},
+    });
+    function resSerializer(res) {
+      const _res = Object.create(pinoResProto);
+      _res.statusCode = res.headersSent ? res.statusCode : null;
+      _res.headers = res.getHeaders ? res.getHeaders() : res._headers;
+      _res.raw = res;
+      return _res;
+    }
+    function mapHttpResponse(res) {
+      return {
+        res: resSerializer(res),
+      };
+    }
+  },
 });
-var ve = E((cf, At) => {
-  'use strict';
-  var Oe = mt(),
-    In = bt(),
-    ee = Et(),
-    te = $t();
-  At.exports = {
-    err: Oe,
-    errWithCause: In,
-    mapHttpRequest: ee.mapHttpRequest,
-    mapHttpResponse: te.mapHttpResponse,
-    req: ee.reqSerializer,
-    res: te.resSerializer,
-    wrapErrorSerializer: function (t) {
-      return t === Oe
-        ? t
-        : function (n) {
-            return t(Oe(n));
-          };
-    },
-    wrapRequestSerializer: function (t) {
-      return t === ee.reqSerializer
-        ? t
-        : function (n) {
-            return t(ee.reqSerializer(n));
-          };
-    },
-    wrapResponseSerializer: function (t) {
-      return t === te.resSerializer
-        ? t
-        : function (n) {
-            return t(te.resSerializer(n));
-          };
-    },
-  };
+
+// node_modules/pino-std-serializers/index.js
+var require_pino_std_serializers = __commonJS({
+  'node_modules/pino-std-serializers/index.js'(exports2, module2) {
+    'use strict';
+    var errSerializer = require_err();
+    var errWithCauseSerializer = require_err_with_cause();
+    var reqSerializers = require_req();
+    var resSerializers = require_res();
+    module2.exports = {
+      err: errSerializer,
+      errWithCause: errWithCauseSerializer,
+      mapHttpRequest: reqSerializers.mapHttpRequest,
+      mapHttpResponse: resSerializers.mapHttpResponse,
+      req: reqSerializers.reqSerializer,
+      res: resSerializers.resSerializer,
+      wrapErrorSerializer: function wrapErrorSerializer(customSerializer) {
+        if (customSerializer === errSerializer) return customSerializer;
+        return function wrapErrSerializer(err) {
+          return customSerializer(errSerializer(err));
+        };
+      },
+      wrapRequestSerializer: function wrapRequestSerializer(customSerializer) {
+        if (customSerializer === reqSerializers.reqSerializer) return customSerializer;
+        return function wrappedReqSerializer(req) {
+          return customSerializer(reqSerializers.reqSerializer(req));
+        };
+      },
+      wrapResponseSerializer: function wrapResponseSerializer(customSerializer) {
+        if (customSerializer === resSerializers.resSerializer) return customSerializer;
+        return function wrappedResSerializer(res) {
+          return customSerializer(resSerializers.resSerializer(res));
+        };
+      },
+    };
+  },
 });
-var $e = E((af, jt) => {
-  'use strict';
-  function Nn(e, t) {
-    return t;
-  }
-  jt.exports = function () {
-    let t = Error.prepareStackTrace;
-    Error.prepareStackTrace = Nn;
-    let r = new Error().stack;
-    if (((Error.prepareStackTrace = t), !Array.isArray(r))) return;
-    let n = r.slice(2),
-      i = [];
-    for (let o of n) o && i.push(o.getFileName());
-    return i;
-  };
+
+// node_modules/pino/lib/caller.js
+var require_caller = __commonJS({
+  'node_modules/pino/lib/caller.js'(exports2, module2) {
+    'use strict';
+    function noOpPrepareStackTrace(_, stack) {
+      return stack;
+    }
+    module2.exports = function getCallers() {
+      const originalPrepare = Error.prepareStackTrace;
+      Error.prepareStackTrace = noOpPrepareStackTrace;
+      const stack = new Error().stack;
+      Error.prepareStackTrace = originalPrepare;
+      if (!Array.isArray(stack)) {
+        return void 0;
+      }
+      const entries = stack.slice(2);
+      const fileNames = [];
+      for (const entry of entries) {
+        if (!entry) {
+          continue;
+        }
+        fileNames.push(entry.getFileName());
+      }
+      return fileNames;
+    };
+  },
 });
-var kt = E((hf, Lt) => {
-  'use strict';
-  Lt.exports = Pn;
-  function Pn(e = {}) {
-    let {
-      ERR_PATHS_MUST_BE_STRINGS: t = () => 'fast-redact - Paths must be (non-empty) strings',
-      ERR_INVALID_PATH: r = (n) => `fast-redact \u2013 Invalid path (${n})`,
-    } = e;
-    return function ({ paths: i }) {
-      i.forEach((o) => {
-        if (typeof o != 'string') throw Error(t());
-        try {
-          if (/〇/.test(o)) throw Error();
-          let f =
-            (o[0] === '[' ? '' : '.') +
-            o
-              .replace(/^\*/, '\u3007')
-              .replace(/\.\*/g, '.\u3007')
-              .replace(/\[\*\]/g, '[\u3007]');
-          if (/\n|\r|;/.test(f) || /\/\*/.test(f)) throw Error();
-          Function(`
+
+// node_modules/fast-redact/lib/validator.js
+var require_validator = __commonJS({
+  'node_modules/fast-redact/lib/validator.js'(exports2, module2) {
+    'use strict';
+    module2.exports = validator;
+    function validator(opts = {}) {
+      const {
+        ERR_PATHS_MUST_BE_STRINGS = () => 'fast-redact - Paths must be (non-empty) strings',
+        ERR_INVALID_PATH = (s) => `fast-redact \u2013 Invalid path (${s})`,
+      } = opts;
+      return function validate({ paths }) {
+        paths.forEach((s) => {
+          if (typeof s !== 'string') {
+            throw Error(ERR_PATHS_MUST_BE_STRINGS());
+          }
+          try {
+            if (/〇/.test(s)) throw Error();
+            const expr =
+              (s[0] === '[' ? '' : '.') +
+              s
+                .replace(/^\*/, '\u3007')
+                .replace(/\.\*/g, '.\u3007')
+                .replace(/\[\*\]/g, '[\u3007]');
+            if (/\n|\r|;/.test(expr)) throw Error();
+            if (/\/\*/.test(expr)) throw Error();
+            Function(`
             'use strict'
             const o = new Proxy({}, { get: () => o, set: () => { throw Error() } });
             const \u3007 = null;
-            o${f}
-            if ([o${f}].length !== 1) throw Error()`)();
-        } catch {
-          throw Error(r(o));
+            o${expr}
+            if ([o${expr}].length !== 1) throw Error()`)();
+          } catch (e) {
+            throw Error(ERR_INVALID_PATH(s));
+          }
+        });
+      };
+    }
+  },
+});
+
+// node_modules/fast-redact/lib/rx.js
+var require_rx = __commonJS({
+  'node_modules/fast-redact/lib/rx.js'(exports2, module2) {
+    'use strict';
+    module2.exports = /[^.[\]]+|\[((?:.)*?)\]/g;
+  },
+});
+
+// node_modules/fast-redact/lib/parse.js
+var require_parse = __commonJS({
+  'node_modules/fast-redact/lib/parse.js'(exports2, module2) {
+    'use strict';
+    var rx = require_rx();
+    module2.exports = parse;
+    function parse({ paths }) {
+      const wildcards = [];
+      var wcLen = 0;
+      const secret = paths.reduce(function (o, strPath, ix) {
+        var path = strPath.match(rx).map((p) => p.replace(/'|"|`/g, ''));
+        const leadingBracket = strPath[0] === '[';
+        path = path.map((p) => {
+          if (p[0] === '[') return p.substr(1, p.length - 2);
+          else return p;
+        });
+        const star = path.indexOf('*');
+        if (star > -1) {
+          const before = path.slice(0, star);
+          const beforeStr = before.join('.');
+          const after = path.slice(star + 1, path.length);
+          const nested = after.length > 0;
+          wcLen++;
+          wildcards.push({
+            before,
+            beforeStr,
+            after,
+            nested,
+          });
+        } else {
+          o[strPath] = {
+            path,
+            val: void 0,
+            precensored: false,
+            circle: '',
+            escPath: JSON.stringify(strPath),
+            leadingBracket,
+          };
         }
-      });
-    };
-  }
+        return o;
+      }, {});
+      return { wildcards, wcLen, secret };
+    }
+  },
 });
-var re = E((df, Tt) => {
-  'use strict';
-  Tt.exports = /[^.[\]]+|\[((?:.)*?)\]/g;
-});
-var Bt = E((yf, Rt) => {
-  'use strict';
-  var Cn = re();
-  Rt.exports = Dn;
-  function Dn({ paths: e }) {
-    let t = [];
-    var r = 0;
-    let n = e.reduce(function (i, o, f) {
-      var h = o.match(Cn).map((l) => l.replace(/'|"|`/g, ''));
-      let d = o[0] === '[';
-      h = h.map((l) => (l[0] === '[' ? l.substr(1, l.length - 2) : l));
-      let y = h.indexOf('*');
-      if (y > -1) {
-        let l = h.slice(0, y),
-          c = l.join('.'),
-          g = h.slice(y + 1, h.length),
-          s = g.length > 0;
-        r++, t.push({ before: l, beforeStr: c, after: g, nested: s });
-      } else i[o] = { path: h, val: void 0, precensored: !1, circle: '', escPath: JSON.stringify(o), leadingBracket: d };
-      return i;
-    }, {});
-    return { wildcards: t, wcLen: r, secret: n };
-  }
-});
-var It = E((gf, qt) => {
-  'use strict';
-  var zn = re();
-  qt.exports = Mn;
-  function Mn({ secret: e, serialize: t, wcLen: r, strict: n, isCensorFct: i, censorFctTakesPath: o }, f) {
-    let h = Function(
-      'o',
-      `
+
+// node_modules/fast-redact/lib/redactor.js
+var require_redactor = __commonJS({
+  'node_modules/fast-redact/lib/redactor.js'(exports2, module2) {
+    'use strict';
+    var rx = require_rx();
+    module2.exports = redactor;
+    function redactor({ secret, serialize, wcLen, strict, isCensorFct, censorFctTakesPath }, state) {
+      const redact = Function(
+        'o',
+        `
     if (typeof o !== 'object' || o == null) {
-      ${Vn(n, t)}
+      ${strictImpl(strict, serialize)}
     }
     const { censor, secret } = this
-    ${Wn(e, i, o)}
+    ${redactTmpl(secret, isCensorFct, censorFctTakesPath)}
     this.compileRestore()
-    ${Fn(r > 0, i, o)}
-    ${Kn(t)}
+    ${dynamicRedactTmpl(wcLen > 0, isCensorFct, censorFctTakesPath)}
+    ${resultTmpl(serialize)}
   `
-    ).bind(f);
-    return t === !1 && (h.restore = (d) => f.restore(d)), h;
-  }
-  function Wn(e, t, r) {
-    return Object.keys(e).map((n) => {
-      let { escPath: i, leadingBracket: o, path: f } = e[n],
-        h = o ? 1 : 0,
-        d = o ? '' : '.',
-        y = [];
-      for (var l; (l = zn.exec(n)) !== null; ) {
-        let [, u] = l,
-          { index: p, input: b } = l;
-        p > h && y.push(b.substring(0, p - (u ? 0 : 1)));
+      ).bind(state);
+      if (serialize === false) {
+        redact.restore = (o) => state.restore(o);
       }
-      var c = y.map((u) => `o${d}${u}`).join(' && ');
-      c.length === 0 ? (c += `o${d}${n} != null`) : (c += ` && o${d}${n} != null`);
-      let g = `
+      return redact;
+    }
+    function redactTmpl(secret, isCensorFct, censorFctTakesPath) {
+      return Object.keys(secret)
+        .map((path) => {
+          const { escPath, leadingBracket, path: arrPath } = secret[path];
+          const skip = leadingBracket ? 1 : 0;
+          const delim = leadingBracket ? '' : '.';
+          const hops = [];
+          var match;
+          while ((match = rx.exec(path)) !== null) {
+            const [, ix] = match;
+            const { index, input } = match;
+            if (index > skip) hops.push(input.substring(0, index - (ix ? 0 : 1)));
+          }
+          var existence = hops.map((p) => `o${delim}${p}`).join(' && ');
+          if (existence.length === 0) existence += `o${delim}${path} != null`;
+          else existence += ` && o${delim}${path} != null`;
+          const circularDetection = `
       switch (true) {
-        ${y.reverse().map(
-          (u) => `
-          case o${d}${u} === censor:
-            secret[${i}].circle = ${JSON.stringify(u)}
+        ${hops
+          .reverse()
+          .map(
+            (p) => `
+          case o${delim}${p} === censor:
+            secret[${escPath}].circle = ${JSON.stringify(p)}
             break
         `
-        ).join(`
-`)}
+          )
+          .join('\n')}
       }
-    `,
-        s = r ? `val, ${JSON.stringify(f)}` : 'val';
-      return `
-      if (${c}) {
-        const val = o${d}${n}
+    `;
+          const censorArgs = censorFctTakesPath ? `val, ${JSON.stringify(arrPath)}` : `val`;
+          return `
+      if (${existence}) {
+        const val = o${delim}${path}
         if (val === censor) {
-          secret[${i}].precensored = true
+          secret[${escPath}].precensored = true
         } else {
-          secret[${i}].val = val
-          o${d}${n} = ${t ? `censor(${s})` : 'censor'}
-          ${g}
+          secret[${escPath}].val = val
+          o${delim}${path} = ${isCensorFct ? `censor(${censorArgs})` : 'censor'}
+          ${circularDetection}
         }
       }
     `;
-    }).join(`
-`);
-  }
-  function Fn(e, t, r) {
-    return e === !0
-      ? `
+        })
+        .join('\n');
+    }
+    function dynamicRedactTmpl(hasWildcards, isCensorFct, censorFctTakesPath) {
+      return hasWildcards === true
+        ? `
     {
       const { wildcards, wcLen, groupRedact, nestedRedact } = this
       for (var i = 0; i < wcLen; i++) {
         const { before, beforeStr, after, nested } = wildcards[i]
         if (nested === true) {
           secret[beforeStr] = secret[beforeStr] || []
-          nestedRedact(secret[beforeStr], o, before, after, censor, ${t}, ${r})
-        } else secret[beforeStr] = groupRedact(o, before, censor, ${t}, ${r})
+          nestedRedact(secret[beforeStr], o, before, after, censor, ${isCensorFct}, ${censorFctTakesPath})
+        } else secret[beforeStr] = groupRedact(o, before, censor, ${isCensorFct}, ${censorFctTakesPath})
       }
     }
   `
-      : '';
-  }
-  function Kn(e) {
-    return e === !1
-      ? 'return o'
-      : `
+        : '';
+    }
+    function resultTmpl(serialize) {
+      return serialize === false
+        ? `return o`
+        : `
     var s = this.serialize(o)
     this.restore(o)
     return s
   `;
-  }
-  function Vn(e, t) {
-    return e === !0
-      ? "throw Error('fast-redact: primitives cannot be redacted')"
-      : t === !1
-      ? 'return o'
-      : 'return this.serialize(o)';
-  }
+    }
+    function strictImpl(strict, serialize) {
+      return strict === true
+        ? `throw Error('fast-redact: primitives cannot be redacted')`
+        : serialize === false
+        ? `return o`
+        : `return this.serialize(o)`;
+    }
+  },
 });
-var Ae = E((mf, Dt) => {
-  'use strict';
-  Dt.exports = { groupRedact: Un, groupRestore: Jn, nestedRedact: Hn, nestedRestore: Gn };
-  function Jn({ keys: e, values: t, target: r }) {
-    if (r == null) return;
-    let n = e.length;
-    for (var i = 0; i < n; i++) {
-      let o = e[i];
-      r[o] = t[i];
+
+// node_modules/fast-redact/lib/modifiers.js
+var require_modifiers = __commonJS({
+  'node_modules/fast-redact/lib/modifiers.js'(exports2, module2) {
+    'use strict';
+    module2.exports = {
+      groupRedact,
+      groupRestore,
+      nestedRedact,
+      nestedRestore,
+    };
+    function groupRestore({ keys, values, target }) {
+      if (target == null) return;
+      const length = keys.length;
+      for (var i = 0; i < length; i++) {
+        const k = keys[i];
+        target[k] = values[i];
+      }
     }
-  }
-  function Un(e, t, r, n, i) {
-    let o = Nt(e, t);
-    if (o == null) return { keys: null, values: null, target: null, flat: !0 };
-    let f = Object.keys(o),
-      h = f.length,
-      d = t.length,
-      y = i ? [...t] : void 0,
-      l = new Array(h);
-    for (var c = 0; c < h; c++) {
-      let g = f[c];
-      (l[c] = o[g]), i ? ((y[d] = g), (o[g] = r(o[g], y))) : n ? (o[g] = r(o[g])) : (o[g] = r);
+    function groupRedact(o, path, censor, isCensorFct, censorFctTakesPath) {
+      const target = get(o, path);
+      if (target == null) return { keys: null, values: null, target: null, flat: true };
+      const keys = Object.keys(target);
+      const keysLength = keys.length;
+      const pathLength = path.length;
+      const pathWithKey = censorFctTakesPath ? [...path] : void 0;
+      const values = new Array(keysLength);
+      for (var i = 0; i < keysLength; i++) {
+        const key = keys[i];
+        values[i] = target[key];
+        if (censorFctTakesPath) {
+          pathWithKey[pathLength] = key;
+          target[key] = censor(target[key], pathWithKey);
+        } else if (isCensorFct) {
+          target[key] = censor(target[key]);
+        } else {
+          target[key] = censor;
+        }
+      }
+      return { keys, values, target, flat: true };
     }
-    return { keys: f, values: l, target: o, flat: !0 };
-  }
-  function Gn(e) {
-    let t = e.length;
-    for (var r = 0; r < t; r++) {
-      let { key: i, target: o, value: f, level: h } = e[r];
-      if (h === 0 || h === 1) {
-        if ((J(o, i) && (o[i] = f), typeof o == 'object')) {
-          let d = Object.keys(o);
-          for (var n = 0; n < d.length; n++) {
-            let y = d[n],
-              l = o[y];
-            J(l, i) && (l[i] = f);
+    function nestedRestore(arr) {
+      const length = arr.length;
+      for (var i = 0; i < length; i++) {
+        const { key, target, value, level } = arr[i];
+        if (level === 0 || level === 1) {
+          if (has(target, key)) {
+            target[key] = value;
+          }
+          if (typeof target === 'object') {
+            const targetKeys = Object.keys(target);
+            for (var j = 0; j < targetKeys.length; j++) {
+              const tKey = targetKeys[j];
+              const subTarget = target[tKey];
+              if (has(subTarget, key)) {
+                subTarget[key] = value;
+              }
+            }
+          }
+        } else {
+          restoreNthLevel(key, target, value, level);
+        }
+      }
+    }
+    function nestedRedact(store, o, path, ns, censor, isCensorFct, censorFctTakesPath) {
+      const target = get(o, path);
+      if (target == null) return;
+      const keys = Object.keys(target);
+      const keysLength = keys.length;
+      for (var i = 0; i < keysLength; i++) {
+        const key = keys[i];
+        const { value, parent, exists, level } = specialSet(
+          target,
+          key,
+          path,
+          ns,
+          censor,
+          isCensorFct,
+          censorFctTakesPath
+        );
+        if (exists === true && parent !== null) {
+          store.push({ key: ns[ns.length - 1], target: parent, value, level });
+        }
+      }
+      return store;
+    }
+    function has(obj, prop) {
+      return obj !== void 0 && obj !== null
+        ? 'hasOwn' in Object
+          ? Object.hasOwn(obj, prop)
+          : Object.prototype.hasOwnProperty.call(obj, prop)
+        : false;
+    }
+    function specialSet(o, k, path, afterPath, censor, isCensorFct, censorFctTakesPath) {
+      const afterPathLen = afterPath.length;
+      const lastPathIndex = afterPathLen - 1;
+      const originalKey = k;
+      var i = -1;
+      var n;
+      var nv;
+      var ov;
+      var oov = null;
+      var exists = true;
+      var wc = null;
+      var kIsWc;
+      var wcov;
+      var consecutive = false;
+      var level = 0;
+      ov = n = o[k];
+      if (typeof n !== 'object') return { value: null, parent: null, exists };
+      while (n != null && ++i < afterPathLen) {
+        k = afterPath[i];
+        oov = ov;
+        if (k !== '*' && !wc && !(typeof n === 'object' && k in n)) {
+          exists = false;
+          break;
+        }
+        if (k === '*') {
+          if (wc === '*') {
+            consecutive = true;
+          }
+          wc = k;
+          if (i !== lastPathIndex) {
+            continue;
           }
         }
-      } else Ct(i, o, f, h);
-    }
-  }
-  function Hn(e, t, r, n, i, o, f) {
-    let h = Nt(t, r);
-    if (h == null) return;
-    let d = Object.keys(h),
-      y = d.length;
-    for (var l = 0; l < y; l++) {
-      let c = d[l],
-        { value: g, parent: s, exists: u, level: p } = Xn(h, c, r, n, i, o, f);
-      u === !0 && s !== null && e.push({ key: n[n.length - 1], target: s, value: g, level: p });
-    }
-    return e;
-  }
-  function J(e, t) {
-    return e != null ? ('hasOwn' in Object ? Object.hasOwn(e, t) : Object.prototype.hasOwnProperty.call(e, t)) : !1;
-  }
-  function Xn(e, t, r, n, i, o, f) {
-    let h = n.length,
-      d = h - 1,
-      y = t;
-    var l = -1,
-      c,
-      g,
-      s,
-      u = null,
-      p = !0,
-      b = null,
-      w,
-      m,
-      S = !1,
-      _ = 0;
-    if (((s = c = e[t]), typeof c != 'object')) return { value: null, parent: null, exists: p };
-    for (; c != null && ++l < h; ) {
-      if (((t = n[l]), (u = s), t !== '*' && !b && !(typeof c == 'object' && t in c))) {
-        p = !1;
-        break;
-      }
-      if (!(t === '*' && (b === '*' && (S = !0), (b = t), l !== d))) {
-        if (b) {
-          let $ = Object.keys(c);
-          for (var O = 0; O < $.length; O++) {
-            let v = $[O];
-            (m = c[v]),
-              (w = t === '*'),
-              S
-                ? ((_ = l), (s = Pt(m, _ - 1, t, r, n, i, o, f, y, c, g, s, w, v, l, d, p)))
-                : (w || (typeof m == 'object' && m !== null && t in m)) &&
-                  (w ? (s = m) : (s = m[t]),
-                  (g = l !== d ? s : o ? (f ? i(s, [...r, y, ...n]) : i(s)) : i),
-                  w
-                    ? (c[v] = g)
-                    : m[t] === g
-                    ? (p = !1)
-                    : (m[t] = (g === void 0 && i !== void 0) || (J(m, t) && g === s) ? m[t] : g));
+        if (wc) {
+          const wcKeys = Object.keys(n);
+          for (var j = 0; j < wcKeys.length; j++) {
+            const wck = wcKeys[j];
+            wcov = n[wck];
+            kIsWc = k === '*';
+            if (consecutive) {
+              level = i;
+              ov = iterateNthLevel(
+                wcov,
+                level - 1,
+                k,
+                path,
+                afterPath,
+                censor,
+                isCensorFct,
+                censorFctTakesPath,
+                originalKey,
+                n,
+                nv,
+                ov,
+                kIsWc,
+                wck,
+                i,
+                lastPathIndex,
+                exists
+              );
+            } else {
+              if (kIsWc || (typeof wcov === 'object' && wcov !== null && k in wcov)) {
+                if (kIsWc) {
+                  ov = wcov;
+                } else {
+                  ov = wcov[k];
+                }
+                nv =
+                  i !== lastPathIndex
+                    ? ov
+                    : isCensorFct
+                    ? censorFctTakesPath
+                      ? censor(ov, [...path, originalKey, ...afterPath])
+                      : censor(ov)
+                    : censor;
+                if (kIsWc) {
+                  n[wck] = nv;
+                } else {
+                  if (wcov[k] === nv) {
+                    exists = false;
+                  } else {
+                    wcov[k] = (nv === void 0 && censor !== void 0) || (has(wcov, k) && nv === ov) ? wcov[k] : nv;
+                  }
+                }
+              }
+            }
           }
-          b = null;
-        } else
-          (s = c[t]),
-            (g = l !== d ? s : o ? (f ? i(s, [...r, y, ...n]) : i(s)) : i),
-            (c[t] = (J(c, t) && g === s) || (g === void 0 && i !== void 0) ? c[t] : g),
-            (c = c[t]);
-        if (typeof c != 'object') break;
-        (s === u || typeof s > 'u') && (p = !1);
+          wc = null;
+        } else {
+          ov = n[k];
+          nv =
+            i !== lastPathIndex
+              ? ov
+              : isCensorFct
+              ? censorFctTakesPath
+                ? censor(ov, [...path, originalKey, ...afterPath])
+                : censor(ov)
+              : censor;
+          n[k] = (has(n, k) && nv === ov) || (nv === void 0 && censor !== void 0) ? n[k] : nv;
+          n = n[k];
+        }
+        if (typeof n !== 'object') break;
+        if (ov === oov || typeof ov === 'undefined') {
+          exists = false;
+        }
+      }
+      return { value: ov, parent: oov, exists, level };
+    }
+    function get(o, p) {
+      var i = -1;
+      var l = p.length;
+      var n = o;
+      while (n != null && ++i < l) {
+        n = n[p[i]];
+      }
+      return n;
+    }
+    function iterateNthLevel(
+      wcov,
+      level,
+      k,
+      path,
+      afterPath,
+      censor,
+      isCensorFct,
+      censorFctTakesPath,
+      originalKey,
+      n,
+      nv,
+      ov,
+      kIsWc,
+      wck,
+      i,
+      lastPathIndex,
+      exists
+    ) {
+      if (level === 0) {
+        if (kIsWc || (typeof wcov === 'object' && wcov !== null && k in wcov)) {
+          if (kIsWc) {
+            ov = wcov;
+          } else {
+            ov = wcov[k];
+          }
+          nv =
+            i !== lastPathIndex
+              ? ov
+              : isCensorFct
+              ? censorFctTakesPath
+                ? censor(ov, [...path, originalKey, ...afterPath])
+                : censor(ov)
+              : censor;
+          if (kIsWc) {
+            n[wck] = nv;
+          } else {
+            if (wcov[k] === nv) {
+              exists = false;
+            } else {
+              wcov[k] = (nv === void 0 && censor !== void 0) || (has(wcov, k) && nv === ov) ? wcov[k] : nv;
+            }
+          }
+        }
+        return ov;
+      }
+      for (const key in wcov) {
+        if (typeof wcov[key] === 'object') {
+          var temp = iterateNthLevel(
+            wcov[key],
+            level - 1,
+            k,
+            path,
+            afterPath,
+            censor,
+            isCensorFct,
+            censorFctTakesPath,
+            originalKey,
+            n,
+            nv,
+            ov,
+            kIsWc,
+            wck,
+            i,
+            lastPathIndex,
+            exists
+          );
+          return temp;
+        }
       }
     }
-    return { value: s, parent: u, exists: p, level: _ };
-  }
-  function Nt(e, t) {
-    for (var r = -1, n = t.length, i = e; i != null && ++r < n; ) i = i[t[r]];
-    return i;
-  }
-  function Pt(e, t, r, n, i, o, f, h, d, y, l, c, g, s, u, p, b) {
-    if (t === 0)
-      return (
-        (g || (typeof e == 'object' && e !== null && r in e)) &&
-          (g ? (c = e) : (c = e[r]),
-          (l = u !== p ? c : f ? (h ? o(c, [...n, d, ...i]) : o(c)) : o),
-          g
-            ? (y[s] = l)
-            : e[r] === l
-            ? (b = !1)
-            : (e[r] = (l === void 0 && o !== void 0) || (J(e, r) && l === c) ? e[r] : l)),
-        c
-      );
-    for (let m in e)
-      if (typeof e[m] == 'object') {
-        var w = Pt(e[m], t - 1, r, n, i, o, f, h, d, y, l, c, g, s, u, p, b);
-        return w;
+    function restoreNthLevel(key, target, value, level) {
+      if (level === 0) {
+        if (has(target, key)) {
+          target[key] = value;
+        }
+        return;
       }
-  }
-  function Ct(e, t, r, n) {
-    if (n === 0) {
-      J(t, e) && (t[e] = r);
-      return;
+      for (const objKey in target) {
+        if (typeof target[objKey] === 'object') {
+          restoreNthLevel(key, target[objKey], value, level - 1);
+        }
+      }
     }
-    for (let i in t) typeof t[i] == 'object' && Ct(e, t[i], r, n - 1);
-  }
+  },
 });
-var Mt = E((pf, zt) => {
-  'use strict';
-  var { groupRestore: Yn, nestedRestore: Qn } = Ae();
-  zt.exports = Zn;
-  function Zn({ secret: e, wcLen: t }) {
-    return function () {
-      if (this.restore) return;
-      let n = Object.keys(e),
-        i = ei(e, n),
-        o = t > 0,
-        f = o ? { secret: e, groupRestore: Yn, nestedRestore: Qn } : { secret: e };
-      this.restore = Function('o', ti(i, n, o)).bind(f);
-    };
-  }
-  function ei(e, t) {
-    return t
-      .map((r) => {
-        let { circle: n, escPath: i, leadingBracket: o } = e[r],
-          h = n ? `o.${n} = secret[${i}].val` : `o${o ? '' : '.'}${r} = secret[${i}].val`,
-          d = `secret[${i}].val = undefined`;
-        return `
-      if (secret[${i}].val !== undefined) {
-        try { ${h} } catch (e) {}
-        ${d}
+
+// node_modules/fast-redact/lib/restorer.js
+var require_restorer = __commonJS({
+  'node_modules/fast-redact/lib/restorer.js'(exports2, module2) {
+    'use strict';
+    var { groupRestore, nestedRestore } = require_modifiers();
+    module2.exports = restorer;
+    function restorer({ secret, wcLen }) {
+      return function compileRestore() {
+        if (this.restore) return;
+        const paths = Object.keys(secret);
+        const resetters = resetTmpl(secret, paths);
+        const hasWildcards = wcLen > 0;
+        const state = hasWildcards ? { secret, groupRestore, nestedRestore } : { secret };
+        this.restore = Function('o', restoreTmpl(resetters, paths, hasWildcards)).bind(state);
+      };
+    }
+    function resetTmpl(secret, paths) {
+      return paths
+        .map((path) => {
+          const { circle, escPath, leadingBracket } = secret[path];
+          const delim = leadingBracket ? '' : '.';
+          const reset = circle ? `o.${circle} = secret[${escPath}].val` : `o${delim}${path} = secret[${escPath}].val`;
+          const clear = `secret[${escPath}].val = undefined`;
+          return `
+      if (secret[${escPath}].val !== undefined) {
+        try { ${reset} } catch (e) {}
+        ${clear}
       }
     `;
-      })
-      .join('');
-  }
-  function ti(e, t, r) {
-    return `
-    const secret = this.secret
-    ${
-      r === !0
-        ? `
+        })
+        .join('');
+    }
+    function restoreTmpl(resetters, paths, hasWildcards) {
+      const dynamicReset =
+        hasWildcards === true
+          ? `
     const keys = Object.keys(secret)
     const len = keys.length
-    for (var i = len - 1; i >= ${t.length}; i--) {
+    for (var i = len - 1; i >= ${paths.length}; i--) {
       const k = keys[i]
       const o = secret[k]
       if (o.flat === true) this.groupRestore(o)
@@ -594,2380 +956,3328 @@ var Mt = E((pf, zt) => {
       secret[k] = null
     }
   `
-        : ''
-    }
-    ${e}
+          : '';
+      return `
+    const secret = this.secret
+    ${dynamicReset}
+    ${resetters}
     return o
   `;
-  }
+    }
+  },
 });
-var Ft = E((bf, Wt) => {
-  'use strict';
-  Wt.exports = ri;
-  function ri(e) {
-    let {
-        secret: t,
-        censor: r,
-        compileRestore: n,
-        serialize: i,
-        groupRedact: o,
-        nestedRedact: f,
-        wildcards: h,
-        wcLen: d,
-      } = e,
-      y = [{ secret: t, censor: r, compileRestore: n }];
-    return (
-      i !== !1 && y.push({ serialize: i }),
-      d > 0 && y.push({ groupRedact: o, nestedRedact: f, wildcards: h, wcLen: d }),
-      Object.assign(...y)
-    );
-  }
+
+// node_modules/fast-redact/lib/state.js
+var require_state = __commonJS({
+  'node_modules/fast-redact/lib/state.js'(exports2, module2) {
+    'use strict';
+    module2.exports = state;
+    function state(o) {
+      const { secret, censor, compileRestore, serialize, groupRedact, nestedRedact, wildcards, wcLen } = o;
+      const builder = [{ secret, censor, compileRestore }];
+      if (serialize !== false) builder.push({ serialize });
+      if (wcLen > 0) builder.push({ groupRedact, nestedRedact, wildcards, wcLen });
+      return Object.assign(...builder);
+    }
+  },
 });
-var Jt = E((wf, Vt) => {
-  'use strict';
-  var Kt = kt(),
-    ni = Bt(),
-    ii = It(),
-    si = Mt(),
-    { groupRedact: oi, nestedRedact: li } = Ae(),
-    fi = Ft(),
-    ui = re(),
-    ci = Kt(),
-    je = (e) => e;
-  je.restore = je;
-  var ai = '[REDACTED]';
-  Le.rx = ui;
-  Le.validator = Kt;
-  Vt.exports = Le;
-  function Le(e = {}) {
-    let t = Array.from(new Set(e.paths || [])),
-      r = 'serialize' in e && (e.serialize === !1 || typeof e.serialize == 'function') ? e.serialize : JSON.stringify,
-      n = e.remove;
-    if (n === !0 && r !== JSON.stringify)
-      throw Error('fast-redact \u2013 remove option may only be set when serializer is JSON.stringify');
-    let i = n === !0 ? void 0 : 'censor' in e ? e.censor : ai,
-      o = typeof i == 'function',
-      f = o && i.length > 1;
-    if (t.length === 0) return r || je;
-    ci({ paths: t, serialize: r, censor: i });
-    let { wildcards: h, wcLen: d, secret: y } = ni({ paths: t, censor: i }),
-      l = si({ secret: y, wcLen: d }),
-      c = 'strict' in e ? e.strict : !0;
-    return ii(
-      { secret: y, wcLen: d, serialize: r, strict: c, isCensorFct: o, censorFctTakesPath: f },
-      fi({
-        secret: y,
-        censor: i,
-        compileRestore: l,
-        serialize: r,
-        groupRedact: oi,
-        nestedRedact: li,
-        wildcards: h,
-        wcLen: d,
-      })
-    );
-  }
-});
-var U = E((Sf, Ut) => {
-  'use strict';
-  var hi = Symbol('pino.setLevel'),
-    di = Symbol('pino.getLevel'),
-    yi = Symbol('pino.levelVal'),
-    gi = Symbol('pino.useLevelLabels'),
-    mi = Symbol('pino.useOnlyCustomLevels'),
-    pi = Symbol('pino.mixin'),
-    bi = Symbol('pino.lsCache'),
-    wi = Symbol('pino.chindings'),
-    Si = Symbol('pino.asJson'),
-    _i = Symbol('pino.write'),
-    Ei = Symbol('pino.redactFmt'),
-    xi = Symbol('pino.time'),
-    Oi = Symbol('pino.timeSliceIndex'),
-    vi = Symbol('pino.stream'),
-    $i = Symbol('pino.stringify'),
-    Ai = Symbol('pino.stringifySafe'),
-    ji = Symbol('pino.stringifiers'),
-    Li = Symbol('pino.end'),
-    ki = Symbol('pino.formatOpts'),
-    Ti = Symbol('pino.messageKey'),
-    Ri = Symbol('pino.errorKey'),
-    Bi = Symbol('pino.nestedKey'),
-    qi = Symbol('pino.nestedKeyStr'),
-    Ii = Symbol('pino.mixinMergeStrategy'),
-    Ni = Symbol('pino.msgPrefix'),
-    Pi = Symbol('pino.wildcardFirst'),
-    Ci = Symbol.for('pino.serializers'),
-    Di = Symbol.for('pino.formatters'),
-    zi = Symbol.for('pino.hooks'),
-    Mi = Symbol.for('pino.metadata');
-  Ut.exports = {
-    setLevelSym: hi,
-    getLevelSym: di,
-    levelValSym: yi,
-    useLevelLabelsSym: gi,
-    mixinSym: pi,
-    lsCacheSym: bi,
-    chindingsSym: wi,
-    asJsonSym: Si,
-    writeSym: _i,
-    serializersSym: Ci,
-    redactFmtSym: Ei,
-    timeSym: xi,
-    timeSliceIndexSym: Oi,
-    streamSym: vi,
-    stringifySym: $i,
-    stringifySafeSym: Ai,
-    stringifiersSym: ji,
-    endSym: Li,
-    formatOptsSym: ki,
-    messageKeySym: Ti,
-    errorKeySym: Ri,
-    nestedKeySym: Bi,
-    wildcardFirstSym: Pi,
-    needsMetadataGsym: Mi,
-    useOnlyCustomLevelsSym: mi,
-    formattersSym: Di,
-    hooksSym: zi,
-    nestedKeyStrSym: qi,
-    mixinMergeStrategySym: Ii,
-    msgPrefixSym: Ni,
-  };
-});
-var Re = E((_f, Yt) => {
-  'use strict';
-  var Te = Jt(),
-    { redactFmtSym: Wi, wildcardFirstSym: ne } = U(),
-    { rx: ke, validator: Fi } = Te,
-    Gt = Fi({
-      ERR_PATHS_MUST_BE_STRINGS: () => 'pino \u2013 redacted paths must be strings',
-      ERR_INVALID_PATH: (e) => `pino \u2013 redact paths array contains an invalid path (${e})`,
-    }),
-    Ht = '[Redacted]',
-    Xt = !1;
-  function Ki(e, t) {
-    let { paths: r, censor: n } = Vi(e),
-      i = r.reduce((h, d) => {
-        ke.lastIndex = 0;
-        let y = ke.exec(d),
-          l = ke.exec(d),
-          c = y[1] !== void 0 ? y[1].replace(/^(?:"|'|`)(.*)(?:"|'|`)$/, '$1') : y[0];
-        if ((c === '*' && (c = ne), l === null)) return (h[c] = null), h;
-        if (h[c] === null) return h;
-        let { index: g } = l,
-          s = `${d.substr(g, d.length - 1)}`;
-        return (
-          (h[c] = h[c] || []),
-          c !== ne && h[c].length === 0 && h[c].push(...(h[ne] || [])),
-          c === ne &&
-            Object.keys(h).forEach(function (u) {
-              h[u] && h[u].push(s);
-            }),
-          h[c].push(s),
-          h
-        );
-      }, {}),
-      o = { [Wi]: Te({ paths: r, censor: n, serialize: t, strict: Xt }) },
-      f = (...h) => t(typeof n == 'function' ? n(...h) : n);
-    return [...Object.keys(i), ...Object.getOwnPropertySymbols(i)].reduce((h, d) => {
-      if (i[d] === null) h[d] = (y) => f(y, [d]);
-      else {
-        let y = typeof n == 'function' ? (l, c) => n(l, [d, ...c]) : n;
-        h[d] = Te({ paths: i[d], censor: y, serialize: t, strict: Xt });
+
+// node_modules/fast-redact/index.js
+var require_fast_redact = __commonJS({
+  'node_modules/fast-redact/index.js'(exports2, module2) {
+    'use strict';
+    var validator = require_validator();
+    var parse = require_parse();
+    var redactor = require_redactor();
+    var restorer = require_restorer();
+    var { groupRedact, nestedRedact } = require_modifiers();
+    var state = require_state();
+    var rx = require_rx();
+    var validate = validator();
+    var noop = (o) => o;
+    noop.restore = noop;
+    var DEFAULT_CENSOR = '[REDACTED]';
+    fastRedact.rx = rx;
+    fastRedact.validator = validator;
+    module2.exports = fastRedact;
+    function fastRedact(opts = {}) {
+      const paths = Array.from(new Set(opts.paths || []));
+      const serialize =
+        'serialize' in opts
+          ? opts.serialize === false
+            ? opts.serialize
+            : typeof opts.serialize === 'function'
+            ? opts.serialize
+            : JSON.stringify
+          : JSON.stringify;
+      const remove = opts.remove;
+      if (remove === true && serialize !== JSON.stringify) {
+        throw Error('fast-redact \u2013 remove option may only be set when serializer is JSON.stringify');
       }
-      return h;
-    }, o);
-  }
-  function Vi(e) {
-    if (Array.isArray(e)) return (e = { paths: e, censor: Ht }), Gt(e), e;
-    let { paths: t, censor: r = Ht, remove: n } = e;
-    if (Array.isArray(t) === !1) throw Error('pino \u2013 redact must contain an array of strings');
-    return n === !0 && (r = void 0), Gt({ paths: t, censor: r }), { paths: t, censor: r };
-  }
-  Yt.exports = Ki;
-});
-var Zt = E((Ef, Qt) => {
-  'use strict';
-  var Ji = () => '',
-    Ui = () => `,"time":${Date.now()}`,
-    Gi = () => `,"time":${Math.round(Date.now() / 1e3)}`,
-    Hi = () => `,"time":"${new Date(Date.now()).toISOString()}"`;
-  Qt.exports = { nullTime: Ji, epochTime: Ui, unixTime: Gi, isoTime: Hi };
-});
-var tr = E((xf, er) => {
-  'use strict';
-  function Xi(e) {
-    try {
-      return JSON.stringify(e);
-    } catch {
-      return '"[Circular]"';
+      const censor = remove === true ? void 0 : 'censor' in opts ? opts.censor : DEFAULT_CENSOR;
+      const isCensorFct = typeof censor === 'function';
+      const censorFctTakesPath = isCensorFct && censor.length > 1;
+      if (paths.length === 0) return serialize || noop;
+      validate({ paths, serialize, censor });
+      const { wildcards, wcLen, secret } = parse({ paths, censor });
+      const compileRestore = restorer({ secret, wcLen });
+      const strict = 'strict' in opts ? opts.strict : true;
+      return redactor(
+        { secret, wcLen, serialize, strict, isCensorFct, censorFctTakesPath },
+        state({
+          secret,
+          censor,
+          compileRestore,
+          serialize,
+          groupRedact,
+          nestedRedact,
+          wildcards,
+          wcLen,
+        })
+      );
     }
-  }
-  er.exports = Yi;
-  function Yi(e, t, r) {
-    var n = (r && r.stringify) || Xi,
-      i = 1;
-    if (typeof e == 'object' && e !== null) {
-      var o = t.length + i;
-      if (o === 1) return e;
-      var f = new Array(o);
-      f[0] = n(e);
-      for (var h = 1; h < o; h++) f[h] = n(t[h]);
-      return f.join(' ');
-    }
-    if (typeof e != 'string') return e;
-    var d = t.length;
-    if (d === 0) return e;
-    for (var y = '', l = 1 - i, c = -1, g = (e && e.length) || 0, s = 0; s < g; ) {
-      if (e.charCodeAt(s) === 37 && s + 1 < g) {
-        switch (((c = c > -1 ? c : 0), e.charCodeAt(s + 1))) {
-          case 100:
-          case 102:
-            if (l >= d || t[l] == null) break;
-            c < s && (y += e.slice(c, s)), (y += Number(t[l])), (c = s + 2), s++;
-            break;
-          case 105:
-            if (l >= d || t[l] == null) break;
-            c < s && (y += e.slice(c, s)), (y += Math.floor(Number(t[l]))), (c = s + 2), s++;
-            break;
-          case 79:
-          case 111:
-          case 106:
-            if (l >= d || t[l] === void 0) break;
-            c < s && (y += e.slice(c, s));
-            var u = typeof t[l];
-            if (u === 'string') {
-              (y += "'" + t[l] + "'"), (c = s + 2), s++;
-              break;
-            }
-            if (u === 'function') {
-              (y += t[l].name || '<anonymous>'), (c = s + 2), s++;
-              break;
-            }
-            (y += n(t[l])), (c = s + 2), s++;
-            break;
-          case 115:
-            if (l >= d) break;
-            c < s && (y += e.slice(c, s)), (y += String(t[l])), (c = s + 2), s++;
-            break;
-          case 37:
-            c < s && (y += e.slice(c, s)), (y += '%'), (c = s + 2), s++, l--;
-            break;
-        }
-        ++l;
-      }
-      ++s;
-    }
-    return c === -1 ? e : (c < g && (y += e.slice(c)), y);
-  }
+  },
 });
-var qe = E((Of, Be) => {
-  'use strict';
-  if (typeof SharedArrayBuffer < 'u' && typeof Atomics < 'u') {
-    let t = function (r) {
-        if ((r > 0 && r < 1 / 0) === !1)
-          throw typeof r != 'number' && typeof r != 'bigint'
-            ? TypeError('sleep: ms must be a number')
-            : RangeError('sleep: ms must be a number that is greater than 0 but less than Infinity');
-        Atomics.wait(e, 0, 0, Number(r));
-      },
-      e = new Int32Array(new SharedArrayBuffer(4));
-    Be.exports = t;
-  } else {
-    let e = function (t) {
-      if ((t > 0 && t < 1 / 0) === !1)
-        throw typeof t != 'number' && typeof t != 'bigint'
-          ? TypeError('sleep: ms must be a number')
-          : RangeError('sleep: ms must be a number that is greater than 0 but less than Infinity');
-      let n = Date.now() + Number(t);
-      for (; n > Date.now(); );
+
+// node_modules/pino/lib/symbols.js
+var require_symbols = __commonJS({
+  'node_modules/pino/lib/symbols.js'(exports2, module2) {
+    'use strict';
+    var setLevelSym = Symbol('pino.setLevel');
+    var getLevelSym = Symbol('pino.getLevel');
+    var levelValSym = Symbol('pino.levelVal');
+    var useLevelLabelsSym = Symbol('pino.useLevelLabels');
+    var useOnlyCustomLevelsSym = Symbol('pino.useOnlyCustomLevels');
+    var mixinSym = Symbol('pino.mixin');
+    var lsCacheSym = Symbol('pino.lsCache');
+    var chindingsSym = Symbol('pino.chindings');
+    var asJsonSym = Symbol('pino.asJson');
+    var writeSym = Symbol('pino.write');
+    var redactFmtSym = Symbol('pino.redactFmt');
+    var timeSym = Symbol('pino.time');
+    var timeSliceIndexSym = Symbol('pino.timeSliceIndex');
+    var streamSym = Symbol('pino.stream');
+    var stringifySym = Symbol('pino.stringify');
+    var stringifySafeSym = Symbol('pino.stringifySafe');
+    var stringifiersSym = Symbol('pino.stringifiers');
+    var endSym = Symbol('pino.end');
+    var formatOptsSym = Symbol('pino.formatOpts');
+    var messageKeySym = Symbol('pino.messageKey');
+    var errorKeySym = Symbol('pino.errorKey');
+    var nestedKeySym = Symbol('pino.nestedKey');
+    var nestedKeyStrSym = Symbol('pino.nestedKeyStr');
+    var mixinMergeStrategySym = Symbol('pino.mixinMergeStrategy');
+    var msgPrefixSym = Symbol('pino.msgPrefix');
+    var wildcardFirstSym = Symbol('pino.wildcardFirst');
+    var serializersSym = Symbol.for('pino.serializers');
+    var formattersSym = Symbol.for('pino.formatters');
+    var hooksSym = Symbol.for('pino.hooks');
+    var needsMetadataGsym = Symbol.for('pino.metadata');
+    module2.exports = {
+      setLevelSym,
+      getLevelSym,
+      levelValSym,
+      useLevelLabelsSym,
+      mixinSym,
+      lsCacheSym,
+      chindingsSym,
+      asJsonSym,
+      writeSym,
+      serializersSym,
+      redactFmtSym,
+      timeSym,
+      timeSliceIndexSym,
+      streamSym,
+      stringifySym,
+      stringifySafeSym,
+      stringifiersSym,
+      endSym,
+      formatOptsSym,
+      messageKeySym,
+      errorKeySym,
+      nestedKeySym,
+      wildcardFirstSym,
+      needsMetadataGsym,
+      useOnlyCustomLevelsSym,
+      formattersSym,
+      hooksSym,
+      nestedKeyStrSym,
+      mixinMergeStrategySym,
+      msgPrefixSym,
     };
-    Be.exports = e;
-  }
+  },
 });
-var ur = E((vf, fr) => {
-  'use strict';
-  var A = require('fs'),
-    Qi = require('events'),
-    Zi = require('util').inherits,
-    rr = require('path'),
-    Ie = qe(),
-    ie = 100,
-    se = Buffer.allocUnsafe(0),
-    es = 16 * 1024,
-    nr = 'buffer',
-    ir = 'utf8';
-  function sr(e, t) {
-    (t._opening = !0), (t._writing = !0), (t._asyncDrainScheduled = !1);
-    function r(o, f) {
-      if (o) {
-        (t._reopening = !1),
-          (t._writing = !1),
-          (t._opening = !1),
-          t.sync
-            ? process.nextTick(() => {
-                t.listenerCount('error') > 0 && t.emit('error', o);
-              })
-            : t.emit('error', o);
-        return;
-      }
-      (t.fd = f),
-        (t.file = e),
-        (t._reopening = !1),
-        (t._opening = !1),
-        (t._writing = !1),
-        t.sync ? process.nextTick(() => t.emit('ready')) : t.emit('ready'),
-        !(t._reopening || t.destroyed) &&
-          ((!t._writing && t._len > t.minLength) || t._flushPending) &&
-          t._actualWrite();
-    }
-    let n = t.append ? 'a' : 'w',
-      i = t.mode;
-    if (t.sync)
-      try {
-        t.mkdir && A.mkdirSync(rr.dirname(e), { recursive: !0 });
-        let o = A.openSync(e, n, i);
-        r(null, o);
-      } catch (o) {
-        throw (r(o), o);
-      }
-    else
-      t.mkdir
-        ? A.mkdir(rr.dirname(e), { recursive: !0 }, (o) => {
-            if (o) return r(o);
-            A.open(e, n, i, r);
-          })
-        : A.open(e, n, i, r);
-  }
-  function I(e) {
-    if (!(this instanceof I)) return new I(e);
-    let {
-      fd: t,
-      dest: r,
-      minLength: n,
-      maxLength: i,
-      maxWrite: o,
-      sync: f,
-      append: h = !0,
-      mkdir: d,
-      retryEAGAIN: y,
-      fsync: l,
-      contentMode: c,
-      mode: g,
-    } = e || {};
-    (t = t || r),
-      (this._len = 0),
-      (this.fd = -1),
-      (this._bufs = []),
-      (this._lens = []),
-      (this._writing = !1),
-      (this._ending = !1),
-      (this._reopening = !1),
-      (this._asyncDrainScheduled = !1),
-      (this._flushPending = !1),
-      (this._hwm = Math.max(n || 0, 16387)),
-      (this.file = null),
-      (this.destroyed = !1),
-      (this.minLength = n || 0),
-      (this.maxLength = i || 0),
-      (this.maxWrite = o || es),
-      (this.sync = f || !1),
-      (this.writable = !0),
-      (this._fsync = l || !1),
-      (this.append = h || !1),
-      (this.mode = g),
-      (this.retryEAGAIN = y || (() => !0)),
-      (this.mkdir = d || !1);
-    let s, u;
-    if (c === nr)
-      (this._writingBuf = se),
-        (this.write = ns),
-        (this.flush = ss),
-        (this.flushSync = ls),
-        (this._actualWrite = us),
-        (s = () => A.writeSync(this.fd, this._writingBuf)),
-        (u = () => A.write(this.fd, this._writingBuf, this.release));
-    else if (c === void 0 || c === ir)
-      (this._writingBuf = ''),
-        (this.write = rs),
-        (this.flush = is),
-        (this.flushSync = os),
-        (this._actualWrite = fs),
-        (s = () => A.writeSync(this.fd, this._writingBuf, 'utf8')),
-        (u = () => A.write(this.fd, this._writingBuf, 'utf8', this.release));
-    else throw new Error(`SonicBoom supports "${ir}" and "${nr}", but passed ${c}`);
-    if (typeof t == 'number') (this.fd = t), process.nextTick(() => this.emit('ready'));
-    else if (typeof t == 'string') sr(t, this);
-    else throw new Error('SonicBoom supports only file descriptors and files');
-    if (this.minLength >= this.maxWrite)
-      throw new Error(`minLength should be smaller than maxWrite (${this.maxWrite})`);
-    (this.release = (p, b) => {
-      if (p) {
-        if (
-          (p.code === 'EAGAIN' || p.code === 'EBUSY') &&
-          this.retryEAGAIN(p, this._writingBuf.length, this._len - this._writingBuf.length)
-        )
-          if (this.sync)
-            try {
-              Ie(ie), this.release(void 0, 0);
-            } catch (m) {
-              this.release(m);
+
+// node_modules/pino/lib/redaction.js
+var require_redaction = __commonJS({
+  'node_modules/pino/lib/redaction.js'(exports2, module2) {
+    'use strict';
+    var fastRedact = require_fast_redact();
+    var { redactFmtSym, wildcardFirstSym } = require_symbols();
+    var { rx, validator } = fastRedact;
+    var validate = validator({
+      ERR_PATHS_MUST_BE_STRINGS: () => 'pino \u2013 redacted paths must be strings',
+      ERR_INVALID_PATH: (s) => `pino \u2013 redact paths array contains an invalid path (${s})`,
+    });
+    var CENSOR = '[Redacted]';
+    var strict = false;
+    function redaction(opts, serialize) {
+      const { paths, censor } = handle(opts);
+      const shape = paths.reduce((o, str) => {
+        rx.lastIndex = 0;
+        const first = rx.exec(str);
+        const next = rx.exec(str);
+        let ns = first[1] !== void 0 ? first[1].replace(/^(?:"|'|`)(.*)(?:"|'|`)$/, '$1') : first[0];
+        if (ns === '*') {
+          ns = wildcardFirstSym;
+        }
+        if (next === null) {
+          o[ns] = null;
+          return o;
+        }
+        if (o[ns] === null) {
+          return o;
+        }
+        const { index } = next;
+        const nextPath = `${str.substr(index, str.length - 1)}`;
+        o[ns] = o[ns] || [];
+        if (ns !== wildcardFirstSym && o[ns].length === 0) {
+          o[ns].push(...(o[wildcardFirstSym] || []));
+        }
+        if (ns === wildcardFirstSym) {
+          Object.keys(o).forEach(function (k) {
+            if (o[k]) {
+              o[k].push(nextPath);
             }
-          else setTimeout(u, ie);
-        else (this._writing = !1), this.emit('error', p);
+          });
+        }
+        o[ns].push(nextPath);
+        return o;
+      }, {});
+      const result = {
+        [redactFmtSym]: fastRedact({ paths, censor, serialize, strict }),
+      };
+      const topCensor = (...args) => {
+        return typeof censor === 'function' ? serialize(censor(...args)) : serialize(censor);
+      };
+      return [...Object.keys(shape), ...Object.getOwnPropertySymbols(shape)].reduce((o, k) => {
+        if (shape[k] === null) {
+          o[k] = (value) => topCensor(value, [k]);
+        } else {
+          const wrappedCensor =
+            typeof censor === 'function'
+              ? (value, path) => {
+                  return censor(value, [k, ...path]);
+                }
+              : censor;
+          o[k] = fastRedact({
+            paths: shape[k],
+            censor: wrappedCensor,
+            serialize,
+            strict,
+          });
+        }
+        return o;
+      }, result);
+    }
+    function handle(opts) {
+      if (Array.isArray(opts)) {
+        opts = { paths: opts, censor: CENSOR };
+        validate(opts);
+        return opts;
+      }
+      let { paths, censor = CENSOR, remove } = opts;
+      if (Array.isArray(paths) === false) {
+        throw Error('pino \u2013 redact must contain an array of strings');
+      }
+      if (remove === true) censor = void 0;
+      validate({ paths, censor });
+      return { paths, censor };
+    }
+    module2.exports = redaction;
+  },
+});
+
+// node_modules/pino/lib/time.js
+var require_time = __commonJS({
+  'node_modules/pino/lib/time.js'(exports2, module2) {
+    'use strict';
+    var nullTime = () => '';
+    var epochTime = () => `,"time":${Date.now()}`;
+    var unixTime = () => `,"time":${Math.round(Date.now() / 1e3)}`;
+    var isoTime = () => `,"time":"${new Date(Date.now()).toISOString()}"`;
+    module2.exports = { nullTime, epochTime, unixTime, isoTime };
+  },
+});
+
+// node_modules/quick-format-unescaped/index.js
+var require_quick_format_unescaped = __commonJS({
+  'node_modules/quick-format-unescaped/index.js'(exports2, module2) {
+    'use strict';
+    function tryStringify(o) {
+      try {
+        return JSON.stringify(o);
+      } catch (e) {
+        return '"[Circular]"';
+      }
+    }
+    module2.exports = format;
+    function format(f, args, opts) {
+      var ss = (opts && opts.stringify) || tryStringify;
+      var offset = 1;
+      if (typeof f === 'object' && f !== null) {
+        var len = args.length + offset;
+        if (len === 1) return f;
+        var objects = new Array(len);
+        objects[0] = ss(f);
+        for (var index = 1; index < len; index++) {
+          objects[index] = ss(args[index]);
+        }
+        return objects.join(' ');
+      }
+      if (typeof f !== 'string') {
+        return f;
+      }
+      var argLen = args.length;
+      if (argLen === 0) return f;
+      var str = '';
+      var a = 1 - offset;
+      var lastPos = -1;
+      var flen = (f && f.length) || 0;
+      for (var i = 0; i < flen; ) {
+        if (f.charCodeAt(i) === 37 && i + 1 < flen) {
+          lastPos = lastPos > -1 ? lastPos : 0;
+          switch (f.charCodeAt(i + 1)) {
+            case 100:
+            case 102:
+              if (a >= argLen) break;
+              if (args[a] == null) break;
+              if (lastPos < i) str += f.slice(lastPos, i);
+              str += Number(args[a]);
+              lastPos = i + 2;
+              i++;
+              break;
+            case 105:
+              if (a >= argLen) break;
+              if (args[a] == null) break;
+              if (lastPos < i) str += f.slice(lastPos, i);
+              str += Math.floor(Number(args[a]));
+              lastPos = i + 2;
+              i++;
+              break;
+            case 79:
+            case 111:
+            case 106:
+              if (a >= argLen) break;
+              if (args[a] === void 0) break;
+              if (lastPos < i) str += f.slice(lastPos, i);
+              var type = typeof args[a];
+              if (type === 'string') {
+                str += "'" + args[a] + "'";
+                lastPos = i + 2;
+                i++;
+                break;
+              }
+              if (type === 'function') {
+                str += args[a].name || '<anonymous>';
+                lastPos = i + 2;
+                i++;
+                break;
+              }
+              str += ss(args[a]);
+              lastPos = i + 2;
+              i++;
+              break;
+            case 115:
+              if (a >= argLen) break;
+              if (lastPos < i) str += f.slice(lastPos, i);
+              str += String(args[a]);
+              lastPos = i + 2;
+              i++;
+              break;
+            case 37:
+              if (lastPos < i) str += f.slice(lastPos, i);
+              str += '%';
+              lastPos = i + 2;
+              i++;
+              a--;
+              break;
+          }
+          ++a;
+        }
+        ++i;
+      }
+      if (lastPos === -1) return f;
+      else if (lastPos < flen) {
+        str += f.slice(lastPos);
+      }
+      return str;
+    }
+  },
+});
+
+// node_modules/atomic-sleep/index.js
+var require_atomic_sleep = __commonJS({
+  'node_modules/atomic-sleep/index.js'(exports2, module2) {
+    'use strict';
+    if (typeof SharedArrayBuffer !== 'undefined' && typeof Atomics !== 'undefined') {
+      let sleep = function (ms) {
+        const valid = ms > 0 && ms < Infinity;
+        if (valid === false) {
+          if (typeof ms !== 'number' && typeof ms !== 'bigint') {
+            throw TypeError('sleep: ms must be a number');
+          }
+          throw RangeError('sleep: ms must be a number that is greater than 0 but less than Infinity');
+        }
+        Atomics.wait(nil, 0, 0, Number(ms));
+      };
+      const nil = new Int32Array(new SharedArrayBuffer(4));
+      module2.exports = sleep;
+    } else {
+      let sleep = function (ms) {
+        const valid = ms > 0 && ms < Infinity;
+        if (valid === false) {
+          if (typeof ms !== 'number' && typeof ms !== 'bigint') {
+            throw TypeError('sleep: ms must be a number');
+          }
+          throw RangeError('sleep: ms must be a number that is greater than 0 but less than Infinity');
+        }
+        const target = Date.now() + Number(ms);
+        while (target > Date.now()) {}
+      };
+      module2.exports = sleep;
+    }
+  },
+});
+
+// node_modules/sonic-boom/index.js
+var require_sonic_boom = __commonJS({
+  'node_modules/sonic-boom/index.js'(exports2, module2) {
+    'use strict';
+    var fs = require('fs');
+    var EventEmitter = require('events');
+    var inherits = require('util').inherits;
+    var path = require('path');
+    var sleep = require_atomic_sleep();
+    var BUSY_WRITE_TIMEOUT = 100;
+    var kEmptyBuffer = Buffer.allocUnsafe(0);
+    var MAX_WRITE = 16 * 1024;
+    var kContentModeBuffer = 'buffer';
+    var kContentModeUtf8 = 'utf8';
+    function openFile(file, sonic) {
+      sonic._opening = true;
+      sonic._writing = true;
+      sonic._asyncDrainScheduled = false;
+      function fileOpened(err, fd) {
+        if (err) {
+          sonic._reopening = false;
+          sonic._writing = false;
+          sonic._opening = false;
+          if (sonic.sync) {
+            process.nextTick(() => {
+              if (sonic.listenerCount('error') > 0) {
+                sonic.emit('error', err);
+              }
+            });
+          } else {
+            sonic.emit('error', err);
+          }
+          return;
+        }
+        sonic.fd = fd;
+        sonic.file = file;
+        sonic._reopening = false;
+        sonic._opening = false;
+        sonic._writing = false;
+        if (sonic.sync) {
+          process.nextTick(() => sonic.emit('ready'));
+        } else {
+          sonic.emit('ready');
+        }
+        if (sonic._reopening || sonic.destroyed) {
+          return;
+        }
+        if ((!sonic._writing && sonic._len > sonic.minLength) || sonic._flushPending) {
+          sonic._actualWrite();
+        }
+      }
+      const flags = sonic.append ? 'a' : 'w';
+      const mode = sonic.mode;
+      if (sonic.sync) {
+        try {
+          if (sonic.mkdir) fs.mkdirSync(path.dirname(file), { recursive: true });
+          const fd = fs.openSync(file, flags, mode);
+          fileOpened(null, fd);
+        } catch (err) {
+          fileOpened(err);
+          throw err;
+        }
+      } else if (sonic.mkdir) {
+        fs.mkdir(path.dirname(file), { recursive: true }, (err) => {
+          if (err) return fileOpened(err);
+          fs.open(file, flags, mode, fileOpened);
+        });
+      } else {
+        fs.open(file, flags, mode, fileOpened);
+      }
+    }
+    function SonicBoom(opts) {
+      if (!(this instanceof SonicBoom)) {
+        return new SonicBoom(opts);
+      }
+      let {
+        fd,
+        dest,
+        minLength,
+        maxLength,
+        maxWrite,
+        sync,
+        append = true,
+        mkdir,
+        retryEAGAIN,
+        fsync,
+        contentMode,
+        mode,
+      } = opts || {};
+      fd = fd || dest;
+      this._len = 0;
+      this.fd = -1;
+      this._bufs = [];
+      this._lens = [];
+      this._writing = false;
+      this._ending = false;
+      this._reopening = false;
+      this._asyncDrainScheduled = false;
+      this._flushPending = false;
+      this._hwm = Math.max(minLength || 0, 16387);
+      this.file = null;
+      this.destroyed = false;
+      this.minLength = minLength || 0;
+      this.maxLength = maxLength || 0;
+      this.maxWrite = maxWrite || MAX_WRITE;
+      this.sync = sync || false;
+      this.writable = true;
+      this._fsync = fsync || false;
+      this.append = append || false;
+      this.mode = mode;
+      this.retryEAGAIN = retryEAGAIN || (() => true);
+      this.mkdir = mkdir || false;
+      let fsWriteSync;
+      let fsWrite;
+      if (contentMode === kContentModeBuffer) {
+        this._writingBuf = kEmptyBuffer;
+        this.write = writeBuffer;
+        this.flush = flushBuffer;
+        this.flushSync = flushBufferSync;
+        this._actualWrite = actualWriteBuffer;
+        fsWriteSync = () => fs.writeSync(this.fd, this._writingBuf);
+        fsWrite = () => fs.write(this.fd, this._writingBuf, this.release);
+      } else if (contentMode === void 0 || contentMode === kContentModeUtf8) {
+        this._writingBuf = '';
+        this.write = write;
+        this.flush = flush;
+        this.flushSync = flushSync;
+        this._actualWrite = actualWrite;
+        fsWriteSync = () => fs.writeSync(this.fd, this._writingBuf, 'utf8');
+        fsWrite = () => fs.write(this.fd, this._writingBuf, 'utf8', this.release);
+      } else {
+        throw new Error(
+          `SonicBoom supports "${kContentModeUtf8}" and "${kContentModeBuffer}", but passed ${contentMode}`
+        );
+      }
+      if (typeof fd === 'number') {
+        this.fd = fd;
+        process.nextTick(() => this.emit('ready'));
+      } else if (typeof fd === 'string') {
+        openFile(fd, this);
+      } else {
+        throw new Error('SonicBoom supports only file descriptors and files');
+      }
+      if (this.minLength >= this.maxWrite) {
+        throw new Error(`minLength should be smaller than maxWrite (${this.maxWrite})`);
+      }
+      this.release = (err, n) => {
+        if (err) {
+          if (
+            (err.code === 'EAGAIN' || err.code === 'EBUSY') &&
+            this.retryEAGAIN(err, this._writingBuf.length, this._len - this._writingBuf.length)
+          ) {
+            if (this.sync) {
+              try {
+                sleep(BUSY_WRITE_TIMEOUT);
+                this.release(void 0, 0);
+              } catch (err2) {
+                this.release(err2);
+              }
+            } else {
+              setTimeout(fsWrite, BUSY_WRITE_TIMEOUT);
+            }
+          } else {
+            this._writing = false;
+            this.emit('error', err);
+          }
+          return;
+        }
+        this.emit('write', n);
+        this._len -= n;
+        if (this._len < 0) {
+          this._len = 0;
+        }
+        this._writingBuf = this._writingBuf.slice(n);
+        if (this._writingBuf.length) {
+          if (!this.sync) {
+            fsWrite();
+            return;
+          }
+          try {
+            do {
+              const n2 = fsWriteSync();
+              this._len -= n2;
+              this._writingBuf = this._writingBuf.slice(n2);
+            } while (this._writingBuf.length);
+          } catch (err2) {
+            this.release(err2);
+            return;
+          }
+        }
+        if (this._fsync) {
+          fs.fsyncSync(this.fd);
+        }
+        const len = this._len;
+        if (this._reopening) {
+          this._writing = false;
+          this._reopening = false;
+          this.reopen();
+        } else if (len > this.minLength) {
+          this._actualWrite();
+        } else if (this._ending) {
+          if (len > 0) {
+            this._actualWrite();
+          } else {
+            this._writing = false;
+            actualClose(this);
+          }
+        } else {
+          this._writing = false;
+          if (this.sync) {
+            if (!this._asyncDrainScheduled) {
+              this._asyncDrainScheduled = true;
+              process.nextTick(emitDrain, this);
+            }
+          } else {
+            this.emit('drain');
+          }
+        }
+      };
+      this.on('newListener', function (name) {
+        if (name === 'drain') {
+          this._asyncDrainScheduled = false;
+        }
+      });
+    }
+    function emitDrain(sonic) {
+      const hasListeners = sonic.listenerCount('drain') > 0;
+      if (!hasListeners) return;
+      sonic._asyncDrainScheduled = false;
+      sonic.emit('drain');
+    }
+    inherits(SonicBoom, EventEmitter);
+    function mergeBuf(bufs, len) {
+      if (bufs.length === 0) {
+        return kEmptyBuffer;
+      }
+      if (bufs.length === 1) {
+        return bufs[0];
+      }
+      return Buffer.concat(bufs, len);
+    }
+    function write(data) {
+      if (this.destroyed) {
+        throw new Error('SonicBoom destroyed');
+      }
+      const len = this._len + data.length;
+      const bufs = this._bufs;
+      if (this.maxLength && len > this.maxLength) {
+        this.emit('drop', data);
+        return this._len < this._hwm;
+      }
+      if (bufs.length === 0 || bufs[bufs.length - 1].length + data.length > this.maxWrite) {
+        bufs.push('' + data);
+      } else {
+        bufs[bufs.length - 1] += data;
+      }
+      this._len = len;
+      if (!this._writing && this._len >= this.minLength) {
+        this._actualWrite();
+      }
+      return this._len < this._hwm;
+    }
+    function writeBuffer(data) {
+      if (this.destroyed) {
+        throw new Error('SonicBoom destroyed');
+      }
+      const len = this._len + data.length;
+      const bufs = this._bufs;
+      const lens = this._lens;
+      if (this.maxLength && len > this.maxLength) {
+        this.emit('drop', data);
+        return this._len < this._hwm;
+      }
+      if (bufs.length === 0 || lens[lens.length - 1] + data.length > this.maxWrite) {
+        bufs.push([data]);
+        lens.push(data.length);
+      } else {
+        bufs[bufs.length - 1].push(data);
+        lens[lens.length - 1] += data.length;
+      }
+      this._len = len;
+      if (!this._writing && this._len >= this.minLength) {
+        this._actualWrite();
+      }
+      return this._len < this._hwm;
+    }
+    function callFlushCallbackOnDrain(cb) {
+      this._flushPending = true;
+      const onDrain = () => {
+        if (!this._fsync) {
+          fs.fsync(this.fd, (err) => {
+            this._flushPending = false;
+            cb(err);
+          });
+        } else {
+          this._flushPending = false;
+          cb();
+        }
+        this.off('error', onError);
+      };
+      const onError = (err) => {
+        this._flushPending = false;
+        cb(err);
+        this.off('drain', onDrain);
+      };
+      this.once('drain', onDrain);
+      this.once('error', onError);
+    }
+    function flush(cb) {
+      if (cb != null && typeof cb !== 'function') {
+        throw new Error('flush cb must be a function');
+      }
+      if (this.destroyed) {
+        const error = new Error('SonicBoom destroyed');
+        if (cb) {
+          cb(error);
+          return;
+        }
+        throw error;
+      }
+      if (this.minLength <= 0) {
+        cb?.();
         return;
       }
-      if (
-        (this.emit('write', b),
-        (this._len -= b),
-        this._len < 0 && (this._len = 0),
-        (this._writingBuf = this._writingBuf.slice(b)),
-        this._writingBuf.length)
-      ) {
-        if (!this.sync) {
-          u();
+      if (cb) {
+        callFlushCallbackOnDrain.call(this, cb);
+      }
+      if (this._writing) {
+        return;
+      }
+      if (this._bufs.length === 0) {
+        this._bufs.push('');
+      }
+      this._actualWrite();
+    }
+    function flushBuffer(cb) {
+      if (cb != null && typeof cb !== 'function') {
+        throw new Error('flush cb must be a function');
+      }
+      if (this.destroyed) {
+        const error = new Error('SonicBoom destroyed');
+        if (cb) {
+          cb(error);
           return;
+        }
+        throw error;
+      }
+      if (this.minLength <= 0) {
+        cb?.();
+        return;
+      }
+      if (cb) {
+        callFlushCallbackOnDrain.call(this, cb);
+      }
+      if (this._writing) {
+        return;
+      }
+      if (this._bufs.length === 0) {
+        this._bufs.push([]);
+        this._lens.push(0);
+      }
+      this._actualWrite();
+    }
+    SonicBoom.prototype.reopen = function (file) {
+      if (this.destroyed) {
+        throw new Error('SonicBoom destroyed');
+      }
+      if (this._opening) {
+        this.once('ready', () => {
+          this.reopen(file);
+        });
+        return;
+      }
+      if (this._ending) {
+        return;
+      }
+      if (!this.file) {
+        throw new Error('Unable to reopen a file descriptor, you must pass a file to SonicBoom');
+      }
+      this._reopening = true;
+      if (this._writing) {
+        return;
+      }
+      const fd = this.fd;
+      this.once('ready', () => {
+        if (fd !== this.fd) {
+          fs.close(fd, (err) => {
+            if (err) {
+              return this.emit('error', err);
+            }
+          });
+        }
+      });
+      openFile(file || this.file, this);
+    };
+    SonicBoom.prototype.end = function () {
+      if (this.destroyed) {
+        throw new Error('SonicBoom destroyed');
+      }
+      if (this._opening) {
+        this.once('ready', () => {
+          this.end();
+        });
+        return;
+      }
+      if (this._ending) {
+        return;
+      }
+      this._ending = true;
+      if (this._writing) {
+        return;
+      }
+      if (this._len > 0 && this.fd >= 0) {
+        this._actualWrite();
+      } else {
+        actualClose(this);
+      }
+    };
+    function flushSync() {
+      if (this.destroyed) {
+        throw new Error('SonicBoom destroyed');
+      }
+      if (this.fd < 0) {
+        throw new Error('sonic boom is not ready yet');
+      }
+      if (!this._writing && this._writingBuf.length > 0) {
+        this._bufs.unshift(this._writingBuf);
+        this._writingBuf = '';
+      }
+      let buf = '';
+      while (this._bufs.length || buf) {
+        if (buf.length <= 0) {
+          buf = this._bufs[0];
         }
         try {
-          do {
-            let m = s();
-            (this._len -= m), (this._writingBuf = this._writingBuf.slice(m));
-          } while (this._writingBuf.length);
-        } catch (m) {
-          this.release(m);
-          return;
+          const n = fs.writeSync(this.fd, buf, 'utf8');
+          buf = buf.slice(n);
+          this._len = Math.max(this._len - n, 0);
+          if (buf.length <= 0) {
+            this._bufs.shift();
+          }
+        } catch (err) {
+          const shouldRetry = err.code === 'EAGAIN' || err.code === 'EBUSY';
+          if (shouldRetry && !this.retryEAGAIN(err, buf.length, this._len - buf.length)) {
+            throw err;
+          }
+          sleep(BUSY_WRITE_TIMEOUT);
         }
       }
-      this._fsync && A.fsyncSync(this.fd);
-      let w = this._len;
-      this._reopening
-        ? ((this._writing = !1), (this._reopening = !1), this.reopen())
-        : w > this.minLength
-        ? this._actualWrite()
-        : this._ending
-        ? w > 0
-          ? this._actualWrite()
-          : ((this._writing = !1), oe(this))
-        : ((this._writing = !1),
-          this.sync
-            ? this._asyncDrainScheduled || ((this._asyncDrainScheduled = !0), process.nextTick(ts, this))
-            : this.emit('drain'));
-    }),
-      this.on('newListener', function (p) {
-        p === 'drain' && (this._asyncDrainScheduled = !1);
-      });
-  }
-  function ts(e) {
-    e.listenerCount('drain') > 0 && ((e._asyncDrainScheduled = !1), e.emit('drain'));
-  }
-  Zi(I, Qi);
-  function or(e, t) {
-    return e.length === 0 ? se : e.length === 1 ? e[0] : Buffer.concat(e, t);
-  }
-  function rs(e) {
-    if (this.destroyed) throw new Error('SonicBoom destroyed');
-    let t = this._len + e.length,
-      r = this._bufs;
-    return this.maxLength && t > this.maxLength
-      ? (this.emit('drop', e), this._len < this._hwm)
-      : (r.length === 0 || r[r.length - 1].length + e.length > this.maxWrite ? r.push('' + e) : (r[r.length - 1] += e),
-        (this._len = t),
-        !this._writing && this._len >= this.minLength && this._actualWrite(),
-        this._len < this._hwm);
-  }
-  function ns(e) {
-    if (this.destroyed) throw new Error('SonicBoom destroyed');
-    let t = this._len + e.length,
-      r = this._bufs,
-      n = this._lens;
-    return this.maxLength && t > this.maxLength
-      ? (this.emit('drop', e), this._len < this._hwm)
-      : (r.length === 0 || n[n.length - 1] + e.length > this.maxWrite
-          ? (r.push([e]), n.push(e.length))
-          : (r[r.length - 1].push(e), (n[n.length - 1] += e.length)),
-        (this._len = t),
-        !this._writing && this._len >= this.minLength && this._actualWrite(),
-        this._len < this._hwm);
-  }
-  function lr(e) {
-    this._flushPending = !0;
-    let t = () => {
-        this._fsync
-          ? ((this._flushPending = !1), e())
-          : A.fsync(this.fd, (n) => {
-              (this._flushPending = !1), e(n);
-            }),
-          this.off('error', r);
-      },
-      r = (n) => {
-        (this._flushPending = !1), e(n), this.off('drain', t);
-      };
-    this.once('drain', t), this.once('error', r);
-  }
-  function is(e) {
-    if (e != null && typeof e != 'function') throw new Error('flush cb must be a function');
-    if (this.destroyed) {
-      let t = new Error('SonicBoom destroyed');
-      if (e) {
-        e(t);
+      try {
+        fs.fsyncSync(this.fd);
+      } catch {}
+    }
+    function flushBufferSync() {
+      if (this.destroyed) {
+        throw new Error('SonicBoom destroyed');
+      }
+      if (this.fd < 0) {
+        throw new Error('sonic boom is not ready yet');
+      }
+      if (!this._writing && this._writingBuf.length > 0) {
+        this._bufs.unshift([this._writingBuf]);
+        this._writingBuf = kEmptyBuffer;
+      }
+      let buf = kEmptyBuffer;
+      while (this._bufs.length || buf.length) {
+        if (buf.length <= 0) {
+          buf = mergeBuf(this._bufs[0], this._lens[0]);
+        }
+        try {
+          const n = fs.writeSync(this.fd, buf);
+          buf = buf.subarray(n);
+          this._len = Math.max(this._len - n, 0);
+          if (buf.length <= 0) {
+            this._bufs.shift();
+            this._lens.shift();
+          }
+        } catch (err) {
+          const shouldRetry = err.code === 'EAGAIN' || err.code === 'EBUSY';
+          if (shouldRetry && !this.retryEAGAIN(err, buf.length, this._len - buf.length)) {
+            throw err;
+          }
+          sleep(BUSY_WRITE_TIMEOUT);
+        }
+      }
+    }
+    SonicBoom.prototype.destroy = function () {
+      if (this.destroyed) {
         return;
       }
-      throw t;
-    }
-    if (this.minLength <= 0) {
-      e?.();
-      return;
-    }
-    e && lr.call(this, e), !this._writing && (this._bufs.length === 0 && this._bufs.push(''), this._actualWrite());
-  }
-  function ss(e) {
-    if (e != null && typeof e != 'function') throw new Error('flush cb must be a function');
-    if (this.destroyed) {
-      let t = new Error('SonicBoom destroyed');
-      if (e) {
-        e(t);
-        return;
-      }
-      throw t;
-    }
-    if (this.minLength <= 0) {
-      e?.();
-      return;
-    }
-    e && lr.call(this, e),
-      !this._writing && (this._bufs.length === 0 && (this._bufs.push([]), this._lens.push(0)), this._actualWrite());
-  }
-  I.prototype.reopen = function (e) {
-    if (this.destroyed) throw new Error('SonicBoom destroyed');
-    if (this._opening) {
-      this.once('ready', () => {
-        this.reopen(e);
-      });
-      return;
-    }
-    if (this._ending) return;
-    if (!this.file) throw new Error('Unable to reopen a file descriptor, you must pass a file to SonicBoom');
-    if (((this._reopening = !0), this._writing)) return;
-    let t = this.fd;
-    this.once('ready', () => {
-      t !== this.fd &&
-        A.close(t, (r) => {
-          if (r) return this.emit('error', r);
-        });
-    }),
-      sr(e || this.file, this);
-  };
-  I.prototype.end = function () {
-    if (this.destroyed) throw new Error('SonicBoom destroyed');
-    if (this._opening) {
-      this.once('ready', () => {
-        this.end();
-      });
-      return;
-    }
-    this._ending ||
-      ((this._ending = !0), !this._writing && (this._len > 0 && this.fd >= 0 ? this._actualWrite() : oe(this)));
-  };
-  function os() {
-    if (this.destroyed) throw new Error('SonicBoom destroyed');
-    if (this.fd < 0) throw new Error('sonic boom is not ready yet');
-    !this._writing && this._writingBuf.length > 0 && (this._bufs.unshift(this._writingBuf), (this._writingBuf = ''));
-    let e = '';
-    for (; this._bufs.length || e; ) {
-      e.length <= 0 && (e = this._bufs[0]);
-      try {
-        let t = A.writeSync(this.fd, e, 'utf8');
-        (e = e.slice(t)), (this._len = Math.max(this._len - t, 0)), e.length <= 0 && this._bufs.shift();
-      } catch (t) {
-        if ((t.code === 'EAGAIN' || t.code === 'EBUSY') && !this.retryEAGAIN(t, e.length, this._len - e.length))
-          throw t;
-        Ie(ie);
-      }
-    }
-    try {
-      A.fsyncSync(this.fd);
-    } catch {}
-  }
-  function ls() {
-    if (this.destroyed) throw new Error('SonicBoom destroyed');
-    if (this.fd < 0) throw new Error('sonic boom is not ready yet');
-    !this._writing && this._writingBuf.length > 0 && (this._bufs.unshift([this._writingBuf]), (this._writingBuf = se));
-    let e = se;
-    for (; this._bufs.length || e.length; ) {
-      e.length <= 0 && (e = or(this._bufs[0], this._lens[0]));
-      try {
-        let t = A.writeSync(this.fd, e);
-        (e = e.subarray(t)),
-          (this._len = Math.max(this._len - t, 0)),
-          e.length <= 0 && (this._bufs.shift(), this._lens.shift());
-      } catch (t) {
-        if ((t.code === 'EAGAIN' || t.code === 'EBUSY') && !this.retryEAGAIN(t, e.length, this._len - e.length))
-          throw t;
-        Ie(ie);
-      }
-    }
-  }
-  I.prototype.destroy = function () {
-    this.destroyed || oe(this);
-  };
-  function fs() {
-    let e = this.release;
-    if (((this._writing = !0), (this._writingBuf = this._writingBuf || this._bufs.shift() || ''), this.sync))
-      try {
-        let t = A.writeSync(this.fd, this._writingBuf, 'utf8');
-        e(null, t);
-      } catch (t) {
-        e(t);
-      }
-    else A.write(this.fd, this._writingBuf, 'utf8', e);
-  }
-  function us() {
-    let e = this.release;
-    if (
-      ((this._writing = !0),
-      (this._writingBuf = this._writingBuf.length ? this._writingBuf : or(this._bufs.shift(), this._lens.shift())),
-      this.sync)
-    )
-      try {
-        let t = A.writeSync(this.fd, this._writingBuf);
-        e(null, t);
-      } catch (t) {
-        e(t);
-      }
-    else A.write(this.fd, this._writingBuf, e);
-  }
-  function oe(e) {
-    if (e.fd === -1) {
-      e.once('ready', oe.bind(null, e));
-      return;
-    }
-    (e.destroyed = !0), (e._bufs = []), (e._lens = []), A.fsync(e.fd, t);
-    function t() {
-      e.fd !== 1 && e.fd !== 2 ? A.close(e.fd, r) : r();
-    }
-    function r(n) {
-      if (n) {
-        e.emit('error', n);
-        return;
-      }
-      e._ending && !e._writing && e.emit('finish'), e.emit('close');
-    }
-  }
-  I.SonicBoom = I;
-  I.default = I;
-  fr.exports = I;
-});
-var Ne = E(($f, gr) => {
-  'use strict';
-  var D = { exit: [], beforeExit: [] },
-    cr = { exit: as, beforeExit: hs },
-    ar = new FinalizationRegistry(ds);
-  function cs(e) {
-    D[e].length > 0 || process.on(e, cr[e]);
-  }
-  function hr(e) {
-    D[e].length > 0 || process.removeListener(e, cr[e]);
-  }
-  function as() {
-    dr('exit');
-  }
-  function hs() {
-    dr('beforeExit');
-  }
-  function dr(e) {
-    for (let t of D[e]) {
-      let r = t.deref(),
-        n = t.fn;
-      r !== void 0 && n(r, e);
-    }
-  }
-  function ds(e) {
-    for (let t of ['exit', 'beforeExit']) {
-      let r = D[t].indexOf(e);
-      D[t].splice(r, r + 1), hr(t);
-    }
-  }
-  function yr(e, t, r) {
-    if (t === void 0) throw new Error("the object can't be undefined");
-    cs(e);
-    let n = new WeakRef(t);
-    (n.fn = r), ar.register(t, n), D[e].push(n);
-  }
-  function ys(e, t) {
-    yr('exit', e, t);
-  }
-  function gs(e, t) {
-    yr('beforeExit', e, t);
-  }
-  function ms(e) {
-    ar.unregister(e);
-    for (let t of ['exit', 'beforeExit'])
-      (D[t] = D[t].filter((r) => {
-        let n = r.deref();
-        return n && n !== e;
-      })),
-        hr(t);
-  }
-  gr.exports = { register: ys, registerBeforeExit: gs, unregister: ms };
-});
-var mr = E((Af, ps) => {
-  ps.exports = {
-    name: 'thread-stream',
-    version: '2.3.0',
-    description: 'A streaming way to send data to a Node.js Worker Thread',
-    main: 'index.js',
-    types: 'index.d.ts',
-    dependencies: { 'real-require': '^0.2.0' },
-    devDependencies: {
-      '@types/node': '^18.0.0',
-      '@types/tap': '^15.0.0',
-      desm: '^1.3.0',
-      fastbench: '^1.0.1',
-      husky: '^8.0.1',
-      'sonic-boom': '^3.0.0',
-      standard: '^17.0.0',
-      tap: '^16.2.0',
-      'ts-node': '^10.8.0',
-      typescript: '^4.7.2',
-      'why-is-node-running': '^2.2.2',
-    },
-    scripts: {
-      test: 'standard && npm run transpile && tap test/*.test.*js && tap --ts test/*.test.*ts',
-      'test:ci': 'standard && npm run transpile && npm run test:ci:js && npm run test:ci:ts',
-      'test:ci:js': 'tap --no-check-coverage --coverage-report=lcovonly "test/**/*.test.*js"',
-      'test:ci:ts': 'tap --ts --no-check-coverage --coverage-report=lcovonly "test/**/*.test.*ts"',
-      'test:yarn': 'npm run transpile && tap "test/**/*.test.js" --no-check-coverage',
-      transpile: 'sh ./test/ts/transpile.sh',
-      prepare: 'husky install',
-    },
-    standard: { ignore: ['test/ts/**/*'] },
-    repository: { type: 'git', url: 'git+https://github.com/mcollina/thread-stream.git' },
-    keywords: ['worker', 'thread', 'threads', 'stream'],
-    author: 'Matteo Collina <hello@matteocollina.com>',
-    license: 'MIT',
-    bugs: { url: 'https://github.com/mcollina/thread-stream/issues' },
-    homepage: 'https://github.com/mcollina/thread-stream#readme',
-  };
-});
-var br = E((jf, pr) => {
-  'use strict';
-  function bs(e, t, r, n, i) {
-    let o = Date.now() + n,
-      f = Atomics.load(e, t);
-    if (f === r) {
-      i(null, 'ok');
-      return;
-    }
-    let h = f,
-      d = (y) => {
-        Date.now() > o
-          ? i(null, 'timed-out')
-          : setTimeout(() => {
-              (h = f),
-                (f = Atomics.load(e, t)),
-                f === h ? d(y >= 1e3 ? 1e3 : y * 2) : f === r ? i(null, 'ok') : i(null, 'not-equal');
-            }, y);
-      };
-    d(1);
-  }
-  function ws(e, t, r, n, i) {
-    let o = Date.now() + n,
-      f = Atomics.load(e, t);
-    if (f !== r) {
-      i(null, 'ok');
-      return;
-    }
-    let h = (d) => {
-      Date.now() > o
-        ? i(null, 'timed-out')
-        : setTimeout(() => {
-            (f = Atomics.load(e, t)), f !== r ? i(null, 'ok') : h(d >= 1e3 ? 1e3 : d * 2);
-          }, d);
+      actualClose(this);
     };
-    h(1);
-  }
-  pr.exports = { wait: bs, waitDiff: ws };
+    function actualWrite() {
+      const release = this.release;
+      this._writing = true;
+      this._writingBuf = this._writingBuf || this._bufs.shift() || '';
+      if (this.sync) {
+        try {
+          const written = fs.writeSync(this.fd, this._writingBuf, 'utf8');
+          release(null, written);
+        } catch (err) {
+          release(err);
+        }
+      } else {
+        fs.write(this.fd, this._writingBuf, 'utf8', release);
+      }
+    }
+    function actualWriteBuffer() {
+      const release = this.release;
+      this._writing = true;
+      this._writingBuf = this._writingBuf.length ? this._writingBuf : mergeBuf(this._bufs.shift(), this._lens.shift());
+      if (this.sync) {
+        try {
+          const written = fs.writeSync(this.fd, this._writingBuf);
+          release(null, written);
+        } catch (err) {
+          release(err);
+        }
+      } else {
+        fs.write(this.fd, this._writingBuf, release);
+      }
+    }
+    function actualClose(sonic) {
+      if (sonic.fd === -1) {
+        sonic.once('ready', actualClose.bind(null, sonic));
+        return;
+      }
+      sonic.destroyed = true;
+      sonic._bufs = [];
+      sonic._lens = [];
+      fs.fsync(sonic.fd, closeWrapped);
+      function closeWrapped() {
+        if (sonic.fd !== 1 && sonic.fd !== 2) {
+          fs.close(sonic.fd, done);
+        } else {
+          done();
+        }
+      }
+      function done(err) {
+        if (err) {
+          sonic.emit('error', err);
+          return;
+        }
+        if (sonic._ending && !sonic._writing) {
+          sonic.emit('finish');
+        }
+        sonic.emit('close');
+      }
+    }
+    SonicBoom.SonicBoom = SonicBoom;
+    SonicBoom.default = SonicBoom;
+    module2.exports = SonicBoom;
+  },
 });
-var Sr = E((Lf, wr) => {
-  'use strict';
-  wr.exports = { WRITE_INDEX: 4, READ_INDEX: 8 };
+
+// node_modules/on-exit-leak-free/index.js
+var require_on_exit_leak_free = __commonJS({
+  'node_modules/on-exit-leak-free/index.js'(exports2, module2) {
+    'use strict';
+    var refs = {
+      exit: [],
+      beforeExit: [],
+    };
+    var functions = {
+      exit: onExit,
+      beforeExit: onBeforeExit,
+    };
+    var registry = new FinalizationRegistry(clear);
+    function install(event) {
+      if (refs[event].length > 0) {
+        return;
+      }
+      process.on(event, functions[event]);
+    }
+    function uninstall(event) {
+      if (refs[event].length > 0) {
+        return;
+      }
+      process.removeListener(event, functions[event]);
+    }
+    function onExit() {
+      callRefs('exit');
+    }
+    function onBeforeExit() {
+      callRefs('beforeExit');
+    }
+    function callRefs(event) {
+      for (const ref of refs[event]) {
+        const obj = ref.deref();
+        const fn = ref.fn;
+        if (obj !== void 0) {
+          fn(obj, event);
+        }
+      }
+    }
+    function clear(ref) {
+      for (const event of ['exit', 'beforeExit']) {
+        const index = refs[event].indexOf(ref);
+        refs[event].splice(index, index + 1);
+        uninstall(event);
+      }
+    }
+    function _register(event, obj, fn) {
+      if (obj === void 0) {
+        throw new Error("the object can't be undefined");
+      }
+      install(event);
+      const ref = new WeakRef(obj);
+      ref.fn = fn;
+      registry.register(obj, ref);
+      refs[event].push(ref);
+    }
+    function register(obj, fn) {
+      _register('exit', obj, fn);
+    }
+    function registerBeforeExit(obj, fn) {
+      _register('beforeExit', obj, fn);
+    }
+    function unregister(obj) {
+      registry.unregister(obj);
+      for (const event of ['exit', 'beforeExit']) {
+        refs[event] = refs[event].filter((ref) => {
+          const _obj = ref.deref();
+          return _obj && _obj !== obj;
+        });
+        uninstall(event);
+      }
+    }
+    module2.exports = {
+      register,
+      registerBeforeExit,
+      unregister,
+    };
+  },
 });
-var vr = E((Tf, Or) => {
-  'use strict';
-  var { version: Ss } = mr(),
-    { EventEmitter: _s } = require('events'),
-    { Worker: Es } = require('worker_threads'),
-    { join: xs } = require('path'),
-    { pathToFileURL: Os } = require('url'),
-    { wait: vs } = br(),
-    { WRITE_INDEX: T, READ_INDEX: P } = Sr(),
-    $s = require('buffer'),
-    As = require('assert'),
-    a = Symbol('kImpl'),
-    js = $s.constants.MAX_STRING_LENGTH,
-    fe = class {
-      constructor(t) {
-        this._value = t;
+
+// node_modules/thread-stream/package.json
+var require_package = __commonJS({
+  'node_modules/thread-stream/package.json'(exports2, module2) {
+    module2.exports = {
+      name: 'thread-stream',
+      version: '2.3.0',
+      description: 'A streaming way to send data to a Node.js Worker Thread',
+      main: 'index.js',
+      types: 'index.d.ts',
+      dependencies: {
+        'real-require': '^0.2.0',
+      },
+      devDependencies: {
+        '@types/node': '^18.0.0',
+        '@types/tap': '^15.0.0',
+        desm: '^1.3.0',
+        fastbench: '^1.0.1',
+        husky: '^8.0.1',
+        'sonic-boom': '^3.0.0',
+        standard: '^17.0.0',
+        tap: '^16.2.0',
+        'ts-node': '^10.8.0',
+        typescript: '^4.7.2',
+        'why-is-node-running': '^2.2.2',
+      },
+      scripts: {
+        test: 'standard && npm run transpile && tap test/*.test.*js && tap --ts test/*.test.*ts',
+        'test:ci': 'standard && npm run transpile && npm run test:ci:js && npm run test:ci:ts',
+        'test:ci:js': 'tap --no-check-coverage --coverage-report=lcovonly "test/**/*.test.*js"',
+        'test:ci:ts': 'tap --ts --no-check-coverage --coverage-report=lcovonly "test/**/*.test.*ts"',
+        'test:yarn': 'npm run transpile && tap "test/**/*.test.js" --no-check-coverage',
+        transpile: 'sh ./test/ts/transpile.sh',
+        prepare: 'husky install',
+      },
+      standard: { ignore: ['test/ts/**/*'] },
+      repository: {
+        type: 'git',
+        url: 'git+https://github.com/mcollina/thread-stream.git',
+      },
+      keywords: ['worker', 'thread', 'threads', 'stream'],
+      author: 'Matteo Collina <hello@matteocollina.com>',
+      license: 'MIT',
+      bugs: {
+        url: 'https://github.com/mcollina/thread-stream/issues',
+      },
+      homepage: 'https://github.com/mcollina/thread-stream#readme',
+    };
+  },
+});
+
+// node_modules/thread-stream/lib/wait.js
+var require_wait = __commonJS({
+  'node_modules/thread-stream/lib/wait.js'(exports2, module2) {
+    'use strict';
+    var MAX_TIMEOUT = 1e3;
+    function wait(state, index, expected, timeout, done) {
+      const max = Date.now() + timeout;
+      let current = Atomics.load(state, index);
+      if (current === expected) {
+        done(null, 'ok');
+        return;
+      }
+      let prior = current;
+      const check = (backoff) => {
+        if (Date.now() > max) {
+          done(null, 'timed-out');
+        } else {
+          setTimeout(() => {
+            prior = current;
+            current = Atomics.load(state, index);
+            if (current === prior) {
+              check(backoff >= MAX_TIMEOUT ? MAX_TIMEOUT : backoff * 2);
+            } else {
+              if (current === expected) done(null, 'ok');
+              else done(null, 'not-equal');
+            }
+          }, backoff);
+        }
+      };
+      check(1);
+    }
+    function waitDiff(state, index, expected, timeout, done) {
+      const max = Date.now() + timeout;
+      let current = Atomics.load(state, index);
+      if (current !== expected) {
+        done(null, 'ok');
+        return;
+      }
+      const check = (backoff) => {
+        if (Date.now() > max) {
+          done(null, 'timed-out');
+        } else {
+          setTimeout(() => {
+            current = Atomics.load(state, index);
+            if (current !== expected) {
+              done(null, 'ok');
+            } else {
+              check(backoff >= MAX_TIMEOUT ? MAX_TIMEOUT : backoff * 2);
+            }
+          }, backoff);
+        }
+      };
+      check(1);
+    }
+    module2.exports = { wait, waitDiff };
+  },
+});
+
+// node_modules/thread-stream/lib/indexes.js
+var require_indexes = __commonJS({
+  'node_modules/thread-stream/lib/indexes.js'(exports2, module2) {
+    'use strict';
+    var WRITE_INDEX = 4;
+    var READ_INDEX = 8;
+    module2.exports = {
+      WRITE_INDEX,
+      READ_INDEX,
+    };
+  },
+});
+
+// node_modules/thread-stream/index.js
+var require_thread_stream = __commonJS({
+  'node_modules/thread-stream/index.js'(exports2, module2) {
+    'use strict';
+    var { version } = require_package();
+    var { EventEmitter } = require('events');
+    var { Worker } = require('worker_threads');
+    var { join } = require('path');
+    var { pathToFileURL } = require('url');
+    var { wait } = require_wait();
+    var { WRITE_INDEX, READ_INDEX } = require_indexes();
+    var buffer = require('buffer');
+    var assert = require('assert');
+    var kImpl = Symbol('kImpl');
+    var MAX_STRING = buffer.constants.MAX_STRING_LENGTH;
+    var FakeWeakRef = class {
+      constructor(value) {
+        this._value = value;
       }
       deref() {
         return this._value;
       }
-    },
-    Ls =
+    };
+    var FinalizationRegistry2 =
       global.FinalizationRegistry ||
-      class {
+      class FakeFinalizationRegistry {
         register() {}
         unregister() {}
-      },
-    ks = global.WeakRef || fe,
-    _r = new Ls((e) => {
-      e.exited || e.terminate();
+      };
+    var WeakRef2 = global.WeakRef || FakeWeakRef;
+    var registry = new FinalizationRegistry2((worker) => {
+      if (worker.exited) {
+        return;
+      }
+      worker.terminate();
     });
-  function Ts(e, t) {
-    let { filename: r, workerData: n } = t,
-      o =
-        ('__bundlerPathsOverrides' in globalThis ? globalThis.__bundlerPathsOverrides : {})['thread-stream-worker'] ||
-        xs(__dirname, 'lib', 'worker.js'),
-      f = new Es(o, {
-        ...t.workerOpts,
-        trackUnmanagedFds: !1,
+    function createWorker(stream, opts) {
+      const { filename, workerData } = opts;
+      const bundlerOverrides = '__bundlerPathsOverrides' in globalThis ? globalThis.__bundlerPathsOverrides : {};
+      const toExecute = bundlerOverrides['thread-stream-worker'] || join(__dirname, 'lib', 'worker.js');
+      const worker = new Worker(toExecute, {
+        ...opts.workerOpts,
+        trackUnmanagedFds: false,
         workerData: {
-          filename: r.indexOf('file://') === 0 ? r : Os(r).href,
-          dataBuf: e[a].dataBuf,
-          stateBuf: e[a].stateBuf,
-          workerData: { $context: { threadStreamVersion: Ss }, ...n },
+          filename: filename.indexOf('file://') === 0 ? filename : pathToFileURL(filename).href,
+          dataBuf: stream[kImpl].dataBuf,
+          stateBuf: stream[kImpl].stateBuf,
+          workerData: {
+            $context: {
+              threadStreamVersion: version,
+            },
+            ...workerData,
+          },
         },
       });
-    return (f.stream = new fe(e)), f.on('message', Rs), f.on('exit', xr), _r.register(e, f), f;
-  }
-  function Er(e) {
-    As(!e[a].sync), e[a].needDrain && ((e[a].needDrain = !1), e.emit('drain'));
-  }
-  function le(e) {
-    let t = Atomics.load(e[a].state, T),
-      r = e[a].data.length - t;
-    if (r > 0) {
-      if (e[a].buf.length === 0) {
-        (e[a].flushing = !1), e[a].ending ? Me(e) : e[a].needDrain && process.nextTick(Er, e);
-        return;
+      worker.stream = new FakeWeakRef(stream);
+      worker.on('message', onWorkerMessage);
+      worker.on('exit', onWorkerExit);
+      registry.register(stream, worker);
+      return worker;
+    }
+    function drain(stream) {
+      assert(!stream[kImpl].sync);
+      if (stream[kImpl].needDrain) {
+        stream[kImpl].needDrain = false;
+        stream.emit('drain');
       }
-      let n = e[a].buf.slice(0, r),
-        i = Buffer.byteLength(n);
-      i <= r
-        ? ((e[a].buf = e[a].buf.slice(r)), ue(e, n, le.bind(null, e)))
-        : e.flush(() => {
-            if (!e.destroyed) {
-              for (Atomics.store(e[a].state, P, 0), Atomics.store(e[a].state, T, 0); i > e[a].data.length; )
-                (r = r / 2), (n = e[a].buf.slice(0, r)), (i = Buffer.byteLength(n));
-              (e[a].buf = e[a].buf.slice(r)), ue(e, n, le.bind(null, e));
+    }
+    function nextFlush(stream) {
+      const writeIndex = Atomics.load(stream[kImpl].state, WRITE_INDEX);
+      let leftover = stream[kImpl].data.length - writeIndex;
+      if (leftover > 0) {
+        if (stream[kImpl].buf.length === 0) {
+          stream[kImpl].flushing = false;
+          if (stream[kImpl].ending) {
+            end(stream);
+          } else if (stream[kImpl].needDrain) {
+            process.nextTick(drain, stream);
+          }
+          return;
+        }
+        let toWrite = stream[kImpl].buf.slice(0, leftover);
+        let toWriteBytes = Buffer.byteLength(toWrite);
+        if (toWriteBytes <= leftover) {
+          stream[kImpl].buf = stream[kImpl].buf.slice(leftover);
+          write(stream, toWrite, nextFlush.bind(null, stream));
+        } else {
+          stream.flush(() => {
+            if (stream.destroyed) {
+              return;
             }
+            Atomics.store(stream[kImpl].state, READ_INDEX, 0);
+            Atomics.store(stream[kImpl].state, WRITE_INDEX, 0);
+            while (toWriteBytes > stream[kImpl].data.length) {
+              leftover = leftover / 2;
+              toWrite = stream[kImpl].buf.slice(0, leftover);
+              toWriteBytes = Buffer.byteLength(toWrite);
+            }
+            stream[kImpl].buf = stream[kImpl].buf.slice(leftover);
+            write(stream, toWrite, nextFlush.bind(null, stream));
           });
-    } else if (r === 0) {
-      if (t === 0 && e[a].buf.length === 0) return;
-      e.flush(() => {
-        Atomics.store(e[a].state, P, 0), Atomics.store(e[a].state, T, 0), le(e);
-      });
-    } else C(e, new Error('overwritten'));
-  }
-  function Rs(e) {
-    let t = this.stream.deref();
-    if (t === void 0) {
-      (this.exited = !0), this.terminate();
-      return;
-    }
-    switch (e.code) {
-      case 'READY':
-        (this.stream = new ks(t)),
-          t.flush(() => {
-            (t[a].ready = !0), t.emit('ready');
-          });
-        break;
-      case 'ERROR':
-        C(t, e.err);
-        break;
-      case 'EVENT':
-        Array.isArray(e.args) ? t.emit(e.name, ...e.args) : t.emit(e.name, e.args);
-        break;
-      default:
-        C(t, new Error('this should not happen: ' + e.code));
-    }
-  }
-  function xr(e) {
-    let t = this.stream.deref();
-    t !== void 0 &&
-      (_r.unregister(t),
-      (t.worker.exited = !0),
-      t.worker.off('exit', xr),
-      C(t, e !== 0 ? new Error('the worker thread exited') : null));
-  }
-  var Ce = class extends _s {
-    constructor(t = {}) {
-      if ((super(), t.bufferSize < 4)) throw new Error('bufferSize must at least fit a 4-byte utf-8 char');
-      (this[a] = {}),
-        (this[a].stateBuf = new SharedArrayBuffer(128)),
-        (this[a].state = new Int32Array(this[a].stateBuf)),
-        (this[a].dataBuf = new SharedArrayBuffer(t.bufferSize || 4 * 1024 * 1024)),
-        (this[a].data = Buffer.from(this[a].dataBuf)),
-        (this[a].sync = t.sync || !1),
-        (this[a].ending = !1),
-        (this[a].ended = !1),
-        (this[a].needDrain = !1),
-        (this[a].destroyed = !1),
-        (this[a].flushing = !1),
-        (this[a].ready = !1),
-        (this[a].finished = !1),
-        (this[a].errored = null),
-        (this[a].closed = !1),
-        (this[a].buf = ''),
-        (this.worker = Ts(this, t));
-    }
-    write(t) {
-      if (this[a].destroyed) return De(this, new Error('the worker has exited')), !1;
-      if (this[a].ending) return De(this, new Error('the worker is ending')), !1;
-      if (this[a].flushing && this[a].buf.length + t.length >= js)
-        try {
-          Pe(this), (this[a].flushing = !0);
-        } catch (r) {
-          return C(this, r), !1;
         }
-      if (((this[a].buf += t), this[a].sync))
-        try {
-          return Pe(this), !0;
-        } catch (r) {
-          return C(this, r), !1;
+      } else if (leftover === 0) {
+        if (writeIndex === 0 && stream[kImpl].buf.length === 0) {
+          return;
         }
-      return (
-        this[a].flushing || ((this[a].flushing = !0), setImmediate(le, this)),
-        (this[a].needDrain = this[a].data.length - this[a].buf.length - Atomics.load(this[a].state, T) <= 0),
-        !this[a].needDrain
-      );
+        stream.flush(() => {
+          Atomics.store(stream[kImpl].state, READ_INDEX, 0);
+          Atomics.store(stream[kImpl].state, WRITE_INDEX, 0);
+          nextFlush(stream);
+        });
+      } else {
+        destroy(stream, new Error('overwritten'));
+      }
     }
-    end() {
-      this[a].destroyed || ((this[a].ending = !0), Me(this));
-    }
-    flush(t) {
-      if (this[a].destroyed) {
-        typeof t == 'function' && process.nextTick(t, new Error('the worker has exited'));
+    function onWorkerMessage(msg) {
+      const stream = this.stream.deref();
+      if (stream === void 0) {
+        this.exited = true;
+        this.terminate();
         return;
       }
-      let r = Atomics.load(this[a].state, T);
-      vs(this[a].state, P, r, 1 / 0, (n, i) => {
-        if (n) {
-          C(this, n), process.nextTick(t, n);
+      switch (msg.code) {
+        case 'READY':
+          this.stream = new WeakRef2(stream);
+          stream.flush(() => {
+            stream[kImpl].ready = true;
+            stream.emit('ready');
+          });
+          break;
+        case 'ERROR':
+          destroy(stream, msg.err);
+          break;
+        case 'EVENT':
+          if (Array.isArray(msg.args)) {
+            stream.emit(msg.name, ...msg.args);
+          } else {
+            stream.emit(msg.name, msg.args);
+          }
+          break;
+        default:
+          destroy(stream, new Error('this should not happen: ' + msg.code));
+      }
+    }
+    function onWorkerExit(code) {
+      const stream = this.stream.deref();
+      if (stream === void 0) {
+        return;
+      }
+      registry.unregister(stream);
+      stream.worker.exited = true;
+      stream.worker.off('exit', onWorkerExit);
+      destroy(stream, code !== 0 ? new Error('the worker thread exited') : null);
+    }
+    var ThreadStream = class extends EventEmitter {
+      constructor(opts = {}) {
+        super();
+        if (opts.bufferSize < 4) {
+          throw new Error('bufferSize must at least fit a 4-byte utf-8 char');
+        }
+        this[kImpl] = {};
+        this[kImpl].stateBuf = new SharedArrayBuffer(128);
+        this[kImpl].state = new Int32Array(this[kImpl].stateBuf);
+        this[kImpl].dataBuf = new SharedArrayBuffer(opts.bufferSize || 4 * 1024 * 1024);
+        this[kImpl].data = Buffer.from(this[kImpl].dataBuf);
+        this[kImpl].sync = opts.sync || false;
+        this[kImpl].ending = false;
+        this[kImpl].ended = false;
+        this[kImpl].needDrain = false;
+        this[kImpl].destroyed = false;
+        this[kImpl].flushing = false;
+        this[kImpl].ready = false;
+        this[kImpl].finished = false;
+        this[kImpl].errored = null;
+        this[kImpl].closed = false;
+        this[kImpl].buf = '';
+        this.worker = createWorker(this, opts);
+      }
+      write(data) {
+        if (this[kImpl].destroyed) {
+          error(this, new Error('the worker has exited'));
+          return false;
+        }
+        if (this[kImpl].ending) {
+          error(this, new Error('the worker is ending'));
+          return false;
+        }
+        if (this[kImpl].flushing && this[kImpl].buf.length + data.length >= MAX_STRING) {
+          try {
+            writeSync(this);
+            this[kImpl].flushing = true;
+          } catch (err) {
+            destroy(this, err);
+            return false;
+          }
+        }
+        this[kImpl].buf += data;
+        if (this[kImpl].sync) {
+          try {
+            writeSync(this);
+            return true;
+          } catch (err) {
+            destroy(this, err);
+            return false;
+          }
+        }
+        if (!this[kImpl].flushing) {
+          this[kImpl].flushing = true;
+          setImmediate(nextFlush, this);
+        }
+        this[kImpl].needDrain =
+          this[kImpl].data.length - this[kImpl].buf.length - Atomics.load(this[kImpl].state, WRITE_INDEX) <= 0;
+        return !this[kImpl].needDrain;
+      }
+      end() {
+        if (this[kImpl].destroyed) {
           return;
         }
-        if (i === 'not-equal') {
-          this.flush(t);
+        this[kImpl].ending = true;
+        end(this);
+      }
+      flush(cb) {
+        if (this[kImpl].destroyed) {
+          if (typeof cb === 'function') {
+            process.nextTick(cb, new Error('the worker has exited'));
+          }
           return;
         }
-        process.nextTick(t);
-      });
-    }
-    flushSync() {
-      this[a].destroyed || (Pe(this), ze(this));
-    }
-    unref() {
-      this.worker.unref();
-    }
-    ref() {
-      this.worker.ref();
-    }
-    get ready() {
-      return this[a].ready;
-    }
-    get destroyed() {
-      return this[a].destroyed;
-    }
-    get closed() {
-      return this[a].closed;
-    }
-    get writable() {
-      return !this[a].destroyed && !this[a].ending;
-    }
-    get writableEnded() {
-      return this[a].ending;
-    }
-    get writableFinished() {
-      return this[a].finished;
-    }
-    get writableNeedDrain() {
-      return this[a].needDrain;
-    }
-    get writableObjectMode() {
-      return !1;
-    }
-    get writableErrored() {
-      return this[a].errored;
-    }
-  };
-  function De(e, t) {
-    setImmediate(() => {
-      e.emit('error', t);
-    });
-  }
-  function C(e, t) {
-    e[a].destroyed ||
-      ((e[a].destroyed = !0),
-      t && ((e[a].errored = t), De(e, t)),
-      e.worker.exited
-        ? setImmediate(() => {
-            (e[a].closed = !0), e.emit('close');
-          })
-        : e.worker
-            .terminate()
-            .catch(() => {})
-            .then(() => {
-              (e[a].closed = !0), e.emit('close');
-            }));
-  }
-  function ue(e, t, r) {
-    let n = Atomics.load(e[a].state, T),
-      i = Buffer.byteLength(t);
-    return e[a].data.write(t, n), Atomics.store(e[a].state, T, n + i), Atomics.notify(e[a].state, T), r(), !0;
-  }
-  function Me(e) {
-    if (!(e[a].ended || !e[a].ending || e[a].flushing)) {
-      e[a].ended = !0;
-      try {
-        e.flushSync();
-        let t = Atomics.load(e[a].state, P);
-        Atomics.store(e[a].state, T, -1), Atomics.notify(e[a].state, T);
-        let r = 0;
-        for (; t !== -1; ) {
-          if ((Atomics.wait(e[a].state, P, t, 1e3), (t = Atomics.load(e[a].state, P)), t === -2)) {
-            C(e, new Error('end() failed'));
+        const writeIndex = Atomics.load(this[kImpl].state, WRITE_INDEX);
+        wait(this[kImpl].state, READ_INDEX, writeIndex, Infinity, (err, res) => {
+          if (err) {
+            destroy(this, err);
+            process.nextTick(cb, err);
             return;
           }
-          if (++r === 10) {
-            C(e, new Error('end() took too long (10s)'));
+          if (res === 'not-equal') {
+            this.flush(cb);
+            return;
+          }
+          process.nextTick(cb);
+        });
+      }
+      flushSync() {
+        if (this[kImpl].destroyed) {
+          return;
+        }
+        writeSync(this);
+        flushSync(this);
+      }
+      unref() {
+        this.worker.unref();
+      }
+      ref() {
+        this.worker.ref();
+      }
+      get ready() {
+        return this[kImpl].ready;
+      }
+      get destroyed() {
+        return this[kImpl].destroyed;
+      }
+      get closed() {
+        return this[kImpl].closed;
+      }
+      get writable() {
+        return !this[kImpl].destroyed && !this[kImpl].ending;
+      }
+      get writableEnded() {
+        return this[kImpl].ending;
+      }
+      get writableFinished() {
+        return this[kImpl].finished;
+      }
+      get writableNeedDrain() {
+        return this[kImpl].needDrain;
+      }
+      get writableObjectMode() {
+        return false;
+      }
+      get writableErrored() {
+        return this[kImpl].errored;
+      }
+    };
+    function error(stream, err) {
+      setImmediate(() => {
+        stream.emit('error', err);
+      });
+    }
+    function destroy(stream, err) {
+      if (stream[kImpl].destroyed) {
+        return;
+      }
+      stream[kImpl].destroyed = true;
+      if (err) {
+        stream[kImpl].errored = err;
+        error(stream, err);
+      }
+      if (!stream.worker.exited) {
+        stream.worker
+          .terminate()
+          .catch(() => {})
+          .then(() => {
+            stream[kImpl].closed = true;
+            stream.emit('close');
+          });
+      } else {
+        setImmediate(() => {
+          stream[kImpl].closed = true;
+          stream.emit('close');
+        });
+      }
+    }
+    function write(stream, data, cb) {
+      const current = Atomics.load(stream[kImpl].state, WRITE_INDEX);
+      const length = Buffer.byteLength(data);
+      stream[kImpl].data.write(data, current);
+      Atomics.store(stream[kImpl].state, WRITE_INDEX, current + length);
+      Atomics.notify(stream[kImpl].state, WRITE_INDEX);
+      cb();
+      return true;
+    }
+    function end(stream) {
+      if (stream[kImpl].ended || !stream[kImpl].ending || stream[kImpl].flushing) {
+        return;
+      }
+      stream[kImpl].ended = true;
+      try {
+        stream.flushSync();
+        let readIndex = Atomics.load(stream[kImpl].state, READ_INDEX);
+        Atomics.store(stream[kImpl].state, WRITE_INDEX, -1);
+        Atomics.notify(stream[kImpl].state, WRITE_INDEX);
+        let spins = 0;
+        while (readIndex !== -1) {
+          Atomics.wait(stream[kImpl].state, READ_INDEX, readIndex, 1e3);
+          readIndex = Atomics.load(stream[kImpl].state, READ_INDEX);
+          if (readIndex === -2) {
+            destroy(stream, new Error('end() failed'));
+            return;
+          }
+          if (++spins === 10) {
+            destroy(stream, new Error('end() took too long (10s)'));
             return;
           }
         }
         process.nextTick(() => {
-          (e[a].finished = !0), e.emit('finish');
+          stream[kImpl].finished = true;
+          stream.emit('finish');
         });
-      } catch (t) {
-        C(e, t);
+      } catch (err) {
+        destroy(stream, err);
       }
     }
-  }
-  function Pe(e) {
-    let t = () => {
-      e[a].ending ? Me(e) : e[a].needDrain && process.nextTick(Er, e);
-    };
-    for (e[a].flushing = !1; e[a].buf.length !== 0; ) {
-      let r = Atomics.load(e[a].state, T),
-        n = e[a].data.length - r;
-      if (n === 0) {
-        ze(e), Atomics.store(e[a].state, P, 0), Atomics.store(e[a].state, T, 0);
-        continue;
-      } else if (n < 0) throw new Error('overwritten');
-      let i = e[a].buf.slice(0, n),
-        o = Buffer.byteLength(i);
-      if (o <= n) (e[a].buf = e[a].buf.slice(n)), ue(e, i, t);
-      else {
-        for (ze(e), Atomics.store(e[a].state, P, 0), Atomics.store(e[a].state, T, 0); o > e[a].buf.length; )
-          (n = n / 2), (i = e[a].buf.slice(0, n)), (o = Buffer.byteLength(i));
-        (e[a].buf = e[a].buf.slice(n)), ue(e, i, t);
-      }
-    }
-  }
-  function ze(e) {
-    if (e[a].flushing) throw new Error('unable to flush while flushing');
-    let t = Atomics.load(e[a].state, T),
-      r = 0;
-    for (;;) {
-      let n = Atomics.load(e[a].state, P);
-      if (n === -2) throw Error('_flushSync failed');
-      if (n !== t) Atomics.wait(e[a].state, P, n, 1e3);
-      else break;
-      if (++r === 10) throw new Error('_flushSync took too long (10s)');
-    }
-  }
-  Or.exports = Ce;
-});
-var Ke = E((Rf, $r) => {
-  'use strict';
-  var { createRequire: Bs } = require('module'),
-    qs = $e(),
-    { join: We, isAbsolute: Is, sep: Ns } = require('path'),
-    Ps = qe(),
-    Fe = Ne(),
-    Cs = vr();
-  function Ds(e) {
-    Fe.register(e, Ms),
-      Fe.registerBeforeExit(e, Ws),
-      e.on('close', function () {
-        Fe.unregister(e);
-      });
-  }
-  function zs(e, t, r) {
-    let n = new Cs({ filename: e, workerData: t, workerOpts: r });
-    n.on('ready', i),
-      n.on('close', function () {
-        process.removeListener('exit', o);
-      }),
-      process.on('exit', o);
-    function i() {
-      process.removeListener('exit', o), n.unref(), r.autoEnd !== !1 && Ds(n);
-    }
-    function o() {
-      n.closed || (n.flushSync(), Ps(100), n.end());
-    }
-    return n;
-  }
-  function Ms(e) {
-    e.ref(),
-      e.flushSync(),
-      e.end(),
-      e.once('close', function () {
-        e.unref();
-      });
-  }
-  function Ws(e) {
-    e.flushSync();
-  }
-  function Fs(e) {
-    let { pipeline: t, targets: r, levels: n, dedupe: i, options: o = {}, worker: f = {}, caller: h = qs() } = e,
-      d = typeof h == 'string' ? [h] : h,
-      y = '__bundlerPathsOverrides' in globalThis ? globalThis.__bundlerPathsOverrides : {},
-      l = e.target;
-    if (l && r) throw new Error('only one of target or targets can be specified');
-    return (
-      r
-        ? ((l = y['pino-worker'] || We(__dirname, 'worker.js')),
-          (o.targets = r.map((g) => ({ ...g, target: c(g.target) }))))
-        : t &&
-          ((l = y['pino-pipeline-worker'] || We(__dirname, 'worker-pipeline.js')),
-          (o.targets = t.map((g) => ({ ...g, target: c(g.target) })))),
-      n && (o.levels = n),
-      i && (o.dedupe = i),
-      zs(c(l), o, f)
-    );
-    function c(g) {
-      if (((g = y[g] || g), Is(g) || g.indexOf('file://') === 0)) return g;
-      if (g === 'pino/file') return We(__dirname, '..', 'file.js');
-      let s;
-      for (let u of d)
-        try {
-          let p = u === 'node:repl' ? process.cwd() + Ns : u;
-          s = Bs(p).resolve(g);
-          break;
-        } catch {
-          continue;
+    function writeSync(stream) {
+      const cb = () => {
+        if (stream[kImpl].ending) {
+          end(stream);
+        } else if (stream[kImpl].needDrain) {
+          process.nextTick(drain, stream);
         }
-      if (!s) throw new Error(`unable to determine transport target for "${g}"`);
-      return s;
-    }
-  }
-  $r.exports = Fs;
-});
-var he = E((Bf, Pr) => {
-  'use strict';
-  var Ar = tr(),
-    { mapHttpRequest: Ks, mapHttpResponse: Vs } = ve(),
-    Je = ur(),
-    jr = Ne(),
-    {
-      lsCacheSym: Js,
-      chindingsSym: Tr,
-      writeSym: Lr,
-      serializersSym: Rr,
-      formatOptsSym: kr,
-      endSym: Us,
-      stringifiersSym: Br,
-      stringifySym: qr,
-      stringifySafeSym: Ue,
-      wildcardFirstSym: Ir,
-      nestedKeySym: Gs,
-      formattersSym: Nr,
-      messageKeySym: Hs,
-      errorKeySym: Xs,
-      nestedKeyStrSym: Ys,
-      msgPrefixSym: ce,
-    } = U(),
-    { isMainThread: Qs } = require('worker_threads'),
-    Zs = Ke();
-  function G() {}
-  function eo(e, t) {
-    if (!t) return r;
-    return function (...i) {
-      t.call(this, i, r, e);
-    };
-    function r(n, ...i) {
-      if (typeof n == 'object') {
-        let o = n;
-        n !== null &&
-          (n.method && n.headers && n.socket ? (n = Ks(n)) : typeof n.setHeader == 'function' && (n = Vs(n)));
-        let f;
-        o === null && i.length === 0 ? (f = [null]) : ((o = i.shift()), (f = i)),
-          typeof this[ce] == 'string' && o !== void 0 && o !== null && (o = this[ce] + o),
-          this[Lr](n, Ar(o, f, this[kr]), e);
-      } else {
-        let o = n === void 0 ? i.shift() : n;
-        typeof this[ce] == 'string' && o !== void 0 && o !== null && (o = this[ce] + o),
-          this[Lr](null, Ar(o, i, this[kr]), e);
+      };
+      stream[kImpl].flushing = false;
+      while (stream[kImpl].buf.length !== 0) {
+        const writeIndex = Atomics.load(stream[kImpl].state, WRITE_INDEX);
+        let leftover = stream[kImpl].data.length - writeIndex;
+        if (leftover === 0) {
+          flushSync(stream);
+          Atomics.store(stream[kImpl].state, READ_INDEX, 0);
+          Atomics.store(stream[kImpl].state, WRITE_INDEX, 0);
+          continue;
+        } else if (leftover < 0) {
+          throw new Error('overwritten');
+        }
+        let toWrite = stream[kImpl].buf.slice(0, leftover);
+        let toWriteBytes = Buffer.byteLength(toWrite);
+        if (toWriteBytes <= leftover) {
+          stream[kImpl].buf = stream[kImpl].buf.slice(leftover);
+          write(stream, toWrite, cb);
+        } else {
+          flushSync(stream);
+          Atomics.store(stream[kImpl].state, READ_INDEX, 0);
+          Atomics.store(stream[kImpl].state, WRITE_INDEX, 0);
+          while (toWriteBytes > stream[kImpl].buf.length) {
+            leftover = leftover / 2;
+            toWrite = stream[kImpl].buf.slice(0, leftover);
+            toWriteBytes = Buffer.byteLength(toWrite);
+          }
+          stream[kImpl].buf = stream[kImpl].buf.slice(leftover);
+          write(stream, toWrite, cb);
+        }
       }
     }
-  }
-  function Ve(e) {
-    let t = '',
-      r = 0,
-      n = !1,
-      i = 255,
-      o = e.length;
-    if (o > 100) return JSON.stringify(e);
-    for (var f = 0; f < o && i >= 32; f++)
-      (i = e.charCodeAt(f)), (i === 34 || i === 92) && ((t += e.slice(r, f) + '\\'), (r = f), (n = !0));
-    return n ? (t += e.slice(r)) : (t = e), i < 32 ? JSON.stringify(e) : '"' + t + '"';
-  }
-  function to(e, t, r, n) {
-    let i = this[qr],
-      o = this[Ue],
-      f = this[Br],
-      h = this[Us],
-      d = this[Tr],
-      y = this[Rr],
-      l = this[Nr],
-      c = this[Hs],
-      g = this[Xs],
-      s = this[Js][r] + n;
-    s = s + d;
-    let u;
-    l.log && (e = l.log(e));
-    let p = f[Ir],
-      b = '';
-    for (let m in e)
-      if (((u = e[m]), Object.prototype.hasOwnProperty.call(e, m) && u !== void 0)) {
-        y[m] ? (u = y[m](u)) : m === g && y.err && (u = y.err(u));
-        let S = f[m] || p;
-        switch (typeof u) {
-          case 'undefined':
-          case 'function':
+    function flushSync(stream) {
+      if (stream[kImpl].flushing) {
+        throw new Error('unable to flush while flushing');
+      }
+      const writeIndex = Atomics.load(stream[kImpl].state, WRITE_INDEX);
+      let spins = 0;
+      while (true) {
+        const readIndex = Atomics.load(stream[kImpl].state, READ_INDEX);
+        if (readIndex === -2) {
+          throw Error('_flushSync failed');
+        }
+        if (readIndex !== writeIndex) {
+          Atomics.wait(stream[kImpl].state, READ_INDEX, readIndex, 1e3);
+        } else {
+          break;
+        }
+        if (++spins === 10) {
+          throw new Error('_flushSync took too long (10s)');
+        }
+      }
+    }
+    module2.exports = ThreadStream;
+  },
+});
+
+// node_modules/pino/lib/transport.js
+var require_transport = __commonJS({
+  'node_modules/pino/lib/transport.js'(exports2, module2) {
+    'use strict';
+    var { createRequire } = require('module');
+    var getCallers = require_caller();
+    var { join, isAbsolute, sep } = require('path');
+    var sleep = require_atomic_sleep();
+    var onExit = require_on_exit_leak_free();
+    var ThreadStream = require_thread_stream();
+    function setupOnExit(stream) {
+      onExit.register(stream, autoEnd);
+      onExit.registerBeforeExit(stream, flush);
+      stream.on('close', function () {
+        onExit.unregister(stream);
+      });
+    }
+    function buildStream(filename, workerData, workerOpts) {
+      const stream = new ThreadStream({
+        filename,
+        workerData,
+        workerOpts,
+      });
+      stream.on('ready', onReady);
+      stream.on('close', function () {
+        process.removeListener('exit', onExit2);
+      });
+      process.on('exit', onExit2);
+      function onReady() {
+        process.removeListener('exit', onExit2);
+        stream.unref();
+        if (workerOpts.autoEnd !== false) {
+          setupOnExit(stream);
+        }
+      }
+      function onExit2() {
+        if (stream.closed) {
+          return;
+        }
+        stream.flushSync();
+        sleep(100);
+        stream.end();
+      }
+      return stream;
+    }
+    function autoEnd(stream) {
+      stream.ref();
+      stream.flushSync();
+      stream.end();
+      stream.once('close', function () {
+        stream.unref();
+      });
+    }
+    function flush(stream) {
+      stream.flushSync();
+    }
+    function transport(fullOptions) {
+      const { pipeline, targets, levels, dedupe, options = {}, worker = {}, caller = getCallers() } = fullOptions;
+      const callers = typeof caller === 'string' ? [caller] : caller;
+      const bundlerOverrides = '__bundlerPathsOverrides' in globalThis ? globalThis.__bundlerPathsOverrides : {};
+      let target = fullOptions.target;
+      if (target && targets) {
+        throw new Error('only one of target or targets can be specified');
+      }
+      if (targets) {
+        target = bundlerOverrides['pino-worker'] || join(__dirname, 'worker.js');
+        options.targets = targets.map((dest) => {
+          return {
+            ...dest,
+            target: fixTarget(dest.target),
+          };
+        });
+      } else if (pipeline) {
+        target = bundlerOverrides['pino-pipeline-worker'] || join(__dirname, 'worker-pipeline.js');
+        options.targets = pipeline.map((dest) => {
+          return {
+            ...dest,
+            target: fixTarget(dest.target),
+          };
+        });
+      }
+      if (levels) {
+        options.levels = levels;
+      }
+      if (dedupe) {
+        options.dedupe = dedupe;
+      }
+      return buildStream(fixTarget(target), options, worker);
+      function fixTarget(origin) {
+        origin = bundlerOverrides[origin] || origin;
+        if (isAbsolute(origin) || origin.indexOf('file://') === 0) {
+          return origin;
+        }
+        if (origin === 'pino/file') {
+          return join(__dirname, '..', 'file.js');
+        }
+        let fixTarget2;
+        for (const filePath of callers) {
+          try {
+            const context = filePath === 'node:repl' ? process.cwd() + sep : filePath;
+            fixTarget2 = createRequire(context).resolve(origin);
+            break;
+          } catch (err) {
             continue;
+          }
+        }
+        if (!fixTarget2) {
+          throw new Error(`unable to determine transport target for "${origin}"`);
+        }
+        return fixTarget2;
+      }
+    }
+    module2.exports = transport;
+  },
+});
+
+// node_modules/pino/lib/tools.js
+var require_tools = __commonJS({
+  'node_modules/pino/lib/tools.js'(exports2, module2) {
+    'use strict';
+    var format = require_quick_format_unescaped();
+    var { mapHttpRequest, mapHttpResponse } = require_pino_std_serializers();
+    var SonicBoom = require_sonic_boom();
+    var onExit = require_on_exit_leak_free();
+    var {
+      lsCacheSym,
+      chindingsSym,
+      writeSym,
+      serializersSym,
+      formatOptsSym,
+      endSym,
+      stringifiersSym,
+      stringifySym,
+      stringifySafeSym,
+      wildcardFirstSym,
+      nestedKeySym,
+      formattersSym,
+      messageKeySym,
+      errorKeySym,
+      nestedKeyStrSym,
+      msgPrefixSym,
+    } = require_symbols();
+    var { isMainThread } = require('worker_threads');
+    var transport = require_transport();
+    function noop() {}
+    function genLog(level, hook) {
+      if (!hook) return LOG;
+      return function hookWrappedLog(...args) {
+        hook.call(this, args, LOG, level);
+      };
+      function LOG(o, ...n) {
+        if (typeof o === 'object') {
+          let msg = o;
+          if (o !== null) {
+            if (o.method && o.headers && o.socket) {
+              o = mapHttpRequest(o);
+            } else if (typeof o.setHeader === 'function') {
+              o = mapHttpResponse(o);
+            }
+          }
+          let formatParams;
+          if (msg === null && n.length === 0) {
+            formatParams = [null];
+          } else {
+            msg = n.shift();
+            formatParams = n;
+          }
+          if (typeof this[msgPrefixSym] === 'string' && msg !== void 0 && msg !== null) {
+            msg = this[msgPrefixSym] + msg;
+          }
+          this[writeSym](o, format(msg, formatParams, this[formatOptsSym]), level);
+        } else {
+          let msg = o === void 0 ? n.shift() : o;
+          if (typeof this[msgPrefixSym] === 'string' && msg !== void 0 && msg !== null) {
+            msg = this[msgPrefixSym] + msg;
+          }
+          this[writeSym](null, format(msg, n, this[formatOptsSym]), level);
+        }
+      }
+    }
+    function asString(str) {
+      let result = '';
+      let last = 0;
+      let found = false;
+      let point = 255;
+      const l = str.length;
+      if (l > 100) {
+        return JSON.stringify(str);
+      }
+      for (var i = 0; i < l && point >= 32; i++) {
+        point = str.charCodeAt(i);
+        if (point === 34 || point === 92) {
+          result += str.slice(last, i) + '\\';
+          last = i;
+          found = true;
+        }
+      }
+      if (!found) {
+        result = str;
+      } else {
+        result += str.slice(last);
+      }
+      return point < 32 ? JSON.stringify(str) : '"' + result + '"';
+    }
+    function asJson(obj, msg, num, time) {
+      const stringify2 = this[stringifySym];
+      const stringifySafe = this[stringifySafeSym];
+      const stringifiers = this[stringifiersSym];
+      const end = this[endSym];
+      const chindings = this[chindingsSym];
+      const serializers = this[serializersSym];
+      const formatters = this[formattersSym];
+      const messageKey = this[messageKeySym];
+      const errorKey = this[errorKeySym];
+      let data = this[lsCacheSym][num] + time;
+      data = data + chindings;
+      let value;
+      if (formatters.log) {
+        obj = formatters.log(obj);
+      }
+      const wildcardStringifier = stringifiers[wildcardFirstSym];
+      let propStr = '';
+      for (const key in obj) {
+        value = obj[key];
+        if (Object.prototype.hasOwnProperty.call(obj, key) && value !== void 0) {
+          if (serializers[key]) {
+            value = serializers[key](value);
+          } else if (key === errorKey && serializers.err) {
+            value = serializers.err(value);
+          }
+          const stringifier = stringifiers[key] || wildcardStringifier;
+          switch (typeof value) {
+            case 'undefined':
+            case 'function':
+              continue;
+            case 'number':
+              if (Number.isFinite(value) === false) {
+                value = null;
+              }
+            case 'boolean':
+              if (stringifier) value = stringifier(value);
+              break;
+            case 'string':
+              value = (stringifier || asString)(value);
+              break;
+            default:
+              value = (stringifier || stringify2)(value, stringifySafe);
+          }
+          if (value === void 0) continue;
+          const strKey = asString(key);
+          propStr += ',' + strKey + ':' + value;
+        }
+      }
+      let msgStr = '';
+      if (msg !== void 0) {
+        value = serializers[messageKey] ? serializers[messageKey](msg) : msg;
+        const stringifier = stringifiers[messageKey] || wildcardStringifier;
+        switch (typeof value) {
+          case 'function':
+            break;
           case 'number':
-            Number.isFinite(u) === !1 && (u = null);
+            if (Number.isFinite(value) === false) {
+              value = null;
+            }
           case 'boolean':
-            S && (u = S(u));
+            if (stringifier) value = stringifier(value);
+            msgStr = ',"' + messageKey + '":' + value;
             break;
           case 'string':
-            u = (S || Ve)(u);
+            value = (stringifier || asString)(value);
+            msgStr = ',"' + messageKey + '":' + value;
             break;
           default:
-            u = (S || i)(u, o);
+            value = (stringifier || stringify2)(value, stringifySafe);
+            msgStr = ',"' + messageKey + '":' + value;
         }
-        if (u === void 0) continue;
-        let _ = Ve(m);
-        b += ',' + _ + ':' + u;
       }
-    let w = '';
-    if (t !== void 0) {
-      u = y[c] ? y[c](t) : t;
-      let m = f[c] || p;
-      switch (typeof u) {
-        case 'function':
-          break;
-        case 'number':
-          Number.isFinite(u) === !1 && (u = null);
-        case 'boolean':
-          m && (u = m(u)), (w = ',"' + c + '":' + u);
-          break;
-        case 'string':
-          (u = (m || Ve)(u)), (w = ',"' + c + '":' + u);
-          break;
-        default:
-          (u = (m || i)(u, o)), (w = ',"' + c + '":' + u);
+      if (this[nestedKeySym] && propStr) {
+        return data + this[nestedKeyStrSym] + propStr.slice(1) + '}' + msgStr + end;
+      } else {
+        return data + propStr + msgStr + end;
       }
     }
-    return this[Gs] && b ? s + this[Ys] + b.slice(1) + '}' + w + h : s + b + w + h;
-  }
-  function ro(e, t) {
-    let r,
-      n = e[Tr],
-      i = e[qr],
-      o = e[Ue],
-      f = e[Br],
-      h = f[Ir],
-      d = e[Rr],
-      y = e[Nr].bindings;
-    t = y(t);
-    for (let l in t)
-      if (
-        ((r = t[l]),
-        (l !== 'level' &&
-          l !== 'serializers' &&
-          l !== 'formatters' &&
-          l !== 'customLevels' &&
-          t.hasOwnProperty(l) &&
-          r !== void 0) === !0)
-      ) {
-        if (((r = d[l] ? d[l](r) : r), (r = (f[l] || h || i)(r, o)), r === void 0)) continue;
-        n += ',"' + l + '":' + r;
+    function asChindings(instance, bindings) {
+      let value;
+      let data = instance[chindingsSym];
+      const stringify2 = instance[stringifySym];
+      const stringifySafe = instance[stringifySafeSym];
+      const stringifiers = instance[stringifiersSym];
+      const wildcardStringifier = stringifiers[wildcardFirstSym];
+      const serializers = instance[serializersSym];
+      const formatter = instance[formattersSym].bindings;
+      bindings = formatter(bindings);
+      for (const key in bindings) {
+        value = bindings[key];
+        const valid =
+          key !== 'level' &&
+          key !== 'serializers' &&
+          key !== 'formatters' &&
+          key !== 'customLevels' &&
+          bindings.hasOwnProperty(key) &&
+          value !== void 0;
+        if (valid === true) {
+          value = serializers[key] ? serializers[key](value) : value;
+          value = (stringifiers[key] || wildcardStringifier || stringify2)(value, stringifySafe);
+          if (value === void 0) continue;
+          data += ',"' + key + '":' + value;
+        }
       }
-    return n;
-  }
-  function no(e) {
-    return e.write !== e.constructor.prototype.write;
-  }
-  var io = process.env.NODE_V8_COVERAGE || process.env.V8_COVERAGE;
-  function ae(e) {
-    let t = new Je(e);
-    return (
-      t.on('error', r),
-      !io &&
-        !e.sync &&
-        Qs &&
-        (jr.register(t, so),
-        t.on('close', function () {
-          jr.unregister(t);
-        })),
-      t
-    );
-    function r(n) {
-      if (n.code === 'EPIPE') {
-        (t.write = G), (t.end = G), (t.flushSync = G), (t.destroy = G);
+      return data;
+    }
+    function hasBeenTampered(stream) {
+      return stream.write !== stream.constructor.prototype.write;
+    }
+    var hasNodeCodeCoverage = process.env.NODE_V8_COVERAGE || process.env.V8_COVERAGE;
+    function buildSafeSonicBoom(opts) {
+      const stream = new SonicBoom(opts);
+      stream.on('error', filterBrokenPipe);
+      if (!hasNodeCodeCoverage && !opts.sync && isMainThread) {
+        onExit.register(stream, autoEnd);
+        stream.on('close', function () {
+          onExit.unregister(stream);
+        });
+      }
+      return stream;
+      function filterBrokenPipe(err) {
+        if (err.code === 'EPIPE') {
+          stream.write = noop;
+          stream.end = noop;
+          stream.flushSync = noop;
+          stream.destroy = noop;
+          return;
+        }
+        stream.removeListener('error', filterBrokenPipe);
+        stream.emit('error', err);
+      }
+    }
+    function autoEnd(stream, eventName) {
+      if (stream.destroyed) {
         return;
       }
-      t.removeListener('error', r), t.emit('error', n);
-    }
-  }
-  function so(e, t) {
-    e.destroyed ||
-      (t === 'beforeExit'
-        ? (e.flush(),
-          e.on('drain', function () {
-            e.end();
-          }))
-        : e.flushSync());
-  }
-  function oo(e) {
-    return function (r, n, i = {}, o) {
-      if (typeof i == 'string') (o = ae({ dest: i })), (i = {});
-      else if (typeof o == 'string') {
-        if (i && i.transport) throw Error('only one of option.transport or stream can be specified');
-        o = ae({ dest: o });
-      } else if (i instanceof Je || i.writable || i._writableState) (o = i), (i = {});
-      else if (i.transport) {
-        if (i.transport instanceof Je || i.transport.writable || i.transport._writableState)
-          throw Error('option.transport do not allow stream, please pass to option directly. e.g. pino(transport)');
-        if (
-          i.transport.targets &&
-          i.transport.targets.length &&
-          i.formatters &&
-          typeof i.formatters.level == 'function'
-        )
-          throw Error('option.transport.targets do not allow custom level formatters');
-        let d;
-        i.customLevels && (d = i.useOnlyCustomLevels ? i.customLevels : Object.assign({}, i.levels, i.customLevels)),
-          (o = Zs({ caller: n, ...i.transport, levels: d }));
+      if (eventName === 'beforeExit') {
+        stream.flush();
+        stream.on('drain', function () {
+          stream.end();
+        });
+      } else {
+        stream.flushSync();
       }
-      if (
-        ((i = Object.assign({}, e, i)),
-        (i.serializers = Object.assign({}, e.serializers, i.serializers)),
-        (i.formatters = Object.assign({}, e.formatters, i.formatters)),
-        i.prettyPrint)
-      )
-        throw new Error(
-          'prettyPrint option is no longer supported, see the pino-pretty package (https://github.com/pinojs/pino-pretty)'
-        );
-      let { enabled: f, onChild: h } = i;
-      return (
-        f === !1 && (i.level = 'silent'),
-        h || (i.onChild = G),
-        o || (no(process.stdout) ? (o = process.stdout) : (o = ae({ fd: process.stdout.fd || 1 }))),
-        { opts: i, stream: o }
-      );
-    };
-  }
-  function lo(e, t) {
-    try {
-      return JSON.stringify(e);
-    } catch {
+    }
+    function createArgsNormalizer(defaultOptions) {
+      return function normalizeArgs(instance, caller, opts = {}, stream) {
+        if (typeof opts === 'string') {
+          stream = buildSafeSonicBoom({ dest: opts });
+          opts = {};
+        } else if (typeof stream === 'string') {
+          if (opts && opts.transport) {
+            throw Error('only one of option.transport or stream can be specified');
+          }
+          stream = buildSafeSonicBoom({ dest: stream });
+        } else if (opts instanceof SonicBoom || opts.writable || opts._writableState) {
+          stream = opts;
+          opts = {};
+        } else if (opts.transport) {
+          if (opts.transport instanceof SonicBoom || opts.transport.writable || opts.transport._writableState) {
+            throw Error('option.transport do not allow stream, please pass to option directly. e.g. pino(transport)');
+          }
+          if (
+            opts.transport.targets &&
+            opts.transport.targets.length &&
+            opts.formatters &&
+            typeof opts.formatters.level === 'function'
+          ) {
+            throw Error('option.transport.targets do not allow custom level formatters');
+          }
+          let customLevels;
+          if (opts.customLevels) {
+            customLevels = opts.useOnlyCustomLevels
+              ? opts.customLevels
+              : Object.assign({}, opts.levels, opts.customLevels);
+          }
+          stream = transport({ caller, ...opts.transport, levels: customLevels });
+        }
+        opts = Object.assign({}, defaultOptions, opts);
+        opts.serializers = Object.assign({}, defaultOptions.serializers, opts.serializers);
+        opts.formatters = Object.assign({}, defaultOptions.formatters, opts.formatters);
+        if (opts.prettyPrint) {
+          throw new Error(
+            'prettyPrint option is no longer supported, see the pino-pretty package (https://github.com/pinojs/pino-pretty)'
+          );
+        }
+        const { enabled, onChild } = opts;
+        if (enabled === false) opts.level = 'silent';
+        if (!onChild) opts.onChild = noop;
+        if (!stream) {
+          if (!hasBeenTampered(process.stdout)) {
+            stream = buildSafeSonicBoom({ fd: process.stdout.fd || 1 });
+          } else {
+            stream = process.stdout;
+          }
+        }
+        return { opts, stream };
+      };
+    }
+    function stringify(obj, stringifySafeFn) {
       try {
-        return (t || this[Ue])(e);
-      } catch {
-        return '"[unable to serialize, circular reference is too complex to analyze]"';
+        return JSON.stringify(obj);
+      } catch (_) {
+        try {
+          const stringify2 = stringifySafeFn || this[stringifySafeSym];
+          return stringify2(obj);
+        } catch (_2) {
+          return '"[unable to serialize, circular reference is too complex to analyze]"';
+        }
       }
     }
-  }
-  function fo(e, t, r) {
-    return { level: e, bindings: t, log: r };
-  }
-  function uo(e) {
-    let t = Number(e);
-    return typeof e == 'string' && Number.isFinite(t) ? t : e === void 0 ? 1 : e;
-  }
-  Pr.exports = {
-    noop: G,
-    buildSafeSonicBoom: ae,
-    asChindings: ro,
-    asJson: to,
-    genLog: eo,
-    createArgsNormalizer: oo,
-    stringify: lo,
-    buildFormatters: fo,
-    normalizeDestFileDescriptor: uo,
-  };
+    function buildFormatters(level, bindings, log) {
+      return {
+        level,
+        bindings,
+        log,
+      };
+    }
+    function normalizeDestFileDescriptor(destination) {
+      const fd = Number(destination);
+      if (typeof destination === 'string' && Number.isFinite(fd)) {
+        return fd;
+      }
+      if (destination === void 0) {
+        return 1;
+      }
+      return destination;
+    }
+    module2.exports = {
+      noop,
+      buildSafeSonicBoom,
+      asChindings,
+      asJson,
+      genLog,
+      createArgsNormalizer,
+      stringify,
+      buildFormatters,
+      normalizeDestFileDescriptor,
+    };
+  },
 });
-var de = E((qf, Dr) => {
-  'use strict';
-  var {
-      lsCacheSym: co,
-      levelValSym: Ge,
-      useOnlyCustomLevelsSym: ao,
-      streamSym: ho,
-      formattersSym: yo,
-      hooksSym: go,
-    } = U(),
-    { noop: mo, genLog: W } = he(),
-    N = { trace: 10, debug: 20, info: 30, warn: 40, error: 50, fatal: 60 },
-    Cr = {
-      fatal: (e) => {
-        let t = W(N.fatal, e);
-        return function (...r) {
-          let n = this[ho];
-          if ((t.call(this, ...r), typeof n.flushSync == 'function'))
+
+// node_modules/pino/lib/levels.js
+var require_levels = __commonJS({
+  'node_modules/pino/lib/levels.js'(exports2, module2) {
+    'use strict';
+    var { lsCacheSym, levelValSym, useOnlyCustomLevelsSym, streamSym, formattersSym, hooksSym } = require_symbols();
+    var { noop, genLog } = require_tools();
+    var levels = {
+      trace: 10,
+      debug: 20,
+      info: 30,
+      warn: 40,
+      error: 50,
+      fatal: 60,
+    };
+    var levelMethods = {
+      fatal: (hook) => {
+        const logFatal = genLog(levels.fatal, hook);
+        return function (...args) {
+          const stream = this[streamSym];
+          logFatal.call(this, ...args);
+          if (typeof stream.flushSync === 'function') {
             try {
-              n.flushSync();
-            } catch {}
+              stream.flushSync();
+            } catch (e) {}
+          }
         };
       },
-      error: (e) => W(N.error, e),
-      warn: (e) => W(N.warn, e),
-      info: (e) => W(N.info, e),
-      debug: (e) => W(N.debug, e),
-      trace: (e) => W(N.trace, e),
-    },
-    He = Object.keys(N).reduce((e, t) => ((e[N[t]] = t), e), {}),
-    po = Object.keys(He).reduce((e, t) => ((e[t] = '{"level":' + Number(t)), e), {});
-  function bo(e) {
-    let t = e[yo].level,
-      { labels: r } = e.levels,
-      n = {};
-    for (let i in r) {
-      let o = t(r[i], Number(i));
-      n[i] = JSON.stringify(o).slice(0, -1);
-    }
-    return (e[co] = n), e;
-  }
-  function wo(e, t) {
-    if (t) return !1;
-    switch (e) {
-      case 'fatal':
-      case 'error':
-      case 'warn':
-      case 'info':
-      case 'debug':
-      case 'trace':
-        return !0;
-      default:
-        return !1;
-    }
-  }
-  function So(e) {
-    let { labels: t, values: r } = this.levels;
-    if (typeof e == 'number') {
-      if (t[e] === void 0) throw Error('unknown level value' + e);
-      e = t[e];
-    }
-    if (r[e] === void 0) throw Error('unknown level ' + e);
-    let n = this[Ge],
-      i = (this[Ge] = r[e]),
-      o = this[ao],
-      f = this[go].logMethod;
-    for (let h in r) {
-      if (i > r[h]) {
-        this[h] = mo;
-        continue;
+      error: (hook) => genLog(levels.error, hook),
+      warn: (hook) => genLog(levels.warn, hook),
+      info: (hook) => genLog(levels.info, hook),
+      debug: (hook) => genLog(levels.debug, hook),
+      trace: (hook) => genLog(levels.trace, hook),
+    };
+    var nums = Object.keys(levels).reduce((o, k) => {
+      o[levels[k]] = k;
+      return o;
+    }, {});
+    var initialLsCache = Object.keys(nums).reduce((o, k) => {
+      o[k] = '{"level":' + Number(k);
+      return o;
+    }, {});
+    function genLsCache(instance) {
+      const formatter = instance[formattersSym].level;
+      const { labels } = instance.levels;
+      const cache = {};
+      for (const label in labels) {
+        const level = formatter(labels[label], Number(label));
+        cache[label] = JSON.stringify(level).slice(0, -1);
       }
-      this[h] = wo(h, o) ? Cr[h](f) : W(r[h], f);
+      instance[lsCacheSym] = cache;
+      return instance;
     }
-    this.emit('level-change', e, i, t[n], n, this);
-  }
-  function _o(e) {
-    let { levels: t, levelVal: r } = this;
-    return t && t.labels ? t.labels[r] : '';
-  }
-  function Eo(e) {
-    let { values: t } = this.levels,
-      r = t[e];
-    return r !== void 0 && r >= this[Ge];
-  }
-  function xo(e = null, t = !1) {
-    let r = e ? Object.keys(e).reduce((o, f) => ((o[e[f]] = f), o), {}) : null,
-      n = Object.assign(Object.create(Object.prototype, { Infinity: { value: 'silent' } }), t ? null : He, r),
-      i = Object.assign(Object.create(Object.prototype, { silent: { value: 1 / 0 } }), t ? null : N, e);
-    return { labels: n, values: i };
-  }
-  function Oo(e, t, r) {
-    if (typeof e == 'number') {
-      if (
-        ![]
-          .concat(
-            Object.keys(t || {}).map((o) => t[o]),
-            r ? [] : Object.keys(He).map((o) => +o),
-            1 / 0
-          )
-          .includes(e)
-      )
-        throw Error(`default level:${e} must be included in custom levels`);
-      return;
+    function isStandardLevel(level, useOnlyCustomLevels) {
+      if (useOnlyCustomLevels) {
+        return false;
+      }
+      switch (level) {
+        case 'fatal':
+        case 'error':
+        case 'warn':
+        case 'info':
+        case 'debug':
+        case 'trace':
+          return true;
+        default:
+          return false;
+      }
     }
-    let n = Object.assign(Object.create(Object.prototype, { silent: { value: 1 / 0 } }), r ? null : N, t);
-    if (!(e in n)) throw Error(`default level:${e} must be included in custom levels`);
-  }
-  function vo(e, t) {
-    let { labels: r, values: n } = e;
-    for (let i in t) {
-      if (i in n) throw Error('levels cannot be overridden');
-      if (t[i] in r) throw Error('pre-existing level values cannot be used for new levels');
+    function setLevel(level) {
+      const { labels, values } = this.levels;
+      if (typeof level === 'number') {
+        if (labels[level] === void 0) throw Error('unknown level value' + level);
+        level = labels[level];
+      }
+      if (values[level] === void 0) throw Error('unknown level ' + level);
+      const preLevelVal = this[levelValSym];
+      const levelVal = (this[levelValSym] = values[level]);
+      const useOnlyCustomLevelsVal = this[useOnlyCustomLevelsSym];
+      const hook = this[hooksSym].logMethod;
+      for (const key in values) {
+        if (levelVal > values[key]) {
+          this[key] = noop;
+          continue;
+        }
+        this[key] = isStandardLevel(key, useOnlyCustomLevelsVal) ? levelMethods[key](hook) : genLog(values[key], hook);
+      }
+      this.emit('level-change', level, levelVal, labels[preLevelVal], preLevelVal, this);
     }
-  }
-  Dr.exports = {
-    initialLsCache: po,
-    genLsCache: bo,
-    levelMethods: Cr,
-    getLevel: _o,
-    setLevel: So,
-    isLevelEnabled: Eo,
-    mappings: xo,
-    levels: N,
-    assertNoLevelCollisions: vo,
-    assertDefaultLevelFound: Oo,
-  };
+    function getLevel(level) {
+      const { levels: levels2, levelVal } = this;
+      return levels2 && levels2.labels ? levels2.labels[levelVal] : '';
+    }
+    function isLevelEnabled(logLevel) {
+      const { values } = this.levels;
+      const logLevelVal = values[logLevel];
+      return logLevelVal !== void 0 && logLevelVal >= this[levelValSym];
+    }
+    function mappings(customLevels = null, useOnlyCustomLevels = false) {
+      const customNums = customLevels
+        ? Object.keys(customLevels).reduce((o, k) => {
+            o[customLevels[k]] = k;
+            return o;
+          }, {})
+        : null;
+      const labels = Object.assign(
+        Object.create(Object.prototype, { Infinity: { value: 'silent' } }),
+        useOnlyCustomLevels ? null : nums,
+        customNums
+      );
+      const values = Object.assign(
+        Object.create(Object.prototype, { silent: { value: Infinity } }),
+        useOnlyCustomLevels ? null : levels,
+        customLevels
+      );
+      return { labels, values };
+    }
+    function assertDefaultLevelFound(defaultLevel, customLevels, useOnlyCustomLevels) {
+      if (typeof defaultLevel === 'number') {
+        const values = [].concat(
+          Object.keys(customLevels || {}).map((key) => customLevels[key]),
+          useOnlyCustomLevels ? [] : Object.keys(nums).map((level) => +level),
+          Infinity
+        );
+        if (!values.includes(defaultLevel)) {
+          throw Error(`default level:${defaultLevel} must be included in custom levels`);
+        }
+        return;
+      }
+      const labels = Object.assign(
+        Object.create(Object.prototype, { silent: { value: Infinity } }),
+        useOnlyCustomLevels ? null : levels,
+        customLevels
+      );
+      if (!(defaultLevel in labels)) {
+        throw Error(`default level:${defaultLevel} must be included in custom levels`);
+      }
+    }
+    function assertNoLevelCollisions(levels2, customLevels) {
+      const { labels, values } = levels2;
+      for (const k in customLevels) {
+        if (k in values) {
+          throw Error('levels cannot be overridden');
+        }
+        if (customLevels[k] in labels) {
+          throw Error('pre-existing level values cannot be used for new levels');
+        }
+      }
+    }
+    module2.exports = {
+      initialLsCache,
+      genLsCache,
+      levelMethods,
+      getLevel,
+      setLevel,
+      isLevelEnabled,
+      mappings,
+      levels,
+      assertNoLevelCollisions,
+      assertDefaultLevelFound,
+    };
+  },
 });
-var Xe = E((If, zr) => {
-  'use strict';
-  zr.exports = { version: '8.16.2' };
+
+// node_modules/pino/lib/meta.js
+var require_meta = __commonJS({
+  'node_modules/pino/lib/meta.js'(exports2, module2) {
+    'use strict';
+    module2.exports = { version: '8.16.2' };
+  },
 });
-var Yr = E((Pf, Xr) => {
-  'use strict';
-  var { EventEmitter: $o } = require('events'),
-    {
-      lsCacheSym: Ao,
-      levelValSym: jo,
-      setLevelSym: Qe,
-      getLevelSym: Mr,
-      chindingsSym: Ze,
-      parsedChindingsSym: Lo,
-      mixinSym: ko,
-      asJsonSym: Jr,
-      writeSym: To,
-      mixinMergeStrategySym: Ro,
-      timeSym: Bo,
-      timeSliceIndexSym: qo,
-      streamSym: Ur,
-      serializersSym: F,
-      formattersSym: Ye,
-      errorKeySym: Io,
-      messageKeySym: No,
-      useOnlyCustomLevelsSym: Po,
-      needsMetadataGsym: Co,
-      redactFmtSym: Do,
-      stringifySym: zo,
-      formatOptsSym: Mo,
-      stringifiersSym: Wo,
-      msgPrefixSym: Wr,
-    } = U(),
-    {
-      getLevel: Fo,
-      setLevel: Ko,
-      isLevelEnabled: Vo,
-      mappings: Jo,
-      initialLsCache: Uo,
-      genLsCache: Go,
-      assertNoLevelCollisions: Ho,
-    } = de(),
-    { asChindings: Gr, asJson: Xo, buildFormatters: Fr, stringify: Kr } = he(),
-    { version: Yo } = Xe(),
-    Qo = Re(),
-    Zo = class {},
-    Hr = {
-      constructor: Zo,
-      child: el,
-      bindings: tl,
-      setBindings: rl,
-      flush: ol,
-      isLevelEnabled: Vo,
-      version: Yo,
+
+// node_modules/pino/lib/proto.js
+var require_proto = __commonJS({
+  'node_modules/pino/lib/proto.js'(exports2, module2) {
+    'use strict';
+    var { EventEmitter } = require('events');
+    var {
+      lsCacheSym,
+      levelValSym,
+      setLevelSym,
+      getLevelSym,
+      chindingsSym,
+      parsedChindingsSym,
+      mixinSym,
+      asJsonSym,
+      writeSym,
+      mixinMergeStrategySym,
+      timeSym,
+      timeSliceIndexSym,
+      streamSym,
+      serializersSym,
+      formattersSym,
+      errorKeySym,
+      messageKeySym,
+      useOnlyCustomLevelsSym,
+      needsMetadataGsym,
+      redactFmtSym,
+      stringifySym,
+      formatOptsSym,
+      stringifiersSym,
+      msgPrefixSym,
+    } = require_symbols();
+    var { getLevel, setLevel, isLevelEnabled, mappings, initialLsCache, genLsCache, assertNoLevelCollisions } =
+      require_levels();
+    var { asChindings, asJson, buildFormatters, stringify } = require_tools();
+    var { version } = require_meta();
+    var redaction = require_redaction();
+    var constructor = class Pino {};
+    var prototype = {
+      constructor,
+      child,
+      bindings,
+      setBindings,
+      flush,
+      isLevelEnabled,
+      version,
       get level() {
-        return this[Mr]();
+        return this[getLevelSym]();
       },
-      set level(e) {
-        this[Qe](e);
+      set level(lvl) {
+        this[setLevelSym](lvl);
       },
       get levelVal() {
-        return this[jo];
+        return this[levelValSym];
       },
-      set levelVal(e) {
+      set levelVal(n) {
         throw Error('levelVal is read-only');
       },
-      [Ao]: Uo,
-      [To]: il,
-      [Jr]: Xo,
-      [Mr]: Fo,
-      [Qe]: Ko,
+      [lsCacheSym]: initialLsCache,
+      [writeSym]: write,
+      [asJsonSym]: asJson,
+      [getLevelSym]: getLevel,
+      [setLevelSym]: setLevel,
     };
-  Object.setPrototypeOf(Hr, $o.prototype);
-  Xr.exports = function () {
-    return Object.create(Hr);
-  };
-  var Vr = (e) => e;
-  function el(e, t) {
-    if (!e) throw Error('missing bindings for child Pino');
-    t = t || {};
-    let r = this[F],
-      n = this[Ye],
-      i = Object.create(this);
-    if (t.hasOwnProperty('serializers') === !0) {
-      i[F] = Object.create(null);
-      for (let l in r) i[F][l] = r[l];
-      let d = Object.getOwnPropertySymbols(r);
-      for (var o = 0; o < d.length; o++) {
-        let l = d[o];
-        i[F][l] = r[l];
+    Object.setPrototypeOf(prototype, EventEmitter.prototype);
+    module2.exports = function () {
+      return Object.create(prototype);
+    };
+    var resetChildingsFormatter = (bindings2) => bindings2;
+    function child(bindings2, options) {
+      if (!bindings2) {
+        throw Error('missing bindings for child Pino');
       }
-      for (let l in t.serializers) i[F][l] = t.serializers[l];
-      let y = Object.getOwnPropertySymbols(t.serializers);
-      for (var f = 0; f < y.length; f++) {
-        let l = y[f];
-        i[F][l] = t.serializers[l];
+      options = options || {};
+      const serializers = this[serializersSym];
+      const formatters = this[formattersSym];
+      const instance = Object.create(this);
+      if (options.hasOwnProperty('serializers') === true) {
+        instance[serializersSym] = /* @__PURE__ */ Object.create(null);
+        for (const k in serializers) {
+          instance[serializersSym][k] = serializers[k];
+        }
+        const parentSymbols = Object.getOwnPropertySymbols(serializers);
+        for (var i = 0; i < parentSymbols.length; i++) {
+          const ks = parentSymbols[i];
+          instance[serializersSym][ks] = serializers[ks];
+        }
+        for (const bk in options.serializers) {
+          instance[serializersSym][bk] = options.serializers[bk];
+        }
+        const bindingsSymbols = Object.getOwnPropertySymbols(options.serializers);
+        for (var bi = 0; bi < bindingsSymbols.length; bi++) {
+          const bks = bindingsSymbols[bi];
+          instance[serializersSym][bks] = options.serializers[bks];
+        }
+      } else instance[serializersSym] = serializers;
+      if (options.hasOwnProperty('formatters')) {
+        const { level, bindings: chindings, log } = options.formatters;
+        instance[formattersSym] = buildFormatters(
+          level || formatters.level,
+          chindings || resetChildingsFormatter,
+          log || formatters.log
+        );
+      } else {
+        instance[formattersSym] = buildFormatters(formatters.level, resetChildingsFormatter, formatters.log);
       }
-    } else i[F] = r;
-    if (t.hasOwnProperty('formatters')) {
-      let { level: d, bindings: y, log: l } = t.formatters;
-      i[Ye] = Fr(d || n.level, y || Vr, l || n.log);
-    } else i[Ye] = Fr(n.level, Vr, n.log);
-    if (
-      (t.hasOwnProperty('customLevels') === !0 &&
-        (Ho(this.levels, t.customLevels), (i.levels = Jo(t.customLevels, i[Po])), Go(i)),
-      (typeof t.redact == 'object' && t.redact !== null) || Array.isArray(t.redact))
-    ) {
-      i.redact = t.redact;
-      let d = Qo(i.redact, Kr),
-        y = { stringify: d[Do] };
-      (i[zo] = Kr), (i[Wo] = d), (i[Mo] = y);
+      if (options.hasOwnProperty('customLevels') === true) {
+        assertNoLevelCollisions(this.levels, options.customLevels);
+        instance.levels = mappings(options.customLevels, instance[useOnlyCustomLevelsSym]);
+        genLsCache(instance);
+      }
+      if ((typeof options.redact === 'object' && options.redact !== null) || Array.isArray(options.redact)) {
+        instance.redact = options.redact;
+        const stringifiers = redaction(instance.redact, stringify);
+        const formatOpts = { stringify: stringifiers[redactFmtSym] };
+        instance[stringifySym] = stringify;
+        instance[stringifiersSym] = stringifiers;
+        instance[formatOptsSym] = formatOpts;
+      }
+      if (typeof options.msgPrefix === 'string') {
+        instance[msgPrefixSym] = (this[msgPrefixSym] || '') + options.msgPrefix;
+      }
+      instance[chindingsSym] = asChindings(instance, bindings2);
+      const childLevel = options.level || this.level;
+      instance[setLevelSym](childLevel);
+      this.onChild(instance);
+      return instance;
     }
-    typeof t.msgPrefix == 'string' && (i[Wr] = (this[Wr] || '') + t.msgPrefix), (i[Ze] = Gr(i, e));
-    let h = t.level || this.level;
-    return i[Qe](h), this.onChild(i), i;
-  }
-  function tl() {
-    let t = `{${this[Ze].substr(1)}}`,
-      r = JSON.parse(t);
-    return delete r.pid, delete r.hostname, r;
-  }
-  function rl(e) {
-    let t = Gr(this, e);
-    (this[Ze] = t), delete this[Lo];
-  }
-  function nl(e, t) {
-    return Object.assign(t, e);
-  }
-  function il(e, t, r) {
-    let n = this[Bo](),
-      i = this[ko],
-      o = this[Io],
-      f = this[No],
-      h = this[Ro] || nl,
-      d;
-    e == null
-      ? (d = {})
-      : e instanceof Error
-      ? ((d = { [o]: e }), t === void 0 && (t = e.message))
-      : ((d = e), t === void 0 && e[f] === void 0 && e[o] && (t = e[o].message)),
-      i && (d = h(d, i(d, r, this)));
-    let y = this[Jr](d, t, r, n),
-      l = this[Ur];
-    l[Co] === !0 &&
-      ((l.lastLevel = r), (l.lastObj = d), (l.lastMsg = t), (l.lastTime = n.slice(this[qo])), (l.lastLogger = this)),
-      l.write(y);
-  }
-  function sl() {}
-  function ol(e) {
-    if (e != null && typeof e != 'function') throw Error('callback must be a function');
-    let t = this[Ur];
-    typeof t.flush == 'function' ? t.flush(e || sl) : e && e();
-  }
+    function bindings() {
+      const chindings = this[chindingsSym];
+      const chindingsJson = `{${chindings.substr(1)}}`;
+      const bindingsFromJson = JSON.parse(chindingsJson);
+      delete bindingsFromJson.pid;
+      delete bindingsFromJson.hostname;
+      return bindingsFromJson;
+    }
+    function setBindings(newBindings) {
+      const chindings = asChindings(this, newBindings);
+      this[chindingsSym] = chindings;
+      delete this[parsedChindingsSym];
+    }
+    function defaultMixinMergeStrategy(mergeObject, mixinObject) {
+      return Object.assign(mixinObject, mergeObject);
+    }
+    function write(_obj, msg, num) {
+      const t = this[timeSym]();
+      const mixin = this[mixinSym];
+      const errorKey = this[errorKeySym];
+      const messageKey = this[messageKeySym];
+      const mixinMergeStrategy = this[mixinMergeStrategySym] || defaultMixinMergeStrategy;
+      let obj;
+      if (_obj === void 0 || _obj === null) {
+        obj = {};
+      } else if (_obj instanceof Error) {
+        obj = { [errorKey]: _obj };
+        if (msg === void 0) {
+          msg = _obj.message;
+        }
+      } else {
+        obj = _obj;
+        if (msg === void 0 && _obj[messageKey] === void 0 && _obj[errorKey]) {
+          msg = _obj[errorKey].message;
+        }
+      }
+      if (mixin) {
+        obj = mixinMergeStrategy(obj, mixin(obj, num, this));
+      }
+      const s = this[asJsonSym](obj, msg, num, t);
+      const stream = this[streamSym];
+      if (stream[needsMetadataGsym] === true) {
+        stream.lastLevel = num;
+        stream.lastObj = obj;
+        stream.lastMsg = msg;
+        stream.lastTime = t.slice(this[timeSliceIndexSym]);
+        stream.lastLogger = this;
+      }
+      stream.write(s);
+    }
+    function noop() {}
+    function flush(cb) {
+      if (cb != null && typeof cb !== 'function') {
+        throw Error('callback must be a function');
+      }
+      const stream = this[streamSym];
+      if (typeof stream.flush === 'function') {
+        stream.flush(cb || noop);
+      } else if (cb) cb();
+    }
+  },
 });
-var rn = E((nt, tn) => {
-  'use strict';
-  var { hasOwnProperty: ye } = Object.prototype,
-    V = rt();
-  V.configure = rt;
-  V.stringify = V;
-  V.default = V;
-  nt.stringify = V;
-  nt.configure = rt;
-  tn.exports = V;
-  var ll =
-    /[\u0000-\u001f\u0022\u005c\ud800-\udfff]|[\ud800-\udbff](?![\udc00-\udfff])|(?:[^\ud800-\udbff]|^)[\udc00-\udfff]/;
-  function z(e) {
-    return e.length < 5e3 && !ll.test(e) ? `"${e}"` : JSON.stringify(e);
-  }
-  function et(e) {
-    if (e.length > 200) return e.sort();
-    for (let t = 1; t < e.length; t++) {
-      let r = e[t],
-        n = t;
-      for (; n !== 0 && e[n - 1] > r; ) (e[n] = e[n - 1]), n--;
-      e[n] = r;
+
+// node_modules/safe-stable-stringify/index.js
+var require_safe_stable_stringify = __commonJS({
+  'node_modules/safe-stable-stringify/index.js'(exports2, module2) {
+    'use strict';
+    var { hasOwnProperty } = Object.prototype;
+    var stringify = configure();
+    stringify.configure = configure;
+    stringify.stringify = stringify;
+    stringify.default = stringify;
+    exports2.stringify = stringify;
+    exports2.configure = configure;
+    module2.exports = stringify;
+    var strEscapeSequencesRegExp =
+      /[\u0000-\u001f\u0022\u005c\ud800-\udfff]|[\ud800-\udbff](?![\udc00-\udfff])|(?:[^\ud800-\udbff]|^)[\udc00-\udfff]/;
+    function strEscape(str) {
+      if (str.length < 5e3 && !strEscapeSequencesRegExp.test(str)) {
+        return `"${str}"`;
+      }
+      return JSON.stringify(str);
     }
-    return e;
-  }
-  var fl = Object.getOwnPropertyDescriptor(
-    Object.getPrototypeOf(Object.getPrototypeOf(new Int8Array())),
-    Symbol.toStringTag
-  ).get;
-  function tt(e) {
-    return fl.call(e) !== void 0 && e.length !== 0;
-  }
-  function Qr(e, t, r) {
-    e.length < r && (r = e.length);
-    let n = t === ',' ? '' : ' ',
-      i = `"0":${n}${e[0]}`;
-    for (let o = 1; o < r; o++) i += `${t}"${o}":${n}${e[o]}`;
-    return i;
-  }
-  function ul(e) {
-    if (ye.call(e, 'circularValue')) {
-      let t = e.circularValue;
-      if (typeof t == 'string') return `"${t}"`;
-      if (t == null) return t;
-      if (t === Error || t === TypeError)
-        return {
-          toString() {
-            throw new TypeError('Converting circular structure to JSON');
-          },
-        };
-      throw new TypeError('The "circularValue" argument must be of type string or the value null or undefined');
-    }
-    return '"[Circular]"';
-  }
-  function Zr(e, t) {
-    let r;
-    if (ye.call(e, t) && ((r = e[t]), typeof r != 'boolean'))
-      throw new TypeError(`The "${t}" argument must be of type boolean`);
-    return r === void 0 ? !0 : r;
-  }
-  function en(e, t) {
-    let r;
-    if (ye.call(e, t)) {
-      if (((r = e[t]), typeof r != 'number')) throw new TypeError(`The "${t}" argument must be of type number`);
-      if (!Number.isInteger(r)) throw new TypeError(`The "${t}" argument must be an integer`);
-      if (r < 1) throw new RangeError(`The "${t}" argument must be >= 1`);
-    }
-    return r === void 0 ? 1 / 0 : r;
-  }
-  function K(e) {
-    return e === 1 ? '1 item' : `${e} items`;
-  }
-  function cl(e) {
-    let t = new Set();
-    for (let r of e) (typeof r == 'string' || typeof r == 'number') && t.add(String(r));
-    return t;
-  }
-  function al(e) {
-    if (ye.call(e, 'strict')) {
-      let t = e.strict;
-      if (typeof t != 'boolean') throw new TypeError('The "strict" argument must be of type boolean');
-      if (t)
-        return (r) => {
-          let n = `Object can not safely be stringified. Received type ${typeof r}`;
-          throw (typeof r != 'function' && (n += ` (${r.toString()})`), new Error(n));
-        };
-    }
-  }
-  function rt(e) {
-    e = { ...e };
-    let t = al(e);
-    t && (e.bigint === void 0 && (e.bigint = !1), 'circularValue' in e || (e.circularValue = Error));
-    let r = ul(e),
-      n = Zr(e, 'bigint'),
-      i = Zr(e, 'deterministic'),
-      o = en(e, 'maximumDepth'),
-      f = en(e, 'maximumBreadth');
-    function h(g, s, u, p, b, w) {
-      let m = s[g];
-      switch (
-        (typeof m == 'object' && m !== null && typeof m.toJSON == 'function' && (m = m.toJSON(g)),
-        (m = p.call(s, g, m)),
-        typeof m)
-      ) {
-        case 'string':
-          return z(m);
-        case 'object': {
-          if (m === null) return 'null';
-          if (u.indexOf(m) !== -1) return r;
-          let S = '',
-            _ = ',',
-            O = w;
-          if (Array.isArray(m)) {
-            if (m.length === 0) return '[]';
-            if (o < u.length + 1) return '"[Array]"';
-            u.push(m),
-              b !== '' &&
-                ((w += b),
-                (S += `
-${w}`),
-                (_ = `,
-${w}`));
-            let L = Math.min(m.length, f),
-              R = 0;
-            for (; R < L - 1; R++) {
-              let M = h(String(R), m, u, p, b, w);
-              (S += M !== void 0 ? M : 'null'), (S += _);
-            }
-            let B = h(String(R), m, u, p, b, w);
-            if (((S += B !== void 0 ? B : 'null'), m.length - 1 > f)) {
-              let M = m.length - f - 1;
-              S += `${_}"... ${K(M)} not stringified"`;
-            }
-            return (
-              b !== '' &&
-                (S += `
-${O}`),
-              u.pop(),
-              `[${S}]`
-            );
-          }
-          let $ = Object.keys(m),
-            v = $.length;
-          if (v === 0) return '{}';
-          if (o < u.length + 1) return '"[Object]"';
-          let x = '',
-            j = '';
-          b !== '' &&
-            ((w += b),
-            (_ = `,
-${w}`),
-            (x = ' '));
-          let k = Math.min(v, f);
-          i && !tt(m) && ($ = et($)), u.push(m);
-          for (let L = 0; L < k; L++) {
-            let R = $[L],
-              B = h(R, m, u, p, b, w);
-            B !== void 0 && ((S += `${j}${z(R)}:${x}${B}`), (j = _));
-          }
-          if (v > f) {
-            let L = v - f;
-            (S += `${j}"...":${x}"${K(L)} not stringified"`), (j = _);
-          }
-          return (
-            b !== '' &&
-              j.length > 1 &&
-              (S = `
-${w}${S}
-${O}`),
-            u.pop(),
-            `{${S}}`
-          );
+    function insertSort(array) {
+      if (array.length > 200) {
+        return array.sort();
+      }
+      for (let i = 1; i < array.length; i++) {
+        const currentValue = array[i];
+        let position = i;
+        while (position !== 0 && array[position - 1] > currentValue) {
+          array[position] = array[position - 1];
+          position--;
         }
-        case 'number':
-          return isFinite(m) ? String(m) : t ? t(m) : 'null';
-        case 'boolean':
-          return m === !0 ? 'true' : 'false';
-        case 'undefined':
-          return;
-        case 'bigint':
-          if (n) return String(m);
-        default:
-          return t ? t(m) : void 0;
+        array[position] = currentValue;
+      }
+      return array;
+    }
+    var typedArrayPrototypeGetSymbolToStringTag = Object.getOwnPropertyDescriptor(
+      Object.getPrototypeOf(Object.getPrototypeOf(new Int8Array())),
+      Symbol.toStringTag
+    ).get;
+    function isTypedArrayWithEntries(value) {
+      return typedArrayPrototypeGetSymbolToStringTag.call(value) !== void 0 && value.length !== 0;
+    }
+    function stringifyTypedArray(array, separator, maximumBreadth) {
+      if (array.length < maximumBreadth) {
+        maximumBreadth = array.length;
+      }
+      const whitespace = separator === ',' ? '' : ' ';
+      let res = `"0":${whitespace}${array[0]}`;
+      for (let i = 1; i < maximumBreadth; i++) {
+        res += `${separator}"${i}":${whitespace}${array[i]}`;
+      }
+      return res;
+    }
+    function getCircularValueOption(options) {
+      if (hasOwnProperty.call(options, 'circularValue')) {
+        const circularValue = options.circularValue;
+        if (typeof circularValue === 'string') {
+          return `"${circularValue}"`;
+        }
+        if (circularValue == null) {
+          return circularValue;
+        }
+        if (circularValue === Error || circularValue === TypeError) {
+          return {
+            toString() {
+              throw new TypeError('Converting circular structure to JSON');
+            },
+          };
+        }
+        throw new TypeError('The "circularValue" argument must be of type string or the value null or undefined');
+      }
+      return '"[Circular]"';
+    }
+    function getBooleanOption(options, key) {
+      let value;
+      if (hasOwnProperty.call(options, key)) {
+        value = options[key];
+        if (typeof value !== 'boolean') {
+          throw new TypeError(`The "${key}" argument must be of type boolean`);
+        }
+      }
+      return value === void 0 ? true : value;
+    }
+    function getPositiveIntegerOption(options, key) {
+      let value;
+      if (hasOwnProperty.call(options, key)) {
+        value = options[key];
+        if (typeof value !== 'number') {
+          throw new TypeError(`The "${key}" argument must be of type number`);
+        }
+        if (!Number.isInteger(value)) {
+          throw new TypeError(`The "${key}" argument must be an integer`);
+        }
+        if (value < 1) {
+          throw new RangeError(`The "${key}" argument must be >= 1`);
+        }
+      }
+      return value === void 0 ? Infinity : value;
+    }
+    function getItemCount(number) {
+      if (number === 1) {
+        return '1 item';
+      }
+      return `${number} items`;
+    }
+    function getUniqueReplacerSet(replacerArray) {
+      const replacerSet = /* @__PURE__ */ new Set();
+      for (const value of replacerArray) {
+        if (typeof value === 'string' || typeof value === 'number') {
+          replacerSet.add(String(value));
+        }
+      }
+      return replacerSet;
+    }
+    function getStrictOption(options) {
+      if (hasOwnProperty.call(options, 'strict')) {
+        const value = options.strict;
+        if (typeof value !== 'boolean') {
+          throw new TypeError('The "strict" argument must be of type boolean');
+        }
+        if (value) {
+          return (value2) => {
+            let message = `Object can not safely be stringified. Received type ${typeof value2}`;
+            if (typeof value2 !== 'function') message += ` (${value2.toString()})`;
+            throw new Error(message);
+          };
+        }
       }
     }
-    function d(g, s, u, p, b, w) {
-      switch ((typeof s == 'object' && s !== null && typeof s.toJSON == 'function' && (s = s.toJSON(g)), typeof s)) {
-        case 'string':
-          return z(s);
-        case 'object': {
-          if (s === null) return 'null';
-          if (u.indexOf(s) !== -1) return r;
-          let m = w,
-            S = '',
-            _ = ',';
-          if (Array.isArray(s)) {
-            if (s.length === 0) return '[]';
-            if (o < u.length + 1) return '"[Array]"';
-            u.push(s),
-              b !== '' &&
-                ((w += b),
-                (S += `
-${w}`),
-                (_ = `,
-${w}`));
-            let v = Math.min(s.length, f),
-              x = 0;
-            for (; x < v - 1; x++) {
-              let k = d(String(x), s[x], u, p, b, w);
-              (S += k !== void 0 ? k : 'null'), (S += _);
-            }
-            let j = d(String(x), s[x], u, p, b, w);
-            if (((S += j !== void 0 ? j : 'null'), s.length - 1 > f)) {
-              let k = s.length - f - 1;
-              S += `${_}"... ${K(k)} not stringified"`;
-            }
-            return (
-              b !== '' &&
-                (S += `
-${m}`),
-              u.pop(),
-              `[${S}]`
-            );
-          }
-          u.push(s);
-          let O = '';
-          b !== '' &&
-            ((w += b),
-            (_ = `,
-${w}`),
-            (O = ' '));
-          let $ = '';
-          for (let v of p) {
-            let x = d(v, s[v], u, p, b, w);
-            x !== void 0 && ((S += `${$}${z(v)}:${O}${x}`), ($ = _));
-          }
-          return (
-            b !== '' &&
-              $.length > 1 &&
-              (S = `
-${w}${S}
-${m}`),
-            u.pop(),
-            `{${S}}`
-          );
+    function configure(options) {
+      options = { ...options };
+      const fail = getStrictOption(options);
+      if (fail) {
+        if (options.bigint === void 0) {
+          options.bigint = false;
         }
-        case 'number':
-          return isFinite(s) ? String(s) : t ? t(s) : 'null';
-        case 'boolean':
-          return s === !0 ? 'true' : 'false';
-        case 'undefined':
-          return;
-        case 'bigint':
-          if (n) return String(s);
-        default:
-          return t ? t(s) : void 0;
-      }
-    }
-    function y(g, s, u, p, b) {
-      switch (typeof s) {
-        case 'string':
-          return z(s);
-        case 'object': {
-          if (s === null) return 'null';
-          if (typeof s.toJSON == 'function') {
-            if (((s = s.toJSON(g)), typeof s != 'object')) return y(g, s, u, p, b);
-            if (s === null) return 'null';
-          }
-          if (u.indexOf(s) !== -1) return r;
-          let w = b;
-          if (Array.isArray(s)) {
-            if (s.length === 0) return '[]';
-            if (o < u.length + 1) return '"[Array]"';
-            u.push(s), (b += p);
-            let x = `
-${b}`,
-              j = `,
-${b}`,
-              k = Math.min(s.length, f),
-              L = 0;
-            for (; L < k - 1; L++) {
-              let B = y(String(L), s[L], u, p, b);
-              (x += B !== void 0 ? B : 'null'), (x += j);
-            }
-            let R = y(String(L), s[L], u, p, b);
-            if (((x += R !== void 0 ? R : 'null'), s.length - 1 > f)) {
-              let B = s.length - f - 1;
-              x += `${j}"... ${K(B)} not stringified"`;
-            }
-            return (
-              (x += `
-${w}`),
-              u.pop(),
-              `[${x}]`
-            );
-          }
-          let m = Object.keys(s),
-            S = m.length;
-          if (S === 0) return '{}';
-          if (o < u.length + 1) return '"[Object]"';
-          b += p;
-          let _ = `,
-${b}`,
-            O = '',
-            $ = '',
-            v = Math.min(S, f);
-          tt(s) && ((O += Qr(s, _, f)), (m = m.slice(s.length)), (v -= s.length), ($ = _)), i && (m = et(m)), u.push(s);
-          for (let x = 0; x < v; x++) {
-            let j = m[x],
-              k = y(j, s[j], u, p, b);
-            k !== void 0 && ((O += `${$}${z(j)}: ${k}`), ($ = _));
-          }
-          if (S > f) {
-            let x = S - f;
-            (O += `${$}"...": "${K(x)} not stringified"`), ($ = _);
-          }
-          return (
-            $ !== '' &&
-              (O = `
-${b}${O}
-${w}`),
-            u.pop(),
-            `{${O}}`
-          );
+        if (!('circularValue' in options)) {
+          options.circularValue = Error;
         }
-        case 'number':
-          return isFinite(s) ? String(s) : t ? t(s) : 'null';
-        case 'boolean':
-          return s === !0 ? 'true' : 'false';
-        case 'undefined':
-          return;
-        case 'bigint':
-          if (n) return String(s);
-        default:
-          return t ? t(s) : void 0;
       }
-    }
-    function l(g, s, u) {
-      switch (typeof s) {
-        case 'string':
-          return z(s);
-        case 'object': {
-          if (s === null) return 'null';
-          if (typeof s.toJSON == 'function') {
-            if (((s = s.toJSON(g)), typeof s != 'object')) return l(g, s, u);
-            if (s === null) return 'null';
-          }
-          if (u.indexOf(s) !== -1) return r;
-          let p = '';
-          if (Array.isArray(s)) {
-            if (s.length === 0) return '[]';
-            if (o < u.length + 1) return '"[Array]"';
-            u.push(s);
-            let _ = Math.min(s.length, f),
-              O = 0;
-            for (; O < _ - 1; O++) {
-              let v = l(String(O), s[O], u);
-              (p += v !== void 0 ? v : 'null'), (p += ',');
-            }
-            let $ = l(String(O), s[O], u);
-            if (((p += $ !== void 0 ? $ : 'null'), s.length - 1 > f)) {
-              let v = s.length - f - 1;
-              p += `,"... ${K(v)} not stringified"`;
-            }
-            return u.pop(), `[${p}]`;
-          }
-          let b = Object.keys(s),
-            w = b.length;
-          if (w === 0) return '{}';
-          if (o < u.length + 1) return '"[Object]"';
-          let m = '',
-            S = Math.min(w, f);
-          tt(s) && ((p += Qr(s, ',', f)), (b = b.slice(s.length)), (S -= s.length), (m = ',')),
-            i && (b = et(b)),
-            u.push(s);
-          for (let _ = 0; _ < S; _++) {
-            let O = b[_],
-              $ = l(O, s[O], u);
-            $ !== void 0 && ((p += `${m}${z(O)}:${$}`), (m = ','));
-          }
-          if (w > f) {
-            let _ = w - f;
-            p += `${m}"...":"${K(_)} not stringified"`;
-          }
-          return u.pop(), `{${p}}`;
+      const circularValue = getCircularValueOption(options);
+      const bigint = getBooleanOption(options, 'bigint');
+      const deterministic = getBooleanOption(options, 'deterministic');
+      const maximumDepth = getPositiveIntegerOption(options, 'maximumDepth');
+      const maximumBreadth = getPositiveIntegerOption(options, 'maximumBreadth');
+      function stringifyFnReplacer(key, parent, stack, replacer, spacer, indentation) {
+        let value = parent[key];
+        if (typeof value === 'object' && value !== null && typeof value.toJSON === 'function') {
+          value = value.toJSON(key);
         }
-        case 'number':
-          return isFinite(s) ? String(s) : t ? t(s) : 'null';
-        case 'boolean':
-          return s === !0 ? 'true' : 'false';
-        case 'undefined':
-          return;
-        case 'bigint':
-          if (n) return String(s);
-        default:
-          return t ? t(s) : void 0;
-      }
-    }
-    function c(g, s, u) {
-      if (arguments.length > 1) {
-        let p = '';
-        if (
-          (typeof u == 'number' ? (p = ' '.repeat(Math.min(u, 10))) : typeof u == 'string' && (p = u.slice(0, 10)),
-          s != null)
-        ) {
-          if (typeof s == 'function') return h('', { '': g }, [], s, p, '');
-          if (Array.isArray(s)) return d('', g, [], cl(s), p, '');
+        value = replacer.call(parent, key, value);
+        switch (typeof value) {
+          case 'string':
+            return strEscape(value);
+          case 'object': {
+            if (value === null) {
+              return 'null';
+            }
+            if (stack.indexOf(value) !== -1) {
+              return circularValue;
+            }
+            let res = '';
+            let join = ',';
+            const originalIndentation = indentation;
+            if (Array.isArray(value)) {
+              if (value.length === 0) {
+                return '[]';
+              }
+              if (maximumDepth < stack.length + 1) {
+                return '"[Array]"';
+              }
+              stack.push(value);
+              if (spacer !== '') {
+                indentation += spacer;
+                res += `
+${indentation}`;
+                join = `,
+${indentation}`;
+              }
+              const maximumValuesToStringify = Math.min(value.length, maximumBreadth);
+              let i = 0;
+              for (; i < maximumValuesToStringify - 1; i++) {
+                const tmp2 = stringifyFnReplacer(String(i), value, stack, replacer, spacer, indentation);
+                res += tmp2 !== void 0 ? tmp2 : 'null';
+                res += join;
+              }
+              const tmp = stringifyFnReplacer(String(i), value, stack, replacer, spacer, indentation);
+              res += tmp !== void 0 ? tmp : 'null';
+              if (value.length - 1 > maximumBreadth) {
+                const removedKeys = value.length - maximumBreadth - 1;
+                res += `${join}"... ${getItemCount(removedKeys)} not stringified"`;
+              }
+              if (spacer !== '') {
+                res += `
+${originalIndentation}`;
+              }
+              stack.pop();
+              return `[${res}]`;
+            }
+            let keys = Object.keys(value);
+            const keyLength = keys.length;
+            if (keyLength === 0) {
+              return '{}';
+            }
+            if (maximumDepth < stack.length + 1) {
+              return '"[Object]"';
+            }
+            let whitespace = '';
+            let separator = '';
+            if (spacer !== '') {
+              indentation += spacer;
+              join = `,
+${indentation}`;
+              whitespace = ' ';
+            }
+            const maximumPropertiesToStringify = Math.min(keyLength, maximumBreadth);
+            if (deterministic && !isTypedArrayWithEntries(value)) {
+              keys = insertSort(keys);
+            }
+            stack.push(value);
+            for (let i = 0; i < maximumPropertiesToStringify; i++) {
+              const key2 = keys[i];
+              const tmp = stringifyFnReplacer(key2, value, stack, replacer, spacer, indentation);
+              if (tmp !== void 0) {
+                res += `${separator}${strEscape(key2)}:${whitespace}${tmp}`;
+                separator = join;
+              }
+            }
+            if (keyLength > maximumBreadth) {
+              const removedKeys = keyLength - maximumBreadth;
+              res += `${separator}"...":${whitespace}"${getItemCount(removedKeys)} not stringified"`;
+              separator = join;
+            }
+            if (spacer !== '' && separator.length > 1) {
+              res = `
+${indentation}${res}
+${originalIndentation}`;
+            }
+            stack.pop();
+            return `{${res}}`;
+          }
+          case 'number':
+            return isFinite(value) ? String(value) : fail ? fail(value) : 'null';
+          case 'boolean':
+            return value === true ? 'true' : 'false';
+          case 'undefined':
+            return void 0;
+          case 'bigint':
+            if (bigint) {
+              return String(value);
+            }
+          default:
+            return fail ? fail(value) : void 0;
         }
-        if (p.length !== 0) return y('', g, [], p, '');
       }
-      return l('', g, []);
+      function stringifyArrayReplacer(key, value, stack, replacer, spacer, indentation) {
+        if (typeof value === 'object' && value !== null && typeof value.toJSON === 'function') {
+          value = value.toJSON(key);
+        }
+        switch (typeof value) {
+          case 'string':
+            return strEscape(value);
+          case 'object': {
+            if (value === null) {
+              return 'null';
+            }
+            if (stack.indexOf(value) !== -1) {
+              return circularValue;
+            }
+            const originalIndentation = indentation;
+            let res = '';
+            let join = ',';
+            if (Array.isArray(value)) {
+              if (value.length === 0) {
+                return '[]';
+              }
+              if (maximumDepth < stack.length + 1) {
+                return '"[Array]"';
+              }
+              stack.push(value);
+              if (spacer !== '') {
+                indentation += spacer;
+                res += `
+${indentation}`;
+                join = `,
+${indentation}`;
+              }
+              const maximumValuesToStringify = Math.min(value.length, maximumBreadth);
+              let i = 0;
+              for (; i < maximumValuesToStringify - 1; i++) {
+                const tmp2 = stringifyArrayReplacer(String(i), value[i], stack, replacer, spacer, indentation);
+                res += tmp2 !== void 0 ? tmp2 : 'null';
+                res += join;
+              }
+              const tmp = stringifyArrayReplacer(String(i), value[i], stack, replacer, spacer, indentation);
+              res += tmp !== void 0 ? tmp : 'null';
+              if (value.length - 1 > maximumBreadth) {
+                const removedKeys = value.length - maximumBreadth - 1;
+                res += `${join}"... ${getItemCount(removedKeys)} not stringified"`;
+              }
+              if (spacer !== '') {
+                res += `
+${originalIndentation}`;
+              }
+              stack.pop();
+              return `[${res}]`;
+            }
+            stack.push(value);
+            let whitespace = '';
+            if (spacer !== '') {
+              indentation += spacer;
+              join = `,
+${indentation}`;
+              whitespace = ' ';
+            }
+            let separator = '';
+            for (const key2 of replacer) {
+              const tmp = stringifyArrayReplacer(key2, value[key2], stack, replacer, spacer, indentation);
+              if (tmp !== void 0) {
+                res += `${separator}${strEscape(key2)}:${whitespace}${tmp}`;
+                separator = join;
+              }
+            }
+            if (spacer !== '' && separator.length > 1) {
+              res = `
+${indentation}${res}
+${originalIndentation}`;
+            }
+            stack.pop();
+            return `{${res}}`;
+          }
+          case 'number':
+            return isFinite(value) ? String(value) : fail ? fail(value) : 'null';
+          case 'boolean':
+            return value === true ? 'true' : 'false';
+          case 'undefined':
+            return void 0;
+          case 'bigint':
+            if (bigint) {
+              return String(value);
+            }
+          default:
+            return fail ? fail(value) : void 0;
+        }
+      }
+      function stringifyIndent(key, value, stack, spacer, indentation) {
+        switch (typeof value) {
+          case 'string':
+            return strEscape(value);
+          case 'object': {
+            if (value === null) {
+              return 'null';
+            }
+            if (typeof value.toJSON === 'function') {
+              value = value.toJSON(key);
+              if (typeof value !== 'object') {
+                return stringifyIndent(key, value, stack, spacer, indentation);
+              }
+              if (value === null) {
+                return 'null';
+              }
+            }
+            if (stack.indexOf(value) !== -1) {
+              return circularValue;
+            }
+            const originalIndentation = indentation;
+            if (Array.isArray(value)) {
+              if (value.length === 0) {
+                return '[]';
+              }
+              if (maximumDepth < stack.length + 1) {
+                return '"[Array]"';
+              }
+              stack.push(value);
+              indentation += spacer;
+              let res2 = `
+${indentation}`;
+              const join2 = `,
+${indentation}`;
+              const maximumValuesToStringify = Math.min(value.length, maximumBreadth);
+              let i = 0;
+              for (; i < maximumValuesToStringify - 1; i++) {
+                const tmp2 = stringifyIndent(String(i), value[i], stack, spacer, indentation);
+                res2 += tmp2 !== void 0 ? tmp2 : 'null';
+                res2 += join2;
+              }
+              const tmp = stringifyIndent(String(i), value[i], stack, spacer, indentation);
+              res2 += tmp !== void 0 ? tmp : 'null';
+              if (value.length - 1 > maximumBreadth) {
+                const removedKeys = value.length - maximumBreadth - 1;
+                res2 += `${join2}"... ${getItemCount(removedKeys)} not stringified"`;
+              }
+              res2 += `
+${originalIndentation}`;
+              stack.pop();
+              return `[${res2}]`;
+            }
+            let keys = Object.keys(value);
+            const keyLength = keys.length;
+            if (keyLength === 0) {
+              return '{}';
+            }
+            if (maximumDepth < stack.length + 1) {
+              return '"[Object]"';
+            }
+            indentation += spacer;
+            const join = `,
+${indentation}`;
+            let res = '';
+            let separator = '';
+            let maximumPropertiesToStringify = Math.min(keyLength, maximumBreadth);
+            if (isTypedArrayWithEntries(value)) {
+              res += stringifyTypedArray(value, join, maximumBreadth);
+              keys = keys.slice(value.length);
+              maximumPropertiesToStringify -= value.length;
+              separator = join;
+            }
+            if (deterministic) {
+              keys = insertSort(keys);
+            }
+            stack.push(value);
+            for (let i = 0; i < maximumPropertiesToStringify; i++) {
+              const key2 = keys[i];
+              const tmp = stringifyIndent(key2, value[key2], stack, spacer, indentation);
+              if (tmp !== void 0) {
+                res += `${separator}${strEscape(key2)}: ${tmp}`;
+                separator = join;
+              }
+            }
+            if (keyLength > maximumBreadth) {
+              const removedKeys = keyLength - maximumBreadth;
+              res += `${separator}"...": "${getItemCount(removedKeys)} not stringified"`;
+              separator = join;
+            }
+            if (separator !== '') {
+              res = `
+${indentation}${res}
+${originalIndentation}`;
+            }
+            stack.pop();
+            return `{${res}}`;
+          }
+          case 'number':
+            return isFinite(value) ? String(value) : fail ? fail(value) : 'null';
+          case 'boolean':
+            return value === true ? 'true' : 'false';
+          case 'undefined':
+            return void 0;
+          case 'bigint':
+            if (bigint) {
+              return String(value);
+            }
+          default:
+            return fail ? fail(value) : void 0;
+        }
+      }
+      function stringifySimple(key, value, stack) {
+        switch (typeof value) {
+          case 'string':
+            return strEscape(value);
+          case 'object': {
+            if (value === null) {
+              return 'null';
+            }
+            if (typeof value.toJSON === 'function') {
+              value = value.toJSON(key);
+              if (typeof value !== 'object') {
+                return stringifySimple(key, value, stack);
+              }
+              if (value === null) {
+                return 'null';
+              }
+            }
+            if (stack.indexOf(value) !== -1) {
+              return circularValue;
+            }
+            let res = '';
+            if (Array.isArray(value)) {
+              if (value.length === 0) {
+                return '[]';
+              }
+              if (maximumDepth < stack.length + 1) {
+                return '"[Array]"';
+              }
+              stack.push(value);
+              const maximumValuesToStringify = Math.min(value.length, maximumBreadth);
+              let i = 0;
+              for (; i < maximumValuesToStringify - 1; i++) {
+                const tmp2 = stringifySimple(String(i), value[i], stack);
+                res += tmp2 !== void 0 ? tmp2 : 'null';
+                res += ',';
+              }
+              const tmp = stringifySimple(String(i), value[i], stack);
+              res += tmp !== void 0 ? tmp : 'null';
+              if (value.length - 1 > maximumBreadth) {
+                const removedKeys = value.length - maximumBreadth - 1;
+                res += `,"... ${getItemCount(removedKeys)} not stringified"`;
+              }
+              stack.pop();
+              return `[${res}]`;
+            }
+            let keys = Object.keys(value);
+            const keyLength = keys.length;
+            if (keyLength === 0) {
+              return '{}';
+            }
+            if (maximumDepth < stack.length + 1) {
+              return '"[Object]"';
+            }
+            let separator = '';
+            let maximumPropertiesToStringify = Math.min(keyLength, maximumBreadth);
+            if (isTypedArrayWithEntries(value)) {
+              res += stringifyTypedArray(value, ',', maximumBreadth);
+              keys = keys.slice(value.length);
+              maximumPropertiesToStringify -= value.length;
+              separator = ',';
+            }
+            if (deterministic) {
+              keys = insertSort(keys);
+            }
+            stack.push(value);
+            for (let i = 0; i < maximumPropertiesToStringify; i++) {
+              const key2 = keys[i];
+              const tmp = stringifySimple(key2, value[key2], stack);
+              if (tmp !== void 0) {
+                res += `${separator}${strEscape(key2)}:${tmp}`;
+                separator = ',';
+              }
+            }
+            if (keyLength > maximumBreadth) {
+              const removedKeys = keyLength - maximumBreadth;
+              res += `${separator}"...":"${getItemCount(removedKeys)} not stringified"`;
+            }
+            stack.pop();
+            return `{${res}}`;
+          }
+          case 'number':
+            return isFinite(value) ? String(value) : fail ? fail(value) : 'null';
+          case 'boolean':
+            return value === true ? 'true' : 'false';
+          case 'undefined':
+            return void 0;
+          case 'bigint':
+            if (bigint) {
+              return String(value);
+            }
+          default:
+            return fail ? fail(value) : void 0;
+        }
+      }
+      function stringify2(value, replacer, space) {
+        if (arguments.length > 1) {
+          let spacer = '';
+          if (typeof space === 'number') {
+            spacer = ' '.repeat(Math.min(space, 10));
+          } else if (typeof space === 'string') {
+            spacer = space.slice(0, 10);
+          }
+          if (replacer != null) {
+            if (typeof replacer === 'function') {
+              return stringifyFnReplacer('', { '': value }, [], replacer, spacer, '');
+            }
+            if (Array.isArray(replacer)) {
+              return stringifyArrayReplacer('', value, [], getUniqueReplacerSet(replacer), spacer, '');
+            }
+          }
+          if (spacer.length !== 0) {
+            return stringifyIndent('', value, [], spacer, '');
+          }
+        }
+        return stringifySimple('', value, []);
+      }
+      return stringify2;
     }
-    return c;
-  }
+  },
 });
-var on = E((Cf, sn) => {
-  'use strict';
-  var it = Symbol.for('pino.metadata'),
-    { levels: nn } = de(),
-    hl = nn.info;
-  function dl(e, t) {
-    let r = 0;
-    (e = e || []), (t = t || { dedupe: !1 });
-    let n = Object.create(nn);
-    (n.silent = 1 / 0),
-      t.levels &&
-        typeof t.levels == 'object' &&
-        Object.keys(t.levels).forEach((l) => {
-          n[l] = t.levels[l];
+
+// node_modules/pino/lib/multistream.js
+var require_multistream = __commonJS({
+  'node_modules/pino/lib/multistream.js'(exports2, module2) {
+    'use strict';
+    var metadata = Symbol.for('pino.metadata');
+    var { levels } = require_levels();
+    var DEFAULT_INFO_LEVEL = levels.info;
+    function multistream(streamsArray, opts) {
+      let counter = 0;
+      streamsArray = streamsArray || [];
+      opts = opts || { dedupe: false };
+      const streamLevels = Object.create(levels);
+      streamLevels.silent = Infinity;
+      if (opts.levels && typeof opts.levels === 'object') {
+        Object.keys(opts.levels).forEach((i) => {
+          streamLevels[i] = opts.levels[i];
         });
-    let i = { write: o, add: h, flushSync: f, end: d, minLevel: 0, streams: [], clone: y, [it]: !0, streamLevels: n };
-    return Array.isArray(e) ? e.forEach(h, i) : h.call(i, e), (e = null), i;
-    function o(l) {
-      let c,
-        g = this.lastLevel,
-        { streams: s } = this,
-        u = 0,
-        p;
-      for (let b = gl(s.length, t.dedupe); pl(b, s.length, t.dedupe); b = ml(b, t.dedupe))
-        if (((c = s[b]), c.level <= g)) {
-          if (u !== 0 && u !== c.level) break;
-          if (((p = c.stream), p[it])) {
-            let { lastTime: w, lastMsg: m, lastObj: S, lastLogger: _ } = this;
-            (p.lastLevel = g), (p.lastTime = w), (p.lastMsg = m), (p.lastObj = S), (p.lastLogger = _);
+      }
+      const res = {
+        write,
+        add,
+        flushSync,
+        end,
+        minLevel: 0,
+        streams: [],
+        clone,
+        [metadata]: true,
+        streamLevels,
+      };
+      if (Array.isArray(streamsArray)) {
+        streamsArray.forEach(add, res);
+      } else {
+        add.call(res, streamsArray);
+      }
+      streamsArray = null;
+      return res;
+      function write(data) {
+        let dest;
+        const level = this.lastLevel;
+        const { streams } = this;
+        let recordedLevel = 0;
+        let stream;
+        for (
+          let i = initLoopVar(streams.length, opts.dedupe);
+          checkLoopVar(i, streams.length, opts.dedupe);
+          i = adjustLoopVar(i, opts.dedupe)
+        ) {
+          dest = streams[i];
+          if (dest.level <= level) {
+            if (recordedLevel !== 0 && recordedLevel !== dest.level) {
+              break;
+            }
+            stream = dest.stream;
+            if (stream[metadata]) {
+              const { lastTime, lastMsg, lastObj, lastLogger } = this;
+              stream.lastLevel = level;
+              stream.lastTime = lastTime;
+              stream.lastMsg = lastMsg;
+              stream.lastObj = lastObj;
+              stream.lastLogger = lastLogger;
+            }
+            stream.write(data);
+            if (opts.dedupe) {
+              recordedLevel = dest.level;
+            }
+          } else if (!opts.dedupe) {
+            break;
           }
-          p.write(l), t.dedupe && (u = c.level);
-        } else if (!t.dedupe) break;
+        }
+      }
+      function flushSync() {
+        for (const { stream } of this.streams) {
+          if (typeof stream.flushSync === 'function') {
+            stream.flushSync();
+          }
+        }
+      }
+      function add(dest) {
+        if (!dest) {
+          return res;
+        }
+        const isStream = typeof dest.write === 'function' || dest.stream;
+        const stream_ = dest.write ? dest : dest.stream;
+        if (!isStream) {
+          throw Error('stream object needs to implement either StreamEntry or DestinationStream interface');
+        }
+        const { streams, streamLevels: streamLevels2 } = this;
+        let level;
+        if (typeof dest.levelVal === 'number') {
+          level = dest.levelVal;
+        } else if (typeof dest.level === 'string') {
+          level = streamLevels2[dest.level];
+        } else if (typeof dest.level === 'number') {
+          level = dest.level;
+        } else {
+          level = DEFAULT_INFO_LEVEL;
+        }
+        const dest_ = {
+          stream: stream_,
+          level,
+          levelVal: void 0,
+          id: counter++,
+        };
+        streams.unshift(dest_);
+        streams.sort(compareByLevel);
+        this.minLevel = streams[0].level;
+        return res;
+      }
+      function end() {
+        for (const { stream } of this.streams) {
+          if (typeof stream.flushSync === 'function') {
+            stream.flushSync();
+          }
+          stream.end();
+        }
+      }
+      function clone(level) {
+        const streams = new Array(this.streams.length);
+        for (let i = 0; i < streams.length; i++) {
+          streams[i] = {
+            level,
+            stream: this.streams[i].stream,
+          };
+        }
+        return {
+          write,
+          add,
+          minLevel: level,
+          streams,
+          clone,
+          flushSync,
+          [metadata]: true,
+        };
+      }
     }
-    function f() {
-      for (let { stream: l } of this.streams) typeof l.flushSync == 'function' && l.flushSync();
+    function compareByLevel(a, b) {
+      return a.level - b.level;
     }
-    function h(l) {
-      if (!l) return i;
-      let c = typeof l.write == 'function' || l.stream,
-        g = l.write ? l : l.stream;
-      if (!c) throw Error('stream object needs to implement either StreamEntry or DestinationStream interface');
-      let { streams: s, streamLevels: u } = this,
-        p;
-      typeof l.levelVal == 'number'
-        ? (p = l.levelVal)
-        : typeof l.level == 'string'
-        ? (p = u[l.level])
-        : typeof l.level == 'number'
-        ? (p = l.level)
-        : (p = hl);
-      let b = { stream: g, level: p, levelVal: void 0, id: r++ };
-      return s.unshift(b), s.sort(yl), (this.minLevel = s[0].level), i;
+    function initLoopVar(length, dedupe) {
+      return dedupe ? length - 1 : 0;
     }
-    function d() {
-      for (let { stream: l } of this.streams) typeof l.flushSync == 'function' && l.flushSync(), l.end();
+    function adjustLoopVar(i, dedupe) {
+      return dedupe ? i - 1 : i + 1;
     }
-    function y(l) {
-      let c = new Array(this.streams.length);
-      for (let g = 0; g < c.length; g++) c[g] = { level: l, stream: this.streams[g].stream };
-      return { write: o, add: h, minLevel: l, streams: c, clone: y, flushSync: f, [it]: !0 };
+    function checkLoopVar(i, length, dedupe) {
+      return dedupe ? i >= 0 : i < length;
     }
-  }
-  function yl(e, t) {
-    return e.level - t.level;
-  }
-  function gl(e, t) {
-    return t ? e - 1 : 0;
-  }
-  function ml(e, t) {
-    return t ? e - 1 : e + 1;
-  }
-  function pl(e, t, r) {
-    return r ? e >= 0 : e < t;
-  }
-  sn.exports = dl;
+    module2.exports = multistream;
+  },
 });
-var wn = E((Df, q) => {
-  function X(e) {
-    try {
-      return require('path').join(`${process.cwd()}${require('path').sep}dist`.replace(/\\/g, '/'), e);
-    } catch {
-      return new Function('p', 'return new URL(p, import.meta.url).pathname')(e);
+
+// node_modules/pino/pino.js
+var require_pino = __commonJS({
+  'node_modules/pino/pino.js'(exports2, module2) {
+    function pinoBundlerAbsolutePath(p) {
+      try {
+        return require('path').join(`${process.cwd()}${require('path').sep}dist`.replace(/\\/g, '/'), p);
+      } catch (e) {
+        const f = new Function('p', 'return new URL(p, import.meta.url).pathname');
+        return f(p);
+      }
     }
-  }
-  globalThis.__bundlerPathsOverrides = {
-    ...(globalThis.__bundlerPathsOverrides || {}),
-    'thread-stream-worker': X('./thread-stream-worker.js'),
-    'pino-worker': X('./pino-worker.js'),
-    'pino-pipeline-worker': X('./pino-pipeline-worker.js'),
-    'pino/file': X('./pino-file.js'),
-    'pino-pretty': X('./pino-pretty.js'),
-  };
-  var bl = require('os'),
-    yn = ve(),
-    wl = $e(),
-    Sl = Re(),
-    gn = Zt(),
-    _l = Yr(),
-    mn = U(),
-    { configure: El } = rn(),
-    { assertDefaultLevelFound: xl, mappings: pn, genLsCache: Ol, levels: vl } = de(),
-    {
-      createArgsNormalizer: $l,
-      asChindings: Al,
-      buildSafeSonicBoom: ln,
-      buildFormatters: jl,
-      stringify: st,
-      normalizeDestFileDescriptor: fn,
-      noop: Ll,
-    } = he(),
-    { version: kl } = Xe(),
-    {
-      chindingsSym: un,
-      redactFmtSym: Tl,
-      serializersSym: cn,
-      timeSym: Rl,
-      timeSliceIndexSym: Bl,
-      streamSym: ql,
-      stringifySym: an,
-      stringifySafeSym: ot,
-      stringifiersSym: hn,
-      setLevelSym: Il,
-      endSym: Nl,
-      formatOptsSym: Pl,
-      messageKeySym: Cl,
-      errorKeySym: Dl,
-      nestedKeySym: zl,
-      mixinSym: Ml,
-      useOnlyCustomLevelsSym: Wl,
-      formattersSym: dn,
-      hooksSym: Fl,
-      nestedKeyStrSym: Kl,
-      mixinMergeStrategySym: Vl,
-      msgPrefixSym: Jl,
-    } = mn,
-    { epochTime: bn, nullTime: Ul } = gn,
-    { pid: Gl } = process,
-    Hl = bl.hostname(),
-    Xl = yn.err,
-    Yl = {
+    globalThis.__bundlerPathsOverrides = {
+      ...(globalThis.__bundlerPathsOverrides || {}),
+      'thread-stream-worker': pinoBundlerAbsolutePath('./thread-stream-worker.js'),
+      'pino-worker': pinoBundlerAbsolutePath('./pino-worker.js'),
+      'pino-pipeline-worker': pinoBundlerAbsolutePath('./pino-pipeline-worker.js'),
+      'pino/file': pinoBundlerAbsolutePath('./pino-file.js'),
+      'pino-pretty': pinoBundlerAbsolutePath('./pino-pretty.js'),
+    };
+    var os = require('os');
+    var stdSerializers = require_pino_std_serializers();
+    var caller = require_caller();
+    var redaction = require_redaction();
+    var time = require_time();
+    var proto = require_proto();
+    var symbols = require_symbols();
+    var { configure } = require_safe_stable_stringify();
+    var { assertDefaultLevelFound, mappings, genLsCache, levels } = require_levels();
+    var {
+      createArgsNormalizer,
+      asChindings,
+      buildSafeSonicBoom,
+      buildFormatters,
+      stringify,
+      normalizeDestFileDescriptor,
+      noop,
+    } = require_tools();
+    var { version } = require_meta();
+    var {
+      chindingsSym,
+      redactFmtSym,
+      serializersSym,
+      timeSym,
+      timeSliceIndexSym,
+      streamSym,
+      stringifySym,
+      stringifySafeSym,
+      stringifiersSym,
+      setLevelSym,
+      endSym,
+      formatOptsSym,
+      messageKeySym,
+      errorKeySym,
+      nestedKeySym,
+      mixinSym,
+      useOnlyCustomLevelsSym,
+      formattersSym,
+      hooksSym,
+      nestedKeyStrSym,
+      mixinMergeStrategySym,
+      msgPrefixSym,
+    } = symbols;
+    var { epochTime, nullTime } = time;
+    var { pid } = process;
+    var hostname = os.hostname();
+    var defaultErrorSerializer = stdSerializers.err;
+    var defaultOptions = {
       level: 'info',
-      levels: vl,
+      levels,
       messageKey: 'msg',
       errorKey: 'err',
       nestedKey: null,
-      enabled: !0,
-      base: { pid: Gl, hostname: Hl },
-      serializers: Object.assign(Object.create(null), { err: Xl }),
-      formatters: Object.assign(Object.create(null), {
-        bindings(e) {
-          return e;
+      enabled: true,
+      base: { pid, hostname },
+      serializers: Object.assign(/* @__PURE__ */ Object.create(null), {
+        err: defaultErrorSerializer,
+      }),
+      formatters: Object.assign(/* @__PURE__ */ Object.create(null), {
+        bindings(bindings) {
+          return bindings;
         },
-        level(e, t) {
-          return { level: t };
+        level(label, number) {
+          return { level: number };
         },
       }),
-      hooks: { logMethod: void 0 },
-      timestamp: bn,
+      hooks: {
+        logMethod: void 0,
+      },
+      timestamp: epochTime,
       name: void 0,
       redact: null,
       customLevels: null,
-      useOnlyCustomLevels: !1,
+      useOnlyCustomLevels: false,
       depthLimit: 5,
       edgeLimit: 100,
-    },
-    Ql = $l(Yl),
-    Zl = Object.assign(Object.create(null), yn);
-  function lt(...e) {
-    let t = {},
-      { opts: r, stream: n } = Ql(t, wl(), ...e),
-      {
-        redact: i,
-        crlf: o,
-        serializers: f,
-        timestamp: h,
-        messageKey: d,
-        errorKey: y,
-        nestedKey: l,
-        base: c,
-        name: g,
-        level: s,
-        customLevels: u,
-        mixin: p,
-        mixinMergeStrategy: b,
-        useOnlyCustomLevels: w,
-        formatters: m,
-        hooks: S,
-        depthLimit: _,
-        edgeLimit: O,
-        onChild: $,
-        msgPrefix: v,
-      } = r,
-      x = El({ maximumDepth: _, maximumBreadth: O }),
-      j = jl(m.level, m.bindings, m.log),
-      k = st.bind({ [ot]: x }),
-      L = i ? Sl(i, k) : {},
-      R = i ? { stringify: L[Tl] } : { stringify: k },
-      B =
-        '}' +
-        (o
-          ? `\r
-`
-          : `
-`),
-      M = Al.bind(null, { [un]: '', [cn]: f, [hn]: L, [an]: st, [ot]: x, [dn]: j }),
-      ge = '';
-    c !== null && (g === void 0 ? (ge = M(c)) : (ge = M(Object.assign({}, c, { name: g }))));
-    let ft = h instanceof Function ? h : h ? bn : Ul,
-      Sn = ft().indexOf(':') + 1;
-    if (w && !u) throw Error('customLevels is required if useOnlyCustomLevels is set true');
-    if (p && typeof p != 'function') throw Error(`Unknown mixin type "${typeof p}" - expected "function"`);
-    if (v && typeof v != 'string') throw Error(`Unknown msgPrefix type "${typeof v}" - expected "string"`);
-    xl(s, u, w);
-    let _n = pn(u, w);
-    return (
-      Object.assign(t, {
-        levels: _n,
-        [Wl]: w,
-        [ql]: n,
-        [Rl]: ft,
-        [Bl]: Sn,
-        [an]: st,
-        [ot]: x,
-        [hn]: L,
-        [Nl]: B,
-        [Pl]: R,
-        [Cl]: d,
-        [Dl]: y,
-        [zl]: l,
-        [Kl]: l ? `,${JSON.stringify(l)}:{` : '',
-        [cn]: f,
-        [Ml]: p,
-        [Vl]: b,
-        [un]: ge,
-        [dn]: j,
-        [Fl]: S,
-        silent: Ll,
-        onChild: $,
-        [Jl]: v,
-      }),
-      Object.setPrototypeOf(t, _l()),
-      Ol(t),
-      t[Il](s),
-      t
-    );
-  }
-  q.exports = lt;
-  q.exports.destination = (e = process.stdout.fd) =>
-    typeof e == 'object' ? ((e.dest = fn(e.dest || process.stdout.fd)), ln(e)) : ln({ dest: fn(e), minLength: 0 });
-  q.exports.transport = Ke();
-  q.exports.multistream = on();
-  q.exports.levels = pn();
-  q.exports.stdSerializers = Zl;
-  q.exports.stdTimeFunctions = Object.assign({}, gn);
-  q.exports.symbols = mn;
-  q.exports.version = kl;
-  q.exports.default = lt;
-  q.exports.pino = lt;
+    };
+    var normalize = createArgsNormalizer(defaultOptions);
+    var serializers = Object.assign(/* @__PURE__ */ Object.create(null), stdSerializers);
+    function pino2(...args) {
+      const instance = {};
+      const { opts, stream } = normalize(instance, caller(), ...args);
+      const {
+        redact,
+        crlf,
+        serializers: serializers2,
+        timestamp,
+        messageKey,
+        errorKey,
+        nestedKey,
+        base,
+        name,
+        level,
+        customLevels,
+        mixin,
+        mixinMergeStrategy,
+        useOnlyCustomLevels,
+        formatters,
+        hooks,
+        depthLimit,
+        edgeLimit,
+        onChild,
+        msgPrefix,
+      } = opts;
+      const stringifySafe = configure({
+        maximumDepth: depthLimit,
+        maximumBreadth: edgeLimit,
+      });
+      const allFormatters = buildFormatters(formatters.level, formatters.bindings, formatters.log);
+      const stringifyFn = stringify.bind({
+        [stringifySafeSym]: stringifySafe,
+      });
+      const stringifiers = redact ? redaction(redact, stringifyFn) : {};
+      const formatOpts = redact ? { stringify: stringifiers[redactFmtSym] } : { stringify: stringifyFn };
+      const end = '}' + (crlf ? '\r\n' : '\n');
+      const coreChindings = asChindings.bind(null, {
+        [chindingsSym]: '',
+        [serializersSym]: serializers2,
+        [stringifiersSym]: stringifiers,
+        [stringifySym]: stringify,
+        [stringifySafeSym]: stringifySafe,
+        [formattersSym]: allFormatters,
+      });
+      let chindings = '';
+      if (base !== null) {
+        if (name === void 0) {
+          chindings = coreChindings(base);
+        } else {
+          chindings = coreChindings(Object.assign({}, base, { name }));
+        }
+      }
+      const time2 = timestamp instanceof Function ? timestamp : timestamp ? epochTime : nullTime;
+      const timeSliceIndex = time2().indexOf(':') + 1;
+      if (useOnlyCustomLevels && !customLevels)
+        throw Error('customLevels is required if useOnlyCustomLevels is set true');
+      if (mixin && typeof mixin !== 'function')
+        throw Error(`Unknown mixin type "${typeof mixin}" - expected "function"`);
+      if (msgPrefix && typeof msgPrefix !== 'string')
+        throw Error(`Unknown msgPrefix type "${typeof msgPrefix}" - expected "string"`);
+      assertDefaultLevelFound(level, customLevels, useOnlyCustomLevels);
+      const levels2 = mappings(customLevels, useOnlyCustomLevels);
+      Object.assign(instance, {
+        levels: levels2,
+        [useOnlyCustomLevelsSym]: useOnlyCustomLevels,
+        [streamSym]: stream,
+        [timeSym]: time2,
+        [timeSliceIndexSym]: timeSliceIndex,
+        [stringifySym]: stringify,
+        [stringifySafeSym]: stringifySafe,
+        [stringifiersSym]: stringifiers,
+        [endSym]: end,
+        [formatOptsSym]: formatOpts,
+        [messageKeySym]: messageKey,
+        [errorKeySym]: errorKey,
+        [nestedKeySym]: nestedKey,
+        // protect against injection
+        [nestedKeyStrSym]: nestedKey ? `,${JSON.stringify(nestedKey)}:{` : '',
+        [serializersSym]: serializers2,
+        [mixinSym]: mixin,
+        [mixinMergeStrategySym]: mixinMergeStrategy,
+        [chindingsSym]: chindings,
+        [formattersSym]: allFormatters,
+        [hooksSym]: hooks,
+        silent: noop,
+        onChild,
+        [msgPrefixSym]: msgPrefix,
+      });
+      Object.setPrototypeOf(instance, proto());
+      genLsCache(instance);
+      instance[setLevelSym](level);
+      return instance;
+    }
+    module2.exports = pino2;
+    module2.exports.destination = (dest = process.stdout.fd) => {
+      if (typeof dest === 'object') {
+        dest.dest = normalizeDestFileDescriptor(dest.dest || process.stdout.fd);
+        return buildSafeSonicBoom(dest);
+      } else {
+        return buildSafeSonicBoom({ dest: normalizeDestFileDescriptor(dest), minLength: 0 });
+      }
+    };
+    module2.exports.transport = require_transport();
+    module2.exports.multistream = require_multistream();
+    module2.exports.levels = mappings();
+    module2.exports.stdSerializers = serializers;
+    module2.exports.stdTimeFunctions = Object.assign({}, time);
+    module2.exports.symbols = symbols;
+    module2.exports.version = version;
+    module2.exports.default = pino2;
+    module2.exports.pino = pino2;
+  },
 });
-var ef = wn(),
-  { once: tf } = require('events');
-module.exports = async function (e = {}) {
-  let t = Object.assign({}, e, { dest: e.destination || 1, sync: !1 });
-  delete t.destination;
-  let r = ef.destination(t);
-  return await tf(r, 'ready'), r;
+
+// node_modules/pino/file.js
+var pino = require_pino();
+var { once } = require('events');
+module.exports = async function (opts = {}) {
+  const destOpts = Object.assign({}, opts, { dest: opts.destination || 1, sync: false });
+  delete destOpts.destination;
+  const destination = pino.destination(destOpts);
+  await once(destination, 'ready');
+  return destination;
 };

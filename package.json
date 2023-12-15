@@ -2,7 +2,7 @@
   "name": "@salesforce/core",
   "version": "6.4.4",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
-  "main": "dist/exported",
+  "main": "dist/index",
   "types": "dist/exported.d.ts",
   "license": "BSD-3-Clause",
   "engines": {
