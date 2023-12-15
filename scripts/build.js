@@ -6,7 +6,7 @@
  */
 const { build } = require('esbuild');
 const esbuildPluginPino = require('esbuild-plugin-pino');
-// const esbuildPluginTsc = require('esbuild-plugin-tsc');
+const esbuildPluginTsc = require('esbuild-plugin-tsc');
 const { Generator } = require('npm-dts');
 const fs = require('fs');
 
@@ -15,14 +15,14 @@ new Generator({
 }).generate();
 
 const sharedConfig = {
-  entryPoints: ['src/exported.ts'],
+  entryPoints: ['src/index.ts'],
   bundle: true,
-  minify: true,
+  // minify: true,
   plugins: [
     esbuildPluginPino({ transports: ['pino-pretty'] }),
-    // esbuildPluginTsc({
-    //   tsconfigPath: './tsconfig.json',
-    // }),
+    esbuildPluginTsc({
+      tsconfigPath: './tsconfig.json',
+    }),
   ],
 };
 
@@ -32,7 +32,7 @@ build({
   platform: 'node', // for CJS
   outdir: 'dist',
 }).then((result) => {
-  const filePath = 'dist/exported.js';
+  const filePath = 'dist/index.js';
   fs.readFile(filePath, 'utf8', (err, data) => {
     if (err) {
       console.log(err);

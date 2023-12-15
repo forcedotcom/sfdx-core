@@ -1,122 +1,198 @@
 'use strict';
-var I = (e, t) => () => (t || e((t = { exports: {} }).exports, t), t.exports);
-var D = I((C, R) => {
-  var q = new Function('modulePath', 'return import(modulePath)');
-  function N(e) {
-    return typeof __non_webpack__require__ == 'function' ? __non_webpack__require__(e) : require(e);
-  }
-  R.exports = { realImport: q, realRequire: N };
-});
-var T = I((S, w) => {
-  'use strict';
-  w.exports = { WRITE_INDEX: 4, READ_INDEX: 8 };
-});
-var y = I((v, M) => {
-  'use strict';
-  function U(e, t, r, p, i) {
-    let A = Date.now() + p,
-      n = Atomics.load(e, t);
-    if (n === r) {
-      i(null, 'ok');
-      return;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __commonJS = (cb, mod) =>
+  function __require() {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  };
+
+// node_modules/real-require/src/index.js
+var require_src = __commonJS({
+  'node_modules/real-require/src/index.js'(exports, module2) {
+    var realImport2 = new Function('modulePath', 'return import(modulePath)');
+    function realRequire2(modulePath) {
+      if (typeof __non_webpack__require__ === 'function') {
+        return __non_webpack__require__(modulePath);
+      }
+      return require(modulePath);
     }
-    let a = n,
-      l = (E) => {
-        Date.now() > A
-          ? i(null, 'timed-out')
-          : setTimeout(() => {
-              (a = n),
-                (n = Atomics.load(e, t)),
-                n === a ? l(E >= 1e3 ? 1e3 : E * 2) : n === r ? i(null, 'ok') : i(null, 'not-equal');
-            }, E);
-      };
-    l(1);
-  }
-  function g(e, t, r, p, i) {
-    let A = Date.now() + p,
-      n = Atomics.load(e, t);
-    if (n !== r) {
-      i(null, 'ok');
-      return;
-    }
-    let a = (l) => {
-      Date.now() > A
-        ? i(null, 'timed-out')
-        : setTimeout(() => {
-            (n = Atomics.load(e, t)), n !== r ? i(null, 'ok') : a(l >= 1e3 ? 1e3 : l * 2);
-          }, l);
+    module2.exports = { realImport: realImport2, realRequire: realRequire2 };
+  },
+});
+
+// node_modules/thread-stream/lib/indexes.js
+var require_indexes = __commonJS({
+  'node_modules/thread-stream/lib/indexes.js'(exports, module2) {
+    'use strict';
+    var WRITE_INDEX2 = 4;
+    var READ_INDEX2 = 8;
+    module2.exports = {
+      WRITE_INDEX: WRITE_INDEX2,
+      READ_INDEX: READ_INDEX2,
     };
-    a(1);
-  }
-  M.exports = { wait: U, waitDiff: g };
+  },
 });
-var { realImport: k, realRequire: f } = D(),
-  { workerData: X, parentPort: _ } = require('worker_threads'),
-  { WRITE_INDEX: d, READ_INDEX: s } = T(),
-  { waitDiff: O } = y(),
-  { dataBuf: W, filename: c, stateBuf: x } = X,
-  u,
-  o = new Int32Array(x),
-  h = Buffer.from(W);
-async function j() {
-  let e;
+
+// node_modules/thread-stream/lib/wait.js
+var require_wait = __commonJS({
+  'node_modules/thread-stream/lib/wait.js'(exports, module2) {
+    'use strict';
+    var MAX_TIMEOUT = 1e3;
+    function wait(state2, index, expected, timeout, done) {
+      const max = Date.now() + timeout;
+      let current = Atomics.load(state2, index);
+      if (current === expected) {
+        done(null, 'ok');
+        return;
+      }
+      let prior = current;
+      const check = (backoff) => {
+        if (Date.now() > max) {
+          done(null, 'timed-out');
+        } else {
+          setTimeout(() => {
+            prior = current;
+            current = Atomics.load(state2, index);
+            if (current === prior) {
+              check(backoff >= MAX_TIMEOUT ? MAX_TIMEOUT : backoff * 2);
+            } else {
+              if (current === expected) done(null, 'ok');
+              else done(null, 'not-equal');
+            }
+          }, backoff);
+        }
+      };
+      check(1);
+    }
+    function waitDiff2(state2, index, expected, timeout, done) {
+      const max = Date.now() + timeout;
+      let current = Atomics.load(state2, index);
+      if (current !== expected) {
+        done(null, 'ok');
+        return;
+      }
+      const check = (backoff) => {
+        if (Date.now() > max) {
+          done(null, 'timed-out');
+        } else {
+          setTimeout(() => {
+            current = Atomics.load(state2, index);
+            if (current !== expected) {
+              done(null, 'ok');
+            } else {
+              check(backoff >= MAX_TIMEOUT ? MAX_TIMEOUT : backoff * 2);
+            }
+          }, backoff);
+        }
+      };
+      check(1);
+    }
+    module2.exports = { wait, waitDiff: waitDiff2 };
+  },
+});
+
+// node_modules/thread-stream/lib/worker.js
+var { realImport, realRequire } = require_src();
+var { workerData, parentPort } = require('worker_threads');
+var { WRITE_INDEX, READ_INDEX } = require_indexes();
+var { waitDiff } = require_wait();
+var { dataBuf, filename, stateBuf } = workerData;
+var destination;
+var state = new Int32Array(stateBuf);
+var data = Buffer.from(dataBuf);
+async function start() {
+  let worker;
   try {
-    c.endsWith('.ts') || c.endsWith('.cts')
-      ? (process[Symbol.for('ts-node.register.instance')]
-          ? process.env.TS_NODE_DEV && f('ts-node-dev')
-          : f('ts-node/register'),
-        (e = f(decodeURIComponent(c.replace(process.platform === 'win32' ? 'file:///' : 'file://', '')))))
-      : (e = await k(c));
-  } catch (t) {
-    if ((t.code === 'ENOTDIR' || t.code === 'ERR_MODULE_NOT_FOUND') && c.startsWith('file://'))
-      e = f(decodeURIComponent(c.replace('file://', '')));
-    else if (t.code === void 0)
-      e = f(decodeURIComponent(c.replace(process.platform === 'win32' ? 'file:///' : 'file://', '')));
-    else throw t;
+    if (filename.endsWith('.ts') || filename.endsWith('.cts')) {
+      if (!process[Symbol.for('ts-node.register.instance')]) {
+        realRequire('ts-node/register');
+      } else if (process.env.TS_NODE_DEV) {
+        realRequire('ts-node-dev');
+      }
+      worker = realRequire(
+        decodeURIComponent(filename.replace(process.platform === 'win32' ? 'file:///' : 'file://', ''))
+      );
+    } else {
+      worker = await realImport(filename);
+    }
+  } catch (error) {
+    if ((error.code === 'ENOTDIR' || error.code === 'ERR_MODULE_NOT_FOUND') && filename.startsWith('file://')) {
+      worker = realRequire(decodeURIComponent(filename.replace('file://', '')));
+    } else if (error.code === void 0) {
+      worker = realRequire(
+        decodeURIComponent(filename.replace(process.platform === 'win32' ? 'file:///' : 'file://', ''))
+      );
+    } else {
+      throw error;
+    }
   }
-  typeof e == 'object' && (e = e.default),
-    typeof e == 'object' && (e = e.default),
-    (u = await e(X.workerData)),
-    u.on('error', function (t) {
-      Atomics.store(o, d, -2),
-        Atomics.notify(o, d),
-        Atomics.store(o, s, -2),
-        Atomics.notify(o, s),
-        _.postMessage({ code: 'ERROR', err: t });
-    }),
-    u.on('close', function () {
-      let t = Atomics.load(o, d);
-      Atomics.store(o, s, t),
-        Atomics.notify(o, s),
-        setImmediate(() => {
-          process.exit(0);
-        });
+  if (typeof worker === 'object') worker = worker.default;
+  if (typeof worker === 'object') worker = worker.default;
+  destination = await worker(workerData.workerData);
+  destination.on('error', function (err) {
+    Atomics.store(state, WRITE_INDEX, -2);
+    Atomics.notify(state, WRITE_INDEX);
+    Atomics.store(state, READ_INDEX, -2);
+    Atomics.notify(state, READ_INDEX);
+    parentPort.postMessage({
+      code: 'ERROR',
+      err,
     });
+  });
+  destination.on('close', function () {
+    const end = Atomics.load(state, WRITE_INDEX);
+    Atomics.store(state, READ_INDEX, end);
+    Atomics.notify(state, READ_INDEX);
+    setImmediate(() => {
+      process.exit(0);
+    });
+  });
 }
-j().then(function () {
-  _.postMessage({ code: 'READY' }), process.nextTick(m);
+start().then(function () {
+  parentPort.postMessage({
+    code: 'READY',
+  });
+  process.nextTick(run);
 });
-function m() {
-  let e = Atomics.load(o, s),
-    t = Atomics.load(o, d);
-  if (t === e) {
-    t === h.length ? O(o, s, t, 1 / 0, m) : O(o, d, t, 1 / 0, m);
+function run() {
+  const current = Atomics.load(state, READ_INDEX);
+  const end = Atomics.load(state, WRITE_INDEX);
+  if (end === current) {
+    if (end === data.length) {
+      waitDiff(state, READ_INDEX, end, Infinity, run);
+    } else {
+      waitDiff(state, WRITE_INDEX, end, Infinity, run);
+    }
     return;
   }
-  if (t === -1) {
-    u.end();
+  if (end === -1) {
+    destination.end();
     return;
   }
-  let r = h.toString('utf8', e, t);
-  u.write(r)
-    ? (Atomics.store(o, s, t), Atomics.notify(o, s), setImmediate(m))
-    : u.once('drain', function () {
-        Atomics.store(o, s, t), Atomics.notify(o, s), m();
-      });
+  const toWrite = data.toString('utf8', current, end);
+  const res = destination.write(toWrite);
+  if (res) {
+    Atomics.store(state, READ_INDEX, end);
+    Atomics.notify(state, READ_INDEX);
+    setImmediate(run);
+  } else {
+    destination.once('drain', function () {
+      Atomics.store(state, READ_INDEX, end);
+      Atomics.notify(state, READ_INDEX);
+      run();
+    });
+  }
 }
-process.on('unhandledRejection', function (e) {
-  _.postMessage({ code: 'ERROR', err: e }), process.exit(1);
+process.on('unhandledRejection', function (err) {
+  parentPort.postMessage({
+    code: 'ERROR',
+    err,
+  });
+  process.exit(1);
 });
-process.on('uncaughtException', function (e) {
-  _.postMessage({ code: 'ERROR', err: e }), process.exit(1);
+process.on('uncaughtException', function (err) {
+  parentPort.postMessage({
+    code: 'ERROR',
+    err,
+  });
+  process.exit(1);
 });
