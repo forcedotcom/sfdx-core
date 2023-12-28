@@ -12,7 +12,7 @@
 import * as pathImport from 'node:path';
 import * as dns from 'node:dns';
 import * as jwt from 'jsonwebtoken';
-import { cloneJson, env, includes } from '@salesforce/kit';
+import { env, includes } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, getJsonMap, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
@@ -335,7 +335,7 @@ describe('AuthInfo', () => {
           loginUrl: testOrg.loginUrl,
           privateKey: testOrg.privateKey,
         };
-        const jwtConfigClone = cloneJson(jwtConfig);
+        const jwtConfigClone = structuredClone(jwtConfig);
         const authResponse = {
           access_token: testOrg.accessToken,
           instance_url: testOrg.instanceUrl,
@@ -469,7 +469,7 @@ describe('AuthInfo', () => {
           loginUrl: testOrg.loginUrl,
           privateKey: testOrg.privateKey,
         };
-        const jwtConfigClone = cloneJson(jwtConfig);
+        const jwtConfigClone = structuredClone(jwtConfig);
         const authResponse = {
           access_token: testOrg.accessToken,
           instance_url: testOrg.instanceUrl,
@@ -535,7 +535,7 @@ describe('AuthInfo', () => {
           refreshToken: testOrg.refreshToken,
           loginUrl: testOrg.loginUrl,
         };
-        const refreshTokenConfigClone = cloneJson(refreshTokenConfig);
+        const refreshTokenConfigClone = structuredClone(refreshTokenConfig);
         const authResponse = {
           access_token: testOrg.accessToken,
           instance_url: testOrg.instanceUrl,
@@ -590,7 +590,7 @@ describe('AuthInfo', () => {
           loginUrl: testOrg.loginUrl,
           username: testOrg.username,
         };
-        const refreshTokenConfigClone = cloneJson(refreshTokenConfig);
+        const refreshTokenConfigClone = structuredClone(refreshTokenConfig);
         const authResponse = {
           access_token: testOrg.accessToken,
           instance_url: testOrg.instanceUrl,
@@ -643,7 +643,7 @@ describe('AuthInfo', () => {
           refreshToken: testOrg.refreshToken,
           loginUrl: testOrg.loginUrl,
         };
-        const refreshTokenConfigClone = cloneJson(refreshTokenConfig);
+        const refreshTokenConfigClone = structuredClone(refreshTokenConfig);
         const authResponse = {
           access_token: testOrg.accessToken,
           instance_url: testOrg.instanceUrl,
@@ -786,7 +786,7 @@ describe('AuthInfo', () => {
           authCode: testOrg.authcode,
           loginUrl: testOrg.loginUrl,
         };
-        const authCodeConfigClone = cloneJson(authCodeConfig);
+        const authCodeConfigClone = structuredClone(authCodeConfig);
         const authResponse = {
           access_token: testOrg.accessToken,
           instance_url: testOrg.instanceUrl,

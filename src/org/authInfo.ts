@@ -11,7 +11,7 @@ import { resolve as pathResolve } from 'node:path';
 import * as os from 'node:os';
 import * as fs from 'node:fs';
 import { Record as RecordType } from 'jsforce';
-import { AsyncOptionalCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
+import { AsyncOptionalCreatable, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
   AnyJson,
   asString,
@@ -847,7 +847,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     let authConfig: AuthFields;
 
     if (options) {
-      options = cloneJson(options);
+      options = structuredClone(options);
 
       if (this.isTokenOptions(options)) {
         authConfig = options;

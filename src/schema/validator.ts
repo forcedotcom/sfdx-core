@@ -110,7 +110,7 @@ export class SchemaValidator {
 
     // AJV will modify the original json object. We need to make a clone of the
     // json to keep this backwards compatible with JSEN functionality
-    const jsonClone: T = JSON.parse(JSON.stringify(json)) as T;
+    const jsonClone = structuredClone(json);
 
     const valid = validate(jsonClone);
 
