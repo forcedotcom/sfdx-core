@@ -83,7 +83,10 @@ export class Global {
    * ```
    */
   public static getEnvironmentMode(): Mode {
-    return Mode[env.getKeyOf('SFDX_ENV', Mode, Mode.PRODUCTION, (value) => value.toUpperCase())];
+    const envValue = env.getString('SF_ENV') ?? env.getString('SFDX_ENV', Mode.PRODUCTION);
+    return envValue in Mode || envValue.toUpperCase() in Mode
+      ? Mode[envValue.toUpperCase() as keyof typeof Mode]
+      : Mode.PRODUCTION;
   }
 
   /**
