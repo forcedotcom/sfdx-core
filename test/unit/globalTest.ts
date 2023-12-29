@@ -5,24 +5,37 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
+import { isString } from '@salesforce/ts-types';
 import { Global, Mode } from '../../src/global';
 
 describe('Global', () => {
   describe('environmentMode', () => {
-    const original = { SFDX_ENV: process.env.SFDX_ENV, SF_ENV: process.env.SF_ENV };
+    const originalEnv = { SFDX_ENV: process.env.SFDX_ENV, SF_ENV: process.env.SF_ENV };
+    const cleanEnv = () => Object.keys(originalEnv).map((key) => delete process.env[key]);
 
     beforeEach(() => {
-      delete process.env.SFDX_ENV;
-      delete process.env.SF_ENV;
+      cleanEnv();
     });
 
     after(() => {
-      process.env.SFDX_ENV = original.SFDX_ENV;
-      process.env.SF_ENV = original.SF_ENV;
+      cleanEnv();
+      Object.entries(originalEnv)
+        .filter(([, value]) => isString(value))
+        .map(([key, value]) => {
+          process.env[key] = value;
+        });
     });
 
-    it('uses SFDX_ENV mode', () => {
+    it('uses SFDX_ENV mode alone', () => {
       process.env.SFDX_ENV = 'development';
+      expect(Global.getEnvironmentMode() === Mode.DEVELOPMENT).to.be.true;
+      expect(Global.getEnvironmentMode() === Mode.PRODUCTION).to.be.false;
+      expect(Global.getEnvironmentMode() === Mode.DEMO).to.be.false;
+      expect(Global.getEnvironmentMode() === Mode.TEST).to.be.false;
+    });
+
+    it('uses SF_ENV mode alone', () => {
+      process.env.SF_ENV = 'development';
       expect(Global.getEnvironmentMode() === Mode.DEVELOPMENT).to.be.true;
       expect(Global.getEnvironmentMode() === Mode.PRODUCTION).to.be.false;
       expect(Global.getEnvironmentMode() === Mode.DEMO).to.be.false;
@@ -69,8 +82,16 @@ describe('Global', () => {
       expect(Global.getEnvironmentMode() === Mode.TEST).to.be.false;
     });
 
-    it('defaults to production when invalid values are specified', () => {
+    it('defaults to production when invalid values are specified (SFDX)', () => {
       process.env.SFDX_ENV = 'notARealMode';
+      expect(Global.getEnvironmentMode() === Mode.DEVELOPMENT).to.be.false;
+      expect(Global.getEnvironmentMode() === Mode.PRODUCTION).to.be.true;
+      expect(Global.getEnvironmentMode() === Mode.DEMO).to.be.false;
+      expect(Global.getEnvironmentMode() === Mode.TEST).to.be.false;
+    });
+
+    it('defaults to production when invalid values are specified (SF)', () => {
+      process.env.SF_ENV = 'notARealMode';
       expect(Global.getEnvironmentMode() === Mode.DEVELOPMENT).to.be.false;
       expect(Global.getEnvironmentMode() === Mode.PRODUCTION).to.be.true;
       expect(Global.getEnvironmentMode() === Mode.DEMO).to.be.false;
