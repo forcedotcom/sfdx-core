@@ -52,7 +52,7 @@
     "jszip": "3.10.1",
     "pino": "^8.16.2",
     "pino-abstract-transport": "^1.1.0",
-    "pino-pretty": "^10.3.0",
+    "pino-pretty": "^10.3.1",
     "proper-lockfile": "^4.1.2",
     "semver": "^7.5.4",
     "ts-retry-promise": "^0.7.1"
