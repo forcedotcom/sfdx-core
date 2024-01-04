@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "6.4.4",
+  "version": "6.3.1-bundle-dev.0",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "dist/index",
   "types": "dist/exported.d.ts",
