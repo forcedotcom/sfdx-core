@@ -1,3 +1,12 @@
+## [6.4.4](https://github.com/forcedotcom/sfdx-core/compare/6.4.3...6.4.4) (2024-01-04)
+
+
+### Bug Fixes
+
+* remove slash char from error message ([1bb300b](https://github.com/forcedotcom/sfdx-core/commit/1bb300b2bb9f4990c6e19b9b8c33453416c24c95))
+
+
+
 ## [6.4.3](https://github.com/forcedotcom/sfdx-core/compare/6.4.2...6.4.3) (2023-12-31)
 
 
