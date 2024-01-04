@@ -213,7 +213,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   private parseAuthCodeFromRequest(response: http.ServerResponse, request: WebOAuthServer.Request): Nullable<string> {
     if (!this.validateState(request)) {
       const error = new SfError('urlStateMismatch');
-      this.webServer.sendError(400, `${error.message}\n`, response);
+      this.webServer.sendError(400, error.message, response);
       this.closeRequest(request);
       this.logger.warn('urlStateMismatchAttempt detected.');
       if (!get(this.webServer.server, 'urlStateMismatchAttempt')) {
