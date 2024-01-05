@@ -19,7 +19,7 @@
     "lint": "wireit",
     "lint-fix": "yarn sf-lint --fix",
     "postcompile": "tsc -p typedocExamples",
-    "prepack": "sf-prepack",
+    "prepack": "sf-prepack && yarn bundle",
     "prepare": "sf-install",
     "test": "wireit",
     "test:only": "wireit",
