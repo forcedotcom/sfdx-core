@@ -9,5 +9,6 @@
       "output": ["lib/**", "*.tsbuildinfo"],
       "clean": "if-file-deleted"
     }
-  }
+  },
+  "exclude-scripts": ["prepack"]
 }
