@@ -8,7 +8,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
 import Transport from 'jsforce/lib/transport';
-import { AsyncCreatable, Duration, parseJsonMap } from '@salesforce/kit';
+import { AsyncCreatable, Duration, parseJsonMap, sleep } from '@salesforce/kit';
 import { HttpRequest, OAuth2Config } from 'jsforce';
 import { ensureString, isString, JsonMap, Nullable } from '@salesforce/ts-types';
 import * as FormData from 'form-data';
@@ -45,23 +45,17 @@ interface DeviceCodeAuthError extends SfError {
   status: number;
 }
 
-async function wait(ms = 1000): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
 async function makeRequest<T extends JsonMap>(options: HttpRequest): Promise<T> {
   const rawResponse = await new Transport().httpRequest(options);
-  let response: T;
+
   if (rawResponse?.headers && rawResponse.headers['content-type'] === 'text/html') {
-    response = {
-      error: 'HttpApiError',
-      error_description: `HTTP response contains html content. Check that the org exists and can be reached. Response:\n${rawResponse.body}`,
-    } as unknown as T;
-  } else {
-    response = parseJsonMap<T>(rawResponse.body);
+    const htmlResponseError = messages.createError('error.HttpApi');
+    htmlResponseError.setData(rawResponse.body);
+    throw htmlResponseError;
   }
+
+  const response = parseJsonMap<T>(rawResponse.body);
+
   if (response.error) {
     const errorDescription = typeof response.error_description === 'string' ? response.error_description : '';
     const error = typeof response.error === 'string' ? response.error : 'Unknown';
@@ -190,9 +184,13 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
     try {
       return await makeRequest<DeviceCodePollingResponse>(httpRequest);
     } catch (e: unknown) {
-      const err = (
-        e instanceof SfError ? e.data : SfError.wrap(isString(e) ? e : 'unknown').data
-      ) as DeviceCodeAuthError;
+      if (e instanceof SfError && e.name === 'HttpApiError') {
+        throw e;
+      }
+
+      const err = (e instanceof SfError ? e.data : SfError.wrap(isString(e) ? e : 'unknown').data) as
+        | DeviceCodeAuthError
+        | undefined;
       if (err?.error && err?.status === 400 && err?.error === 'authorization_pending') {
         // do nothing because we're still waiting
       } else {
@@ -226,7 +224,7 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
       } else {
         this.logger.debug(`waiting ${interval} ms...`);
         // eslint-disable-next-line no-await-in-loop
-        await wait(interval);
+        await sleep(interval);
         this.pollingCount += 1;
       }
     }

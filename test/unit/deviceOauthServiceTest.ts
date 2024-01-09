@@ -92,12 +92,10 @@ describe('DeviceOauthService', () => {
         await service.requestDeviceLogin();
         expect(true).to.be.false;
       } catch (err) {
-        expect(err).to.have.property('name', 'SfError');
+        expect(err).to.have.property('name', 'HttpApiError');
         expect(err)
           .to.have.property('message')
-          .and.contain(
-            'Request Failed: HttpApiError HTTP response contains html content. Check that the org exists and can be reached.'
-          );
+          .and.contain('HTTP response contains html content. Check that the org exists and can be reached.');
       }
     });
   });
