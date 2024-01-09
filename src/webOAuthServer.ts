@@ -25,6 +25,9 @@ import { JwtOAuth2Config } from './org/authInfo';
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'auth');
 
+// Server ignores requests for site icons
+const iconPaths = ['/favicon.ico', '/apple-touch-icon-precomposed.png'];
+
 /**
  * Handles the creation of a web server for web based login flows.
  *
@@ -186,6 +189,8 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
               this.webServer.reportSuccess(response);
             } else if (url.pathname === '/OauthError') {
               this.webServer.reportError(this.oauthError, response);
+            } else if (iconPaths.includes(url.pathname ?? '')) {
+              this.logger.debug(`Ignoring request for icon path: ${url.pathname}`);
             } else {
               this.webServer.sendError(404, 'Resource not found', response);
               const errName = 'invalidRequestUri';

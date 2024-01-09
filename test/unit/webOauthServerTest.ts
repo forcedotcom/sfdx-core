@@ -192,6 +192,73 @@ describe('WebOauthServer', () => {
       expect(reportErrorSpy.callCount).to.equal(1);
       expect(reportErrorSpy.args[0][0]).to.equal(authError);
     });
+
+    it('should ignore requests for favicon and continue', async () => {
+      const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
+      const validateStateStub = stubMethod($$.SANDBOX, oauthServer, 'validateState').returns(true);
+      await oauthServer.start();
+
+      // @ts-expect-error because private member
+      const webServer = oauthServer.webServer;
+      const reportSuccessSpy = spyMethod($$.SANDBOX, webServer, 'reportSuccess');
+
+      const origOn = webServer.server.on;
+      let requestListener: http.RequestListener;
+      stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-argument
+        if (event !== 'request') return origOn.call(webServer.server, event, callback);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        requestListener = callback;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        callback(
+          {
+            method: 'GET',
+            url: 'http://localhost:1717/favicon.ico',
+          },
+          {
+            setHeader: () => {},
+            writeHead: () => {},
+            end: () => {},
+          }
+        );
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        callback(
+          {
+            method: 'GET',
+            url: `http://localhost:1717/OauthRedirect?code=${authCode}&state=972475373f51`,
+            query: { code: authCode },
+          },
+          {
+            setHeader: () => {},
+            writeHead: () => {},
+            end: () => {},
+          }
+        );
+      });
+
+      // stub the redirect to ensure proper redirect handling and the web server is closed.
+      redirectStub = stubMethod($$.SANDBOX, webServer, 'doRedirect').callsFake(async (status, url, response) => {
+        expect(status).to.equal(303);
+        expect(url).to.equal('/OauthSuccess');
+        expect(response).to.be.ok;
+        // eslint-disable-next-line @typescript-eslint/await-thenable
+        await requestListener(
+          // @ts-expect-error
+          { method: 'GET', url: `http://localhost:1717${url}` },
+          {
+            setHeader: () => {},
+            writeHead: () => {},
+            end: () => {},
+          }
+        );
+      });
+
+      const authInfo = await oauthServer.authorizeAndSave();
+      expect(authInfo.getFields()).to.deep.equal(authFields);
+      expect(redirectStub.callCount).to.equal(1);
+      expect(validateStateStub.callCount).to.equal(1);
+      expect(reportSuccessSpy.callCount).to.equal(1);
+    });
   });
 
   it('should error if postback has error', async () => {
