@@ -1,3 +1,12 @@
+## [6.4.5](https://github.com/forcedotcom/sfdx-core/compare/6.4.4...6.4.5) (2024-01-09)
+
+
+### Bug Fixes
+
+* ignore requests for site icons ([aeab4a9](https://github.com/forcedotcom/sfdx-core/commit/aeab4a9eb0c11b987d9d20e217726688fbc3fd9b))
+
+
+
 ## [6.4.4](https://github.com/forcedotcom/sfdx-core/compare/6.4.3...6.4.4) (2024-01-04)
 
 
