@@ -48,7 +48,7 @@ interface DeviceCodeAuthError extends SfError {
 async function makeRequest<T extends JsonMap>(options: HttpRequest): Promise<T> {
   const rawResponse = await new Transport().httpRequest(options);
 
-  if (rawResponse?.headers && rawResponse.headers['content-type'] === 'text/html') {
+  if (rawResponse?.headers?.['content-type'] === 'text/html') {
     const htmlResponseError = messages.createError('error.HttpApi');
     htmlResponseError.setData(rawResponse.body);
     throw htmlResponseError;
