@@ -24,6 +24,10 @@ Invalid request method: %s
 
 Invalid request uri: %s
 
+# error.HttpApi
+
+HTTP response contains html content. Check that the org exists and can be reached.
+
 # pollingTimeout
 
 The device authorization request timed out. After executing force:auth:device:login, you must approve access to the device within 10 minutes. This can happen if the URL wasn’t copied into the browser, login was not attempted, or the 2FA process was not completed within 10 minutes. Request authorization again.

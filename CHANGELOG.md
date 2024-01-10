@@ -1,3 +1,32 @@
+## [6.4.6](https://github.com/forcedotcom/sfdx-core/compare/6.4.5...6.4.6) (2024-01-09)
+
+
+### Bug Fixes
+
+* address review comments ([ea7ad36](https://github.com/forcedotcom/sfdx-core/commit/ea7ad36c65231b9a289c19f5dd185ca5bcf9c735))
+* better header check ([ae4757f](https://github.com/forcedotcom/sfdx-core/commit/ae4757f99746866b6bf0e73c4d8f5e9ac8e418c0))
+* handle html server response ([90d025d](https://github.com/forcedotcom/sfdx-core/commit/90d025d07e749499206c96f2eabe2055899f38cb))
+
+
+
+## [6.4.5](https://github.com/forcedotcom/sfdx-core/compare/6.4.4...6.4.5) (2024-01-09)
+
+
+### Bug Fixes
+
+* ignore requests for site icons ([aeab4a9](https://github.com/forcedotcom/sfdx-core/commit/aeab4a9eb0c11b987d9d20e217726688fbc3fd9b))
+
+
+
+## [6.4.4](https://github.com/forcedotcom/sfdx-core/compare/6.4.3...6.4.4) (2024-01-04)
+
+
+### Bug Fixes
+
+* remove slash char from error message ([1bb300b](https://github.com/forcedotcom/sfdx-core/commit/1bb300b2bb9f4990c6e19b9b8c33453416c24c95))
+
+
+
 ## [6.4.3](https://github.com/forcedotcom/sfdx-core/compare/6.4.2...6.4.3) (2023-12-31)
 
 
