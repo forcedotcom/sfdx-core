@@ -1,3 +1,12 @@
+## [6.4.7](https://github.com/forcedotcom/sfdx-core/compare/6.4.6...6.4.7) (2024-01-10)
+
+
+### Bug Fixes
+
+* **deps:** bump pino from 8.16.2 to 8.17.2 ([c63976b](https://github.com/forcedotcom/sfdx-core/commit/c63976ba14a575f631ffad219d2022e7374755e3))
+
+
+
 ## [6.4.6](https://github.com/forcedotcom/sfdx-core/compare/6.4.5...6.4.6) (2024-01-09)
 
 
