@@ -11,11 +11,11 @@ const { Generator } = require('npm-dts');
 const fs = require('fs');
 
 new Generator({
-  output: 'dist/exported.d.ts',
+  output: 'lib/exported.d.ts',
 }).generate();
 
 const sharedConfig = {
-  entryPoints: ['src/index.ts'],
+  entryPoints: ['src/exported.ts'],
   bundle: true,
   // minify: true,
   plugins: [
@@ -26,48 +26,30 @@ const sharedConfig = {
   ],
 };
 
-build({
-  ...sharedConfig,
-  // external: ['src/logger/transformStream.ts'],
-  platform: 'node', // for CJS
-  outdir: 'dist',
-}).then((result) => {
-  const filePath = 'dist/index.js';
-  fs.readFile(filePath, 'utf8', (err, data) => {
-    if (err) {
-      console.log(err);
-    }
-    const searchString = /\$\{process\.cwd\(\)\}\$\{require\("path"\)\.sep\}dist/g;
-    const replacementString = `\${__dirname}\${require("path").sep}`;
-
-    const result = data.replace(searchString, replacementString);
-    fs.writeFile(filePath, result, 'utf8', function (err) {
-      if (err) console.log(err);
-    });
+(async () => {
+  const result = await build({
+    ...sharedConfig,
+    // external: ['src/logger/transformStream.ts'],
+    platform: 'node', // for CJS
+    outdir: 'lib',
   });
-});
+  const filePath = 'lib/exported.js';
+  let bundledEntryPoint = fs.readFileSync(filePath, 'utf8');
 
-build({
-  entryPoints: ['src/logger/transformStream.ts'],
-  bundle: true,
-  minify: true,
-  outdir: 'dist',
-  platform: 'node', // for CJS
-  plugins: [
-    // esbuildPluginPino({ transports: ['pino-pretty'] }),
-  ],
-});
-// build({
-//   ...sharedConfig,
-//   outfile: 'dist/exported.esm.js',
-//   platform: 'neutral', // for ESM
-//   format: 'esm',
-// });
+  const searchString = /\$\{process\.cwd\(\)\}\$\{require\("path"\)\.sep\}lib/g;
+  const replacementString = `\${__dirname}\${require("path").sep}`;
 
-// build({
-//   entryPoints: ['src/exported.ts'],
-//   outdir: 'dist',
-//   bundle: true,
-//   platform: 'node',
-//   plugins: [esbuildPluginPino({ transports: ['pino-pretty'] })],
-// }).catch(() => process.exit(1));
+  bundledEntryPoint = bundledEntryPoint.replace(searchString, replacementString);
+  fs.writeFileSync(filePath, bundledEntryPoint, 'utf8');
+
+  await build({
+    entryPoints: ['src/logger/transformStream.ts'],
+    bundle: true,
+    minify: true,
+    outdir: 'lib',
+    platform: 'node', // for CJS
+    plugins: [
+      // esbuildPluginPino({ transports: ['pino-pretty'] }),
+    ],
+  });
+})();

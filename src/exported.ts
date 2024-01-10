@@ -107,3 +107,4 @@ export { ScratchOrgCache } from './org/scratchOrgCache';
 
 // Utility sub-modules
 export * from './util/sfdc';
+export * from './testSetup';
