@@ -173,13 +173,7 @@ export class Logger {
       };
       if (Boolean(options.useMemoryLogger) || Global.getEnvironmentMode() === Mode.TEST || !enabled) {
         this.memoryLogger = new MemoryLogger();
-        this.pinoLogger = pino(
-          {
-            ...commonOptions,
-            sync: true,
-          },
-          this.memoryLogger
-        );
+        this.pinoLogger = pino(commonOptions, this.memoryLogger);
       } else {
         this.pinoLogger = pino({
           ...commonOptions,
@@ -191,7 +185,6 @@ export class Logger {
               getWriteStream(level),
             ],
           },
-          sync: false,
         });
         // when a new file logger root is instantiated, we check for old log files.
         // but we don't want to wait for it
