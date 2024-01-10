@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncOptionalCreatable, cloneJson } from '@salesforce/kit';
+import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { entriesOf, isPlainObject } from '@salesforce/ts-types';
 import { definiteEntriesOf, definiteValuesOf, isJsonMap, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import { Crypto } from '../crypto/crypto';
@@ -95,7 +95,7 @@ export abstract class BaseConfigStore<
 
     if (this.hasEncryption() && decrypt) {
       if (isJsonMap(rawValue)) {
-        return this.recursiveDecrypt(cloneJson(rawValue), key);
+        return this.recursiveDecrypt(structuredClone(rawValue), key);
       } else if (this.isCryptoKey(key)) {
         return this.decrypt(rawValue) as P[K] | ConfigValue;
       }
@@ -219,7 +219,7 @@ export abstract class BaseConfigStore<
    */
   public getContents(decrypt = false): Readonly<P> {
     if (this.hasEncryption() && decrypt) {
-      return this.recursiveDecrypt(cloneJson(this.contents?.value ?? {})) as P;
+      return this.recursiveDecrypt(structuredClone(this.contents?.value ?? {})) as P;
     }
     return this.contents?.value ?? ({} as P);
   }

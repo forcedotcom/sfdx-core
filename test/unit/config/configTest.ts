@@ -11,7 +11,7 @@
 
 import * as fs from 'node:fs';
 import { stubMethod } from '@salesforce/ts-sinon';
-import { ensureString, JsonMap } from '@salesforce/ts-types';
+import { ensureString } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import * as lockfileLib from 'proper-lockfile';
 import { Config, ConfigPropertyMeta } from '../../../src/config/config';
@@ -22,8 +22,6 @@ import { shouldThrowSync, TestContext } from '../../../src/testSetup';
 
 const configFileContentsString = '{"target-dev-hub": "configTest_devhub","target-org": "configTest_default"}';
 const configFileContentsJson = { 'target-dev-hub': 'configTest_devhub', 'target-org': 'configTest_default' };
-
-const clone = (obj: JsonMap) => JSON.parse(JSON.stringify(obj));
 
 describe('Config', () => {
   const $$ = new TestContext();
@@ -99,7 +97,7 @@ describe('Config', () => {
     it('calls Config.write with updated file contents', async () => {
       const writeStub = stubMethod($$.SANDBOX, fs.promises, 'writeFile');
 
-      const expectedFileContents = clone(configFileContentsJson);
+      const expectedFileContents = structuredClone(configFileContentsJson);
       const newUsername = 'updated_val';
       expectedFileContents['target-org'] = newUsername;
 
@@ -109,7 +107,7 @@ describe('Config', () => {
     });
 
     it('calls Config.write with deleted file contents', async () => {
-      const expectedFileContents = clone(configFileContentsJson);
+      const expectedFileContents = structuredClone(configFileContentsJson);
       const newUsername = 'updated_val';
       expectedFileContents['target-org'] = newUsername;
 
@@ -236,8 +234,8 @@ describe('Config', () => {
       stubMethod($$.SANDBOX, fs.promises, 'stat').resolves({ mtimeNs: BigInt(new Date().valueOf() - 1_000 * 60 * 5) });
       const writeStub = stubMethod($$.SANDBOX, fs.promises, 'writeFile');
 
-      const expectedFileContents = clone(configFileContentsJson);
-      delete expectedFileContents['target-org'];
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { 'target-org': deleteThis, ...expectedFileContents } = structuredClone(configFileContentsJson);
 
       const config = await Config.create({ isGlobal: false });
       config.unset('target-org');

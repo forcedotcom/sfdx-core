@@ -9,6 +9,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
 import { expect, config as chaiConfig } from 'chai';
+import { isString } from '@salesforce/ts-types';
 import { Logger, LoggerLevel, computeLevel } from '../../src/logger/logger';
 import { shouldThrowSync, TestContext } from '../../src/testSetup';
 
@@ -18,12 +19,20 @@ import { shouldThrowSync, TestContext } from '../../src/testSetup';
 chaiConfig.truncateThreshold = 0;
 describe('Logger', () => {
   const $$ = new TestContext();
-  const sfdxEnv = process.env.SFDX_ENV;
-  const logRotationPeriodBackup = process.env.SF_LOG_ROTATION_PERIOD;
-  const logRotationCountBackup = process.env.SF_LOG_ROTATION_COUNT;
+  const originalEnv = {
+    SFDX_ENV: process.env.SFDX_ENV,
+    SF_ENV: process.env.SF_ENV,
+    SF_LOG_LEVEL: process.env.SF_LOG_LEVEL,
+    SF_DISABLE_LOG_FILE: process.env.SF_DISABLE_LOG_FILE,
+    SF_LOG_ROTATION_PERIOD: process.env.SF_LOG_ROTATION_PERIOD,
+    SF_LOG_ROTATION_COUNT: process.env.SF_LOG_ROTATION_COUNT,
+  };
 
-  beforeEach(async () => {
+  const cleanEnv = () => Object.keys(originalEnv).map((key) => delete process.env[key]);
+  beforeEach(() => {
+    cleanEnv();
     process.env.SFDX_ENV = 'test';
+    process.env.SF_ENV = 'test';
 
     // Must restore the globally stubbed Logger.child method here.  Stubbed in testSetup.
     // @ts-expect-error: called is a sinon spy property
@@ -32,9 +41,15 @@ describe('Logger', () => {
 
   afterEach(() => {
     Logger.destroyRoot();
-    if (sfdxEnv) process.env.SFDX_ENV = sfdxEnv;
-    if (logRotationPeriodBackup) process.env.SF_LOG_ROTATION_PERIOD = logRotationPeriodBackup;
-    if (logRotationCountBackup) process.env.SF_LOG_ROTATION_COUNT = logRotationCountBackup;
+  });
+
+  after(() => {
+    cleanEnv();
+    Object.entries(originalEnv)
+      .filter(([, value]) => isString(value))
+      .map(([key, value]) => {
+        process.env[key] = value;
+      });
   });
 
   describe('constructor', () => {
@@ -47,13 +62,10 @@ describe('Logger', () => {
     });
 
     describe('DISABLE_LOG_FILE', () => {
-      const LOG_FILES_DISABLED = process.env.SF_DISABLE_LOG_FILE;
       before(() => {
         process.env.SF_DISABLE_LOG_FILE = 'true';
       });
-      after(() => {
-        process.env.SF_DISABLE_LOG_FILE = LOG_FILES_DISABLED;
-      });
+
       it('should construct a new named logger', async () => {
         const logger1 = new Logger({ name: 'testLogger-noop' });
         expect(logger1).to.be.instanceof(Logger);
@@ -66,9 +78,6 @@ describe('Logger', () => {
 
   describe('levels', () => {
     describe('level computation', () => {
-      afterEach(() => {
-        delete process.env.SF_LOG_LEVEL;
-      });
       it('should use a matching a level name when passed in', () => {
         expect(computeLevel('error')).to.equal('error');
       });

@@ -10,7 +10,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { EOL } from 'node:os';
-import { cloneJson } from '@salesforce/kit';
 import { assert, expect } from 'chai';
 import { SinonStub } from 'sinon';
 import { Messages } from '../../src/messages';
@@ -30,8 +29,8 @@ describe('Messages', () => {
   msgMap.set('msg1', testMessages.msg1);
   msgMap.set('msg1.actions', testMessages.msg2);
   msgMap.set('msg2', testMessages.msg2);
-  msgMap.set('msg3', cloneJson(testMessages));
-  msgMap.get('msg3').msg3 = cloneJson(testMessages);
+  msgMap.set('msg3', structuredClone(testMessages));
+  msgMap.get('msg3').msg3 = structuredClone(testMessages);
   msgMap.set('manyMsgs', testMessages.manyMsgs);
 
   describe('getMessage', () => {
