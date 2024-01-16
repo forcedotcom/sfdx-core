@@ -311,3 +311,7 @@ Deprecated environment variable: %s. Please use %s instead.
 Deprecated environment variable: %s. Please use %s instead.
 
 Your environment has both variables populated, and with different values. The value from %s will be used.
+
+# sfCapitalizeRecordTypes
+
+Boolean indicating whether or not to capitalize object settings.

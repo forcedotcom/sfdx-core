@@ -48,9 +48,17 @@ export enum OrgConfigProperties {
    * The url for the debugger configuration.
    */
   ORG_ISV_DEBUGGER_URL = 'org-isv-debugger-url',
+  /**
+   * Capitalize record types when deploying scratch org settings
+   */
+  ORG_CAPITALIZE_RECORD_TYPES = 'org-capitalize-record-types',
 }
 
 export const ORG_CONFIG_ALLOWED_PROPERTIES = [
+  {
+    key: OrgConfigProperties.ORG_CAPITALIZE_RECORD_TYPES,
+    description: messages.getMessage(OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES),
+  },
   {
     key: OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES,
     description: messages.getMessage(OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES),

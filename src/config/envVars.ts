@@ -91,6 +91,7 @@ export enum EnvironmentVariable {
   'SF_UPDATE_INSTRUCTIONS' = 'SF_UPDATE_INSTRUCTIONS',
   'SF_INSTALLER' = 'SF_INSTALLER',
   'SF_ENV' = 'SF_ENV',
+  'SF_CAPITALIZE_RECORD_TYPES' = 'SF_CAPITALIZE_RECORD_TYPES',
 }
 type EnvMetaData = {
   description: string;
@@ -415,6 +416,10 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SF_ENV]: {
     description: getMessage(EnvironmentVariable.SF_ENV),
+    synonymOf: null,
+  },
+  [EnvironmentVariable.SF_CAPITALIZE_RECORD_TYPES]: {
+    description: getMessage(EnvironmentVariable.SF_CAPITALIZE_RECORD_TYPES),
     synonymOf: null,
   },
 };

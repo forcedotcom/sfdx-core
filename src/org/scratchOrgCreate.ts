@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Duration } from '@salesforce/kit';
+import { Duration, toBoolean } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 import { Logger } from '../logger/logger';
@@ -229,7 +229,12 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   });
 
   // gets the scratch org settings (will use in both signup paths AND to deploy the settings)
-  const settingsGenerator = new SettingsGenerator();
+  const settingsGenerator = new SettingsGenerator({
+    capitalizeRecordTypes: toBoolean(
+      (await ConfigAggregator.create()).getInfo('org-capitalize-record-types').value ?? true
+    ),
+  });
+
   const settings = await settingsGenerator.extract(scratchOrgInfo);
   logger.debug(`the scratch org def file has settings: ${settingsGenerator.hasSettings()}`);
 
