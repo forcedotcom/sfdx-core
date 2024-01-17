@@ -16,6 +16,7 @@ import { StatusResult } from '../status/types';
 import { PollingClient } from '../status/pollingClient';
 import { ZipWriter } from '../util/zipWriter';
 import { DirectoryWriter } from '../util/directoryWriter';
+import { Lifecycle } from '../lifecycleEvents';
 import { ScratchOrgInfo, ObjectSetting } from './scratchOrgTypes';
 import { Org } from './org';
 
@@ -210,7 +211,14 @@ export default class SettingsGenerator {
     capitalizeRecordTypes?: boolean;
   }) {
     this.logger = Logger.childFromRoot('SettingsGenerator');
-    this.capitalizeRecordTypes = options?.capitalizeRecordTypes ?? false;
+    if (options?.capitalizeRecordTypes === undefined) {
+      void Lifecycle.getInstance().emitWarning(
+        'record types will stop being capitalized by default in a future release.'
+      );
+      this.capitalizeRecordTypes = true;
+    } else {
+      this.capitalizeRecordTypes = options.capitalizeRecordTypes;
+    }
     // If SFDX_MDAPI_TEMP_DIR is set, copy settings to that dir for people to inspect.
     const mdApiTmpDir = options?.mdApiTmpDir ?? env.getString('SFDX_MDAPI_TEMP_DIR');
     this.shapeDirName = options?.shapeDirName ?? `shape_${Date.now()}`;

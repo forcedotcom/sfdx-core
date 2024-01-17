@@ -57,7 +57,7 @@ export enum OrgConfigProperties {
 export const ORG_CONFIG_ALLOWED_PROPERTIES = [
   {
     key: OrgConfigProperties.ORG_CAPITALIZE_RECORD_TYPES,
-    description: messages.getMessage(OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES),
+    description: messages.getMessage(OrgConfigProperties.ORG_CAPITALIZE_RECORD_TYPES),
   },
   {
     key: OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES,

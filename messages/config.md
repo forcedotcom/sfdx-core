@@ -151,6 +151,10 @@ A valid repository URL or directory for the custom org metadata templates.
 
 A valid repository URL or directory for the custom org metadata templates.
 
+# org-capitalize-record-types
+
+Whether record types are capitalized on scrach org creation.
+
 # invalidId
 
 The given id %s is not a valid 15 or 18 character Salesforce ID.

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Duration, toBoolean } from '@salesforce/kit';
+import { Duration } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 import { Logger } from '../logger/logger';
@@ -150,7 +150,12 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
   const configAggregator = await ConfigAggregator.create();
 
   await emit({ stage: 'deploy settings', scratchOrgInfo: soi });
-  const settingsGenerator = new SettingsGenerator();
+
+  const capitalizeRecordTypes = await getCapitalizeRecordTypesConfig();
+
+  const settingsGenerator = new SettingsGenerator({
+    capitalizeRecordTypes,
+  });
   await settingsGenerator.extract({ ...soi, ...definitionjson });
   const [authInfo] = await Promise.all([
     resolveUrl(scratchOrgAuthInfo),
@@ -228,11 +233,11 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     ignoreAncestorIds,
   });
 
+  const capitalizeRecordTypes = await getCapitalizeRecordTypesConfig();
+
   // gets the scratch org settings (will use in both signup paths AND to deploy the settings)
   const settingsGenerator = new SettingsGenerator({
-    capitalizeRecordTypes: toBoolean(
-      (await ConfigAggregator.create()).getInfo('org-capitalize-record-types').value ?? true
-    ),
+    capitalizeRecordTypes,
   });
 
   const settings = await settingsGenerator.extract(scratchOrgInfo);
@@ -333,3 +338,8 @@ const getSignupTargetLoginUrl = async (): Promise<string | undefined> => {
     // a project isn't required for org:create
   }
 };
+
+async function getCapitalizeRecordTypesConfig(): Promise<boolean | undefined> {
+  const configAgg = await ConfigAggregator.create();
+  return configAgg.getInfo('org-capitalize-record-types').value as boolean | undefined;
+}
