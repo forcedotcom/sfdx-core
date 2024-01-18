@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Duration } from '@salesforce/kit';
+import { Duration, toBoolean } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 import { Logger } from '../logger/logger';
@@ -341,5 +341,10 @@ const getSignupTargetLoginUrl = async (): Promise<string | undefined> => {
 
 async function getCapitalizeRecordTypesConfig(): Promise<boolean | undefined> {
   const configAgg = await ConfigAggregator.create();
-  return configAgg.getInfo('org-capitalize-record-types').value as boolean | undefined;
+  const value = configAgg.getInfo('org-capitalize-record-types').value as string | undefined;
+
+  if (value !== undefined) return toBoolean(value);
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  return value as undefined;
 }
