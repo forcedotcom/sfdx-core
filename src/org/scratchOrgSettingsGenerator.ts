@@ -17,8 +17,11 @@ import { PollingClient } from '../status/pollingClient';
 import { ZipWriter } from '../util/zipWriter';
 import { DirectoryWriter } from '../util/directoryWriter';
 import { Lifecycle } from '../lifecycleEvents';
+import { Messages } from '../messages';
 import { ScratchOrgInfo, ObjectSetting } from './scratchOrgTypes';
 import { Org } from './org';
+
+Messages.importMessagesDirectory(__dirname);
 
 export enum RequestStatus {
   Pending = 'Pending',
@@ -212,9 +215,8 @@ export default class SettingsGenerator {
   }) {
     this.logger = Logger.childFromRoot('SettingsGenerator');
     if (options?.capitalizeRecordTypes === undefined) {
-      void Lifecycle.getInstance().emitWarning(
-        'record types will stop being capitalized by default in a future release.'
-      );
+      const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgSettingsGenerator');
+      void Lifecycle.getInstance().emitWarning(messages.getMessage('noCapitalizeRecordTypeConfigVar'));
       this.capitalizeRecordTypes = true;
     } else {
       this.capitalizeRecordTypes = options.capitalizeRecordTypes;
