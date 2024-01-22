@@ -314,4 +314,4 @@ Your environment has both variables populated, and with different values. The va
 
 # sfCapitalizeRecordTypes
 
-Whether record types are capitalized on scrach org creation.
+Whether record types are capitalized on scratch org creation.

@@ -153,7 +153,7 @@ A valid repository URL or directory for the custom org metadata templates.
 
 # org-capitalize-record-types
 
-Whether record types are capitalized on scrach org creation.
+Whether record types are capitalized on scratch org creation.
 
 # invalidId
 
