@@ -639,13 +639,38 @@ describe('scratchOrgSettingsGenerator', () => {
         'account',
         objectSettingsData.account,
         allRecordTypes,
-        allbusinessProcesses
+        allbusinessProcesses,
+        true
       );
       expect(recordTypeAndBusinessProcessFileContent).to.deep.equal({
         '@': { xmlns: 'http://soap.sforce.com/2006/04/metadata' },
         recordTypes: { fullName: 'PersonAccount', label: 'PersonAccount', active: true },
       });
       expect(allRecordTypes).to.deep.equal(['Account.PersonAccount']);
+      expect(allbusinessProcesses).to.deep.equal([]);
+    });
+
+    it('createRecordTypeAndBusinessProcessFileContent with account type, not capitalized', () => {
+      const objectSettingsDataLowercaseRecordType = {
+        account: {
+          defaultRecordType: 'personAccount',
+        },
+      };
+
+      const allRecordTypes: string[] = [];
+      const allbusinessProcesses: string[] = [];
+      const recordTypeAndBusinessProcessFileContent = createRecordTypeAndBusinessProcessFileContent(
+        'account',
+        objectSettingsDataLowercaseRecordType.account,
+        allRecordTypes,
+        allbusinessProcesses,
+        false
+      );
+      expect(recordTypeAndBusinessProcessFileContent).to.deep.equal({
+        '@': { xmlns: 'http://soap.sforce.com/2006/04/metadata' },
+        recordTypes: { fullName: 'personAccount', label: 'personAccount', active: true },
+      });
+      expect(allRecordTypes).to.deep.equal(['Account.personAccount']);
       expect(allbusinessProcesses).to.deep.equal([]);
     });
 
@@ -656,7 +681,8 @@ describe('scratchOrgSettingsGenerator', () => {
         'opportunity',
         objectSettingsData.opportunity,
         allRecordTypes,
-        allbusinessProcesses
+        allbusinessProcesses,
+        true
       );
       expect(recordTypeAndBusinessProcessFileContent).to.deep.equal({
         '@': { xmlns: 'http://soap.sforce.com/2006/04/metadata' },
@@ -686,7 +712,8 @@ describe('scratchOrgSettingsGenerator', () => {
         'case',
         objectSettingsData.case,
         allRecordTypes,
-        allbusinessProcesses
+        allbusinessProcesses,
+        true
       );
       expect(recordTypeAndBusinessProcessFileContent).to.deep.equal({
         '@': { xmlns: 'http://soap.sforce.com/2006/04/metadata' },
@@ -708,6 +735,44 @@ describe('scratchOrgSettingsGenerator', () => {
       });
       expect(allRecordTypes).to.deep.equal(['Case.Default']);
       expect(allbusinessProcesses).to.deep.equal(['Case.DefaultProcess']);
+    });
+
+    it('createRecordTypeAndBusinessProcessFileContent with case values, not capitalized', () => {
+      const objectSettingsDataLowercaseRecordType = {
+        case: {
+          defaultRecordType: 'default',
+          sharingModel: 'private',
+        },
+      };
+      const allRecordTypes: string[] = [];
+      const allbusinessProcesses: string[] = [];
+      const recordTypeAndBusinessProcessFileContent = createRecordTypeAndBusinessProcessFileContent(
+        'case',
+        objectSettingsDataLowercaseRecordType.case,
+        allRecordTypes,
+        allbusinessProcesses,
+        false
+      );
+      expect(recordTypeAndBusinessProcessFileContent).to.deep.equal({
+        '@': { xmlns: 'http://soap.sforce.com/2006/04/metadata' },
+        sharingModel: 'Private',
+        recordTypes: {
+          fullName: 'default',
+          label: 'default',
+          active: true,
+          businessProcess: 'defaultProcess',
+        },
+        businessProcesses: {
+          fullName: 'defaultProcess',
+          isActive: true,
+          values: {
+            fullName: 'New',
+            default: true,
+          },
+        },
+      });
+      expect(allRecordTypes).to.deep.equal(['Case.default']);
+      expect(allbusinessProcesses).to.deep.equal(['Case.defaultProcess']);
     });
   });
 
