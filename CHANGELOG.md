@@ -1,3 +1,22 @@
+# [6.5.0](https://github.com/forcedotcom/sfdx-core/compare/6.4.8-dev.0...6.5.0) (2024-01-22)
+
+
+### Bug Fixes
+
+* emit warning if config var is unset ([fc32218](https://github.com/forcedotcom/sfdx-core/commit/fc3221886ed47d83999de102e7d76e82a29c0c0c))
+* properly handle undefined ([94fe825](https://github.com/forcedotcom/sfdx-core/commit/94fe825c8e4772bce6ed97f3ab6842e5011f7dd2))
+
+
+
+## [6.4.8-dev.0](https://github.com/forcedotcom/sfdx-core/compare/6.4.7...6.4.8-dev.0) (2024-01-17)
+
+
+### Features
+
+* **scratch:** add `org-capitalize-record-types` ([725bf67](https://github.com/forcedotcom/sfdx-core/commit/725bf67bf0c7b4ba274644581005ed921862da09))
+
+
+
 ## [6.4.7](https://github.com/forcedotcom/sfdx-core/compare/6.4.6...6.4.7) (2024-01-10)
 
 
