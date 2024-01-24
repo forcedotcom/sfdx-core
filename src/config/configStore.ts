@@ -20,8 +20,10 @@ import { ConfigContents, ConfigEntry, ConfigValue, Key } from './configStackType
 export interface ConfigStore<P extends ConfigContents = ConfigContents> {
   // Map manipulation methods
   entries(): ConfigEntry[];
-  get<K extends Key<P>>(key: K, decrypt: boolean): P[K] | undefined;
-  get<T extends ConfigValue>(key: string, decrypt: boolean): T | undefined;
+  // NEXT_RELEASE: update types to specify return can be P[K] | undefined
+  get<K extends Key<P>>(key: K, decrypt: boolean): P[K];
+  // NEXT_RELEASE: update types to specify return can be T | undefined
+  get<T extends ConfigValue>(key: string, decrypt: boolean): T;
   getKeysByValue(value: ConfigValue): Array<Key<P>>;
   has(key: string): boolean;
   keys(): Array<Key<P>>;
@@ -88,9 +90,13 @@ export abstract class BaseConfigStore<
    * @param decrypt If it is an encrypted key, decrypt the value.
    * If the value is an object, a clone will be returned.
    */
-  public get<K extends Key<P>>(key: K, decrypt?: boolean): P[K] | undefined;
-  public get<V = ConfigValue>(key: string, decrypt?: boolean): V | undefined;
-  public get<K extends Key<P>>(key: K | string, decrypt = false): P[K] | ConfigValue | undefined {
+  // NEXT_RELEASE: update types to specify return can be  | undefined
+  public get<K extends Key<P>>(key: K, decrypt?: boolean): P[K];
+  // NEXT_RELEASE: update types to specify return can be  | undefined
+  // NEXT_RELEASE: consider getting rid of ConfigValue and letting it just use the Key<> approach
+  public get<V = ConfigValue>(key: string, decrypt?: boolean): V;
+  // NEXT_RELEASE: update types to specify return can be  | undefined
+  public get<K extends Key<P>>(key: K | string, decrypt = false): P[K] | ConfigValue {
     const rawValue = this.contents.get(key as K);
 
     if (this.hasEncryption() && decrypt) {
@@ -100,6 +106,7 @@ export abstract class BaseConfigStore<
         return this.decrypt(rawValue) as P[K] | ConfigValue;
       }
     }
+    // NEXT_RELEASE: update types to specify return can be  | undefined
     return rawValue as P[K] | ConfigValue;
   }
 
