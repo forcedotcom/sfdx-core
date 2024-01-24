@@ -20,8 +20,8 @@ import { ConfigContents, ConfigEntry, ConfigValue, Key } from './configStackType
 export interface ConfigStore<P extends ConfigContents = ConfigContents> {
   // Map manipulation methods
   entries(): ConfigEntry[];
-  get<K extends Key<P>>(key: K, decrypt: boolean): P[K];
-  get<T extends ConfigValue>(key: string, decrypt: boolean): T;
+  get<K extends Key<P>>(key: K, decrypt: boolean): P[K] | undefined;
+  get<T extends ConfigValue>(key: string, decrypt: boolean): T | undefined;
   getKeysByValue(value: ConfigValue): Array<Key<P>>;
   has(key: string): boolean;
   keys(): Array<Key<P>>;
@@ -88,9 +88,9 @@ export abstract class BaseConfigStore<
    * @param decrypt If it is an encrypted key, decrypt the value.
    * If the value is an object, a clone will be returned.
    */
-  public get<K extends Key<P>>(key: K, decrypt?: boolean): P[K];
-  public get<V = ConfigValue>(key: string, decrypt?: boolean): V;
-  public get<K extends Key<P>>(key: K | string, decrypt = false): P[K] | ConfigValue {
+  public get<K extends Key<P>>(key: K, decrypt?: boolean): P[K] | undefined;
+  public get<V = ConfigValue>(key: string, decrypt?: boolean): V | undefined;
+  public get<K extends Key<P>>(key: K | string, decrypt = false): P[K] | ConfigValue | undefined {
     const rawValue = this.contents.get(key as K);
 
     if (this.hasEncryption() && decrypt) {

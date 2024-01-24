@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
+import { expect, assert } from 'chai';
 import { AuthInfoConfig } from '../../../src/config/authInfoConfig';
 import { BaseConfigStore } from '../../../src/config/configStore';
 import { ConfigContents } from '../../../src/config/configStackTypes';
@@ -53,9 +53,9 @@ describe('ConfigStore', () => {
     const config = new TestConfig<{ '1': { a: string } }>();
     config.set('1', { a: 'a' });
 
-    config.get('1').a = 'b';
+    config.get('1')!.a = 'b';
 
-    expect(config.get('1').a).to.equal('b');
+    expect(config.get('1')!.a).to.equal('b');
   });
 
   it('updates the object reference', async () => {
@@ -64,8 +64,13 @@ describe('ConfigStore', () => {
 
     config.update('1', { b: 'c' });
 
-    expect(config.get('1').a).to.equal('a');
-    expect(config.get('1').b).to.equal('c');
+    expect(config.get('1')!.a).to.equal('a');
+    expect(config.get('1')!.b).to.equal('c');
+  });
+
+  it('undefined keys return undefined', async () => {
+    const config = new TestConfig<{ '1': { a: string } }>();
+    expect(config.get('not-a-thing')).to.equal(undefined);
   });
 
   describe('encryption', () => {
@@ -111,9 +116,9 @@ describe('ConfigStore', () => {
       });
       const owner = config.get('owner');
       // encrypted
-      expect(owner.creditCardNumber).to.not.equal(expected);
+      expect(owner?.creditCardNumber).to.not.equal(expected);
       // decrypted
-      expect(config.get('owner', true).creditCardNumber).to.equal(expected);
+      expect(config.get('owner', true)?.creditCardNumber).to.equal(expected);
     });
 
     it('encrypts nested key using regexp', async () => {
@@ -129,9 +134,9 @@ describe('ConfigStore', () => {
       });
       const owner = config.get('owner');
       // encrypted
-      expect(owner.superPassword).to.not.equal(expected);
+      expect(owner?.superPassword).to.not.equal(expected);
       // decrypted
-      expect(config.get('owner', true).superPassword).to.equal(expected);
+      expect(config.get('owner', true)?.superPassword).to.equal(expected);
     });
 
     it('decrypt returns copies', async () => {
@@ -142,11 +147,12 @@ describe('ConfigStore', () => {
       config.set('owner', owner);
 
       const decryptedOwner = config.get('owner', true);
+      assert(decryptedOwner);
       // Because we retrieved an decrypted object on a config with encryption,
       // it should return a clone so it doesn't accidentally save decrypted data.
       decryptedOwner.creditCardNumber = 'invalid';
-      expect(config.get('owner').creditCardNumber).to.not.equal('invalid');
-      expect(config.get('owner', true).creditCardNumber).to.equal(expected);
+      expect(config.get('owner')?.creditCardNumber).to.not.equal('invalid');
+      expect(config.get('owner', true)?.creditCardNumber).to.equal(expected);
     });
 
     // Ensures accessToken and refreshToken are both decrypted upon config.get()
@@ -170,13 +176,13 @@ describe('ConfigStore', () => {
       const owner = { name: 'Bob', creditCardNumber: expected };
       // @ts-expect-error incomplete owner
       config.set('owner', owner);
-      const encryptedCreditCardNumber = config.get('owner').creditCardNumber;
+      const encryptedCreditCardNumber = config.get('owner')?.creditCardNumber;
       const contents = config.getContents();
       contents.owner.name = 'Tim';
       // @ts-expect-error private method
       config.setContents(contents);
-      expect(config.get('owner').name).to.equal(contents.owner.name);
-      expect(config.get('owner').creditCardNumber).to.equal(encryptedCreditCardNumber);
+      expect(config.get('owner')?.name).to.equal(contents.owner.name);
+      expect(config.get('owner')?.creditCardNumber).to.equal(encryptedCreditCardNumber);
     });
 
     it('updates encrypted object', async () => {
@@ -188,8 +194,8 @@ describe('ConfigStore', () => {
 
       config.update('owner', { creditCardNumber: expected });
 
-      expect(config.get('owner').name).to.equal(owner.name);
-      expect(config.get('owner', true).creditCardNumber).to.equal(expected);
+      expect(config.get('owner')?.name).to.equal(owner.name);
+      expect(config.get('owner', true)?.creditCardNumber).to.equal(expected);
     });
   });
 });

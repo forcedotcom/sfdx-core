@@ -110,9 +110,12 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
     emit({ stage: 'send request' }),
   ]);
   logger.debug(`resuming scratch org creation for jobId: ${jobId}`);
-  if (!cache.has(jobId)) {
+  const cached = cache.get(jobId);
+
+  if (!cached) {
     throw messages.createError('CacheMissError', [jobId]);
   }
+
   const {
     hubUsername,
     apiVersion,
@@ -122,7 +125,7 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
     alias,
     setDefault,
     tracksSource,
-  } = cache.get(jobId);
+  } = cached;
 
   const hubOrg = await Org.create({ aliasOrUsername: hubUsername });
   const soi = await queryScratchOrgInfo(hubOrg, jobId);
