@@ -1,3 +1,12 @@
+## [6.5.1](https://github.com/forcedotcom/sfdx-core/compare/6.5.0...6.5.1) (2024-01-24)
+
+
+### Bug Fixes
+
+* correct typings for configStore `get` ([4dad8c7](https://github.com/forcedotcom/sfdx-core/commit/4dad8c75e38252d2ecafe1a4349cc5b0d19d68ac))
+
+
+
 # [6.5.0](https://github.com/forcedotcom/sfdx-core/compare/6.4.8-dev.0...6.5.0) (2024-01-22)
 
 
