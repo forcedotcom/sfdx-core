@@ -12,7 +12,8 @@ import { StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
 import { MockTestOrgData, TestContext } from '../../src/testSetup';
 import { DeviceOauthService } from '../../src/deviceOauthService';
-import { AuthFields, AuthInfo, DEFAULT_CONNECTED_APP_INFO, SFDX_HTTP_HEADERS } from '../../src/org';
+import { AuthFields, AuthInfo, DEFAULT_CONNECTED_APP_INFO } from '../../src/org/authInfo';
+import { SFDX_HTTP_HEADERS } from '../../src/org/connection';
 
 const deviceCodeResponse = {
   device_code: '1234',
@@ -31,6 +32,8 @@ const devicePollingResponse = {
   token_type: '1234',
   issued_at: '1234',
 };
+
+const htmlResponse = '<html><body>Server down for maintenance</body></html>';
 
 type UnknownError = {
   error: string;
@@ -70,18 +73,40 @@ describe('DeviceOauthService', () => {
   describe('requestDeviceLogin', () => {
     it('should return the device code response', async () => {
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(
-        Promise.resolve({ body: JSON.stringify(deviceCodeResponse) })
+        Promise.resolve({
+          body: JSON.stringify(deviceCodeResponse),
+          headers: { 'content-type': 'application/json;charset=UTF-8' },
+        })
       );
       const service = await DeviceOauthService.create({});
       const login = await service.requestDeviceLogin();
       expect(login).to.deep.equal(deviceCodeResponse);
+    });
+
+    it('should handle HTML response with proper error', async () => {
+      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(
+        Promise.resolve({ body: htmlResponse, headers: { 'content-type': 'text/html' } })
+      );
+      const service = await DeviceOauthService.create({});
+      try {
+        await service.requestDeviceLogin();
+        expect(true).to.be.false;
+      } catch (err) {
+        expect(err).to.have.property('name', 'HttpApiError');
+        expect(err)
+          .to.have.property('message')
+          .and.contain('HTTP response contains html content. Check that the org exists and can be reached.');
+      }
     });
   });
 
   describe('awaitDeviceApproval', () => {
     it('should return the device polling response', async () => {
       stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').returns(
-        Promise.resolve({ body: JSON.stringify(devicePollingResponse) })
+        Promise.resolve({
+          body: JSON.stringify(devicePollingResponse),
+          headers: { 'content-type': 'application/json;charset=UTF-8' },
+        })
       );
       const service = await DeviceOauthService.create({});
       const approval = await service.awaitDeviceApproval(deviceCodeResponse);
@@ -95,10 +120,16 @@ describe('DeviceOauthService', () => {
           Promise.resolve({
             statusCode: 400,
             body: JSON.stringify({ error: 'authorization_pending' }),
+            headers: { 'content-type': 'application/json;charset=UTF-8' },
           })
         )
         .onSecondCall()
-        .returns(Promise.resolve({ body: JSON.stringify(devicePollingResponse) }));
+        .returns(
+          Promise.resolve({
+            body: JSON.stringify(devicePollingResponse),
+            headers: { 'content-type': 'application/json;charset=UTF-8' },
+          })
+        );
       const shouldContinuePollingStub = stubMethod($$.SANDBOX, DeviceOauthService.prototype, 'shouldContinuePolling')
         .onFirstCall()
         .returns(true)
@@ -118,6 +149,7 @@ describe('DeviceOauthService', () => {
       service.pollingCount = DeviceOauthService.POLLING_COUNT_MAX + 1;
       try {
         await service.awaitDeviceApproval(deviceCodeResponse);
+        expect(true).to.be.false;
       } catch (err) {
         expect((err as Error).name).to.equal('PollingTimeoutError');
       }
@@ -131,6 +163,7 @@ describe('DeviceOauthService', () => {
       const service = await DeviceOauthService.create({});
       try {
         await service.awaitDeviceApproval(deviceCodeResponse);
+        expect(true).to.be.false;
       } catch (err) {
         // @ts-expect-error: because private member
         expect(service.pollingCount).to.equal(0);
@@ -145,10 +178,12 @@ describe('DeviceOauthService', () => {
           error: 'Invalid grant type',
           error_description: 'Invalid grant type',
         }),
+        headers: { 'content-type': 'application/json;charset=UTF-8' },
       }));
       const service = await DeviceOauthService.create({});
       try {
         await service.awaitDeviceApproval(deviceCodeResponse);
+        expect(true).to.be.false;
       } catch (err) {
         // @ts-expect-error: because private member
         expect(service.pollingCount).to.equal(0);

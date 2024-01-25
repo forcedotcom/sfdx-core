@@ -72,6 +72,29 @@ describe('SfError', () => {
     });
   });
 
+  describe('generic for data', () => {
+    class ErrorWithBooleanData extends SfError<boolean> {}
+    it('should accept a generic for data and allow a valid set', () => {
+      const err = new ErrorWithBooleanData('test');
+      err.setData(true);
+      expect(err.data).to.equal(true);
+    });
+
+    it('should not allow an invalid set', () => {
+      const err = new ErrorWithBooleanData('test');
+      // @ts-expect-error invalid boolean
+      err.setData(5);
+      // @ts-expect-error invalid boolean
+      err.setData('foo');
+    });
+
+    it('should allow anything on the original unknown', () => {
+      const err = new SfError('test');
+      err.setData(5);
+      err.setData('foo');
+      err.setData({ bar: 6 });
+    });
+  });
   describe('toObject', () => {
     it('should return the proper JSON object WITH context and data', () => {
       const message = 'its a trap!';

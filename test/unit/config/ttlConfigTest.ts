@@ -85,15 +85,42 @@ describe('TTLConfig', () => {
     it('should return true if timestamp is older than TTL', async () => {
       const config = await TestConfig.create();
       config.set('1', { one: 'one' });
-      const isExpired = config.isExpired(new Date().getTime() + Duration.days(7).milliseconds, config.get('1'));
+      const isExpired = config.isExpired(new Date().getTime() + Duration.days(7).milliseconds, config.get('1')!);
       expect(isExpired).to.be.true;
     });
 
     it('should return false if timestamp is not older than TTL', async () => {
       const config = await TestConfig.create();
       config.set('1', { one: 'one' });
-      const isExpired = config.isExpired(new Date().getTime(), config.get('1'));
+      const isExpired = config.isExpired(new Date().getTime(), config.get('1')!);
       expect(isExpired).to.be.false;
+    });
+  });
+
+  describe('filters expired keys on init', () => {
+    it('should omit expired keys', async () => {
+      $$.setConfigStubContents('TestConfig', {
+        contents: {
+          old: {
+            value: 1,
+            timestamp: new Date().getTime() - Duration.days(7).milliseconds,
+          },
+          current: {
+            value: 2,
+            timestamp: new Date().getTime(),
+          },
+          future: {
+            value: 3,
+            timestamp: new Date().getTime() + Duration.days(7).milliseconds,
+          },
+        },
+      });
+
+      const config = await TestConfig.create();
+      const keys = config.keys();
+      expect(keys).to.include('current');
+      expect(keys).to.include('future');
+      expect(keys).to.not.include('old');
     });
   });
 });

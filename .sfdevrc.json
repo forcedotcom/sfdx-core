@@ -4,7 +4,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "ttsc -p . --pretty --incremental",
+      "command": "tspc -p . --pretty --incremental",
       "files": ["src/**/*.ts", "tsconfig.json", "messages", "messageTransformer"],
       "output": ["lib/**", "*.tsbuildinfo"],
       "clean": "if-file-deleted"

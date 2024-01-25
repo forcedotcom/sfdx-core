@@ -5,10 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { findKey } from '@salesforce/kit';
-import { AnyJson, asJsonMap, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
-import { SfdcUrl } from './sfdcUrl';
-
 /**
  * Converts an 18 character Salesforce ID to 15 characters.
  *
@@ -42,13 +38,6 @@ export const validateApiVersion = (value: string): boolean => value == null || /
 export const validateEmail = (value: string): boolean => /^[^.][^@]*@[^.]+(\.[^.\s]+)+$/.test(value);
 
 /**
- * Tests whether a given url is an internal Salesforce domain
- *
- * @param url
- */
-export const isInternalUrl = (url: string): boolean => new SfdcUrl(url).isInternalUrl();
-
-/**
  * Tests whether a Salesforce ID is in the correct format, a 15- or 18-character length string with only letters and numbers
  *
  * @param value The ID as a string.
@@ -64,43 +53,14 @@ export const validateSalesforceId = (value: string): boolean =>
 export const validatePathDoesNotContainInvalidChars = (value: string): boolean =>
   // eslint-disable-next-line no-useless-escape
   !/[\["\?<>\|\]]+/.test(value);
-/**
- * Returns the first key within the object that has an upper case first letter.
- *
- * @param data The object in which to check key casing.
- * @param sectionBlocklist properties in the object to exclude from the search. e.g. a blocklist of `["a"]` and data of `{ "a": { "B" : "b"}}` would ignore `B` because it is in the object value under `a`.
- */
-export const findUpperCaseKeys = (data?: JsonMap, sectionBlocklist: string[] = []): Optional<string> => {
-  let key: Optional<string>;
-  findKey(data, (val: AnyJson, k: string) => {
-    if (/^[A-Z]/.test(k)) {
-      key = k;
-    } else if (isJsonMap(val)) {
-      if (sectionBlocklist.includes(k)) {
-        return key;
-      }
-      key = findUpperCaseKeys(asJsonMap(val));
-    }
-    return key;
-  });
-  return key;
-};
+
+export const accessTokenRegex = /(00D\w{12,15})![.\w]*/;
+export const sfdxAuthUrlRegex =
+  /force:\/\/([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]*):([a-zA-Z0-9._-]+={0,2})@([a-zA-Z0-9._-]+)/;
 
 /**
  * Tests whether a given string is an access token
  *
  * @param value
  */
-export const matchesAccessToken = (value: string): boolean => /^(00D\w{12,15})![.\w]*$/.test(value);
-
-/** @deprecated import the individual functions instead of the whole object */
-export const sfdc = {
-  trimTo15,
-  validateApiVersion,
-  validateEmail,
-  isInternalUrl,
-  matchesAccessToken,
-  validateSalesforceId,
-  validatePathDoesNotContainInvalidChars,
-  findUpperCaseKeys,
-};
+export const matchesAccessToken = (value: string): boolean => accessTokenRegex.test(value);

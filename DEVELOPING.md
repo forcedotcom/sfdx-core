@@ -37,7 +37,7 @@ This tests the typescript using ts-node.
 
 ### `yarn docs`
 
-This generates documentation into [docs](docs).
+This generates documentation into [docs](https://forcedotcom.github.io/sfdx-core/).
 
 ### `yarn lint`
 

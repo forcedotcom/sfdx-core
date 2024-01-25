@@ -28,6 +28,6 @@ export class ErrnoException extends Error implements NodeJS.ErrnoException {
       super();
       options = messageOrOptions;
     }
-    Object.assign(this, options || {});
+    Object.assign(this, options ?? {});
   }
 }

@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { uniqid } from '../../src/testSetup';
+import { uniqid } from '../../src/util/uniqid';
+
 describe('testSetup', () => {
   describe('uniqueId', () => {
     it('should return a unique id of default length of 32', () => {

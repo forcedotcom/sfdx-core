@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { EOL } from 'os';
+import { EOL } from 'node:os';
 import { AsyncCreatable, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
 import { asJsonArray, asNumber, ensureJsonMap, ensureString, isJsonMap, Many } from '@salesforce/ts-types';
 import type { HttpRequest, HttpResponse, QueryResult, Schema, SObjectUpdateRecord } from 'jsforce';
 import { HttpApi } from 'jsforce/lib/http-api';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { SecureBuffer } from '../crypto/secureBuffer';
 import { SfError } from '../sfError';
@@ -389,8 +389,7 @@ export class User extends AsyncCreatable<User.Options> {
     });
 
     // Update the auth info object with created user id.
-    const newUserAuthFields: AuthFields = newUserAuthInfo.getFields();
-    newUserAuthFields.userId = refreshTokenSecret.userId;
+    newUserAuthInfo.update({ userId: refreshTokenSecret.userId });
 
     // Make sure we can connect and if so save the auth info.
     await this.describeUserAndSave(newUserAuthInfo);

@@ -7,7 +7,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
-import { join, sep } from 'path';
+import { join, sep } from 'node:path';
 import { expect } from 'chai';
 
 import { env } from '@salesforce/kit';
@@ -28,7 +28,8 @@ describe('SfProject', () => {
   describe('json', () => {
     it('allows uppercase packaging aliases on write', async () => {
       const json = await SfProjectJson.create();
-      await json.write({ packageAliases: { MyName: 'somePackage' } });
+      json.set('packageAliases', { MyName: 'somePackage' });
+      await json.write();
       // @ts-expect-error possibly undefined
       expect($$.getConfigStubContents('SfProjectJson').packageAliases['MyName']).to.equal('somePackage');
     });
@@ -309,14 +310,14 @@ describe('SfProject', () => {
       const read = async function () {
         // @ts-expect-error this is any
         if (this.isGlobal()) {
-          return { 'org-api-version': 38.0 };
+          return { 'org-api-version': '38.0' };
         } else {
-          return { 'org-api-version': 39.0 };
+          return { 'org-api-version': '39.0' };
         }
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
       $$.configStubs.Config = {
-        contents: { 'org-api-version': 40.0, 'org-instance-url': 'https://usethis.my.salesforce.com' },
+        contents: { 'org-api-version': '40.0', 'org-instance-url': 'https://usethis.my.salesforce.com' },
       };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
@@ -326,14 +327,14 @@ describe('SfProject', () => {
       const read = async function () {
         // @ts-expect-error this is any
         if (this.isGlobal()) {
-          return { 'org-api-version': 38.0, sfdcLoginUrl: 'https://fromfiles.com' };
+          return { 'org-api-version': '38.0', sfdcLoginUrl: 'https://fromfiles.com' };
         } else {
-          return { 'org-api-version': 39.0, sfdcLoginUrl: 'https://fromfiles.com' };
+          return { 'org-api-version': '39.0', sfdcLoginUrl: 'https://fromfiles.com' };
         }
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
       $$.configStubs.Config = {
-        contents: { 'org-api-version': 40.0, 'org-instance-url': 'https://dontusethis.my.salesforce.com' },
+        contents: { 'org-api-version': '40.0', 'org-instance-url': 'https://dontusethis.my.salesforce.com' },
       };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
@@ -343,16 +344,16 @@ describe('SfProject', () => {
       const read = async function () {
         // @ts-expect-error this is any
         if (this.isGlobal()) {
-          return { 'org-api-version': 38.0 };
+          return { 'org-api-version': '38.0' };
         } else {
-          return { 'org-api-version': 39.0 };
+          return { 'org-api-version': '39.0' };
         }
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
-      $$.configStubs.Config = { contents: { 'org-api-version': 40.0 } };
+      $$.configStubs.Config = { contents: { 'org-api-version': '40.0' } };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
-      expect(config['org-api-version']).to.equal(40.0);
+      expect(config['org-api-version']).to.equal('40.0');
     });
   });
 
@@ -446,7 +447,7 @@ describe('SfProject', () => {
         shouldThrowSync(() => project.getPackageDirectories());
       } catch (e) {
         expect((e as Error).message).to.equal(
-          Messages.load('@salesforce/core', 'config', ['singleNonDefaultPackage']).getMessage('singleNonDefaultPackage')
+          Messages.loadMessages('@salesforce/core', 'config').getMessage('singleNonDefaultPackage')
         );
       }
     });

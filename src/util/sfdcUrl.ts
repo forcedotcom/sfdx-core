@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { URL } from 'url';
+import { URL } from 'node:url';
 import { Env, Duration } from '@salesforce/kit';
 import { ensureNumber, ensureArray } from '@salesforce/ts-types';
 import { MyDomainResolver } from '../status/myDomainResolver';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { Lifecycle } from '../lifecycleEvents';
 
 export function getLoginAudienceCombos(audienceUrl: string, loginUrl: string): Array<[string, string]> {
@@ -83,7 +83,10 @@ export class SfdcUrl extends URL {
       return envVarVal;
     }
 
-    if ((createdOrgInstance && /^gs1/gi.test(createdOrgInstance)) || /(gs1.my.salesforce.com)/gi.test(this.origin)) {
+    if (
+      Boolean(createdOrgInstance && /^gs1/gi.test(createdOrgInstance)) ||
+      /(gs1.my.salesforce.com)/gi.test(this.origin)
+    ) {
       return 'https://gs1.salesforce.com';
     }
 
@@ -173,7 +176,7 @@ export class SfdcUrl extends URL {
    * @returns {Promise<true | never>} The resolved ip address or never
    * @throws {@link SfError} If can't resolve DNS.
    */
-  public async checkLightningDomain(): Promise<true | never> {
+  public async checkLightningDomain(): Promise<true> {
     const quantity = ensureNumber(new Env().getNumber('SFDX_DOMAIN_RETRY', 240));
     const timeout = new Duration(quantity, Duration.Unit.SECONDS);
 
@@ -207,28 +210,6 @@ export class SfdcUrl extends URL {
       frequency: new Duration(1, Duration.Unit.SECONDS),
     });
     return resolver.resolve();
-  }
-
-  /**
-   * Tests whether this url is a sandbox url
-   *
-   * @Deprecated - identification of a sandbox instance by URL alone is not deterministic
-   * @param createdOrgInstance The Salesforce instance the org was created on. e.g. `cs42`
-   * @returns {boolean}
-   */
-  // TODO: how to get rid of this?
-  public isSandboxUrl(createdOrgInstance?: string): boolean {
-    return (
-      (createdOrgInstance && /^cs|s$/gi.test(createdOrgInstance)) ||
-      this.origin.endsWith('sandbox.my.salesforce.mil') ||
-      /sandbox\.my\.salesforce\.com/gi.test(this.origin) || // enhanced domains >= 230
-      /(cs[0-9]+(\.my|)\.salesforce\.com)/gi.test(this.origin) || // my domains on CS instance OR CS instance without my domain
-      /(cs[0-9]+\.force\.com)/gi.test(this.origin) || // sandboxes have cnames like cs123.force.com
-      /(\w+--\w+\.my\.salesforce\.com)/gi.test(this.origin) || // sandboxes myDomain like foo--bar.my.salesforce.com
-      /([a-z]{3}[0-9]+s\.sfdc-.+\.salesforce\.com)/gi.test(this.origin) || // falcon sandbox ex: usa2s.sfdc-whatever.salesforce.com
-      /([a-z]{3}[0-9]+s\.sfdc-.+\.force\.com)/gi.test(this.origin) || // falcon sandbox ex: usa2s.sfdc-whatever.force.com
-      this.hostname === 'test.salesforce.com'
-    );
   }
 
   /**

@@ -1,13 +1,15 @@
 {
   "name": "@salesforce/core",
-  "version": "3.34.6",
+  "version": "6.5.1",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/exported",
   "types": "lib/exported.d.ts",
   "license": "BSD-3-Clause",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "build": "wireit",
-    "ci-docs": "yarn sf-ci-docs",
     "clean": "sf-clean",
     "clean-all": "sf-clean all",
     "compile": "wireit",
@@ -19,8 +21,8 @@
     "prepack": "sf-prepack",
     "prepare": "sf-install",
     "test": "wireit",
-    "test:compile": "wireit",
-    "test:only": "wireit"
+    "test:only": "wireit",
+    "test:perf": "ts-node test/perf/logger/main.test.ts"
   },
   "keywords": [
     "force",
@@ -36,61 +38,37 @@
     "messageTransformer/messageTransformer.ts"
   ],
   "dependencies": {
-    "@salesforce/bunyan": "^2.0.0",
-    "@salesforce/kit": "^1.9.2",
-    "@salesforce/schemas": "^1.5.1",
-    "@salesforce/ts-types": "^1.7.2",
-    "@types/graceful-fs": "^4.1.6",
-    "@types/semver": "^7.3.13",
+    "@salesforce/kit": "^3.0.15",
+    "@salesforce/schemas": "^1.6.1",
+    "@salesforce/ts-types": "^2.0.9",
+    "@types/semver": "^7.5.6",
     "ajv": "^8.12.0",
-    "archiver": "^5.3.0",
     "change-case": "^4.1.2",
-    "debug": "^3.2.7",
     "faye": "^1.4.0",
     "form-data": "^4.0.0",
-    "graceful-fs": "^4.2.11",
     "js2xmlparser": "^4.0.1",
-    "jsforce": "^2.0.0-beta.20",
-    "jsonwebtoken": "9.0.0",
-    "ts-retry-promise": "^0.7.0"
+    "jsforce": "^2.0.0-beta.29",
+    "jsonwebtoken": "9.0.2",
+    "jszip": "3.10.1",
+    "pino": "^8.17.2",
+    "pino-abstract-transport": "^1.1.0",
+    "pino-pretty": "^10.3.1",
+    "proper-lockfile": "^4.1.2",
+    "semver": "^7.5.4",
+    "ts-retry-promise": "^0.7.1"
   },
   "devDependencies": {
-    "@salesforce/dev-config": "^3.0.1",
-    "@salesforce/dev-scripts": "^4.0.0-beta.7",
-    "@salesforce/prettier-config": "^0.0.2",
-    "@salesforce/ts-sinon": "^1.4.6",
-    "@types/archiver": "^5.3.2",
-    "@types/chai-string": "^1.4.2",
-    "@types/debug": "0.0.31",
-    "@types/jsen": "0.0.21",
-    "@types/jsonwebtoken": "9.0.1",
-    "@types/lodash": "^4.14.192",
-    "@types/shelljs": "0.8.11",
-    "@typescript-eslint/eslint-plugin": "^5.57.0",
-    "@typescript-eslint/parser": "^5.57.0",
-    "chai": "^4.3.7",
+    "@salesforce/dev-scripts": "^7.1.1",
+    "@salesforce/ts-sinon": "^1.4.19",
+    "@types/benchmark": "^2.1.5",
+    "@types/chai-string": "^1.4.5",
+    "@types/jsonwebtoken": "9.0.5",
+    "@types/proper-lockfile": "^4.1.4",
+    "benchmark": "^2.1.4",
     "chai-string": "^1.5.0",
-    "commitizen": "^3.1.2",
-    "eslint": "^8.37.0",
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-config-salesforce": "^1.1.1",
-    "eslint-config-salesforce-license": "^0.2.0",
-    "eslint-config-salesforce-typescript": "^1.1.1",
-    "eslint-plugin-header": "^3.1.1",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-jsdoc": "^39.9.1",
-    "husky": "^7.0.4",
-    "lodash": "^4.17.21",
-    "mocha": "^9.1.3",
-    "nyc": "^15.1.0",
-    "prettier": "^2.8.7",
-    "pretty-quick": "^3.1.3",
-    "shelljs": "0.8.5",
-    "sinon": "^14.0.2",
-    "ts-node": "^10.4.0",
-    "ttypescript": "^1.5.15",
-    "typescript": "^4.9.5",
-    "wireit": "^0.9.5"
+    "ts-node": "^10.9.2",
+    "ts-patch": "^3.1.1",
+    "typescript": "^5.3.3"
   },
   "repository": {
     "type": "git",
@@ -107,7 +85,7 @@
       ]
     },
     "compile": {
-      "command": "ttsc -p . --pretty --incremental",
+      "command": "tspc -p . --pretty --incremental",
       "files": [
         "src/**/*.ts",
         "tsconfig.json",
@@ -121,15 +99,24 @@
       "clean": "if-file-deleted"
     },
     "format": {
-      "command": "prettier --write \"+(src|test|schemas)/**/*.+(ts|js|json)|command-snapshot.json\""
-    },
-    "lint": {
-      "command": "eslint --color --cache --cache-location .eslintcache",
+      "command": "prettier --write \"+(src|test|schemas)/**/*.+(ts|js|json)|command-snapshot.json\"",
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        ".eslintignore",
-        ".eslintrc.js"
+        "schemas/**/*.json",
+        "command-snapshot.json",
+        ".prettier*"
+      ],
+      "output": []
+    },
+    "lint": {
+      "command": "eslint src test --color --cache --cache-location .eslintcache",
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "messages/**",
+        "**/.eslint*",
+        "**/tsconfig.json"
       ],
       "output": []
     },
@@ -137,18 +124,22 @@
       "command": "tsc -p \"./test\" --pretty",
       "files": [
         "test/**/*.ts",
-        "tsconfig.json",
-        "test/tsconfig.json"
+        "**/tsconfig.json"
       ],
       "output": []
     },
     "test:only": {
       "command": "nyc mocha \"test/**/*Test.ts\"",
+      "env": {
+        "FORCE_COLOR": "2"
+      },
       "files": [
         "test/**/*.ts",
         "src/**/*.ts",
-        "tsconfig.json",
-        "test/tsconfig.json"
+        "**/tsconfig.json",
+        ".mocha*",
+        "!*.nut.ts",
+        ".nycrc"
       ],
       "output": []
     },

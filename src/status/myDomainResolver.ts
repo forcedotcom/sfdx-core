@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { lookup, resolveCname } from 'dns';
-import { URL } from 'url';
-import { promisify } from 'util';
+import { lookup, resolveCname } from 'node:dns';
+import { URL } from 'node:url';
+import { promisify } from 'node:util';
 
 import { ensureString } from '@salesforce/ts-types';
 
 import { AsyncOptionalCreatable, Duration, Env } from '@salesforce/kit';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { SfdcUrl } from '../util/sfdcUrl';
 import { StatusResult } from './types';
 import { PollingClient } from './pollingClient';
@@ -73,8 +73,9 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
    * executing the dns loookup.
    */
   public async resolve(): Promise<string> {
-    if (new Env().getBoolean('SFDX_DISABLE_DNS_CHECK', false)) {
-      this.logger.debug('SFDX_DISABLE_DNS_CHECK set to true. Skipping DNS check...');
+    const env = new Env();
+    if (env.getBoolean('SF_DISABLE_DNS_CHECK', env.getBoolean('SFDX_DISABLE_DNS_CHECK', false))) {
+      this.logger.debug('SF_DISABLE_DNS_CHECK set to true. Skipping DNS check...');
       return this.options.url.host;
     }
 

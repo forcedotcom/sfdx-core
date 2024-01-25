@@ -7,10 +7,10 @@
 
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
-import { URL } from 'url';
+import { URL } from 'node:url';
 import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
 import { Duration, env, maxBy } from '@salesforce/kit';
-import { asString, ensure, isString, JsonCollection, JsonMap, Optional } from '@salesforce/ts-types';
+import { asString, ensure, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import {
   Connection as JSForceConnection,
   ConnectionConfig,
@@ -25,7 +25,7 @@ import { Tooling as JSForceTooling } from 'jsforce/lib/api/tooling';
 import { StreamPromise } from 'jsforce/lib/util/promise';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { ConfigAggregator } from '../config/configAggregator';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { validateApiVersion } from '../util/sfdc';
 import { Messages } from '../messages';
@@ -43,7 +43,6 @@ export const SFDX_HTTP_HEADERS = {
 };
 
 export const DNS_ERROR_NAME = 'DomainNotFoundError';
-type recentValidationOptions = { id: string; rest?: boolean };
 export type DeployOptionsWithRest = Partial<DeployOptions> & { rest?: boolean };
 
 export interface Tooling<S extends Schema = Schema> extends JSForceTooling<S> {
@@ -203,7 +202,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       ...SFDX_HTTP_HEADERS,
       ...lowercasedHeaders,
     };
-    this.logger.debug(`request: ${JSON.stringify(httpRequest)}`);
+    this.logger.getRawLogger().debug(httpRequest, 'request');
     return super.request(httpRequest, options);
   }
 
@@ -216,19 +215,6 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     return super._baseUrl();
   }
 
-  /**
-   * Will deploy a recently validated deploy request - directly calling jsforce now that this is supported.
-   * WARNING: will always return a string from jsforce, the type is JsonCollection to support backwards compatibility
-   *
-   * @param options.id = the deploy ID that's been validated already from a previous checkOnly deploy request
-   * @param options.rest = a boolean whether or not to use the REST API
-   * @deprecated use {@link Connection.metadata#deployRecentValidation} instead - the jsforce implementation, instead of this wrapper
-   */
-  public async deployRecentValidation(options: recentValidationOptions): Promise<JsonCollection> {
-    // REST returns an object with an id property, SOAP returns the id as a string directly. That is now handled
-    // in jsforce, so we have to cast a string as unknown as JsonCollection to support backwards compatibility.
-    return (await this.metadata.deployRecentValidation(options)) as unknown as JsonCollection;
-  }
   /**
    * Retrieves the highest api version that is supported by the target server instance.
    */
@@ -396,7 +382,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       void Lifecycle.getInstance().emitWarning(
         `The query result is missing ${
           query.totalSize - query.records.length
-        } records due to a ${maxFetch} record limit. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SFDX_MAX_QUERY_LIMIT" to ${
+        } records due to a ${maxFetch} record limit. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SF_ORG_MAX_QUERY_LIMIT" to ${
           query.totalSize
         } or greater than ${maxFetch}.`
       );

@@ -6,9 +6,9 @@
  */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import * as childProcess from 'child_process';
-import * as _crypto from 'crypto';
-import * as os from 'os';
+import * as childProcess from 'node:child_process';
+import * as _crypto from 'node:crypto';
+import * as os from 'node:os';
 import { AnyJson } from '@salesforce/ts-types';
 import { assert, expect } from 'chai';
 import { Crypto } from '../../../src/crypto/crypto';
@@ -39,14 +39,14 @@ if (os.platform() === 'darwin') {
   describe('CryptoKeyFailureTests', () => {
     const $$ = new TestContext();
 
-    const OLD_GENERIC_VAL = process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN;
+    const OLD_GENERIC_VAL = process.env.SF_USE_GENERIC_UNIX_KEYCHAIN;
 
     before(() => {
-      process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = 'false';
+      process.env.SF_USE_GENERIC_UNIX_KEYCHAIN = 'false';
     });
 
     after(() => {
-      process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = OLD_GENERIC_VAL ?? '';
+      process.env.SF_USE_GENERIC_UNIX_KEYCHAIN = OLD_GENERIC_VAL ?? '';
       Cache.enable();
     });
 

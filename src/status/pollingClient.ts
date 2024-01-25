@@ -7,7 +7,7 @@
 import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
 import { AnyJson, ensure } from '@salesforce/ts-types';
 import { retryDecorator, NotRetryableError } from 'ts-retry-promise';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { Lifecycle } from '../lifecycleEvents';
 import { StatusResult } from './types';

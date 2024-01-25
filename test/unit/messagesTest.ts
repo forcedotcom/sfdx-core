@@ -7,10 +7,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { EOL } from 'os';
-import { cloneJson } from '@salesforce/kit';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { EOL } from 'node:os';
 import { assert, expect } from 'chai';
 import { SinonStub } from 'sinon';
 import { Messages } from '../../src/messages';
@@ -30,8 +29,8 @@ describe('Messages', () => {
   msgMap.set('msg1', testMessages.msg1);
   msgMap.set('msg1.actions', testMessages.msg2);
   msgMap.set('msg2', testMessages.msg2);
-  msgMap.set('msg3', cloneJson(testMessages));
-  msgMap.get('msg3').msg3 = cloneJson(testMessages);
+  msgMap.set('msg3', structuredClone(testMessages));
+  msgMap.get('msg3').msg3 = structuredClone(testMessages);
   msgMap.set('manyMsgs', testMessages.manyMsgs);
 
   describe('getMessage', () => {
@@ -300,10 +299,10 @@ describe('Messages', () => {
       const spy = $$.SANDBOX.spy(() => new Messages('myBundle', Messages.getLocale(), msgMap));
       Messages.setLoaderFunction('pname', 'myBundle', spy);
       // Load messages
-      Messages.load('pname', 'myBundle', ['msg1', 'msg2']);
+      Messages.loadMessages('pname', 'myBundle');
 
       // Call cache
-      const messages = Messages.load('pname', 'myBundle', ['msg1', 'msg2']);
+      const messages = Messages.loadMessages('pname', 'myBundle');
       expect(messages.getMessage('msg1')).to.equal(testMessages.msg1);
       expect(messages.getMessage('msg2', ['token1', 222])).to.equal('test message 2 token1 and 222');
       expect(spy.calledOnce).to.be.true;
@@ -319,13 +318,13 @@ describe('Messages', () => {
       Messages.setLoaderFunction('pname', 'myOtherBundle', () => msgs);
 
       // now load the bundle
-      const messages = Messages.load('pname', 'myOtherBundle', ['otherMsg1']);
+      const messages = Messages.loadMessages('pname', 'myOtherBundle');
       expect(messages.getMessage('otherMsg1')).to.equal(otherMsgMap.get('otherMsg1'));
     });
 
     it('should throw an error if the bundle is not found', async () => {
       try {
-        shouldThrowSync(() => Messages.load('pname', 'notfound', ['']));
+        shouldThrowSync(() => Messages.loadMessages('pname', 'notfound'));
       } catch (err) {
         expect((err as Error).message).to.equal('Missing bundle pname:notfound for locale en_US.');
       }
@@ -338,20 +337,6 @@ describe('Messages', () => {
       const error = messages.createError('msg1');
 
       expect(error.name).to.equal('Msg1Error');
-      expect(error.message).to.equal(testMessages.msg1);
-      if (error.actions) {
-        expect(error.actions.length).to.equal(1);
-        expect(error.actions[0]).to.equal(testMessages.msg2);
-      } else {
-        throw new Error('error.actions should not be undefined');
-      }
-    });
-
-    it('creates error with actions (preserved name)', () => {
-      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
-      const error = messages.createErrorButPreserveName('msg1');
-
-      expect(error.name).to.equal('Msg1');
       expect(error.message).to.equal(testMessages.msg1);
       if (error.actions) {
         expect(error.actions.length).to.equal(1);
@@ -377,21 +362,6 @@ describe('Messages', () => {
       }
     });
 
-    it('creates error with removed error prefix (preserved name)', () => {
-      msgMap.set('error.msg1', msgMap.get('msg1'));
-      msgMap.set('error.msg1.actions', ['from prefix']);
-      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
-      const error = messages.createErrorButPreserveName('error.msg1');
-
-      expect(error.name).to.equal('Msg1');
-      expect(error.message).to.equal(testMessages.msg1);
-      if (error.actions) {
-        expect(error.actions.length).to.equal(1);
-        expect(error.actions[0]).to.equal('from prefix');
-      } else {
-        throw new Error('error.actions should not be undefined');
-      }
-    });
     it('creates error with removed errors prefix', () => {
       msgMap.set('errors.msg1', msgMap.get('msg1'));
       msgMap.set('errors.msg1.actions', ['from prefix']);
@@ -401,24 +371,6 @@ describe('Messages', () => {
       const error = messages.createError('errors.msg1');
 
       expect(error.name).to.equal('Msg1Error');
-      expect(error.message).to.equal(testMessages.msg1);
-      if (error.actions) {
-        expect(error.actions.length).to.equal(1);
-        expect(error.actions[0]).to.equal('from prefix');
-      } else {
-        throw new Error('error.actions should not be undefined');
-      }
-    });
-
-    it('creates error with removed errors prefix (preserved name)', () => {
-      msgMap.set('errors.msg1', msgMap.get('msg1'));
-      msgMap.set('errors.msg1.actions', ['from prefix']);
-      msgMap.set('errors.msg1', msgMap.get('msg1'));
-      msgMap.set('errors.msg1.actions', ['from prefix']);
-      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
-      const error = messages.createErrorButPreserveName('errors.msg1');
-
-      expect(error.name).to.equal('Msg1');
       expect(error.message).to.equal(testMessages.msg1);
       if (error.actions) {
         expect(error.actions.length).to.equal(1);

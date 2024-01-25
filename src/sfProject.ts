@@ -4,21 +4,21 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { basename, dirname, isAbsolute, normalize, resolve, sep } from 'path';
-import * as fs from 'fs';
+import { basename, dirname, isAbsolute, normalize, resolve, sep } from 'node:path';
+import * as fs from 'node:fs';
 import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import { SfdcUrl } from './util/sfdcUrl';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
-import { ConfigContents } from './config/configStore';
+import { ConfigContents } from './config/configStackTypes';
 
 import { SchemaValidator } from './schema/validator';
 import { resolveProjectPath, resolveProjectPathSync, SFDX_PROJECT_JSON } from './util/internal';
 
 import { SfError } from './sfError';
-import { findUpperCaseKeys } from './util/sfdc';
 import { Messages } from './messages';
+import { findUpperCaseKeys } from './util/findUppercaseKeys';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
@@ -43,10 +43,13 @@ export type PackageDir = {
   postInstallScript?: string;
   postInstallUrl?: string;
   releaseNotesUrl?: string;
+  scopeProfiles?: boolean;
   uninstallScript?: string;
   versionDescription?: string;
   versionName?: string;
   versionNumber?: string;
+  unpackagedMetadata?: { path: string };
+  seedMetadata?: { path: string };
 };
 
 export type NamedPackageDir = PackageDir & {
@@ -88,7 +91,7 @@ export type ProjectJson = ConfigContents & {
  *
  * **See** [force:project:create](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm)
  */
-export class SfProjectJson extends ConfigFile {
+export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
   public static BLOCKLIST = ['packageAliases'];
 
   public static getFileName(): string {
@@ -101,46 +104,31 @@ export class SfProjectJson extends ConfigFile {
     return options;
   }
 
-  public async read(): Promise<ConfigContents> {
+  public async read(): Promise<ProjectJson> {
     const contents = await super.read();
     this.validateKeys();
     return contents;
   }
 
-  public readSync(): ConfigContents {
+  public readSync(): ProjectJson {
     const contents = super.readSync();
     this.validateKeys();
     return contents;
   }
 
-  public async write(newContents?: ConfigContents): Promise<ConfigContents> {
-    if (newContents) {
-      this.setContents(newContents);
-    }
+  public async write(): Promise<ProjectJson> {
     this.validateKeys();
     return super.write();
   }
 
-  public writeSync(newContents?: ConfigContents): ConfigContents {
-    if (newContents) {
-      this.setContents(newContents);
-    }
+  public writeSync(): ProjectJson {
     this.validateKeys();
     return super.writeSync();
   }
 
-  public getContents(): ProjectJson {
-    return super.getContents() as ProjectJson;
-  }
-
   // eslint-disable-next-line class-methods-use-this
   public getDefaultOptions(options?: ConfigFile.Options): ConfigFile.Options {
-    const defaultOptions: ConfigFile.Options = {
-      isState: false,
-    };
-
-    Object.assign(defaultOptions, options ?? {});
-    return defaultOptions;
+    return { ...{ isState: false }, ...(options ?? {}) };
   }
 
   /**
@@ -334,13 +322,8 @@ export class SfProjectJson extends ConfigFile {
     if (!/^.{15,18}$/.test(id)) {
       throw messages.createError('invalidId', [id]);
     }
-
-    const contents = this.getContents();
-    if (!contents.packageAliases) {
-      contents.packageAliases = {};
-    }
-    contents.packageAliases[alias] = id;
-    this.setContents(contents);
+    const newAliases = { ...(this.getContents().packageAliases ?? {}), [alias]: id };
+    this.contents.set('packageAliases', newAliases);
   }
 
   /**
@@ -369,12 +352,15 @@ export class SfProjectJson extends ConfigFile {
       dirIndex > -1 ? this.getContents().packageDirectories[dirIndex] : packageDir,
       packageDir
     );
-    // update package dir entries
-    if (dirIndex > -1) {
-      this.getContents().packageDirectories[dirIndex] = packageDirEntry;
-    } else {
-      this.getContents().packageDirectories.push(packageDirEntry);
-    }
+
+    const modifiedPackagesDirs =
+      dirIndex > -1
+        ? // replace the matching entry with the new entry
+          this.getContents().packageDirectories.map((pd, i) => (i === dirIndex ? packageDir : pd))
+        : // add the new entry to the end of the list
+          [...(this.getContents()?.packageDirectories ?? []), packageDirEntry];
+
+    this.set('packageDirectories', modifiedPackagesDirs);
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -769,13 +755,3 @@ export class SfProject {
       .map(([key]) => key);
   }
 }
-
-/**
- * @deprecated use SfProject instead
- */
-export class SfdxProject extends SfProject {}
-
-/**
- * @deprecated use SfProjectJson instead
- */
-export class SfdxProjectJson extends SfProjectJson {}

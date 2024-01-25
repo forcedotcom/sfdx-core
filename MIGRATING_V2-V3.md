@@ -84,7 +84,7 @@ await stateAggregator.aliases.write();
 | `SfdxPropertyKeys.MAX_QUERY_LIMIT`               | `OrgConfigProperties.ORG_MAX_QUERY_LIMIT`           |
 | `SfdxPropertyKeys.REST_DEPLOY`                   | REMOVED                                             |
 
-- `ConifgAggregator` will not work with any of the deprecated keys. **We strongly suggest that you move to the new keys as part of the migration process.**
+- `ConfigAggregator` will not work with any of the deprecated keys. **We strongly suggest that you move to the new keys as part of the migration process.**
 - If you absolutely cannot migrate to the new config keys, then you can use `SfdxConfigAggregator` in the meantime.
 
 ### Why

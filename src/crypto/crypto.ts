@@ -6,16 +6,16 @@
  */
 /* eslint-disable @typescript-eslint/ban-types */
 
-import * as crypto from 'crypto';
-import * as os from 'os';
-import { join as pathJoin } from 'path';
+import * as crypto from 'node:crypto';
+import * as os from 'node:os';
+import { join as pathJoin } from 'node:path';
 import { ensure, isString, Nullable, Optional } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, env } from '@salesforce/kit';
-import { Logger } from '../logger';
-import { SfError } from '../sfError';
+import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { Cache } from '../util/cache';
 import { Global } from '../global';
+import { SfError } from '../sfError';
 import { retrieveKeychain } from './keyChain';
 import { KeyChain } from './keyChainImpl';
 import { SecureBuffer } from './secureBuffer';
@@ -109,7 +109,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
   private noResetOnClose!: boolean;
 
   // true when the key is 32 hex chars
-  private legacy_key_mode = false;
+  private legacyKeyMode = false;
 
   /**
    * Constructor
@@ -183,24 +183,24 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
         dec += decipher.final('utf8');
       } catch (_err: unknown) {
         const err = (isString(_err) ? SfError.wrap(_err) : _err) as Error;
-        const handleDecryptError = (decryptErr: Error) => {
+        const handleDecryptError = (decryptErr: Error): void => {
           const error = messages.createError('authDecryptError', [decryptErr.message], [], decryptErr);
           const useGenericUnixKeychain =
-            env.getBoolean('SFDX_USE_GENERIC_UNIX_KEYCHAIN') || env.getBoolean('USE_GENERIC_UNIX_KEYCHAIN');
+            env.getBoolean('SF_USE_GENERIC_UNIX_KEYCHAIN') || env.getBoolean('USE_GENERIC_UNIX_KEYCHAIN');
           if (os.platform() === 'darwin' && !useGenericUnixKeychain) {
             error.actions = [messages.getMessage('macKeychainOutOfSync')];
           }
           throw error;
         };
 
-        if (this.legacy_key_mode && err?.message === 'Unsupported state or unable to authenticate data') {
+        if (this.legacyKeyMode && err?.message === 'Unsupported state or unable to authenticate data') {
           try {
-            const iv_legacy = tokens[0].substring(0, BYTE_COUNT_FOR_IV);
-            const secret_legacy = tokens[0].substring(BYTE_COUNT_FOR_IV, tokens[0].length);
+            const ivLegacy = tokens[0].substring(0, BYTE_COUNT_FOR_IV);
+            const secretLegacy = tokens[0].substring(BYTE_COUNT_FOR_IV, tokens[0].length);
             // legacy encryption used a utf8 encoded string from the buffer
-            decipher = crypto.createDecipheriv(ALGO, buffer.toString('utf8'), iv_legacy);
+            decipher = crypto.createDecipheriv(ALGO, buffer.toString('utf8'), ivLegacy);
             decipher.setAuthTag(Buffer.from(tag, 'hex'));
-            dec = decipher.update(secret_legacy, 'hex', 'utf8');
+            dec = decipher.update(secretLegacy, 'hex', 'utf8');
             dec += decipher.final('utf8');
           } catch (_err2: unknown) {
             const err2 = (isString(_err2) ? SfError.wrap(_err2) : _err2) as Error;
@@ -277,7 +277,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
       } else {
         encoding = 'utf8';
         logger.debug('Detected legacy key size');
-        this.legacy_key_mode = true;
+        this.legacyKeyMode = true;
       }
       this.key.consume(Buffer.from(pwdHex, encoding));
     } catch (err) {

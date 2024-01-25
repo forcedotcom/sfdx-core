@@ -7,9 +7,10 @@
 
 import { env, Duration, upperFirst } from '@salesforce/kit';
 import { AnyJson } from '@salesforce/ts-types';
-import { OAuth2Config, JwtOAuth2Config, SaveResult } from 'jsforce';
+import { OAuth2Config, SaveResult } from 'jsforce';
 import { retryDecorator, RetryError } from 'ts-retry-promise';
-import { Logger } from '../logger';
+import { JwtOAuth2Config } from '../org/authInfo';
+import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
 import { SfdcUrl } from '../util/sfdcUrl';
@@ -231,7 +232,11 @@ export const authorizeScratchOrg = async (options: {
     clientId: scratchOrgInfoComplete.ConnectedAppConsumerKey,
     createdOrgInstance: scratchOrgInfoComplete.SignupInstance,
     isDevHub: false,
-    snapshot: scratchOrgInfoComplete.Snapshot,
+    isScratch: true,
+    isSandbox: false,
+    // omit optional fields unless they are present
+    ...(scratchOrgInfoComplete.Namespace ? { namespacePrefix: scratchOrgInfoComplete.Namespace } : {}),
+    ...(scratchOrgInfoComplete.Snapshot ? { snapshot: scratchOrgInfoComplete.Snapshot } : {}),
   });
 
   return authInfo;
