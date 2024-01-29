@@ -12,6 +12,7 @@ import { join as pathJoin } from 'node:path';
 import { ensure, isString, Nullable, Optional } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, env } from '@salesforce/kit';
 import { Logger } from '../logger/logger';
+import { Lifecycle } from '../lifecycleEvents';
 import { Messages } from '../messages';
 import { Cache } from '../util/cache';
 import { Global } from '../global';
@@ -21,7 +22,18 @@ import { KeyChain } from './keyChainImpl';
 import { SecureBuffer } from './secureBuffer';
 
 const TAG_DELIMITER = ':';
-const BYTE_COUNT_FOR_IV = 12;
+const IV_BYTES = {
+  v1: 6,
+  v2: 12,
+};
+const ENCODING: { v1: 'utf8'; v2: 'hex' } = {
+  v1: 'utf8',
+  v2: 'hex',
+};
+const KEY_SIZE = {
+  v1: 16,
+  v2: 32,
+};
 const ALGO = 'aes-256-gcm';
 
 const AUTH_TAG_LENGTH = 32;
@@ -29,6 +41,30 @@ const ENCRYPTED_CHARS = /[a-f0-9]/;
 
 const KEY_NAME = 'sfdx';
 const ACCOUNT = 'local';
+
+let cryptoLogger: Logger;
+const getCryptoLogger = (): Logger => {
+  if (!cryptoLogger) {
+    cryptoLogger = Logger.childFromRoot('crypto');
+  }
+  return cryptoLogger;
+};
+
+type CryptoVersion = 'v1' | 'v2';
+let cryptoVersion: CryptoVersion;
+const getCryptoVersion = (): CryptoVersion => {
+  if (!cryptoVersion) {
+    cryptoVersion = env.getBoolean('SF_CRYPTO_V2') ? 'v2' : 'v1';
+    getCryptoLogger().debug(`Using ${cryptoVersion} Crypto`);
+    void Lifecycle.getInstance().emitTelemetry({
+      eventName: 'crypto_version',
+      library: 'sfdx-core',
+      function: 'getCryptoVersion',
+      cryptoVersion,
+    });
+  }
+  return cryptoVersion;
+};
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
 const messages = Messages.loadMessages('@salesforce/core', 'encryption');
@@ -38,9 +74,16 @@ interface CredType {
   password: string;
 }
 
-const makeSecureBuffer = (password: string | undefined): SecureBuffer<string> => {
+type DecryptConfigV1 = {
+  tag: string;
+  iv: string;
+  secret: string;
+};
+type DecryptConfigV2 = DecryptConfigV1 & { tokens: string[] };
+
+const makeSecureBuffer = (password: string | undefined, encoding: 'utf8' | 'hex'): SecureBuffer<string> => {
   const newSb = new SecureBuffer<string>();
-  newSb.consume(Buffer.from(ensure(password), 'hex'));
+  newSb.consume(Buffer.from(ensure(password), encoding));
   return newSb;
 };
 
@@ -55,20 +98,20 @@ const keychainPromises = {
    * @param service The keychain service name.
    * @param account The keychain account name.
    */
-  getPassword(_keychain: KeyChain, service: string, account: string): Promise<CredType> {
+  getPassword(_keychain: KeyChain, service: string, account: string, encoding: 'utf8' | 'hex'): Promise<CredType> {
     const cacheKey = `${Global.DIR}:${service}:${account}`;
     const sb = Cache.get<SecureBuffer<string>>(cacheKey);
     if (!sb) {
       return new Promise((resolve, reject): {} =>
         _keychain.getPassword({ service, account }, (err: Nullable<Error>, password?: string) => {
           if (err) return reject(err);
-          Cache.set(cacheKey, makeSecureBuffer(password));
+          Cache.set(cacheKey, makeSecureBuffer(password, encoding));
           return resolve({ username: account, password: ensure(password) });
         })
       );
     } else {
-      const pw = sb.value((buffer) => buffer.toString('hex'));
-      Cache.set(cacheKey, makeSecureBuffer(pw));
+      const pw = sb.value((buffer) => buffer.toString(encoding));
+      Cache.set(cacheKey, makeSecureBuffer(pw, encoding));
       return new Promise((resolve): void => resolve({ username: account, password: ensure(pw) }));
     }
   },
@@ -108,8 +151,12 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
 
   private noResetOnClose!: boolean;
 
-  // true when the key is 32 hex chars
-  private legacyKeyMode = false;
+  // `true` when the key is 32 hex chars, which is a key created by v1 crypto.
+  // This is used to determine encoding (utf8/hex), and for v2 crypto to retry
+  // using v1 crypto.
+  private v1KeyLength = false;
+
+  private cryptoVersion: CryptoVersion;
 
   /**
    * Constructor
@@ -121,6 +168,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
   public constructor(options?: CryptoOptions) {
     super(options);
     this.options = options ?? {};
+    this.cryptoVersion = this.getCryptoVersion();
   }
 
   /**
@@ -138,18 +186,12 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
       throw messages.createError('keychainPasswordCreationError');
     }
 
-    const iv = crypto.randomBytes(BYTE_COUNT_FOR_IV);
-
-    return this.key.value((buffer: Buffer): string => {
-      const cipher = crypto.createCipheriv(ALGO, buffer, iv);
-      const ivHex = iv.toString('hex');
-
-      let encrypted = cipher.update(text, 'utf8', 'hex');
-      encrypted += cipher.final('hex');
-
-      const tag = cipher.getAuthTag().toString('hex');
-      return `${ivHex}${encrypted}${TAG_DELIMITER}${tag}`;
-    });
+    // When everything is v2, we can remove the else
+    if (this.isV2Crypto()) {
+      return this.encryptV2(text);
+    } else {
+      return this.encryptV1(text);
+    }
   }
 
   /**
@@ -170,48 +212,15 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     }
 
     const tag = tokens[1];
-    const iv = tokens[0].substring(0, BYTE_COUNT_FOR_IV * 2);
-    const secret = tokens[0].substring(BYTE_COUNT_FOR_IV * 2, tokens[0].length);
+    const iv = tokens[0].substring(0, IV_BYTES[this.getCryptoVersion()] * 2);
+    const secret = tokens[0].substring(IV_BYTES[this.getCryptoVersion()] * 2, tokens[0].length);
 
-    return this.key.value((buffer: Buffer) => {
-      let decipher = crypto.createDecipheriv(ALGO, buffer, Buffer.from(iv, 'hex'));
-
-      let dec!: string;
-      try {
-        decipher.setAuthTag(Buffer.from(tag, 'hex'));
-        dec = decipher.update(secret, 'hex', 'utf8');
-        dec += decipher.final('utf8');
-      } catch (_err: unknown) {
-        const err = (isString(_err) ? SfError.wrap(_err) : _err) as Error;
-        const handleDecryptError = (decryptErr: Error): void => {
-          const error = messages.createError('authDecryptError', [decryptErr.message], [], decryptErr);
-          const useGenericUnixKeychain =
-            env.getBoolean('SF_USE_GENERIC_UNIX_KEYCHAIN') || env.getBoolean('USE_GENERIC_UNIX_KEYCHAIN');
-          if (os.platform() === 'darwin' && !useGenericUnixKeychain) {
-            error.actions = [messages.getMessage('macKeychainOutOfSync')];
-          }
-          throw error;
-        };
-
-        if (this.legacyKeyMode && err?.message === 'Unsupported state or unable to authenticate data') {
-          try {
-            const ivLegacy = tokens[0].substring(0, BYTE_COUNT_FOR_IV);
-            const secretLegacy = tokens[0].substring(BYTE_COUNT_FOR_IV, tokens[0].length);
-            // legacy encryption used a utf8 encoded string from the buffer
-            decipher = crypto.createDecipheriv(ALGO, buffer.toString('utf8'), ivLegacy);
-            decipher.setAuthTag(Buffer.from(tag, 'hex'));
-            dec = decipher.update(secretLegacy, 'hex', 'utf8');
-            dec += decipher.final('utf8');
-          } catch (_err2: unknown) {
-            const err2 = (isString(_err2) ? SfError.wrap(_err2) : _err2) as Error;
-            handleDecryptError(err2);
-          }
-        } else {
-          handleDecryptError(err);
-        }
-      }
-      return dec;
-    });
+    // When everything is v2, we can remove the else
+    if (this.isV2Crypto()) {
+      return this.decryptV2({ tag, iv, secret, tokens });
+    } else {
+      return this.decryptV1({ tag, iv, secret });
+    }
   }
 
   /**
@@ -237,7 +246,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     const value = tokens[0];
     return (
       tag.length === AUTH_TAG_LENGTH &&
-      value.length >= BYTE_COUNT_FOR_IV &&
+      value.length >= IV_BYTES[this.getCryptoVersion()] &&
       ENCRYPTED_CHARS.test(tag) &&
       ENCRYPTED_CHARS.test(tokens[0])
     );
@@ -252,46 +261,46 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     }
   }
 
+  public isV2Crypto(): boolean {
+    return this.getCryptoVersion() === 'v2';
+  }
+
   /**
    * Initialize async components.
    */
   protected async init(): Promise<void> {
-    const logger = await Logger.child('crypto');
-
     if (!this.options.platform) {
       this.options.platform = os.platform();
     }
 
-    logger.debug(`retryStatus: ${this.options.retryStatus}`);
+    getCryptoLogger().debug(`retryStatus: ${this.options.retryStatus}`);
 
     this.noResetOnClose = !!this.options.noResetOnClose;
 
     try {
       const keyChain = await this.getKeyChain(this.options.platform);
-      const pwdHex = (await keychainPromises.getPassword(keyChain, KEY_NAME, ACCOUNT)).password;
-      // This supports the legacy key size (32 hex chars) and the new key size (64 hex chars).
-      let encoding: 'hex' | 'utf8';
-      if (pwdHex.length === 64) {
-        encoding = 'hex';
-        logger.debug('Detected new key size');
+      const pwd = (await keychainPromises.getPassword(keyChain, KEY_NAME, ACCOUNT, ENCODING[this.getCryptoVersion()]))
+        .password;
+      // This supports the v1 key size (32 hex chars) and the v2 key size (64 hex chars).
+      if (pwd.length === KEY_SIZE.v2 * 2) {
+        getCryptoLogger().debug('Detected v2 key size');
       } else {
-        encoding = 'utf8';
-        logger.debug('Detected legacy key size');
-        this.legacyKeyMode = true;
+        getCryptoLogger().debug('Detected v1 key size');
+        this.v1KeyLength = true;
       }
-      this.key.consume(Buffer.from(pwdHex, encoding));
+      this.key.consume(Buffer.from(pwd, this.v1KeyLength ? ENCODING.v1 : ENCODING.v2));
     } catch (err) {
       // No password found
       if ((err as Error).name === 'PasswordNotFoundError') {
         // If we already tried to create a new key then bail.
         if (this.options.retryStatus === 'KEY_SET') {
-          logger.debug('a key was set but the retry to get the password failed.');
+          getCryptoLogger().debug('a key was set but the retry to get the password failed.');
           throw err;
         } else {
-          logger.debug('password not found in keychain attempting to created one and re-init.');
+          getCryptoLogger().debug('password not found in keychain. attempting to create one and re-init.');
         }
 
-        const key = crypto.randomBytes(32).toString('hex');
+        const key = crypto.randomBytes(KEY_SIZE[this.getCryptoVersion()]).toString('hex');
         // Create a new password in the KeyChain.
         await keychainPromises.setPassword(ensure(this.options.keychain), KEY_NAME, ACCOUNT, key);
 
@@ -300,6 +309,105 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
         throw err;
       }
     }
+  }
+
+  // enables overriding the version in tests
+  private getCryptoVersion(): CryptoVersion {
+    return this.cryptoVersion ?? getCryptoVersion();
+  }
+
+  private encryptV1(text: string): Optional<string> {
+    const iv = crypto.randomBytes(IV_BYTES.v1).toString('hex');
+
+    return this.key.value((buffer: Buffer): string => {
+      const cipher = crypto.createCipheriv(ALGO, buffer.toString('utf8'), iv);
+
+      let encrypted = cipher.update(text, 'utf8', 'hex');
+      encrypted += cipher.final('hex');
+
+      const tag = cipher.getAuthTag().toString('hex');
+      return `${iv}${encrypted}${TAG_DELIMITER}${tag}`;
+    });
+  }
+
+  private encryptV2(text: string): Optional<string> {
+    const iv = crypto.randomBytes(IV_BYTES.v2);
+
+    return this.key.value((buffer: Buffer): string => {
+      const cipher = crypto.createCipheriv(ALGO, buffer, iv);
+      const ivHex = iv.toString('hex');
+
+      let encrypted = cipher.update(text, 'utf8', 'hex');
+      encrypted += cipher.final('hex');
+
+      const tag = cipher.getAuthTag().toString('hex');
+      return `${ivHex}${encrypted}${TAG_DELIMITER}${tag}`;
+    });
+  }
+
+  private decryptV1({ tag, iv, secret }: DecryptConfigV1): Optional<string> {
+    return this.key.value((buffer: Buffer) => {
+      const decipher = crypto.createDecipheriv(ALGO, buffer.toString('utf8'), iv);
+
+      let dec;
+      try {
+        decipher.setAuthTag(Buffer.from(tag, 'hex'));
+        dec = decipher.update(secret, 'hex', 'utf8');
+        dec += decipher.final('utf8');
+      } catch (err) {
+        const error = messages.createError('authDecryptError', [(err as Error).message], [], err as Error);
+        const useGenericUnixKeychain =
+          env.getBoolean('SF_USE_GENERIC_UNIX_KEYCHAIN') || env.getBoolean('USE_GENERIC_UNIX_KEYCHAIN');
+        if (os.platform() === 'darwin' && !useGenericUnixKeychain) {
+          error.actions = [messages.getMessage('macKeychainOutOfSync')];
+        }
+        throw error;
+      }
+      return dec;
+    });
+  }
+
+  private decryptV2({ tag, iv, secret, tokens }: DecryptConfigV2): Optional<string> {
+    return this.key.value((buffer: Buffer) => {
+      let decipher = crypto.createDecipheriv(ALGO, buffer, Buffer.from(iv, 'hex'));
+
+      let dec!: string;
+      try {
+        decipher.setAuthTag(Buffer.from(tag, 'hex'));
+        dec = decipher.update(secret, 'hex', 'utf8');
+        dec += decipher.final('utf8');
+      } catch (_err: unknown) {
+        const err = (isString(_err) ? SfError.wrap(_err) : _err) as Error;
+        const handleDecryptError = (decryptErr: Error): void => {
+          const error = messages.createError('authDecryptError', [decryptErr.message], [], decryptErr);
+          const useGenericUnixKeychain =
+            env.getBoolean('SF_USE_GENERIC_UNIX_KEYCHAIN') || env.getBoolean('USE_GENERIC_UNIX_KEYCHAIN');
+          if (os.platform() === 'darwin' && !useGenericUnixKeychain) {
+            error.actions = [messages.getMessage('macKeychainOutOfSync')];
+          }
+          throw error;
+        };
+
+        if (this.v1KeyLength && err?.message === 'Unsupported state or unable to authenticate data') {
+          getCryptoLogger().debug('v2 decryption failed so trying v1 decryption');
+          try {
+            const ivLegacy = tokens[0].substring(0, IV_BYTES.v2);
+            const secretLegacy = tokens[0].substring(IV_BYTES.v2, tokens[0].length);
+            // v1 encryption uses a utf8 encoded string from the buffer
+            decipher = crypto.createDecipheriv(ALGO, buffer.toString('utf8'), ivLegacy);
+            decipher.setAuthTag(Buffer.from(tag, 'hex'));
+            dec = decipher.update(secretLegacy, 'hex', 'utf8');
+            dec += decipher.final('utf8');
+          } catch (_err2: unknown) {
+            const err2 = (isString(_err2) ? SfError.wrap(_err2) : _err2) as Error;
+            handleDecryptError(err2);
+          }
+        } else {
+          handleDecryptError(err);
+        }
+      }
+      return dec;
+    });
   }
 
   private async getKeyChain(platform: string): Promise<KeyChain> {
