@@ -26,10 +26,10 @@ const IV_BYTES = {
   v1: 6,
   v2: 12,
 };
-const ENCODING: { v1: 'utf8'; v2: 'hex' } = {
+const ENCODING = {
   v1: 'utf8',
   v2: 'hex',
-};
+} as const;
 const KEY_SIZE = {
   v1: 16,
   v2: 32,
@@ -44,13 +44,12 @@ const ACCOUNT = 'local';
 
 let cryptoLogger: Logger;
 const getCryptoLogger = (): Logger => {
-  if (!cryptoLogger) {
-    cryptoLogger = Logger.childFromRoot('crypto');
-  }
+  cryptoLogger ??= Logger.childFromRoot('crypto');
   return cryptoLogger;
 };
 
-type CryptoVersion = 'v1' | 'v2';
+type CryptoEncoding = 'utf8' | 'hex';
+type CryptoVersion = keyof typeof IV_BYTES;
 let cryptoVersion: CryptoVersion;
 const getCryptoVersion = (): CryptoVersion => {
   if (!cryptoVersion) {
@@ -74,14 +73,7 @@ interface CredType {
   password: string;
 }
 
-type DecryptConfigV1 = {
-  tag: string;
-  iv: string;
-  secret: string;
-};
-type DecryptConfigV2 = DecryptConfigV1 & { tokens: string[] };
-
-const makeSecureBuffer = (password: string | undefined, encoding: 'utf8' | 'hex'): SecureBuffer<string> => {
+const makeSecureBuffer = (password: string | undefined, encoding: CryptoEncoding): SecureBuffer<string> => {
   const newSb = new SecureBuffer<string>();
   newSb.consume(Buffer.from(ensure(password), encoding));
   return newSb;
@@ -98,7 +90,7 @@ const keychainPromises = {
    * @param service The keychain service name.
    * @param account The keychain account name.
    */
-  getPassword(_keychain: KeyChain, service: string, account: string, encoding: 'utf8' | 'hex'): Promise<CredType> {
+  getPassword(_keychain: KeyChain, service: string, account: string, encoding: CryptoEncoding): Promise<CredType> {
     const cacheKey = `${Global.DIR}:${service}:${account}`;
     const sb = Cache.get<SecureBuffer<string>>(cacheKey);
     if (!sb) {
@@ -211,15 +203,11 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
       throw messages.createError('invalidEncryptedFormatError');
     }
 
-    const tag = tokens[1];
-    const iv = tokens[0].substring(0, IV_BYTES[this.getCryptoVersion()] * 2);
-    const secret = tokens[0].substring(IV_BYTES[this.getCryptoVersion()] * 2, tokens[0].length);
-
     // When everything is v2, we can remove the else
     if (this.isV2Crypto()) {
-      return this.decryptV2({ tag, iv, secret, tokens });
+      return this.decryptV2(tokens);
     } else {
-      return this.decryptV1({ tag, iv, secret });
+      return this.decryptV1(tokens);
     }
   }
 
@@ -345,15 +333,17 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     });
   }
 
-  private decryptV1({ tag, iv, secret }: DecryptConfigV1): Optional<string> {
+  private decryptV1(tokens: string[]): Optional<string> {
+    const tag = tokens[1];
+    const iv = tokens[0].substring(0, IV_BYTES.v1 * 2);
+    const secret = tokens[0].substring(IV_BYTES.v1 * 2, tokens[0].length);
+
     return this.key.value((buffer: Buffer) => {
       const decipher = crypto.createDecipheriv(ALGO, buffer.toString('utf8'), iv);
 
-      let dec;
       try {
         decipher.setAuthTag(Buffer.from(tag, 'hex'));
-        dec = decipher.update(secret, 'hex', 'utf8');
-        dec += decipher.final('utf8');
+        return `${decipher.update(secret, 'hex', 'utf8')}${decipher.final('utf8')}`;
       } catch (err) {
         const error = messages.createError('authDecryptError', [(err as Error).message], [], err as Error);
         const useGenericUnixKeychain =
@@ -363,11 +353,14 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
         }
         throw error;
       }
-      return dec;
     });
   }
 
-  private decryptV2({ tag, iv, secret, tokens }: DecryptConfigV2): Optional<string> {
+  private decryptV2(tokens: string[]): Optional<string> {
+    const tag = tokens[1];
+    const iv = tokens[0].substring(0, IV_BYTES.v2 * 2);
+    const secret = tokens[0].substring(IV_BYTES.v2 * 2, tokens[0].length);
+
     return this.key.value((buffer: Buffer) => {
       let decipher = crypto.createDecipheriv(ALGO, buffer, Buffer.from(iv, 'hex'));
 
@@ -391,8 +384,8 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
         if (this.v1KeyLength && err?.message === 'Unsupported state or unable to authenticate data') {
           getCryptoLogger().debug('v2 decryption failed so trying v1 decryption');
           try {
-            const ivLegacy = tokens[0].substring(0, IV_BYTES.v2);
-            const secretLegacy = tokens[0].substring(IV_BYTES.v2, tokens[0].length);
+            const ivLegacy = tokens[0].substring(0, IV_BYTES.v1 * 2);
+            const secretLegacy = tokens[0].substring(IV_BYTES.v1 * 2, tokens[0].length);
             // v1 encryption uses a utf8 encoded string from the buffer
             decipher = crypto.createDecipheriv(ALGO, buffer.toString('utf8'), ivLegacy);
             decipher.setAuthTag(Buffer.from(tag, 'hex'));
