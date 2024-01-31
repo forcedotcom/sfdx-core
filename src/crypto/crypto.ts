@@ -358,6 +358,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
 
   private decryptV2(tokens: string[]): Optional<string> {
     const tag = tokens[1];
+    // assume the iv is v2 length (12 bytes) when parsing.
     const iv = tokens[0].substring(0, IV_BYTES.v2 * 2);
     const secret = tokens[0].substring(IV_BYTES.v2 * 2, tokens[0].length);
 
@@ -381,6 +382,8 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
           throw error;
         };
 
+        // This happens when the iv is v1 length (6 bytes), and the key is v1 length.
+        // We re-parse the tokens for iv and secret based on that length.
         if (this.v1KeyLength && err?.message === 'Unsupported state or unable to authenticate data') {
           getCryptoLogger().debug('v2 decryption failed so trying v1 decryption');
           try {
