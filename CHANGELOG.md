@@ -1,3 +1,12 @@
+## [6.5.2](https://github.com/forcedotcom/sfdx-core/compare/6.5.1...6.5.2) (2024-02-04)
+
+
+### Bug Fixes
+
+* **deps:** bump pino from 8.17.2 to 8.18.0 ([5485a4d](https://github.com/forcedotcom/sfdx-core/commit/5485a4d72ecba6796165d35900c23d989a2ce6b8))
+
+
+
 ## [6.5.1](https://github.com/forcedotcom/sfdx-core/compare/6.5.0...6.5.1) (2024-01-24)
 
 
