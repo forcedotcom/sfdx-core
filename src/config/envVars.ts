@@ -25,7 +25,6 @@ export enum EnvironmentVariable {
   'SFDX_ACCESS_TOKEN' = 'SFDX_ACCESS_TOKEN',
   'SFDX_API_VERSION' = 'SFDX_API_VERSION',
   'SFDX_AUDIENCE_URL' = 'SFDX_AUDIENCE_URL',
-  'SFDX_CODE_COVERAGE_REQUIREMENT' = 'SFDX_CODE_COVERAGE_REQUIREMENT',
   'SFDX_CONTENT_TYPE' = 'SFDX_CONTENT_TYPE',
   'SFDX_DEFAULTDEVHUBUSERNAME' = 'SFDX_DEFAULTDEVHUBUSERNAME',
   'SFDX_DEFAULTUSERNAME' = 'SFDX_DEFAULTUSERNAME',
@@ -62,7 +61,6 @@ export enum EnvironmentVariable {
   'SF_ACCESS_TOKEN' = 'SF_ACCESS_TOKEN',
   'SF_ORG_API_VERSION' = 'SF_ORG_API_VERSION',
   'SF_AUDIENCE_URL' = 'SF_AUDIENCE_URL',
-  'SF_CODE_COVERAGE_REQUIREMENT' = 'SF_CODE_COVERAGE_REQUIREMENT',
   'SF_CONTENT_TYPE' = 'SF_CONTENT_TYPE',
   'SF_DISABLE_AUTOUPDATE' = 'SF_DISABLE_AUTOUPDATE',
   'SF_AUTOUPDATE_DISABLE' = 'SF_AUTOUPDATE_DISABLE',
@@ -147,10 +145,6 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   [EnvironmentVariable.SFDX_AUDIENCE_URL]: {
     description: getMessage(EnvironmentVariable.SFDX_AUDIENCE_URL),
     synonymOf: EnvironmentVariable.SF_AUDIENCE_URL,
-  },
-  [EnvironmentVariable.SFDX_CODE_COVERAGE_REQUIREMENT]: {
-    description: getMessage(EnvironmentVariable.SFDX_CODE_COVERAGE_REQUIREMENT),
-    synonymOf: EnvironmentVariable.SF_CODE_COVERAGE_REQUIREMENT,
   },
   [EnvironmentVariable.SFDX_CONTENT_TYPE]: {
     description: getMessage(EnvironmentVariable.SFDX_CONTENT_TYPE),
@@ -298,10 +292,6 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SF_AUDIENCE_URL]: {
     description: getMessage(EnvironmentVariable.SF_AUDIENCE_URL),
-    synonymOf: null,
-  },
-  [EnvironmentVariable.SF_CODE_COVERAGE_REQUIREMENT]: {
-    description: getMessage(EnvironmentVariable.SF_CODE_COVERAGE_REQUIREMENT),
     synonymOf: null,
   },
   [EnvironmentVariable.SF_CONTENT_TYPE]: {
