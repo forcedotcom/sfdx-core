@@ -1,3 +1,12 @@
+## [6.5.3](https://github.com/forcedotcom/sfdx-core/compare/6.5.2...6.5.3) (2024-02-06)
+
+
+### Bug Fixes
+
+* remove unused env/config ([1c5bc73](https://github.com/forcedotcom/sfdx-core/commit/1c5bc739e3a930847e6e9f31e7e25cfc5f357909))
+
+
+
 ## [6.5.2](https://github.com/forcedotcom/sfdx-core/compare/6.5.1...6.5.2) (2024-02-04)
 
 
