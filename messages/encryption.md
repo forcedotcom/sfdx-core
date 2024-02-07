@@ -83,3 +83,16 @@ Command failed with response:
 # macKeychainOutOfSync
 
 We’ve encountered an error with the Mac keychain being out of sync with your `sfdx` credentials. To fix the problem, sync your credentials by authenticating into your org again using the auth commands.
+
+# v1CryptoWithV2KeyWarning
+
+The SF_CRYPTO_V2 environment variable was set to "false" but a v2 crypto key was detected. v1 crypto can only be used with a v1 key. Unset the SF_CRYPTO_V2 environment variable.
+
+# v2CryptoWithV1KeyWarning
+
+SF_CRYPTO_V2 was set to "true" but a v1 crypto key was detected. v2 crypto can only be used with a v2 key. To generate a v2 key:
+
+1. Logout of all orgs: `sf org logout --all`
+2. Delete the sfdx keychain entry (account: local, service: sfdx). If `SF_USE_GENERIC_UNIX_KEYCHAIN=true` env var is set, you can delete the `key.json` file.
+3. Set `SF_CRYPTO_V2=true` env var.
+4. Re-Authenticate with your orgs using the CLI org login commands.

@@ -84,7 +84,8 @@ describe('CryptoTests', function () {
             getPassword: (data: unknown, cb: (arg1: undefined, arg2: string) => {}) => cb(undefined, key),
           })
         );
-        stubMethod($$.SANDBOX, Crypto.prototype, 'getCryptoVersion').returns(envVarValue ? 'v2' : 'v1');
+        // @ts-expect-error Using a private static method for testing
+        Crypto.unsetCryptoVersion();
       });
 
       it('Should have encrypted the string.', async () => {
@@ -239,19 +240,27 @@ describe('CryptoTests', function () {
     }
   };
 
-  describe('v1 crypto with v1 key, without env var', () => {
+  describe('crypto with v1 key, no env var, does v1 crypto', () => {
     runTests({ keyVersion: 'v1' });
   });
 
-  describe('v1 crypto with v1 key, with env var', () => {
+  describe('crypto with v1 key, SF_CRYPTO_V2=false, does v1 crypto', () => {
     runTests({ keyVersion: 'v1', envVarValue: false });
   });
 
-  describe('v2 crypto with v1 key', () => {
+  describe('crypto with v1 key, SF_CRYPTO_V2=true, does v1 crypto', () => {
     runTests({ keyVersion: 'v1', envVarValue: true });
   });
 
-  describe('v2 crypto with v2 key', () => {
+  describe('crypto with v2 key, no env var, does v2 crypto', () => {
+    runTests({ keyVersion: 'v2' });
+  });
+
+  describe('crypto with v2 key, SF_CRYPTO_V2=true, does v2 crypto', () => {
     runTests({ keyVersion: 'v2', envVarValue: true });
+  });
+
+  describe('crypto with v2 key, SF_CRYPTO_V2=false, does v2 crypto', () => {
+    runTests({ keyVersion: 'v2', envVarValue: false });
   });
 });
