@@ -95,6 +95,9 @@ const detectCryptoVersion = (pwd?: string): void => {
       if (sfCryptoV2 === 'true') {
         getCryptoLogger().warn(messages.getMessage('v2CryptoWithV1KeyWarning'));
       }
+    } else {
+      getCryptoLogger().debug("crypto key doesn't match v1 or v2. using SF_CRYPTO_V2.");
+      getCryptoVersion();
     }
 
     void Lifecycle.getInstance().emitTelemetry({
