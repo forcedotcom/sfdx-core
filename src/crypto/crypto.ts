@@ -64,7 +64,7 @@ const getCryptoV2EnvVar = (): CryptoV2Value => {
 
 type CryptoEncoding = 'utf8' | 'hex';
 type CryptoVersion = keyof typeof IV_BYTES;
-let cryptoVersion: CryptoVersion;
+let cryptoVersion: CryptoVersion | undefined;
 const getCryptoVersion = (): CryptoVersion => {
   if (!cryptoVersion) {
     // This only happens when generating a new key, so use the env var
@@ -207,7 +207,6 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
   // @ts-expect-error only for test access
   // eslint-disable-next-line class-methods-use-this
   private static unsetCryptoVersion(): void {
-    // @ts-expect-error only for test access
     cryptoVersion = undefined;
   }
 
