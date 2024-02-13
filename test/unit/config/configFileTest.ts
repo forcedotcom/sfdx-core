@@ -7,12 +7,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
-import * as Path from 'node:path';
-import * as fs from 'node:fs';
+import Path from 'node:path';
+import fs from 'node:fs';
 import { expect } from 'chai';
 
 import { assert } from '@salesforce/ts-types';
-import * as lockfileLib from 'proper-lockfile';
+import lockfileLib from 'proper-lockfile';
 import { ConfigFile } from '../../../src/config/configFile';
 import { SfError } from '../../../src/exported';
 import { shouldThrow, TestContext } from '../../../src/testSetup';

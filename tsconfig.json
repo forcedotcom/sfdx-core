@@ -4,7 +4,8 @@
     "outDir": "./lib",
     "resolveJsonModule": true,
     "rootDir": "./src",
-    "plugins": [{ "transform": "./src/messageTransformer.ts" }]
+    "plugins": [{ "transform": "./src/messageTransformer.ts" }],
+    "esModuleInterop": true
   },
   "include": ["./src/**/*.ts"]
 }

@@ -11,7 +11,7 @@ import Transport from 'jsforce/lib/transport';
 import { AsyncCreatable, Duration, parseJsonMap, sleep } from '@salesforce/kit';
 import { HttpRequest, OAuth2Config } from 'jsforce';
 import { ensureString, isString, JsonMap, Nullable } from '@salesforce/ts-types';
-import * as FormData from 'form-data';
+import FormData from 'form-data';
 import { Logger } from './logger/logger';
 import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org/authInfo';
 import { SFDX_HTTP_HEADERS } from './org/connection';
