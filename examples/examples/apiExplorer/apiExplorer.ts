@@ -39,7 +39,8 @@ export async function run() {
 
       // Only change the options if they are urls
       const opts = Object.values(response);
-      if ((opts[0] as string).match(/^\//)) {
+      const first = opts[0];
+      if (typeof first === 'string' && first.match(/^\//)) {
         options = opts;
       }
     } catch (err) {
