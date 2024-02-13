@@ -180,7 +180,7 @@ export class Logger {
           transport: {
             pipeline: [
               {
-                target: './transformStream',
+                target: path.join('..', '..', 'lib', 'logger', 'transformStream'),
               },
               getWriteStream(level),
             ],
