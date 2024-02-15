@@ -1,0 +1,52 @@
+name: esbuild Compilation Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Set the branch to use for automation tests'
+        type: string
+        required: false
+        default: 'main'
+      nodeVersion:
+        description: version of node to use.  It's better to specify latest, lts/* or lts/-1 than to hardode numbers
+        type: string
+        default: lts/*
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.nodeVersion }}
+      - name: Checkout esbuild Workflow Project
+        uses: actions/checkout@v4
+        with:
+          ref: 'main'
+          repository: 'mingxuanzhangsfdx/sfdx-core-esbuild-workflow'
+          path: ./sfdx-core-esbuild-workflow
+      - name: Copy script Files to sfdx-core project
+        run: |
+          mkdir ./scripts
+          cp -r ./sfdx-core-esbuild-workflow/*.js ./scripts
+          cp ./sfdx-core-esbuild-workflow/tsconfig.json ./scripts
+      - name: Setup esbuild Dependencies
+        run: |
+          yarn add esbuild@^0.19.5 -D
+          yarn add esbuild-plugin-pino@^2.1.0 -D
+          yarn add npm-dts@^1.3.12 -D
+          yarn add esbuild-plugin-tsc@^0.4.0 -D
+      - name: Install Dependencies
+        run: |
+          yarn install --network-timeout 600000
+      - name: Update for Bundling
+        run: |
+          node scripts/updateForBundling.js
+      - name: Generate Bundle
+        run: |
+          node scripts/build.js
