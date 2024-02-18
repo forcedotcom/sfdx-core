@@ -1,3 +1,12 @@
+## [6.5.5](https://github.com/forcedotcom/sfdx-core/compare/6.5.4...6.5.5) (2024-02-18)
+
+
+### Bug Fixes
+
+* **deps:** bump semver and @types/semver ([a868c32](https://github.com/forcedotcom/sfdx-core/commit/a868c3221038e6d925c481da803395e8285a5a6c))
+
+
+
 ## [6.5.4](https://github.com/forcedotcom/sfdx-core/compare/6.5.3...6.5.4) (2024-02-18)
 
 
