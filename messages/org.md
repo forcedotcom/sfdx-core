@@ -34,6 +34,10 @@ We can't find a SandboxProcess for the sandbox %s.
 
 The sandbox org creation failed with a result of %s.
 
+# sandboxInfoRefreshFailed
+
+The sandbox org refresh failed with a result of %s.
+
 # missingAuthUsername
 
 The sandbox %s does not have an authorized username.

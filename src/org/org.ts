@@ -111,6 +111,19 @@ export type SandboxProcessObject = {
   ApexClassId?: string;
   EndDate?: string;
 };
+const sandboxProcessFields = [
+  'Id',
+  'Status',
+  'SandboxName',
+  'SandboxInfoId',
+  'LicenseType',
+  'CreatedDate',
+  'CopyProgress',
+  'SandboxOrganization',
+  'SourceId',
+  'Description',
+  'EndDate',
+];
 
 export type SandboxRequest = {
   SandboxName: string;
@@ -122,6 +135,27 @@ export type SandboxRequest = {
 export type ResumeSandboxRequest = {
   SandboxName?: string;
   SandboxProcessObjId?: string;
+};
+
+// https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/tooling_api_objects_sandboxinfo.htm
+export type SandboxInfo = {
+  Id: string; // 0GQB0000000TVobOAG
+  IsDeleted: boolean;
+  CreatedDate: string; // 2023-06-16T18:35:47.000+0000
+  CreatedById: string; // 005B0000004TiUpIAK
+  LastModifiedDate: string; // 2023-09-27T20:50:26.000+0000
+  LastModifiedById: string; // 005B0000004TiUpIAK
+  SandboxName: string; // must be 10 or less alphanumeric chars
+  LicenseType: 'DEVELOPER' | 'DEVELOPER PRO' | 'PARTIAL' | 'FULL';
+  TemplateId?: string; // reference to PartitionLevelScheme
+  HistoryDays: -1 | 0 | 10 | 20 | 30 | 60 | 90 | 120 | 150 | 180; // full sandboxes only
+  CopyChatter: boolean;
+  AutoActivate: boolean; // only editable for an update/refresh
+  ApexClassId?: string; // apex class ID. Only editable on create.
+  Description?: string;
+  SourceId?: string; // SandboxInfoId as the source org used for a clone
+  // 'ActivationUserGroupId', // Support might be added back in API v61.0 (Summer '24)
+  CopyArchivedActivities?: boolean; // only for full sandboxes; depends if a license was purchased
 };
 
 export type ScratchOrgRequest = Omit<ScratchOrgCreateOptions, 'hubOrg'>;
@@ -228,6 +262,62 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
+   * Refresh (update) a sandbox from a production org.
+   * 'this' needs to be a production org with sandbox licenses available
+   *
+   * @param sandboxInfo SandboxInfo to update the sandbox with
+   * @param options Wait: The amount of time to wait before timing out, Interval: The time interval between polling
+   */
+  public async refreshSandbox(
+    sandboxInfo: SandboxInfo,
+    options: { wait?: Duration; interval?: Duration; async?: boolean } = {
+      wait: Duration.minutes(6),
+      async: false,
+      interval: Duration.seconds(30),
+    }
+  ): Promise<SandboxProcessObject> {
+    this.logger.debug(sandboxInfo, 'RefreshSandbox called with SandboxInfo');
+    const refreshResult = await this.connection.tooling.update('SandboxInfo', sandboxInfo);
+    this.logger.debug(refreshResult, 'Return from calling tooling.update');
+
+    if (!refreshResult.success) {
+      throw messages.createError('sandboxInfoRefreshFailed', [JSON.stringify(refreshResult)]);
+    }
+
+    const soql = `SELECT ${sandboxProcessFields.join(',')} FROM SandboxProcess WHERE SandboxName='${
+      sandboxInfo.SandboxName
+    }' ORDER BY CreatedDate DESC`;
+    const sbxProcessObjects = (await this.connection.tooling.query<SandboxProcessObject>(soql)).records.filter(
+      (item) => !item.Status.startsWith('Del')
+    );
+    this.logger.debug(sbxProcessObjects, `SandboxProcesses for ${sandboxInfo.SandboxName}`);
+
+    // throw if none found
+    if (sbxProcessObjects?.length === 0) {
+      throw new Error(`No SandboxProcesses found for: ${sandboxInfo.SandboxName}`);
+    }
+    const sandboxRefreshProgress = sbxProcessObjects[0];
+
+    const isAsync = !!options.async;
+
+    if (isAsync) {
+      // The user didn't want us to poll, so simply return the status
+      await Lifecycle.getInstance().emit(SandboxEvents.EVENT_ASYNC_RESULT, sandboxRefreshProgress);
+      return sandboxRefreshProgress;
+    }
+    const [wait, pollInterval] = this.validateWaitOptions(options);
+    this.logger.debug(
+      sandboxRefreshProgress,
+      `refresh - pollStatusAndAuth sandboxProcessObj, max wait time of ${wait.minutes} minutes`
+    );
+    return this.pollStatusAndAuth({
+      sandboxProcessObj: sandboxRefreshProgress,
+      wait,
+      pollInterval,
+    });
+  }
+
+  /**
    *
    * @param sandboxReq SandboxRequest options to create the sandbox with
    * @param sourceSandboxName the name of the sandbox that your new sandbox will be based on
@@ -245,10 +335,10 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
-   * Resume a sandbox creation from a production org.
+   * Resume a sandbox create or refresh from a production org.
    * `this` needs to be a production org with sandbox licenses available.
    *
-   * @param resumeSandboxRequest SandboxRequest options to create the sandbox with
+   * @param resumeSandboxRequest SandboxRequest options to create/refresh the sandbox with
    * @param options Wait: The amount of time to wait (default: 0 minutes) before timing out,
    * Interval: The time interval (default: 30 seconds) between polling
    */
@@ -1293,7 +1383,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
       const authInfo = await AuthInfo.create({
         username: sandboxRes.authUserName,
-        oauth2Options,
         parentUsername: productionAuthFields.username,
       });
 
@@ -1305,8 +1394,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         },
         'Creating AuthInfo for sandbox'
       );
-      // save auth info for new sandbox
-      await authInfo.save();
+      // save auth info for sandbox
+      await authInfo.save({
+        ...oauth2Options,
+        isScratch: false,
+        isSandbox: true,
+      });
 
       const sandboxOrgId = authInfo.getFields().orgId;
 
@@ -1390,7 +1483,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * @private
    */
   private async querySandboxProcess(where: string): Promise<SandboxProcessObject> {
-    const soql = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE ${where} ORDER BY CreatedDate DESC`;
+    const soql = `SELECT ${sandboxProcessFields.join(
+      ','
+    )} FROM SandboxProcess WHERE ${where} ORDER BY CreatedDate DESC`;
     const result = (await this.connection.tooling.query<SandboxProcessObject>(soql)).records.filter(
       (item) => !item.Status.startsWith('Del')
     );

@@ -1059,7 +1059,7 @@ describe('Org Tests', () => {
 
     describe('resumeSandbox', () => {
       const expectedSoql =
-        'SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE %s ORDER BY CreatedDate DESC';
+        'SELECT Id,Status,SandboxName,SandboxInfoId,LicenseType,CreatedDate,CopyProgress,SandboxOrganization,SourceId,Description,EndDate FROM SandboxProcess WHERE %s ORDER BY CreatedDate DESC';
       let lifecycleSpy: SinonSpy;
       let queryStub: SinonStub;
       let pollStatusAndAuthSpy: SinonSpy;
@@ -1250,7 +1250,7 @@ describe('Org Tests', () => {
         const deletedSbxProcess = Object.assign({}, statusResult.records[0], { Status: 'Deleted' });
         queryStub.resolves({ records: [deletingSbxProcess, statusResult.records[0], deletedSbxProcess] });
         const where = 'name="foo"';
-        const expectedSoql = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE ${where} ORDER BY CreatedDate DESC`;
+        const expectedSoql = `SELECT Id,Status,SandboxName,SandboxInfoId,LicenseType,CreatedDate,CopyProgress,SandboxOrganization,SourceId,Description,EndDate FROM SandboxProcess WHERE ${where} ORDER BY CreatedDate DESC`;
 
         // @ts-ignore Testing a private method
         const sbxProcess = await prod.querySandboxProcess(where);
