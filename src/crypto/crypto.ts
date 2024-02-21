@@ -118,9 +118,9 @@ interface CredType {
   password: string;
 }
 
-const makeSecureBuffer = (password: string | undefined, encoding: CryptoEncoding): SecureBuffer<string> => {
+const makeSecureBuffer = (password: string, encoding: CryptoEncoding): SecureBuffer<string> => {
   const newSb = new SecureBuffer<string>();
-  newSb.consume(Buffer.from(ensure(password), encoding));
+  newSb.consume(Buffer.from(password, encoding));
   return newSb;
 };
 
@@ -142,18 +142,22 @@ const keychainPromises = {
       return new Promise((resolve, reject): {} =>
         _keychain.getPassword({ service, account }, (err: Nullable<Error>, password?: string) => {
           if (err) return reject(err);
-          detectCryptoVersion(password);
-          Cache.set(cacheKey, makeSecureBuffer(password, ENCODING[getCryptoVersion()]));
-          return resolve({ username: account, password: ensure(password) });
+          const pwd = ensure(password, 'Expected the keychain password to be set');
+          detectCryptoVersion(pwd);
+          Cache.set(cacheKey, makeSecureBuffer(pwd, ENCODING[getCryptoVersion()]));
+          return resolve({ username: account, password: pwd });
         })
       );
     } else {
       // If the password is cached, we know the crypto version and encoding because it was
       // detected by the non-cache code path just above this.
       const encoding = ENCODING[getCryptoVersion()];
-      const pw = sb.value((buffer) => buffer.toString(encoding));
-      Cache.set(cacheKey, makeSecureBuffer(pw, encoding));
-      return new Promise((resolve): void => resolve({ username: account, password: ensure(pw) }));
+      const pwd = ensure(
+        sb.value((buffer) => buffer.toString(encoding)),
+        'Expected the keychain password to be set'
+      );
+      Cache.set(cacheKey, makeSecureBuffer(pwd, encoding));
+      return new Promise((resolve): void => resolve({ username: account, password: pwd }));
     }
   },
 
