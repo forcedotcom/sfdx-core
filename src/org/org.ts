@@ -1136,7 +1136,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   private async queryLatestSandboxProcessBySandboxName(sandboxNameIn: string): Promise<SandboxProcessObject> {
     const { tooling } = this.getConnection();
     this.logger.debug(`QueryLatestSandboxProcessBySandboxName called with SandboxName: ${sandboxNameIn}`);
-    const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxName='${sandboxNameIn}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;
+    const queryStr = `SELECT ${sandboxProcessFields.join(
+      ','
+    )} FROM SandboxProcess WHERE SandboxName='${sandboxNameIn}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;
 
     const queryResult = await tooling.query(queryStr);
     this.logger.debug(queryResult, 'Return from calling queryToolingApi');
@@ -1381,8 +1383,20 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         oauth2Options.clientId = productionAuthFields.clientId;
       }
 
+      // Before creating the AuthInfo, delete any existing auth files for the sandbox.
+      // This is common when refreshing sandboxes, and will cause AuthInfo to throw
+      // because it doesn't want to overwrite existing auth files.
+      const stateAggregator = await StateAggregator.getInstance();
+      try {
+        await stateAggregator.orgs.read(sandboxRes.authUserName);
+        await stateAggregator.orgs.remove(sandboxRes.authUserName);
+      } catch (e) {
+        // ignore since this is only for deleting existing auth files.
+      }
+
       const authInfo = await AuthInfo.create({
         username: sandboxRes.authUserName,
+        oauth2Options,
         parentUsername: productionAuthFields.username,
       });
 
@@ -1396,7 +1410,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       );
       // save auth info for sandbox
       await authInfo.save({
-        ...oauth2Options,
         isScratch: false,
         isSandbox: true,
       });
@@ -1540,15 +1553,15 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
       this.logger.debug(result, 'Result of calling sandboxAuth');
       return result;
-    } catch (err) {
-      const error = err as Error;
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : SfError.wrap(isString(err) ? err : 'unknown');
       // There are cases where the endDate is set before the sandbox has actually completed.
       // In that case, the sandboxAuth call will throw a specific exception.
       if (error?.name === 'INVALID_STATUS') {
-        this.logger.debug('Error while authenticating the user', error?.toString());
+        this.logger.debug('Error while authenticating the user:', error.message);
       } else {
-        // If it fails for any unexpected reason, just pass that through
-        throw SfError.wrap(error);
+        // If it fails for any unexpected reason, rethrow
+        throw error;
       }
     }
   }
