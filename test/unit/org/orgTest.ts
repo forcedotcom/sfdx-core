@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { deepStrictEqual, fail } from 'node:assert';
-import * as fs from 'node:fs';
+import fs from 'node:fs';
 import { constants as fsConstants } from 'node:fs';
 import { join as pathJoin } from 'node:path';
 import { format } from 'node:util';

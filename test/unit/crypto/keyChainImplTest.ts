@@ -11,7 +11,7 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-import * as fs from 'node:fs';
+import fs from 'node:fs';
 import { assert, expect } from 'chai';
 import { KeychainAccess, keyChainImpl } from '../../../src/crypto/keyChainImpl';
 import { shouldThrow, TestContext } from '../../../src/testSetup';

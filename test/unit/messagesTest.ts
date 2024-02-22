@@ -7,8 +7,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { EOL } from 'node:os';
 import { assert, expect } from 'chai';
 import { SinonStub } from 'sinon';
