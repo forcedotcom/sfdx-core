@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1708630099594,
+  "lastUpdate": 1708812157335,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -14844,6 +14844,72 @@ window.BENCHMARK_DATA = {
             "range": "±183.96%",
             "unit": "ops/sec",
             "extra": "42 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ee55b66579b244985c236334a3608c76bff0921d",
+          "message": "fix(deps): bump @types/semver from 7.5.7 to 7.5.8\n\nBumps [@types/semver](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/semver) from 7.5.7 to 7.5.8.\n- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)\n- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/semver)\n\n---\nupdated-dependencies:\n- dependency-name: \"@types/semver\"\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-02-24T21:59:12Z",
+          "tree_id": "485feaf2a663c8de210a7bad913a68ea2f3d35c6",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/ee55b66579b244985c236334a3608c76bff0921d"
+        },
+        "date": 1708812151267,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 484769,
+            "range": "±1.51%",
+            "unit": "ops/sec",
+            "extra": "94 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 803377,
+            "range": "±9.98%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 596603,
+            "range": "±6.81%",
+            "unit": "ops/sec",
+            "extra": "68 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 8543,
+            "range": "±203.59%",
+            "unit": "ops/sec",
+            "extra": "21 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 404607,
+            "range": "±11.60%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 415054,
+            "range": "±5.06%",
+            "unit": "ops/sec",
+            "extra": "77 samples"
           }
         ]
       }
