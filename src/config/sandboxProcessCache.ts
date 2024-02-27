@@ -11,8 +11,9 @@ import { TTLConfig } from './ttlConfig';
 
 export type SandboxRequestCacheEntry = {
   alias?: string;
-  setDefault: boolean;
+  setDefault?: boolean;
   prodOrgUsername: string;
+  action: 'Create' | 'Refresh'; // Sandbox create and refresh requests can be cached
   sandboxProcessObject: Partial<SandboxProcessObject>;
   sandboxRequest: Partial<SandboxRequest>;
   tracksSource?: boolean;

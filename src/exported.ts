@@ -62,6 +62,7 @@ export {
   Org,
   SandboxProcessObject,
   StatusEvent,
+  SandboxInfo,
   SandboxEvents,
   SandboxUserAuthResponse,
   SandboxUserAuthRequest,

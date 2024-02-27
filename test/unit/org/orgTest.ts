@@ -16,7 +16,7 @@ import { assert, expect, config as chaiConfig } from 'chai';
 import { OAuth2 } from 'jsforce';
 import { Transport } from 'jsforce/lib/transport';
 import { SinonSpy, SinonStub } from 'sinon';
-import { Org, SandboxEvents, SandboxProcessObject, SandboxUserAuthResponse } from '../../../src/org/org';
+import { Org, SandboxEvents, SandboxInfo, SandboxProcessObject, SandboxUserAuthResponse } from '../../../src/org/org';
 import { AuthInfo } from '../../../src/org/authInfo';
 import {} from '../../../src/org/connection';
 import { Connection, SingleRecordQueryErrors } from '../../../src/org/connection';
@@ -894,6 +894,20 @@ describe('Org Tests', () => {
       ],
     };
 
+    const sandboxProcessFields = [
+      'Id',
+      'Status',
+      'SandboxName',
+      'SandboxInfoId',
+      'LicenseType',
+      'CreatedDate',
+      'CopyProgress',
+      'SandboxOrganization',
+      'SourceId',
+      'Description',
+      'EndDate',
+    ];
+
     let prodTestData: MockTestOrgData;
     let prod: Org;
 
@@ -973,16 +987,111 @@ describe('Org Tests', () => {
           SandboxName: 'test',
           EndDate: '2021-19-06T20:25:46.000+0000',
         } as SandboxProcessObject;
+        const err = new Error('could not auth');
+        err.name = 'INVALID_STATUS';
         // @ts-expect-error - type not assignable
-        stubMethod<SandboxUserAuthResponse>($$.SANDBOX, prod.getConnection().tooling, 'request').throws({
-          name: 'INVALID_STATUS',
-        });
+        stubMethod<SandboxUserAuthResponse>($$.SANDBOX, prod.getConnection().tooling, 'request').throws(err);
 
         // @ts-expect-error because private method
         await prod.sandboxSignupComplete(sandboxResponse);
         expect(logStub.callCount).to.equal(3);
         // error swallowed
-        expect(logStub.thirdCall.args[0]).to.equal('Error while authenticating the user');
+        expect(logStub.thirdCall.args[0]).to.equal('Error while authenticating the user:');
+      });
+    });
+
+    describe('refreshSandbox', () => {
+      const sbxInfo: SandboxInfo = {
+        Id: '0GQ4p000000U6nFGAS',
+        SandboxName: 'testSbx1',
+        LicenseType: 'DEVELOPER',
+        HistoryDays: 0,
+        CopyChatter: false,
+        AutoActivate: true,
+        IsDeleted: false,
+        CreatedDate: '2024-02-16T17:06:47.000+0000',
+        CreatedById: '005B0000004TiUpIAK',
+        LastModifiedDate: '2024-02-16T17:06:47.000+0000',
+        LastModifiedById: '005B0000004TiUpIAK',
+      };
+      const sbxProcess = {
+        attributes: {
+          type: 'SandboxProcess',
+          url: '/services/data/v60.0/tooling/sobjects/SandboxProcess/0GR1Q0000004kmaWAA',
+        },
+        Id: '0GR1Q0000004kmaWAA',
+        Status: 'Activating',
+        SandboxName: 'sbxGS02',
+        SandboxInfoId: '0GQ1Q0000004iQDWAY',
+        LicenseType: 'DEVELOPER',
+        CreatedDate: '2024-02-21T23:06:58.000+0000',
+        CopyProgress: 95,
+        SandboxOrganization: '00DDX000000QT3W',
+        SourceId: null,
+        Description: null,
+        EndDate: null,
+      };
+      let updateStub: SinonStub;
+      let querySandboxProcessStub: SinonStub;
+      let pollStatusAndAuthStub: SinonStub;
+
+      beforeEach(async () => {
+        updateStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'update').resolves({
+          id: '0GQ4p000000U6nFGAS',
+          success: true,
+        });
+        querySandboxProcessStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query');
+        pollStatusAndAuthStub = stubMethod($$.SANDBOX, prod, 'pollStatusAndAuth').resolves(sbxProcess);
+      });
+
+      it('will refresh the SandboxInfo sObject correctly with polling', async () => {
+        querySandboxProcessStub.resolves({ records: [sbxProcess] });
+        const expectedQuery = `SELECT ${sandboxProcessFields.join(',')} FROM SandboxProcess WHERE SandboxName='${
+          sbxInfo.SandboxName
+        }' ORDER BY CreatedDate DESC`;
+
+        const result = await prod.refreshSandbox(sbxInfo, { wait: Duration.seconds(30) });
+
+        expect(updateStub.calledOnce).to.be.true;
+        expect(updateStub.firstCall.args[0]).to.equal('SandboxInfo');
+        expect(updateStub.firstCall.args[1]).to.equal(sbxInfo);
+        expect(querySandboxProcessStub.calledOnce).to.be.true;
+        expect(querySandboxProcessStub.firstCall.args[0]).to.equal(expectedQuery);
+        expect(pollStatusAndAuthStub.calledOnce).to.be.true;
+        expect(result).to.equal(sbxProcess);
+      });
+
+      it('will refresh the SandboxInfo sObject correctly async', async () => {
+        querySandboxProcessStub.resolves({ records: [sbxProcess] });
+        const expectedQuery = `SELECT ${sandboxProcessFields.join(',')} FROM SandboxProcess WHERE SandboxName='${
+          sbxInfo.SandboxName
+        }' ORDER BY CreatedDate DESC`;
+
+        const result = await prod.refreshSandbox(sbxInfo, { async: true });
+
+        expect(updateStub.calledOnce).to.be.true;
+        expect(updateStub.firstCall.args[0]).to.equal('SandboxInfo');
+        expect(updateStub.firstCall.args[1]).to.equal(sbxInfo);
+        expect(querySandboxProcessStub.calledOnce).to.be.true;
+        expect(querySandboxProcessStub.firstCall.args[0]).to.equal(expectedQuery);
+        expect(pollStatusAndAuthStub.called).to.be.false;
+        expect(result).to.equal(sbxProcess);
+      });
+
+      it('will throw an error if it fails to update the SandboxInfo', async () => {
+        updateStub.restore();
+        updateStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'update').resolves({
+          error: 'duplicate value found',
+          success: false,
+        });
+        try {
+          await shouldThrow(prod.refreshSandbox(sbxInfo, { async: true }));
+        } catch (e) {
+          expect(updateStub.calledOnce).to.be.true;
+          expect((e as Error).message).to.include('The sandbox org refresh failed with a result of');
+          expect((e as Error).message).to.include('duplicate value found');
+          expect((e as SfError).exitCode).to.equal(1);
+        }
       });
     });
 
@@ -1058,8 +1167,9 @@ describe('Org Tests', () => {
     });
 
     describe('resumeSandbox', () => {
-      const expectedSoql =
-        'SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE %s ORDER BY CreatedDate DESC';
+      const expectedSoql = `SELECT ${sandboxProcessFields.join(
+        ','
+      )} FROM SandboxProcess WHERE %s ORDER BY CreatedDate DESC`;
       let lifecycleSpy: SinonSpy;
       let queryStub: SinonStub;
       let pollStatusAndAuthSpy: SinonSpy;
@@ -1193,7 +1303,9 @@ describe('Org Tests', () => {
       let queryStub: SinonStub;
       let pollStatusAndAuthStub: SinonStub;
       const sandboxNameIn = 'test-sandbox';
-      const queryStr = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE SandboxName='${sandboxNameIn}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;
+      const queryStr = `SELECT ${sandboxProcessFields.join(
+        ','
+      )} FROM SandboxProcess WHERE SandboxName='${sandboxNameIn}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;
 
       beforeEach(async () => {
         queryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query');
@@ -1250,7 +1362,9 @@ describe('Org Tests', () => {
         const deletedSbxProcess = Object.assign({}, statusResult.records[0], { Status: 'Deleted' });
         queryStub.resolves({ records: [deletingSbxProcess, statusResult.records[0], deletedSbxProcess] });
         const where = 'name="foo"';
-        const expectedSoql = `SELECT Id, Status, SandboxName, SandboxInfoId, LicenseType, CreatedDate, CopyProgress, SandboxOrganization, SourceId, Description, EndDate FROM SandboxProcess WHERE ${where} ORDER BY CreatedDate DESC`;
+        const expectedSoql = `SELECT ${sandboxProcessFields.join(
+          ','
+        )} FROM SandboxProcess WHERE ${where} ORDER BY CreatedDate DESC`;
 
         // @ts-ignore Testing a private method
         const sbxProcess = await prod.querySandboxProcess(where);
