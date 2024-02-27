@@ -1,3 +1,17 @@
+# [6.6.0](https://github.com/forcedotcom/sfdx-core/compare/6.5.6...6.6.0) (2024-02-27)
+
+
+### Bug Fixes
+
+* delete sandbox auth files before writing new one ([e88d780](https://github.com/forcedotcom/sfdx-core/commit/e88d7807231c16e88e09361f2f0469fe7d977907))
+
+
+### Features
+
+* add support for refreshing sandboxes ([1071303](https://github.com/forcedotcom/sfdx-core/commit/107130360ea84395451d762874ba70c5cddd78fd))
+
+
+
 ## [6.5.6](https://github.com/forcedotcom/sfdx-core/compare/6.5.5...6.5.6) (2024-02-25)
 
 
