@@ -11,6 +11,7 @@ import { spyMethod } from '@salesforce/ts-sinon';
 import * as chai from 'chai';
 import { Lifecycle } from '../../src/lifecycleEvents';
 import { TestContext } from '../../src/testSetup';
+import { Logger } from '../../src/logger/logger';
 
 describe('lifecycleEvents', () => {
   const $$ = new TestContext();
@@ -26,7 +27,7 @@ describe('lifecycleEvents', () => {
   const fake = new Foo();
 
   beforeEach(() => {
-    loggerSpy = spyMethod($$.SANDBOX, $$.TEST_LOGGER, 'debug');
+    loggerSpy = spyMethod($$.SANDBOX, Logger.prototype, 'debug');
     fakeSpy = spyMethod($$.SANDBOX, fake, 'bar');
   });
 
