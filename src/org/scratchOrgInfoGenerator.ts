@@ -49,7 +49,6 @@ const SNAPSHOT_UNSUPPORTED_OPTIONS = [
   'sourceOrg',
   'settingsPath',
   'releaseVersion',
-  'language',
 ];
 
 // A validator function to ensure any options parameters entered by the user adhere
