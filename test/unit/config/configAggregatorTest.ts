@@ -11,7 +11,7 @@ import { assert, expect, config as chaiConfig } from 'chai';
 import { Config, ConfigProperties, SFDX_ALLOWED_PROPERTIES, SfdxPropertyKeys } from '../../../src/config/config';
 import { ConfigAggregator, ConfigInfo } from '../../../src/config/configAggregator';
 import { ConfigFile } from '../../../src/config/configFile';
-import { Messages, OrgConfigProperties, Lifecycle, ORG_CONFIG_ALLOWED_PROPERTIES } from '../../../src/exported';
+import { Messages, OrgConfigProperties, Lifecycle, ORG_CONFIG_ALLOWED_PROPERTIES } from '../../../src';
 import { TestContext } from '../../../src/testSetup';
 
 // if you add to this, make sure you use both the old and new name

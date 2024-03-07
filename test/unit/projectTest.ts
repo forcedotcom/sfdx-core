@@ -11,7 +11,7 @@ import { join, sep } from 'node:path';
 import { expect } from 'chai';
 
 import { env } from '@salesforce/kit';
-import { Messages, NamedPackageDir } from '../../src/exported';
+import { Messages, NamedPackageDir } from '../../src';
 import { SfProject, SfProjectJson } from '../../src/sfProject';
 import { shouldThrow, shouldThrowSync, TestContext } from '../../src/testSetup';
 

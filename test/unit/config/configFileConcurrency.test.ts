@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os';
 import { rm } from 'node:fs/promises';
 import { expect } from 'chai';
 import { sleep } from '@salesforce/kit';
-import { ConfigFile } from '../../../src/exported';
+import { ConfigFile } from '../../../src';
 
 const FILENAME = 'concurrency.json';
 const sharedLocation = join('sfdx-core-ut', 'test', 'configFile');
