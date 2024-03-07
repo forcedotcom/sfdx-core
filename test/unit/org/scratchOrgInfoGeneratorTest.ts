@@ -26,7 +26,7 @@ const packageVersionSubscriberId = '04tB0000000cWwnIAE';
 const badPackageId = '03iB0000000cWwnIAE';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoGenerator');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'scratchOrgInfoGenerator');
 
 describe('scratchOrgInfoGenerator', () => {
   const $$ = new TestContext();

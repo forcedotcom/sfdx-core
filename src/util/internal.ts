@@ -12,7 +12,7 @@ import { Messages } from '../messages';
 import { SfError } from '../sfError';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'config');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'config');
 
 /**
  * The name of the project config file.

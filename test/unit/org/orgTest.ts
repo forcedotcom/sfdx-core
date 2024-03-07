@@ -38,7 +38,7 @@ import { Lifecycle } from '../../../src/lifecycleEvents';
 
 chaiConfig.truncateThreshold = 0;
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'org');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'org');
 
 describe('Org Tests', () => {
   const $$ = new TestContext();

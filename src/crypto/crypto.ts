@@ -111,7 +111,7 @@ const detectCryptoVersion = (pwd?: string): void => {
 };
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
-const messages = Messages.loadMessages('@salesforce/core', 'encryption');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'encryption');
 
 interface CredType {
   username: string;

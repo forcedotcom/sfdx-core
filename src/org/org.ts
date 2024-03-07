@@ -42,7 +42,7 @@ import { scratchOrgCreate, ScratchOrgCreateOptions, ScratchOrgCreateResult } fro
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'org');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'org');
 
 export type OrganizationInformation = {
   Name: string;

@@ -23,7 +23,7 @@ import { SfProjectJson } from './sfProject';
 import { JwtOAuth2Config } from './org/authInfo';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'auth');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'auth');
 
 // Server ignores requests for site icons
 const iconPaths = ['/favicon.ico', '/apple-touch-icon-precomposed.png'];

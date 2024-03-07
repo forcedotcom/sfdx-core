@@ -447,7 +447,7 @@ describe('SfProject', () => {
         shouldThrowSync(() => project.getPackageDirectories());
       } catch (e) {
         expect((e as Error).message).to.equal(
-          Messages.loadMessages('@salesforce/core', 'config').getMessage('singleNonDefaultPackage')
+          Messages.loadMessages('@salesforce/core-bundle', 'config').getMessage('singleNonDefaultPackage')
         );
       }
     });

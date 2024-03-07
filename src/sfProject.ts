@@ -21,9 +21,9 @@ import { Messages } from './messages';
 import { findUpperCaseKeys } from './util/findUppercaseKeys';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'config');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'config');
 
-const coreMessages = Messages.loadMessages('@salesforce/core', 'core');
+const coreMessages = Messages.loadMessages('@salesforce/core-bundle', 'core');
 
 export type PackageDirDependency = {
   [k: string]: unknown;

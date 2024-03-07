@@ -13,7 +13,7 @@ import { EnvVars } from './envVars';
 import { Config, ConfigPropertyMeta } from './config';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'config');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'config');
 
 /**
  * Information about a config property.

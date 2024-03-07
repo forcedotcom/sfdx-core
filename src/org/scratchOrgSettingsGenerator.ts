@@ -215,7 +215,7 @@ export default class SettingsGenerator {
   }) {
     this.logger = Logger.childFromRoot('SettingsGenerator');
     if (options?.capitalizeRecordTypes === undefined) {
-      const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgSettingsGenerator');
+      const messages = Messages.loadMessages('@salesforce/core-bundle', 'scratchOrgSettingsGenerator');
       void Lifecycle.getInstance().emitWarning(messages.getMessage('noCapitalizeRecordTypeConfigVar'));
       this.capitalizeRecordTypes = true;
     } else {

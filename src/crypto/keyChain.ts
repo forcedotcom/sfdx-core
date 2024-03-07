@@ -11,7 +11,7 @@ import { Messages } from '../messages';
 import { KeyChain, keyChainImpl } from './keyChainImpl';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'encryption');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'encryption');
 
 /**
  * Gets the os level keychain impl.

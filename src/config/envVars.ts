@@ -12,7 +12,7 @@ import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
-const messages = Messages.loadMessages('@salesforce/core', 'envVars');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'envVars');
 
 export enum EnvironmentVariable {
   'FORCE_OPEN_URL' = 'FORCE_OPEN_URL',

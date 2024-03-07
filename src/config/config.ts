@@ -21,7 +21,7 @@ import { ConfigContents, ConfigValue, Key } from './configStackTypes';
 import { LWWState, stateFromContents } from './lwwMap';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'config');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'config');
 
 const SFDX_CONFIG_FILE_NAME = 'sfdx-config.json';
 const CONFIG_FILE_NAME = 'config.json';

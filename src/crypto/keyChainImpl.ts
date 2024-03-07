@@ -18,7 +18,7 @@ import { SfError } from '../sfError';
 import { Messages } from '../messages';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'encryption');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'encryption');
 
 export type FsIfc = Pick<typeof nodeFs, 'statSync'>;
 

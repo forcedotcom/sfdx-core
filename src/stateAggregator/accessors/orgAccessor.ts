@@ -88,7 +88,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     const config = this.configs.get(username);
     if (throwOnNotFound && config?.keys().length === 0) {
       Messages.importMessagesDirectory(__dirname);
-      const messages = Messages.loadMessages('@salesforce/core', 'core');
+      const messages = Messages.loadMessages('@salesforce/core-bundle', 'core');
       throw messages.createError('namedOrgNotFound', [username]);
     }
     if (config) {

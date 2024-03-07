@@ -34,7 +34,7 @@ import { AuthFields, AuthInfo } from './authInfo';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'connection');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'connection');
 
 const clientId = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS ?? ''}`;
 export const SFDX_HTTP_HEADERS = {

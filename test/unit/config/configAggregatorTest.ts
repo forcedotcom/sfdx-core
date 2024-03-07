@@ -20,8 +20,8 @@ const testEnvVars = ['SF_TARGET_ORG', 'SFDX_MAX_QUERY_LIMIT', 'SF_ORG_MAX_QUERY_
 chaiConfig.truncateThreshold = 0;
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'config');
-const envMessages = Messages.loadMessages('@salesforce/core', 'envVars');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'config');
+const envMessages = Messages.loadMessages('@salesforce/core-bundle', 'envVars');
 
 const telemetryConfigFilter = (i: ConfigInfo) => i.key !== 'disable-telemetry';
 

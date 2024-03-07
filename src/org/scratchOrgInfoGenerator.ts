@@ -17,7 +17,7 @@ import { ScratchOrgFeatureDeprecation } from './scratchOrgFeatureDeprecation';
 import { DEFAULT_CONNECTED_APP_INFO } from './authInfo';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoGenerator');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'scratchOrgInfoGenerator');
 
 type PartialScratchOrgInfo = Pick<
   ScratchOrgInfo,

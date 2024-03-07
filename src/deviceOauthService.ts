@@ -19,7 +19,7 @@ import { SfError } from './sfError';
 import { Messages } from './messages';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'auth');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'auth');
 
 export interface DeviceCodeResponse extends JsonMap {
   device_code: string;

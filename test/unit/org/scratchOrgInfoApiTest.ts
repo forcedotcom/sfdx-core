@@ -30,8 +30,8 @@ import { Messages } from '../../../src/messages';
 import { SfError } from '../../../src/sfError';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoApi');
-const errorCodesMessages = Messages.loadMessages('@salesforce/core', 'scratchOrgErrorCodes');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'scratchOrgInfoApi');
+const errorCodesMessages = Messages.loadMessages('@salesforce/core-bundle', 'scratchOrgErrorCodes');
 
 const scratchOrgInfoId = '2SRK0000001QZxF';
 const TEMPLATE_SCRATCH_ORG_INFO: ScratchOrgInfo = {

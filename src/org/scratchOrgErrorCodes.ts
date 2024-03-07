@@ -16,8 +16,8 @@ import { emit } from './scratchOrgLifecycleEvents';
 const WORKSPACE_CONFIG_FILENAME = 'sfdx-project.json';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgErrorCodes');
-const namedMessages = Messages.loadMessages('@salesforce/core', 'scratchOrgErrorCodes');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'scratchOrgErrorCodes');
+const namedMessages = Messages.loadMessages('@salesforce/core-bundle', 'scratchOrgErrorCodes');
 
 // getMessage will throw when the code isn't found
 // and we don't know whether a given code takes arguments or not

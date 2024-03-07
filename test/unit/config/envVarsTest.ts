@@ -12,7 +12,7 @@ import { Lifecycle } from '../../../src/lifecycleEvents';
 import { Messages } from '../../../src/messages';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'envVars');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'envVars');
 
 describe('envVars', () => {
   const testEnvVars = ['foo', 'SFDX_ACCESS_TOKEN', 'SF_ACCESS_TOKEN'];

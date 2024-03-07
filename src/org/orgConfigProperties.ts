@@ -13,7 +13,7 @@ import { SfdcUrl } from '../util/sfdcUrl';
 import { validateApiVersion } from '../util/sfdc';
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
-const messages = Messages.loadMessages('@salesforce/core', 'config');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'config');
 
 export enum OrgConfigProperties {
   /**

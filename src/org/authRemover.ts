@@ -15,7 +15,7 @@ import { OrgConfigProperties } from './orgConfigProperties';
 import { AuthFields } from './authInfo';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'auth');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'auth');
 
 /**
  * Handles  the removing of authorizations, which includes deleting the auth file

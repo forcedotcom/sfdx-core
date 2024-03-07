@@ -19,7 +19,7 @@ import { CometClient, CometSubscription, Message, StatusResult, StreamingExtensi
 export { CometClient, CometSubscription, Message, StatusResult, StreamingExtension, StreamProcessor };
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'streaming');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'streaming');
 
 /**
  * Inner streaming client interface. This implements the Cometd behavior.

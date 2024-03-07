@@ -42,7 +42,7 @@ import { OrgConfigProperties } from './orgConfigProperties';
 import { Org, SandboxFields } from './org';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'core');
+const messages = Messages.loadMessages('@salesforce/core-bundle', 'core');
 
 /**
  * Fields for authorization, org, and local information.
