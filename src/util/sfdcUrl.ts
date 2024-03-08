@@ -108,6 +108,7 @@ export class SfdcUrl extends URL {
       '.salesforceliveagent.com',
       '.secure.force.com',
       'crmforce.mil',
+      '.sfcrmproducts.cn',
     ];
 
     const allowlistOfSalesforceHosts: string[] = ['developer.salesforce.com', 'trailhead.salesforce.com'];
@@ -161,6 +162,10 @@ export class SfdcUrl extends URL {
     // alternative domains
     if (this.origin.endsWith('.my-salesforce.com')) {
       return this.origin.replace('.my-salesforce.com', '.my-lightning.com');
+    }
+    // CN Specific domains for Alibaba Cloud
+    if (this.origin.endsWith('.my.sfcrmproducts.cn')) {
+      return this.origin.replace('.my.sfcrmproducts.cn', '.lightning.sfcrmapps.cn');
     }
 
     // all non-mil domains
@@ -218,6 +223,6 @@ export class SfdcUrl extends URL {
    * @returns {boolean} true if this domain is a lightning domain
    */
   public isLightningDomain(): boolean {
-    return this.origin.includes('.lightning.force.com') || this.origin.includes('.lightning.crmforce.mil');
+    return this.origin.includes('.lightning.force.com') || this.origin.includes('.lightning.crmforce.mil') || this.origin.includes('.lightning.sfcrmapps.cn');
   }
 }
