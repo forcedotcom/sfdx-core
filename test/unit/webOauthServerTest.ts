@@ -35,11 +35,24 @@ describe('WebOauthServer', () => {
   });
 
   describe('getAuthorizationUrl', () => {
-    it('should return authorization url', async () => {
+    it('should return authorization url with expected (default) params', async () => {
       const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
       const authUrl = oauthServer.getAuthorizationUrl();
       expect(authUrl).to.not.be.undefined;
       expect(authUrl).to.include('client_id=PlatformCLI');
+      expect(authUrl).to.include('code_challenge=');
+      expect(authUrl).to.include('state=');
+      expect(authUrl).to.include('response_type=code');
+    });
+
+    it('should return authorization url with no code_challenge', async () => {
+      const oauthServer = await WebOAuthServer.create({ oauthConfig: { useVerifier: false } });
+      const authUrl = oauthServer.getAuthorizationUrl();
+      expect(authUrl).to.not.be.undefined;
+      expect(authUrl).to.include('client_id=PlatformCLI');
+      expect(authUrl).to.not.include('code_challenge=');
+      expect(authUrl).to.include('state=');
+      expect(authUrl).to.include('response_type=code');
     });
   });
 
@@ -70,6 +83,37 @@ describe('WebOauthServer', () => {
       const handleSuccessStub = stubMethod($$.SANDBOX, oauthServer.webServer, 'handleSuccess').resolves();
       const authInfo = await oauthServer.authorizeAndSave();
       expect(authInfoStub.save.callCount).to.equal(1);
+      expect(authStub.callCount).to.equal(1);
+      const authCreateOptions = authStub.firstCall.args[0] as AuthInfo.Options;
+      expect(authCreateOptions).have.property('oauth2Options');
+      expect(authCreateOptions).have.property('oauth2');
+      expect(authCreateOptions.oauth2Options).to.have.property('useVerifier', true);
+      expect(authCreateOptions.oauth2Options).to.have.property('clientId', 'PlatformCLI');
+      expect(authCreateOptions.oauth2).to.have.property('codeVerifier');
+      expect(authCreateOptions.oauth2?.codeVerifier).to.have.length.greaterThan(1);
+      expect(authCreateOptions.oauth2).to.have.property('clientId', 'PlatformCLI');
+      expect(authInfo.getFields()).to.deep.equal(authFields);
+      expect(handleSuccessStub.calledOnce).to.be.true;
+    });
+
+    it('should save new AuthInfo without codeVerifier', async () => {
+      redirectStub = stubMethod($$.SANDBOX, WebServer.prototype, 'doRedirect').callsFake(async () => {});
+      stubMethod($$.SANDBOX, WebOAuthServer.prototype, 'executeOauthRequest').callsFake(async () => serverResponseStub);
+      const oauthServer = await WebOAuthServer.create({ oauthConfig: { useVerifier: false } });
+      await oauthServer.start();
+      // @ts-expect-error because private member
+      const handleSuccessStub = stubMethod($$.SANDBOX, oauthServer.webServer, 'handleSuccess').resolves();
+      const authInfo = await oauthServer.authorizeAndSave();
+      expect(authInfoStub.save.callCount).to.equal(1);
+      expect(authStub.callCount).to.equal(1);
+      const authCreateOptions = authStub.firstCall.args[0] as AuthInfo.Options;
+      expect(authCreateOptions).have.property('oauth2Options');
+      expect(authCreateOptions).have.property('oauth2');
+      expect(authCreateOptions.oauth2Options).to.have.property('useVerifier', false);
+      expect(authCreateOptions.oauth2Options).to.have.property('clientId', 'PlatformCLI');
+      expect(authCreateOptions.oauth2).to.have.property('codeVerifier');
+      expect(authCreateOptions.oauth2?.codeVerifier).to.be.undefined;
+      expect(authCreateOptions.oauth2).to.have.property('clientId', 'PlatformCLI');
       expect(authInfo.getFields()).to.deep.equal(authFields);
       expect(handleSuccessStub.calledOnce).to.be.true;
     });

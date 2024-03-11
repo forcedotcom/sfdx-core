@@ -141,6 +141,8 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
     if (!this.oauthConfig.clientId) this.oauthConfig.clientId = DEFAULT_CONNECTED_APP_INFO.clientId;
     if (!this.oauthConfig.loginUrl) this.oauthConfig.loginUrl = AuthInfo.getDefaultInstanceUrl();
     if (!this.oauthConfig.redirectUri) this.oauthConfig.redirectUri = `http://localhost:${port}/OauthRedirect`;
+    // Unless explicitly turned off, use a code verifier as a best practice
+    if (this.oauthConfig.useVerifier !== false) this.oauthConfig.useVerifier = true;
 
     this.webServer = await WebServer.create({ port });
     this.oauth2 = new OAuth2(this.oauthConfig);
@@ -237,6 +239,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
       this.logger.debug(`oauthConfig.loginUrl: ${this.oauthConfig.loginUrl}`);
       this.logger.debug(`oauthConfig.clientId: ${this.oauthConfig.clientId}`);
       this.logger.debug(`oauthConfig.redirectUri: ${this.oauthConfig.redirectUri}`);
+      this.logger.debug(`oauthConfig.useVerifier: ${this.oauthConfig.useVerifier}`);
       return authCode;
     }
     return null;
