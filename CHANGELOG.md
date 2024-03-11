@@ -1,3 +1,12 @@
+## [6.7.1](https://github.com/forcedotcom/sfdx-core/compare/6.7.0...6.7.1) (2024-03-11)
+
+
+### Bug Fixes
+
+* re-enable code challenge support ([#1035](https://github.com/forcedotcom/sfdx-core/issues/1035)) ([5786688](https://github.com/forcedotcom/sfdx-core/commit/5786688ac47fae008d31ca04f058efb932de88f7))
+
+
+
 # [6.7.0](https://github.com/forcedotcom/sfdx-core/compare/6.6.0...6.7.0) (2024-02-28)
 
 
