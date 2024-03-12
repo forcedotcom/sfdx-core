@@ -88,7 +88,22 @@ function updateLoadMessagesParam() {
   });
 }
 
+function addTestSetupToIndex() {
+  const indexPath = './src/index.ts';
+  const testSetupExport = "export * from './testSetup';\n";
+  fs.readFile(indexPath, 'utf8', (err, data) => {
+    fs.appendFile(indexPath, testSetupExport, 'utf8', (err) => {
+      if (err) {
+        console.error(`Error appending to file: ${err}`);
+      } else {
+        console.log('Content successfully added to the file.');
+      }
+    });
+  });
+}
+
 // Run the update functions
 updatePackageJson();
 updateLoggerTs();
 updateLoadMessagesParam();
+addTestSetupToIndex();
