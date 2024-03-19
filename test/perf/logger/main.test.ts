@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Suite } from 'benchmark';
-import { Logger } from '../../../src/exported';
+import { Logger } from '../../../src';
 import { cleanup } from '../../../src/logger/cleanup';
 
 const suite = new Suite();

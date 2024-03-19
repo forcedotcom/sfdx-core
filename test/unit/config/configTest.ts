@@ -17,7 +17,7 @@ import * as lockfileLib from 'proper-lockfile';
 import { Config, ConfigPropertyMeta } from '../../../src/config/config';
 import { ConfigFile } from '../../../src/config/configFile';
 import { ConfigContents } from '../../../src/config/configStackTypes';
-import { OrgConfigProperties } from '../../../src/exported';
+import { OrgConfigProperties } from '../../../src';
 import { shouldThrowSync, TestContext } from '../../../src/testSetup';
 
 const configFileContentsString = '{"target-dev-hub": "configTest_devhub","target-org": "configTest_default"}';

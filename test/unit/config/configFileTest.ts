@@ -14,7 +14,7 @@ import { expect } from 'chai';
 import { assert } from '@salesforce/ts-types';
 import lockfileLib from 'proper-lockfile';
 import { ConfigFile } from '../../../src/config/configFile';
-import { SfError } from '../../../src/exported';
+import { SfError } from '../../../src';
 import { shouldThrow, TestContext } from '../../../src/testSetup';
 
 describe('Config', () => {
