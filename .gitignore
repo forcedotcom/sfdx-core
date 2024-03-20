@@ -2,7 +2,6 @@
 
 # use yarn by default, so ignore npm
 package-lock.json
-yarn.lock
 
 # never checkin npm config
 .npmrc
