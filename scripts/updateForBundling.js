@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 
 // Function to update package.json
 function updatePackageJson() {
@@ -62,6 +63,47 @@ function updateLoggerTs() {
   });
 }
 
+function updateLoadMessagesParam() {
+  const dirs = ['./src', './test'];
+  function replaceTextInFile(filePath) {
+    const data = fs.readFileSync(filePath, 'utf8');
+    const result = data.replace(
+      /Messages\.loadMessages\('@salesforce\/core'/g,
+      "Messages.loadMessages('@salesforce/core-bundle'"
+    );
+    fs.writeFileSync(filePath, result, 'utf8');
+  }
+  function traverseDirectory(directory) {
+    fs.readdirSync(directory).forEach((file) => {
+      const fullPath = path.join(directory, file);
+      if (fs.lstatSync(fullPath).isDirectory()) {
+        traverseDirectory(fullPath);
+      } else if (path.extname(fullPath) === '.ts') {
+        replaceTextInFile(fullPath);
+      }
+    });
+  }
+  dirs.forEach((dir) => {
+    traverseDirectory(dir);
+  });
+}
+
+function addTestSetupToIndex() {
+  const indexPath = './src/index.ts';
+  const testSetupExport = "export * from './testSetup';\n";
+  fs.readFile(indexPath, 'utf8', (err, data) => {
+    fs.appendFile(indexPath, testSetupExport, 'utf8', (err) => {
+      if (err) {
+        console.error(`Error appending to file: ${err}`);
+      } else {
+        console.log('Content successfully added to the file.');
+      }
+    });
+  });
+}
+
 // Run the update functions
 updatePackageJson();
 updateLoggerTs();
+updateLoadMessagesParam();
+addTestSetupToIndex();

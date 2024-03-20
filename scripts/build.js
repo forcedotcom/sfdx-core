@@ -11,11 +11,11 @@ const { Generator } = require('npm-dts');
 const fs = require('fs');
 
 new Generator({
-  output: 'lib/exported.d.ts',
+  output: 'lib/index.d.ts',
 }).generate();
 
 const sharedConfig = {
-  entryPoints: ['src/exported.ts'],
+  entryPoints: ['src/index.ts'],
   bundle: true,
   // minify: true,
   plugins: [
@@ -33,7 +33,7 @@ const sharedConfig = {
     platform: 'node', // for CJS
     outdir: 'lib',
   });
-  const filePath = 'lib/exported.js';
+  const filePath = 'lib/index.js';
   let bundledEntryPoint = fs.readFileSync(filePath, 'utf8');
 
   const searchString = /\$\{process\.cwd\(\)\}\$\{require\("path"\)\.sep\}lib/g;

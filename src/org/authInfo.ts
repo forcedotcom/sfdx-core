@@ -333,8 +333,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param options The options to generate the URL.
    */
   public static getAuthorizationUrl(options: JwtOAuth2Config & { scope?: string }, oauth2?: OAuth2): string {
-    // Always use a verifier for enhanced security
-    options.useVerifier = true;
+    // Unless explicitly turned off, use a code verifier for enhanced security
+    if (options.useVerifier !== false) {
+      options.useVerifier = true;
+    }
     const oauth2Verifier = oauth2 ?? new OAuth2(options);
 
     // The state parameter allows the redirectUri callback listener to ignore request
