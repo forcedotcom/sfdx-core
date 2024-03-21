@@ -9,6 +9,7 @@ import { Env, Duration } from '@salesforce/kit';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { SfdcUrl } from './sfdcUrl';
 
+/** @deprecated.  Use sfdcUrl.checkLightningdomain */
 export default async function checkLightningDomain(url: string): Promise<boolean> {
   const domain = `https://${/https?:\/\/([^.]*)/.exec(url)?.slice(1, 2).pop()}.lightning.force.com`;
   const quantity = new Env().getNumber('SFDX_DOMAIN_RETRY', 240) ?? 0;
