@@ -199,6 +199,12 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
               const errMessage = messages.getMessage(errName, [url.pathname]);
               reject(new SfError(errMessage, errName));
             }
+          } else if (
+            request.method === 'OPTIONS' &&
+            request.headers['access-control-request-private-network'] === 'true' &&
+            request.headers['access-control-request-method']
+          ) {
+            this.webServer.handlePreflightRequest(response);
           } else {
             this.webServer.sendError(405, 'Unsupported http methods', response);
             const errName = 'invalidRequestMethod';
@@ -397,6 +403,22 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
     response.setHeader('Content-Length', Buffer.byteLength(body, 'utf8'));
     response.end(body);
     this.redirectStatus.emit('complete');
+  }
+
+  /**
+   * Preflight request:
+   *
+   * https://developer.mozilla.org/en-US/docs/Glossary/Preflight_request
+   * https://www.w3.org/TR/2020/SPSD-cors-20200602/#resource-preflight-requests
+   */
+  public handlePreflightRequest(response: http.ServerResponse): void {
+    // We don't validate the origin here because:
+    // 1. The default login URL (login.salesforce.com) will not match after a redirect or if user choose a custom domain in login.
+    // 2. There's no fixed list of auth URLs we could check against.
+    response.statusCode = 204; // No Content response
+    response.setHeader('Access-Control-Allow-Methods', 'GET');
+    response.setHeader('Access-Control-Request-Headers', 'GET');
+    response.end();
   }
 
   public async handleSuccess(response: http.ServerResponse): Promise<void> {
