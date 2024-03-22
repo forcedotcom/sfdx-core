@@ -21,7 +21,6 @@
     "prepack": "sf-prepack",
     "prepare": "sf-install",
     "test": "wireit",
-    "test:nuts": "nyc mocha test/**/*.nut.ts",
     "test:only": "wireit",
     "test:perf": "ts-node test/perf/logger/main.test.ts"
   },

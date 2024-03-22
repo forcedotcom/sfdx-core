@@ -81,11 +81,6 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
     return this.authUrl;
   }
 
-  public close(): void {
-    this.logger.debug('closing server connection');
-    this.webServer.close();
-  }
-
   /**
    * Executes the oauth request and creates a new AuthInfo when successful
    *

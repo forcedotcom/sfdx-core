@@ -5,15 +5,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  determine-node-versions:
-    outputs:
-      nodeVersions: ${{ steps.determine-node-versions.outputs.nodeVersions }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: salesforcecli/github-workflows/.github/actions/determineNodeVersions@main
-        id: determine-node-versions
-        with:
-          nodeVersionOverride: ${{ vars.NODE_VERSION_OVERRIDE }} # default is 'lts/*' and 'lts/-1'
   yarn-lockfile-check:
     uses: salesforcecli/github-workflows/.github/workflows/lockFileCheck.yml@main
   # Since the Windows unit tests take much longer, we run the linux unit tests first and then run the windows unit tests in parallel with NUTs
@@ -23,36 +14,6 @@ jobs:
   windows-unit-tests:
     needs: linux-unit-tests
     uses: salesforcecli/github-workflows/.github/workflows/unitTestsWindows.yml@main
-  sfdx-core-nuts:
-    needs: linux-unit-tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ fromJSON(needs.determine-node-versions.outputs.nodeVersions) }}
-          cache: yarn
-      - uses: google/wireit@setup-github-actions-caching/v1
-        continue-on-error: true
-      - name: Cache node modules
-        id: cache-nodemodules
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
-
-      - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
-        if: ${{ steps.cache-nodemodules.outputs.cache-hit != 'true' }}
-      - run: yarn build
-      - name: yarn test:nuts
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          command: yarn test:nuts
-        env:
-          SF_DISABLE_TELEMETRY: true
-
   xNuts:
     needs: linux-unit-tests
     uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
