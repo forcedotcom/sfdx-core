@@ -1,3 +1,12 @@
+## [6.7.3](https://github.com/forcedotcom/sfdx-core/compare/6.7.2...6.7.3) (2024-03-22)
+
+
+### Bug Fixes
+
+* **auth-server:** handle preflight requests ([#1040](https://github.com/forcedotcom/sfdx-core/issues/1040)) ([7a109d9](https://github.com/forcedotcom/sfdx-core/commit/7a109d9deb05fb583578b9e2e7dfb2f62aca3673))
+
+
+
 ## [6.7.2](https://github.com/forcedotcom/sfdx-core/compare/6.7.1...6.7.2) (2024-03-22)
 
 
