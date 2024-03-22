@@ -122,7 +122,7 @@ describe('util/sfdcUrl', () => {
         );
       });
     });
-    describe('china', () => {
+    describe('cnEdition', () => {
       it('prod', () => {
         expect(new SfdcUrl('https://foo.my.sfcrmproducts.cn').toLightningDomain()).to.equal(
           'https://foo.lightning.sfcrmapps.cn'
@@ -152,12 +152,12 @@ describe('util/sfdcUrl', () => {
       expect(url.isSalesforceDomain()).to.be.true;
     });
 
-    it('china', () => {
+    it('cnEdition', () => {
       const url = new SfdcUrl('https://foo.my.sfcrmproducts.cn');
       expect(url.isSalesforceDomain()).to.be.true;
     });
 
-    it('china with .com returns value', () => {
+    it('cnEdition with .com returns value', () => {
       const url = new SfdcUrl('https://foo.my.sfcrmproducts.com');
       expect(url.isSalesforceDomain()).to.be.false;
     });
@@ -338,10 +338,10 @@ describe('util/sfdcUrl', () => {
     it('mil but not lightning', () => {
       expect(new SfdcUrl('https://foo.my.salesforce.mil').isLightningDomain()).to.be.false;
     });
-    it('china', () => {
+    it('cnEdition', () => {
       expect(new SfdcUrl('https://foo.lightning.sfcrmapps.cn').isLightningDomain()).to.be.true;
     });
-    it('china but not lightning', () => {
+    it('cnEdition but not lightning', () => {
       expect(new SfdcUrl('https://foo.my.sfcrmproducts.cn').isLightningDomain()).to.be.false;
     });
   });
