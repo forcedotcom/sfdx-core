@@ -24,7 +24,7 @@ jobs:
     needs: linux-unit-tests
     uses: salesforcecli/github-workflows/.github/workflows/unitTestsWindows.yml@main
   sfdx-core-nuts:
-    needs: [linux-unit-tests, determine-node-versions]
+    needs: linux-unit-tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -54,7 +54,7 @@ jobs:
           SF_DISABLE_TELEMETRY: true
 
   xNuts:
-    needs: [linux-unit-tests, sfdx-core-nuts]
+    needs: linux-unit-tests
     uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
     strategy:
       fail-fast: false
