@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1711229939381,
+  "lastUpdate": 1711835050192,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -15768,6 +15768,72 @@ window.BENCHMARK_DATA = {
             "range": "±7.55%",
             "unit": "ops/sec",
             "extra": "53 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ad320e0b1c23e19680e8aa933b8b56cf8ef51e88",
+          "message": "fix(deps): bump @salesforce/kit from 3.0.15 to 3.1.0\n\nBumps [@salesforce/kit](https://github.com/forcedotcom/kit) from 3.0.15 to 3.1.0.\n- [Release notes](https://github.com/forcedotcom/kit/releases)\n- [Changelog](https://github.com/forcedotcom/kit/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/forcedotcom/kit/compare/3.0.15...3.1.0)\n\n---\nupdated-dependencies:\n- dependency-name: \"@salesforce/kit\"\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-03-30T21:40:46Z",
+          "tree_id": "12da12f6c58e86647219b1a1739ec125431c3c87",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/ad320e0b1c23e19680e8aa933b8b56cf8ef51e88"
+        },
+        "date": 1711835043728,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 482047,
+            "range": "±3.48%",
+            "unit": "ops/sec",
+            "extra": "90 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 830754,
+            "range": "±7.08%",
+            "unit": "ops/sec",
+            "extra": "66 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 675451,
+            "range": "±5.29%",
+            "unit": "ops/sec",
+            "extra": "71 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 4452,
+            "range": "±228.23%",
+            "unit": "ops/sec",
+            "extra": "9 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 489569,
+            "range": "±11.85%",
+            "unit": "ops/sec",
+            "extra": "62 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 381382,
+            "range": "±7.82%",
+            "unit": "ops/sec",
+            "extra": "56 samples"
           }
         ]
       }
