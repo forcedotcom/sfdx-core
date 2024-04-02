@@ -75,7 +75,7 @@ describe('Config', () => {
       stubMethod($$.SANDBOX, fs.promises, 'readFile').withArgs(config.getPath()).resolves(configFileContentsString);
       stubMethod($$.SANDBOX, fs.promises, 'stat')
         .withArgs(config.getPath())
-        .resolves({ mtimeNs: BigInt(new Date().valueOf() - 1_000 * 60 * 5) });
+        .resolves({ mtimeNs: BigInt(new Date().valueOf() - 1000 * 60 * 5) });
       // Manipulate config.hasRead to force a read
       // @ts-expect-error -> hasRead is protected. Ignore for testing.
       config.hasRead = false;
@@ -92,7 +92,7 @@ describe('Config', () => {
     beforeEach(() => {
       $$.SANDBOX.stub(lockfileLib, 'lock').resolves(() => Promise.resolve());
       stubMethod($$.SANDBOX, fs.promises, 'readFile').resolves(configFileContentsString);
-      stubMethod($$.SANDBOX, fs.promises, 'stat').resolves({ mtimeNs: BigInt(new Date().valueOf() - 1_000 * 60 * 5) });
+      stubMethod($$.SANDBOX, fs.promises, 'stat').resolves({ mtimeNs: BigInt(new Date().valueOf() - 1000 * 60 * 5) });
     });
     it('calls Config.write with updated file contents', async () => {
       const writeStub = stubMethod($$.SANDBOX, fs.promises, 'writeFile');
@@ -231,7 +231,7 @@ describe('Config', () => {
     it('calls Config.write with updated file contents', async () => {
       $$.SANDBOX.stub(lockfileLib, 'lock').resolves(() => Promise.resolve());
       stubMethod($$.SANDBOX, fs.promises, 'readFile').resolves(configFileContentsString);
-      stubMethod($$.SANDBOX, fs.promises, 'stat').resolves({ mtimeNs: BigInt(new Date().valueOf() - 1_000 * 60 * 5) });
+      stubMethod($$.SANDBOX, fs.promises, 'stat').resolves({ mtimeNs: BigInt(new Date().valueOf() - 1000 * 60 * 5) });
       const writeStub = stubMethod($$.SANDBOX, fs.promises, 'writeFile');
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

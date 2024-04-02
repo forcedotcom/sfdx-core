@@ -57,7 +57,7 @@
     "ts-retry-promise": "^0.7.1"
   },
   "devDependencies": {
-    "@salesforce/dev-scripts": "^7.1.1",
+    "@salesforce/dev-scripts": "^8.4.2",
     "@salesforce/ts-sinon": "^1.4.19",
     "@types/benchmark": "^2.1.5",
     "@types/chai-string": "^1.4.5",

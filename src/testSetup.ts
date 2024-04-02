@@ -13,6 +13,8 @@ import * as fs from 'node:fs';
 import { EventEmitter } from 'node:events';
 import { tmpdir as osTmpdir } from 'node:os';
 import { basename, join as pathJoin, dirname } from 'node:path';
+
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { SinonSandbox, SinonStatic, SinonStub } from 'sinon';
 
 import {
@@ -420,6 +422,7 @@ export class TestContext {
   private requireSinon(sinon: Nullable<SinonStatic>): SinonStatic {
     if (sinon) return sinon;
     try {
+      // eslint-disable-next-line import/no-extraneous-dependencies
       sinon = require('sinon');
     } catch (e) {
       throw new Error(

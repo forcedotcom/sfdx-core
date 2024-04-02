@@ -12,7 +12,7 @@ import mapKeys from '../../../src/util/mapKeys';
 const SHALLOW_LOWECASE_OBJECT = {
   name: 'Anna',
   address: 'Ocean Drive 101',
-  phone: 123456789,
+  phone: 123_456_789,
   alias: ['Anita', 'Anny'],
   cars: {
     primary: {
@@ -26,7 +26,7 @@ const SHALLOW_LOWECASE_OBJECT = {
 const SHALLOW_UPPERECASE_OBJECT = {
   Name: 'Anna',
   Address: 'Ocean Drive 101',
-  Phone: 123456789,
+  Phone: 123_456_789,
   Alias: ['Anita', 'Anny'],
   Cars: {
     primary: {
@@ -40,7 +40,7 @@ const SHALLOW_UPPERECASE_OBJECT = {
 const NESTED_LOWECASE_OBJECT = {
   name: 'Anna',
   address: 'Ocean Drive 101',
-  phone: 123456789,
+  phone: 123_456_789,
   pets: {
     oliver: {
       family: 'feline',
@@ -98,7 +98,7 @@ const NESTED_LOWECASE_OBJECT = {
 const NESTED_UPPERECASE_OBJECT = {
   Name: 'Anna',
   Address: 'Ocean Drive 101',
-  Phone: 123456789,
+  Phone: 123_456_789,
   Pets: {
     Oliver: {
       Family: 'feline',

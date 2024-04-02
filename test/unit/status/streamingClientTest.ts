@@ -273,8 +273,8 @@ describe('streaming client tests', () => {
   });
 
   it('subscribe should timeout setTimeout spy', async () => {
-    const JENNYS_NUMBER = 8675309;
-    const GHOSTBUSTERS_NUMBER = 5552368;
+    const JENNYS_NUMBER = 8_675_309;
+    const GHOSTBUSTERS_NUMBER = 5_552_368;
 
     const setTimeoutSpy = spyMethod($$.SANDBOX, global, 'setTimeout');
 
