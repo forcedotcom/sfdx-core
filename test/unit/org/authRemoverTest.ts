@@ -139,7 +139,7 @@ describe('AuthRemover', () => {
 
   describe('unsetAliases', () => {
     it('should unset aliases for provided username', async () => {
-      const aliasesSpy = spyMethod($$.SANDBOX, AliasAccessor.prototype, 'unset');
+      const aliasesSpy = spyMethod($$.SANDBOX, AliasAccessor.prototype, 'unsetAndSave');
       const alias1 = 'MyAlias';
       const alias2 = 'MyOtherAlias';
       $$.stubAliases({ [alias1]: username, [alias2]: username });

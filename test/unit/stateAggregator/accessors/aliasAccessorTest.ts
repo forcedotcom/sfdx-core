@@ -106,14 +106,14 @@ describe('AliasAccessor', () => {
   describe('set', () => {
     it('should set an alias for a username', async () => {
       const stateAggregator = await StateAggregator.getInstance();
-      stateAggregator.aliases.set('foobar', username1);
+      await stateAggregator.aliases.setAndSave('foobar', username1);
       const aliases = stateAggregator.aliases.getAll(username1);
       expect(aliases).to.include('foobar');
     });
 
     it('should set an alias for an org', async () => {
       const stateAggregator = await StateAggregator.getInstance();
-      stateAggregator.aliases.set('foobar', await org.getConfig());
+      await stateAggregator.aliases.setAndSave('foobar', await org.getConfig());
       const aliases = stateAggregator.aliases.getAll(org.username);
       expect(aliases).to.include('foobar');
     });
@@ -144,7 +144,7 @@ describe('AliasAccessor', () => {
   describe('unsetAll', () => {
     it('should unset all the aliases for a given username', async () => {
       const stateAggregator = await StateAggregator.getInstance();
-      stateAggregator.aliases.unsetAll(username1);
+      await stateAggregator.aliases.unsetValuesAndSave([username1]);
       const aliases = stateAggregator.aliases.getAll(username1);
       expect(aliases).to.deep.equal([]);
     });
@@ -184,7 +184,7 @@ describe('AliasAccessor', () => {
         const stateAggregator = await StateAggregator.getInstance();
         const testArray = Array(quantity).map((v, i) => i.toString());
         await Promise.all(
-          testArray.map((i) => Promise.resolve(stateAggregator.aliases.set(i.toString(), i.toString())))
+          testArray.map((i) => Promise.resolve(stateAggregator.aliases.setAndSave(i.toString(), i.toString())))
         );
         testArray.forEach((i) => {
           expect(stateAggregator.aliases.get(i)).to.equal(i);

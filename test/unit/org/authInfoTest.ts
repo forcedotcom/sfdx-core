@@ -1329,10 +1329,10 @@ describe('AuthInfo', () => {
     const alias = 'MyAlias';
 
     it('should set alias', async () => {
-      const aliasAccessorSpy = spyMethod($$.SANDBOX, AliasAccessor.prototype, 'set');
+      const aliasAccessorSpy = spyMethod($$.SANDBOX, AliasAccessor.prototype, 'setAndSave');
       const authInfo = await AuthInfo.create({ username: testOrg.username });
       await authInfo.setAlias(alias);
-      expect(aliasAccessorSpy.calledOnce).to.be.true;
+      expect(aliasAccessorSpy.callCount).to.equal(1);
       expect(aliasAccessorSpy.firstCall.args).to.deep.equal([alias, testOrg.username]);
     });
   });
