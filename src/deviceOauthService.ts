@@ -7,9 +7,9 @@
 /* eslint-disable camelcase */
 /* eslint-disable @typescript-eslint/ban-types */
 
-import Transport from 'jsforce/lib/transport';
+import Transport from '@jsforce/jsforce-node/lib/transport';
 import { AsyncCreatable, Duration, parseJsonMap, sleep } from '@salesforce/kit';
-import { HttpRequest, OAuth2Config } from 'jsforce';
+import { HttpRequest, OAuth2Config } from '@jsforce/jsforce-node';
 import { ensureString, isString, JsonMap, Nullable } from '@salesforce/ts-types';
 import FormData from 'form-data';
 import { Logger } from './logger/logger';

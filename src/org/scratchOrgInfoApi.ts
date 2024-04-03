@@ -7,7 +7,7 @@
 
 import { env, Duration, upperFirst } from '@salesforce/kit';
 import { AnyJson } from '@salesforce/ts-types';
-import { OAuth2Config, SaveResult } from 'jsforce';
+import { OAuth2Config, SaveResult } from '@jsforce/jsforce-node';
 import { retryDecorator, RetryError } from 'ts-retry-promise';
 import { JwtOAuth2Config } from '../org/authInfo';
 import { Logger } from '../logger/logger';

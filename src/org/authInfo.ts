@@ -10,7 +10,7 @@ import { randomBytes } from 'node:crypto';
 import { resolve as pathResolve } from 'node:path';
 import * as os from 'node:os';
 import * as fs from 'node:fs';
-import { Record as RecordType } from 'jsforce';
+import { Record as RecordType } from '@jsforce/jsforce-node';
 import { AsyncOptionalCreatable, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
   AnyJson,
@@ -26,8 +26,8 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
-import { OAuth2Config, OAuth2, TokenResponse } from 'jsforce';
-import Transport from 'jsforce/lib/transport';
+import { OAuth2Config, OAuth2, TokenResponse } from '@jsforce/jsforce-node';
+import Transport from '@jsforce/jsforce-node/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
@@ -848,26 +848,26 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     let authConfig: AuthFields;
 
     if (options) {
-      options = structuredClone(options);
+      const clonedOptions = structuredClone(options);
 
-      if (this.isTokenOptions(options)) {
-        authConfig = options;
+      if (this.isTokenOptions(clonedOptions)) {
+        authConfig = clonedOptions;
         const userInfo = await this.retrieveUserInfo(
-          ensureString(options.instanceUrl),
-          ensureString(options.accessToken)
+          ensureString(clonedOptions.instanceUrl),
+          ensureString(clonedOptions.accessToken)
         );
         this.update({ username: userInfo?.username, orgId: userInfo?.organizationId });
       } else {
         if (this.options.parentUsername) {
           const parentFields = await this.loadDecryptedAuthFromConfig(this.options.parentUsername);
 
-          options.clientId = parentFields.clientId;
+          clonedOptions.clientId = parentFields.clientId;
 
           if (process.env.SFDX_CLIENT_SECRET) {
-            options.clientSecret = process.env.SFDX_CLIENT_SECRET;
+            clonedOptions.clientSecret = process.env.SFDX_CLIENT_SECRET;
           } else {
             // Grab whatever flow is defined
-            Object.assign(options, {
+            Object.assign(clonedOptions, {
               clientSecret: parentFields.clientSecret,
               privateKey: parentFields.privateKey ? pathResolve(parentFields.privateKey) : parentFields.privateKey,
             });
@@ -876,20 +876,20 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
         // jwt flow
         // Support both sfdx and jsforce private key values
-        if (!options.privateKey && options.privateKeyFile) {
-          options.privateKey = pathResolve(options.privateKeyFile);
+        if (!clonedOptions.privateKey && clonedOptions.privateKeyFile) {
+          clonedOptions.privateKey = pathResolve(clonedOptions.privateKeyFile);
         }
 
-        if (options.privateKey) {
-          authConfig = await this.authJwt(options);
-        } else if (!options.authCode && options.refreshToken) {
+        if (clonedOptions.privateKey) {
+          authConfig = await this.authJwt(clonedOptions);
+        } else if (!clonedOptions.authCode && clonedOptions.refreshToken) {
           // refresh token flow (from sfdxUrl or OAuth refreshFn)
-          authConfig = await this.buildRefreshTokenConfig(options);
+          authConfig = await this.buildRefreshTokenConfig(clonedOptions);
         } else if (this.options.oauth2 instanceof OAuth2) {
           // authcode exchange / web auth flow
-          authConfig = await this.exchangeToken(options, this.options.oauth2);
+          authConfig = await this.exchangeToken(clonedOptions, this.options.oauth2);
         } else {
-          authConfig = await this.exchangeToken(options);
+          authConfig = await this.exchangeToken(clonedOptions);
         }
       }
 

@@ -8,6 +8,62 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "require": "./lib/index.js",
+      "import": "./lib/index.js",
+      "default": "./lib/index.js"
+    },
+    "./testSetup": {
+      "types": "./lib/testSetup.d.ts",
+      "require": "./lib/testSetup.js",
+      "import": "./lib/testSetup.js",
+      "default": "./lib/testSetup.js"
+    },
+    "./messages": {
+      "types": "./lib/messages.d.ts",
+      "require": "./lib/messages.js",
+      "import": "./lib/messages.js",
+      "default": "./lib/messages.js"
+    },
+    "./sfError": {
+      "types": "./lib/sfError.d.ts",
+      "require": "./lib/sfError.js",
+      "import": "./lib/sfError.js",
+      "default": "./lib/sfError.js"
+    },
+    "./lifecycle": {
+      "types": "./lib/lifecycleEvents.d.ts",
+      "require": "./lib/lifecycleEvents.js",
+      "import": "./lib/lifecycleEvents.js",
+      "default": "./lib/lifecycleEvents.js"
+    },
+    "./logger": {
+      "types": "./lib/logger/logger.d.ts",
+      "require": "./lib/logger/logger.js",
+      "import": "./lib/logger/logger.js",
+      "default": "./lib/logger/logger.js"
+    },
+    "./configAggregator": {
+      "types": "./lib/config/configAggregator.d.ts",
+      "require": "./lib/config/configAggregator.js",
+      "import": "./lib/config/configAggregator.js",
+      "default": "./lib/config/configAggregator.js"
+    },
+    "./project": {
+      "types": "./lib/sfProject.d.ts",
+      "require": "./lib/sfProject.js",
+      "import": "./lib/sfProject.js",
+      "default": "./lib/sfProject.js"
+    },
+    "./messageTransformer": {
+      "types": "./lib/messageTransformer.d.ts",
+      "require": "./lib/messageTransformer.js",
+      "import": "./lib/messageTransformer.js",
+      "default": "./lib/messageTransformer.js"
+    }
+  },
   "scripts": {
     "build": "wireit",
     "clean": "sf-clean",
@@ -39,6 +95,7 @@
     "messageTransformer/messageTransformer.ts"
   ],
   "dependencies": {
+    "@jsforce/jsforce-node": "^3.0.0-next.3",
     "@salesforce/kit": "^3.1.0",
     "@salesforce/schemas": "^1.7.0",
     "@salesforce/ts-types": "^2.0.9",
@@ -47,7 +104,6 @@
     "faye": "^1.4.0",
     "form-data": "^4.0.0",
     "js2xmlparser": "^4.0.1",
-    "jsforce": "^2.0.0-beta.29",
     "jsonwebtoken": "9.0.2",
     "jszip": "3.10.1",
     "pino": "^8.19.0",

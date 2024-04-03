@@ -51,6 +51,9 @@ import { uniqid } from './util/uniqid';
 
 // this was previously exported from the testSetup module
 export { uniqid };
+// stuff previously imported via /lib/foo and used in unit tests
+export { SecureBuffer } from './crypto/secureBuffer';
+
 /**
  * Different parts of the system that are mocked out. They can be restored for
  * individual tests. Test's stubs should always go on the DEFAULT which is exposed

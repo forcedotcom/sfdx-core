@@ -8,7 +8,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
 import { URL } from 'node:url';
-import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
+import { AsyncResult, DeployOptions, DeployResultLocator } from '@jsforce/jsforce-node/lib/api/metadata';
 import { Duration, env, maxBy } from '@salesforce/kit';
 import { asString, ensure, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import {
@@ -20,9 +20,9 @@ import {
   QueryResult,
   Record,
   Schema,
-} from 'jsforce';
-import { Tooling as JSForceTooling } from 'jsforce/lib/api/tooling';
-import { StreamPromise } from 'jsforce/lib/util/promise';
+} from '@jsforce/jsforce-node';
+import { Tooling as JSForceTooling } from '@jsforce/jsforce-node/lib/api/tooling';
+import { StreamPromise } from '@jsforce/jsforce-node/lib/util/promise';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';

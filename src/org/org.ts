@@ -21,7 +21,7 @@ import {
   JsonMap,
   Nullable,
 } from '@salesforce/ts-types';
-import { HttpRequest, SaveResult } from 'jsforce';
+import { HttpRequest, SaveResult } from '@jsforce/jsforce-node';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { ConfigContents } from '../config/configStackTypes';

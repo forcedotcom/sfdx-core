@@ -416,12 +416,12 @@ export class SfProject {
    * **Throws** *{@link SfError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
    */
   public static async resolve(path?: string): Promise<SfProject> {
-    path = await this.resolveProjectPath(path ?? process.cwd());
-    if (!SfProject.instances.has(path)) {
-      const project = new SfProject(path);
-      SfProject.instances.set(path, project);
+    const resolvedPath = await this.resolveProjectPath(path ?? process.cwd());
+    if (!SfProject.instances.has(resolvedPath)) {
+      const project = new SfProject(resolvedPath);
+      SfProject.instances.set(resolvedPath, project);
     }
-    return ensure(SfProject.instances.get(path));
+    return ensure(SfProject.instances.get(resolvedPath));
   }
 
   /**
@@ -433,13 +433,13 @@ export class SfProject {
    */
   public static getInstance(path?: string): SfProject {
     // Store instance based on the path of the actual project.
-    path = this.resolveProjectPathSync(path ?? process.cwd());
+    const resolvedPath = this.resolveProjectPathSync(path ?? process.cwd());
 
-    if (!SfProject.instances.has(path)) {
-      const project = new SfProject(path);
-      SfProject.instances.set(path, project);
+    if (!SfProject.instances.has(resolvedPath)) {
+      const project = new SfProject(resolvedPath);
+      SfProject.instances.set(resolvedPath, project);
     }
-    return ensure(SfProject.instances.get(path));
+    return ensure(SfProject.instances.get(resolvedPath));
   }
 
   /**

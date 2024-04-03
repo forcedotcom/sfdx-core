@@ -12,7 +12,7 @@ import { parse as parseQueryString } from 'node:querystring';
 import { parse as parseUrl } from 'node:url';
 import { Socket } from 'node:net';
 import { EventEmitter } from 'node:events';
-import { OAuth2 } from 'jsforce';
+import { OAuth2 } from '@jsforce/jsforce-node';
 import { AsyncCreatable, Env, set, toNumber } from '@salesforce/kit';
 import { asString, get, Nullable } from '@salesforce/ts-types';
 import { Logger } from './logger/logger';

@@ -8,8 +8,8 @@
 import { EOL } from 'node:os';
 import { AsyncCreatable, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
 import { asJsonArray, asNumber, ensureJsonMap, ensureString, isJsonMap, Many } from '@salesforce/ts-types';
-import type { HttpRequest, HttpResponse, QueryResult, Schema, SObjectUpdateRecord } from 'jsforce';
-import { HttpApi } from 'jsforce/lib/http-api';
+import type { HttpRequest, HttpResponse, QueryResult, Schema, SObjectUpdateRecord } from '@jsforce/jsforce-node';
+import { HttpApi } from '@jsforce/jsforce-node/lib/http-api';
 import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { SecureBuffer } from '../crypto/secureBuffer';

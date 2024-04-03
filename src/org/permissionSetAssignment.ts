@@ -8,7 +8,7 @@
 import { EOL } from 'node:os';
 import { mapKeys, upperFirst } from '@salesforce/kit';
 import type { Optional } from '@salesforce/ts-types';
-import type { QueryResult, Record } from 'jsforce';
+import type { QueryResult, Record } from '@jsforce/jsforce-node';
 import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';

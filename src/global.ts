@@ -96,15 +96,15 @@ export class Global {
    * @param dirPath The directory path to be created within {@link Global.SFDX_DIR}.
    */
   public static async createDir(dirPath?: string): Promise<void> {
-    dirPath = dirPath ? path.join(Global.SFDX_DIR, dirPath) : Global.SFDX_DIR;
+    const resolvedPath = dirPath ? path.join(Global.SFDX_DIR, dirPath) : Global.SFDX_DIR;
     try {
       if (process.platform === 'win32') {
-        await fs.promises.mkdir(dirPath, { recursive: true });
+        await fs.promises.mkdir(resolvedPath, { recursive: true });
       } else {
-        await fs.promises.mkdir(dirPath, { recursive: true, mode: 0o700 });
+        await fs.promises.mkdir(resolvedPath, { recursive: true, mode: 0o700 });
       }
     } catch (error) {
-      throw new SfError(`Failed to create directory or set permissions for: ${dirPath}`);
+      throw new SfError(`Failed to create directory or set permissions for: ${resolvedPath}`);
     }
   }
 }
