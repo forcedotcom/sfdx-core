@@ -3,6 +3,10 @@
   "compilerOptions": {
     "outDir": "./lib",
     "resolveJsonModule": true,
+    "lib": ["ES2022"],
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "target": "ES2022",
     "rootDir": "./src",
     "plugins": [{ "transform": "./src/messageTransformer.ts" }],
     "esModuleInterop": true
