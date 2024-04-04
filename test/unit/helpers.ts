@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { isString } from '@salesforce/ts-types';
-
+import { expect } from 'chai';
+import { omit } from '@salesforce/kit';
+import { AuthFields } from '../../src';
 /**
  * A test implementation of NodeJS.ErrnoException for mocking fs errors.
  */
@@ -24,10 +26,16 @@ export class ErrnoException extends Error implements NodeJS.ErrnoException {
   ) {
     if (isString(messageOrOptions)) {
       super(messageOrOptions);
+      Object.assign(this, options ?? {});
     } else {
       super();
-      options = messageOrOptions;
+      Object.assign(this, messageOrOptions ?? {});
     }
-    Object.assign(this, options ?? {});
   }
 }
+
+export const expectPartialDeepMatch = (
+  actual: AuthFields,
+  expected: AuthFields,
+  ignore = ['refreshToken', 'accessToken']
+): Chai.Assertion => expect(omit<AuthFields>(actual, ignore)).to.deep.equal(omit<AuthFields>(expected, ignore));

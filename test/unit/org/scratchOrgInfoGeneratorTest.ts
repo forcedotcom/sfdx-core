@@ -615,8 +615,8 @@ describe('scratchOrgInfoGenerator', () => {
         ).to.deep.equal({
           orgName: 'Company',
           package2AncestorIds: '',
-          connectedAppConsumerKey: testData.clientId,
           connectedAppCallbackUrl: 'http://localhost:1717/OauthRedirect',
+          connectedAppConsumerKey: testData.clientId,
         });
       });
       it('Generates empty package2AncestorIds scratch org property with hasPackages', async () => {

@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable no-param-reassign */ // mutate ALL the THINGS!
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -132,7 +133,7 @@ export class TestContext {
 
   public constructor(options: { sinon?: SinonStatic; sandbox?: SinonSandbox; setup?: boolean } = {}) {
     const opts = { setup: true, ...options };
-    const sinon = this.requireSinon(opts.sinon);
+    const sinon = requireSinon(opts.sinon);
     // Import all the messages files in the sfdx-core messages dir.
     Messages.importMessagesDirectory(pathJoin(__dirname));
     // Create a global sinon sandbox and a test logger instance for use within tests.
@@ -416,20 +417,20 @@ export class TestContext {
       this.restore();
     });
   }
-
-  private requireSinon(sinon: Nullable<SinonStatic>): SinonStatic {
-    if (sinon) return sinon;
-    try {
-      sinon = require('sinon');
-    } catch (e) {
-      throw new Error(
-        'The package sinon was not found. Add it to your package.json and pass it in to new TestContext({sinon})'
-      );
-    }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return sinon!;
-  }
 }
+
+const requireSinon = (sinon: Nullable<SinonStatic>): SinonStatic => {
+  if (sinon) return sinon;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const newSinon = require('sinon');
+    return newSinon as SinonStatic;
+  } catch (e) {
+    throw new Error(
+      'The package sinon was not found. Add it to your package.json and pass it in to new TestContext({sinon})'
+    );
+  }
+};
 
 function getTestLocalPath(uid: string): string {
   return pathJoin(osTmpdir(), uid, 'sfdx_core', 'local');

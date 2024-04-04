@@ -18,7 +18,7 @@ export function trimTo15(id: string | undefined): string | undefined {
     return undefined;
   }
   if (id.length && id.length > 15) {
-    id = id.substring(0, 15);
+    return id.substring(0, 15);
   }
   return id;
 }

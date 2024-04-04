@@ -173,10 +173,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
         config.set('username', username);
       }
     } else {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      org.username ??= username;
-      this.contents.set(username, org);
+      this.contents.set(username, { ...org, username: org.username ?? username });
     }
   }
 

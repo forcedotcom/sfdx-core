@@ -256,11 +256,11 @@ export class Logger {
    * @see {@Link LoggerLevel}
    */
   public static getLevelByName(levelName: string): LoggerLevelValue {
-    levelName = levelName.toUpperCase();
-    if (!isKeyOf(LoggerLevel, levelName)) {
-      throw new SfError(`Invalid log level "${levelName}".`, 'UnrecognizedLoggerLevelNameError');
+    const upperLevel = levelName.toUpperCase();
+    if (!isKeyOf(LoggerLevel, upperLevel)) {
+      throw new SfError(`Invalid log level "${upperLevel}".`, 'UnrecognizedLoggerLevelNameError');
     }
-    return LoggerLevel[levelName];
+    return LoggerLevel[upperLevel];
   }
 
   /** get the bare (pino) logger instead of using the class hierarchy */
@@ -309,11 +309,8 @@ export class Logger {
    * ```
    */
   public setLevel(level?: LoggerLevelValue): Logger {
-    if (level == null) {
-      const logLevelFromEnvVar = new Env().getString('SF_LOG_LEVEL');
-      level = logLevelFromEnvVar ? Logger.getLevelByName(logLevelFromEnvVar) : Logger.DEFAULT_LEVEL;
-    }
-    this.pinoLogger.level = this.pinoLogger.levels.labels[level] ?? this.pinoLogger.levels.labels[Logger.DEFAULT_LEVEL];
+    this.pinoLogger.level =
+      this.pinoLogger.levels.labels[level ?? getDefaultLevel()] ?? this.pinoLogger.levels.labels[Logger.DEFAULT_LEVEL];
     return this;
   }
 
@@ -342,10 +339,7 @@ export class Logger {
    */
   public readLogContentsAsText(): string {
     if (this.memoryLogger) {
-      return this.memoryLogger.loggedData.reduce((accum, line) => {
-        accum += JSON.stringify(line) + os.EOL;
-        return accum;
-      }, '');
+      return this.memoryLogger?.loggedData.map((line) => JSON.stringify(line)).join(os.EOL);
     } else {
       this.pinoLogger.warn(
         'readLogContentsAsText is not supported for file streams, only used when useMemoryLogging is true'
@@ -511,3 +505,8 @@ const numberToLevel = (level: number): string =>
   pino.levels.labels[level] ??
   Object.entries(pino.levels.labels).find(([value]) => Number(value) > level)?.[1] ??
   'warn';
+
+const getDefaultLevel = (): LoggerLevel => {
+  const logLevelFromEnvVar = new Env().getString('SF_LOG_LEVEL');
+  return logLevelFromEnvVar ? Logger.getLevelByName(logLevelFromEnvVar) : Logger.DEFAULT_LEVEL;
+};

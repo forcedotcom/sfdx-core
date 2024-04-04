@@ -199,6 +199,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
       outgoing: (message: JsonMap, callback: AnyFunction): void => {
         if (message.channel === '/meta/subscribe') {
           if (!message.ext) {
+            // eslint-disable-next-line no-param-reassign
             message.ext = {};
           }
           const replayFromMap: JsonMap = {};
