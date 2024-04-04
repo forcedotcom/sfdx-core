@@ -208,7 +208,7 @@ describe('Config', () => {
     it('uses passed in contents', async () => {
       $$.SANDBOX.stub(fs.promises, 'readFile').resolves('{}');
       // @ts-expect-error --> we're only mocking on prop of many
-      $$.SANDBOX.stub(fs.promises, 'stat').resolves({ mtimeNs: BigInt(Date.now() - 1_000 * 60 * 5) });
+      $$.SANDBOX.stub(fs.promises, 'stat').resolves({ mtimeNs: BigInt(Date.now() - 1000 * 60 * 5) });
       $$.SANDBOX.stub(fs.promises, 'mkdir').resolves();
       const lockStub = $$.SANDBOX.stub(lockfileLib, 'lock').resolves(() => Promise.resolve());
 
@@ -228,7 +228,7 @@ describe('Config', () => {
     it('sync uses passed in contents', async () => {
       $$.SANDBOX.stub(fs, 'readFileSync').returns('{}');
       // @ts-expect-error --> we're only mocking on prop of many
-      $$.SANDBOX.stub(fs, 'statSync').returns({ mtimeNs: BigInt(Date.now() - 1_000 * 60 * 5) });
+      $$.SANDBOX.stub(fs, 'statSync').returns({ mtimeNs: BigInt(Date.now() - 1000 * 60 * 5) });
       const lockStub = $$.SANDBOX.stub(lockfileLib, 'lockSync').returns(() => undefined);
 
       const mkdirpStub = $$.SANDBOX.stub(fs, 'mkdirSync');
@@ -260,7 +260,7 @@ describe('Config', () => {
         $$.SANDBOXES.CONFIG.restore();
         readFileStub = $$.SANDBOX.stub(fs.promises, 'readFile');
         // @ts-expect-error --> we're only mocking on prop of many
-        $$.SANDBOX.stub(fs.promises, 'stat').resolves({ mtimeNs: BigInt(Date.now() - 1_000 * 60 * 5) });
+        $$.SANDBOX.stub(fs.promises, 'stat').resolves({ mtimeNs: BigInt(Date.now() - 1000 * 60 * 5) });
       });
 
       it('caches file contents', async () => {
@@ -344,7 +344,7 @@ describe('Config', () => {
         $$.SANDBOXES.CONFIG.restore();
         readFileStub = $$.SANDBOX.stub(fs, 'readFileSync');
         // @ts-expect-error --> we're only mocking on prop of many
-        $$.SANDBOX.stub(fs, 'statSync').returns({ mtimeNs: BigInt(Date.now() - 1_000 * 60 * 5) });
+        $$.SANDBOX.stub(fs, 'statSync').returns({ mtimeNs: BigInt(Date.now() - 1000 * 60 * 5) });
       });
 
       it('caches file contents', () => {

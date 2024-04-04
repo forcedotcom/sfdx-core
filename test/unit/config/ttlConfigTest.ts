@@ -85,14 +85,14 @@ describe('TTLConfig', () => {
     it('should return true if timestamp is older than TTL', async () => {
       const config = await TestConfig.create();
       config.set('1', { one: 'one' });
-      const isExpired = config.isExpired(new Date().getTime() + Duration.days(7).milliseconds, config.get('1')!);
+      const isExpired = config.isExpired(new Date().getTime() + Duration.days(7).milliseconds, config.get('1'));
       expect(isExpired).to.be.true;
     });
 
     it('should return false if timestamp is not older than TTL', async () => {
       const config = await TestConfig.create();
       config.set('1', { one: 'one' });
-      const isExpired = config.isExpired(new Date().getTime(), config.get('1')!);
+      const isExpired = config.isExpired(new Date().getTime(), config.get('1'));
       expect(isExpired).to.be.false;
     });
   });

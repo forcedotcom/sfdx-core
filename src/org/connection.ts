@@ -368,7 +368,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     const config: ConfigAggregator = await ConfigAggregator.create();
     // take the limit from the calling function, then the config, then default 10,000
     const maxFetch: number =
-      ((config.getInfo(OrgConfigProperties.ORG_MAX_QUERY_LIMIT).value as number) || queryOptions.maxFetch) ?? 10000;
+      ((config.getInfo(OrgConfigProperties.ORG_MAX_QUERY_LIMIT).value as number) || queryOptions.maxFetch) ?? 10_000;
 
     const { tooling, ...queryOptionsWithoutTooling } = queryOptions;
 

@@ -606,7 +606,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     await stateAgg.aliases.unsetValuesAndSave(existingAliases);
 
     // unset any configs referencing this org
-    [...existingAliases, username].flatMap((name) => this.configAggregator.unsetByValue(name));
+    await Promise.all([...existingAliases, username].flatMap((name) => this.configAggregator.unsetByValue(name)));
 
     if (await this.isSandbox()) {
       await this.deleteSandbox();
