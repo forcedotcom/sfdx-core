@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from 'chai';
+import { expect, assert } from 'chai';
 import { Messages } from '../../src/messages';
 import { SfError } from '../../src/sfError';
 
@@ -31,8 +31,71 @@ describe('SfError', () => {
       const err = new SfError(msg, 'myErrorName');
       expect(err.name).to.equal('myErrorName');
     });
+
+    it('sets actions', () => {
+      const msg = 'this is a test message';
+      const actions = ['Do this action', 'Do that action'];
+      const err = new SfError(msg, 'myErrorName', actions);
+      expect(err.actions).to.equal(actions);
+    });
+
+    it('cause as 4th property', () => {
+      const msg = 'this is a test message';
+      const cause = new Error('cause');
+      const err = new SfError(msg, 'myErrorName', undefined, cause);
+      expect(err.cause).to.equal(cause);
+    });
+
+    it('cause as 5th property + exitCode', () => {
+      const msg = 'this is a test message';
+      const cause = new Error('cause');
+      const err = new SfError(msg, 'myErrorName', undefined, 2, cause);
+      expect(err.cause).to.equal(cause);
+      expect(err.exitCode).to.equal(2);
+    });
+
+    it('exitCode is 1 when undefined is provided', () => {
+      const msg = 'this is a test message';
+      const cause = new Error('cause');
+      const err = new SfError(msg, 'myErrorName', undefined, undefined, cause);
+      expect(err.cause).to.equal(cause);
+      expect(err.exitCode).to.equal(1);
+    });
+
+    it('exitCode is 1 when no arg is provided', () => {
+      const msg = 'this is a test message';
+      const err = new SfError(msg, 'myErrorName');
+      expect(err.cause).to.equal(undefined);
+      expect(err.exitCode).to.equal(1);
+    });
   });
 
+  describe('fullStack', () => {
+    it('returned `name:message` when no cause', () => {
+      const err = new SfError('test');
+      expect(err.fullStack).to.include('SfError: test');
+      expect(err.fullStack).to.include('sfErrorTest.ts');
+      expect(err.fullStack).to.not.include('Caused by:');
+    });
+    it('1 cause', () => {
+      const nestedError = new Error('nested');
+      const err = new SfError('test', undefined, undefined, nestedError);
+      expect(err.fullStack).to.include('SfError: test');
+      expect(err.fullStack).to.include('sfErrorTest.ts');
+      expect(err.fullStack).to.include('nested');
+      expect(err.fullStack?.match(/Caused by:/g)).to.have.lengthOf(1);
+    });
+    it('recurse through stacked causes', () => {
+      const nestedError = new Error('nested');
+      const nestedError2 = new Error('nested2', { cause: nestedError });
+      const err = new SfError('test', undefined, undefined, nestedError2);
+      expect(err.fullStack).to.include('SfError: test');
+      expect(err.fullStack).to.include('sfErrorTest.ts');
+      expect(err.fullStack).to.include('nested');
+      expect(err.fullStack).to.include('nested2');
+      expect(err.fullStack?.match(/Caused by:/g)).to.have.lengthOf(2);
+    });
+  });
   describe('wrap', () => {
     it('should return a wrapped error', () => {
       const myErrorMsg = 'yikes! What did you do?';
@@ -69,6 +132,55 @@ describe('SfError', () => {
       const mySfError = SfError.wrap(existingSfError);
       expect(mySfError).to.be.an.instanceOf(SfError);
       expect(mySfError).to.equal(existingSfError);
+    });
+
+    describe('handling "other" stuff that is not Error', () => {
+      it('undefined', () => {
+        const wrapMe = undefined;
+        const mySfError = SfError.wrap(wrapMe);
+        expect(mySfError).to.be.an.instanceOf(SfError);
+        expect(mySfError.message === 'An unexpected error occurred');
+        expect(mySfError.name === 'TypeError');
+        assert(mySfError.cause instanceof TypeError);
+        expect(mySfError.cause.message === 'An unexpected error occurred');
+        expect(mySfError.cause.cause).to.equal(wrapMe);
+      });
+      it('a number', () => {
+        const wrapMe = 2;
+        const mySfError = SfError.wrap(wrapMe);
+        expect(mySfError).to.be.an.instanceOf(SfError);
+        assert(mySfError.cause instanceof TypeError);
+        expect(mySfError.cause.cause).to.equal(wrapMe);
+      });
+      it('an object', () => {
+        const wrapMe = { a: 2 };
+        const mySfError = SfError.wrap(wrapMe);
+        expect(mySfError).to.be.an.instanceOf(SfError);
+        assert(mySfError.cause instanceof TypeError);
+        expect(mySfError.cause.cause).to.equal(wrapMe);
+      });
+      it('an object that has a code', () => {
+        const wrapMe = { a: 2, code: 'foo' };
+        const mySfError = SfError.wrap(wrapMe);
+        expect(mySfError).to.be.an.instanceOf(SfError);
+        assert(mySfError.cause instanceof TypeError);
+        expect(mySfError.cause.cause).to.equal(wrapMe);
+        expect(mySfError.code).to.equal('foo');
+      });
+      it('an array', () => {
+        const wrapMe = [1, 5, 6];
+        const mySfError = SfError.wrap(wrapMe);
+        expect(mySfError).to.be.an.instanceOf(SfError);
+        assert(mySfError.cause instanceof TypeError);
+        expect(mySfError.cause.cause).to.equal(wrapMe);
+      });
+      it('a class', () => {
+        const wrapMe = new (class Test {})();
+        const mySfError = SfError.wrap(wrapMe);
+        expect(mySfError).to.be.an.instanceOf(SfError);
+        assert(mySfError.cause instanceof TypeError);
+        expect(mySfError.cause.cause).to.equal(wrapMe);
+      });
     });
   });
 

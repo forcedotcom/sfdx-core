@@ -5,8 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { NamedError } from '@salesforce/kit';
 import { AnyJson, hasString, isString, JsonMap } from '@salesforce/ts-types';
+
+export type SfErrorOptions<T extends ErrorDataProperties = ErrorDataProperties> = {
+  message: string;
+  exitCode?: number;
+  name?: string;
+  data?: T;
+  cause?: Error;
+  context?: string;
+  actions: string[];
+};
+
+type ErrorDataProperties = AnyJson;
 
 /**
  * A generalized sfdx error which also contains an action. The action is used in the
@@ -24,7 +35,8 @@ import { AnyJson, hasString, isString, JsonMap } from '@salesforce/ts-types';
  * throw new SfError(message.getMessage('myError'), 'MyErrorName');
  * ```
  */
-export class SfError<T = unknown> extends NamedError {
+export class SfError<T extends ErrorDataProperties = ErrorDataProperties> extends Error {
+  public readonly name: string;
   /**
    * Action messages. Hints to the users regarding what can be done to fix related issues.
    */
@@ -59,19 +71,25 @@ export class SfError<T = unknown> extends NamedError {
    */
   public constructor(
     message: string,
-    name?: string,
+    name = 'SfError',
     actions?: string[],
     exitCodeOrCause?: number | Error,
     cause?: Error
   ) {
-    cause = exitCodeOrCause instanceof Error ? exitCodeOrCause : cause;
-    super(name ?? 'SfError', message || name, cause);
+    const derivedCause = exitCodeOrCause instanceof Error ? exitCodeOrCause : cause;
+    super(message);
+    this.name = name;
+    this.cause = derivedCause;
     this.actions = actions;
     if (typeof exitCodeOrCause === 'number') {
       this.exitCode = exitCodeOrCause;
     } else {
       this.exitCode = 1;
     }
+  }
+
+  public get fullStack(): string | undefined {
+    return recursiveStack(this).join('\nCaused by: ');
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -83,26 +101,39 @@ export class SfError<T = unknown> extends NamedError {
     this.#code = code;
   }
 
+  /** like the constructor, but takes an typed object and let you also set context and data properties */
+  public static create<T extends ErrorDataProperties = ErrorDataProperties>(inputs: SfErrorOptions<T>): SfError<T> {
+    const error = new SfError<T>(inputs.message, inputs.name, inputs.actions, inputs.exitCode, inputs.cause);
+    error.data = inputs.data;
+    error.context = inputs.context;
+    return error;
+  }
   /**
    * Convert an Error to an SfError.
    *
    * @param err The error to convert.
    */
-  public static wrap(err: Error | string): SfError {
+  public static wrap<T extends ErrorDataProperties = ErrorDataProperties>(err: unknown): SfError<T> {
     if (isString(err)) {
-      return new SfError(err);
+      return new SfError<T>(err);
     }
 
     if (err instanceof SfError) {
-      return err;
+      return err as SfError<T>;
     }
 
-    const sfError = new SfError(err.message, err.name, undefined, err);
+    const sfError =
+      err instanceof Error
+        ? // a basic error with message and name.  We make it the cause to preserve any other properties
+          new SfError<T>(err.message, err.name, undefined, err)
+        : // ok, something was throws that wasn't error or string.  Convert it to an Error that preserves the information as the cause and wrap that.
+          SfError.wrap<T>(new TypeError('An unexpected error occurred', { cause: err }));
 
     // If the original error has a code, use that instead of name.
     if (hasString(err, 'code')) {
       sfError.code = err.code;
     }
+
     return sfError;
   }
 
@@ -130,24 +161,16 @@ export class SfError<T = unknown> extends NamedError {
    * Convert an {@link SfError} state to an object. Returns a plain object representing the state of this error.
    */
   public toObject(): JsonMap {
-    const obj: JsonMap = {
+    return {
       name: this.name,
       message: this.message ?? this.name,
       exitCode: this.exitCode,
       actions: this.actions,
+      ...(this.context ? { context: this.context } : {}),
+      ...(this.data ? { data: this.data } : {}),
     };
-
-    if (this.context) {
-      obj.context = this.context;
-    }
-
-    if (this.data) {
-      // DANGER: data was previously typed as `unknown` and this assertion was here on the toObject.
-      // TODO in next major release: put proper type constraint on SfError.data to something that can serialize
-      // while we're making breaking changes, provide a more definite type for toObject
-      obj.data = this.data as AnyJson;
-    }
-
-    return obj;
   }
 }
+
+const recursiveStack = (err: Error): string[] =>
+  (err.cause && err.cause instanceof Error ? [err.stack, ...recursiveStack(err.cause)] : [err.stack]).filter(isString);
