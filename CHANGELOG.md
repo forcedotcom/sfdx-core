@@ -1,3 +1,7 @@
+## [6.7.6](https://github.com/forcedotcom/sfdx-core/compare/6.7.5...6.7.6) (2024-04-04)
+
+
+
 ## [6.7.5](https://github.com/forcedotcom/sfdx-core/compare/6.7.4...6.7.5) (2024-04-04)
 
 
