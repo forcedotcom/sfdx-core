@@ -14,7 +14,7 @@ export type SfErrorOptions<T extends ErrorDataProperties = ErrorDataProperties> 
   data?: T;
   cause?: Error;
   context?: string;
-  actions: string[];
+  actions?: string[];
 };
 
 type ErrorDataProperties = AnyJson;

@@ -243,4 +243,87 @@ describe('SfError', () => {
       });
     });
   });
+
+  describe('create', () => {
+    it('message only sets the default error name', () => {
+      const message = 'its a trap!';
+      const error = SfError.create({ message });
+      expect(error.message).to.equal(message);
+      expect(error.name).to.equal('SfError');
+    });
+    it('sets name', () => {
+      const message = 'its a trap!';
+      const name = 'BadError';
+      const error = SfError.create({ message, name });
+      expect(error.message).to.equal(message);
+      expect(error.name).to.equal(name);
+    });
+    it('sets cause', () => {
+      const cause = new Error('cause');
+      const error = SfError.create({ message: 'its a trap!', cause });
+      expect(error.cause).to.equal(cause);
+    });
+    it('sets exit code', () => {
+      const message = 'its a trap!';
+      const exitCode = 100;
+      const error = SfError.create({ message, exitCode });
+      expect(error.message).to.equal(message);
+      expect(error.exitCode).to.equal(exitCode);
+    });
+    it('sets actions', () => {
+      const message = 'its a trap!';
+      const actions = ['do the opposite'];
+      const error = SfError.create({ message, actions });
+      expect(error.message).to.equal(message);
+      expect(error.actions).to.equal(actions);
+    });
+    it('sets data', () => {
+      const message = 'its a trap!';
+      const data = { foo: 'pity the foo' };
+      const error = SfError.create({ message, data });
+      expect(error.message).to.equal(message);
+      expect(error.data).to.equal(data);
+    });
+    it('sets data (typed)', () => {
+      const message = 'its a trap!';
+      const data = { foo: 'pity the foo' };
+      const error = SfError.create<{ foo: string }>({ message, data });
+      expect(error.message).to.equal(message);
+      expect(error.data).to.equal(data);
+    });
+    it('sets context', () => {
+      const message = 'its a trap!';
+      const context = 'TestContext1';
+      const error = SfError.create({ message, context });
+      expect(error.message).to.equal(message);
+      expect(error.context).to.equal(context);
+    });
+    it('all the things', () => {
+      const message = 'its a trap!';
+      const name = 'BadError';
+      const actions = ['do the opposite'];
+      const cause = new Error('cause');
+      const exitCode = 100;
+      const context = 'TestContext1';
+      const data = { foo: 'pity the foo' };
+
+      const error = SfError.create({
+        message,
+        name,
+        actions,
+        cause,
+        exitCode,
+        context,
+        data,
+      });
+
+      expect(error.message).to.equal(message);
+      expect(error.name).to.equal(name);
+      expect(error.actions).to.equal(actions);
+      expect(error.cause).to.equal(cause);
+      expect(error.exitCode).to.equal(exitCode);
+      expect(error.context).to.equal(context);
+      expect(error.data).to.equal(data);
+    });
+  });
 });
