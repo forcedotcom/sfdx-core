@@ -129,10 +129,10 @@ export class SfError<T extends ErrorDataProperties = ErrorDataProperties> extend
             cause: err,
           })
         : // ok, something was throws that wasn't error or string.  Convert it to an Error that preserves the information as the cause and wrap that.
-          SfError.create<T>({
-            message: `SfError.wrap received type ${typeof err} but expects type Error or string`,
-            cause: err,
-          });
+          SfError.wrap<T>(
+            new Error(`SfError.wrap received type ${typeof err} but expects type Error or string`, { cause: err })
+          );
+
     // If the original error has a code, use that instead of name.
     if (hasString(err, 'code')) {
       sfError.code = err.code;

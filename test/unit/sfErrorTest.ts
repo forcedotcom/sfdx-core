@@ -106,42 +106,44 @@ describe('SfError', () => {
   });
 
   describe('wrap', () => {
-    it('should return a wrapped error', () => {
-      const myErrorMsg = 'yikes! What did you do?';
-      const myErrorName = 'OhMyError';
-      const myError = new Error(myErrorMsg);
-      myError.name = myErrorName;
-      const mySfError = SfError.wrap(myError);
-      expect(mySfError).to.be.an.instanceOf(SfError);
-      expect(mySfError.message).to.equal(myErrorMsg);
-      expect(mySfError.name).to.equal(myErrorName);
-      expect(mySfError.cause).to.equal(myError);
-      expect(inspect(mySfError)).to.contain(causeDelimiter).and.contain(myErrorMsg);
-    });
+    describe('happy path', () => {
+      it('should return a wrapped error', () => {
+        const myErrorMsg = 'yikes! What did you do?';
+        const myErrorName = 'OhMyError';
+        const myError = new Error(myErrorMsg);
+        myError.name = myErrorName;
+        const mySfError = SfError.wrap(myError);
+        expect(mySfError).to.be.an.instanceOf(SfError);
+        expect(mySfError.message).to.equal(myErrorMsg);
+        expect(mySfError.name).to.equal(myErrorName);
+        expect(mySfError.cause).to.equal(myError);
+        expect(inspect(mySfError)).to.contain(causeDelimiter).and.contain(myErrorMsg);
+      });
 
-    it('should return a wrapped error with a code', () => {
-      class CodeError extends Error {
-        public code?: string;
-      }
-      const myErrorCode = 'OhMyError';
-      const myError = new CodeError('test');
-      myError.code = myErrorCode;
-      const mySfError = SfError.wrap(myError);
-      expect(mySfError).to.be.an.instanceOf(SfError);
-      expect(mySfError.code).to.equal(myErrorCode);
-    });
+      it('should return a wrapped error with a code', () => {
+        class CodeError extends Error {
+          public code?: string;
+        }
+        const myErrorCode = 'OhMyError';
+        const myError = new CodeError('test');
+        myError.code = myErrorCode;
+        const mySfError = SfError.wrap(myError);
+        expect(mySfError).to.be.an.instanceOf(SfError);
+        expect(mySfError.code).to.equal(myErrorCode);
+      });
 
-    it('should return a new error with just a string', () => {
-      const mySfError = SfError.wrap('test');
-      expect(mySfError).to.be.an.instanceOf(SfError);
-      expect(mySfError.message).to.equal('test');
-    });
+      it('should return a new error with just a string', () => {
+        const mySfError = SfError.wrap('test');
+        expect(mySfError).to.be.an.instanceOf(SfError);
+        expect(mySfError.message).to.equal('test');
+      });
 
-    it('should return the error if already a SfError', () => {
-      const existingSfError = new SfError('test');
-      const mySfError = SfError.wrap(existingSfError);
-      expect(mySfError).to.be.an.instanceOf(SfError);
-      expect(mySfError).to.equal(existingSfError);
+      it('should return the error if already a SfError', () => {
+        const existingSfError = new SfError('test');
+        const mySfError = SfError.wrap(existingSfError);
+        expect(mySfError).to.be.an.instanceOf(SfError);
+        expect(mySfError).to.equal(existingSfError);
+      });
     });
 
     describe('handling "other" stuff that is not Error', () => {
@@ -149,31 +151,29 @@ describe('SfError', () => {
         const wrapMe = undefined;
         const mySfError = SfError.wrap(wrapMe);
         expect(mySfError).to.be.an.instanceOf(SfError);
-        expect(mySfError.message === 'An unexpected error occurred');
-        expect(mySfError.name === 'TypeError');
-        assert(mySfError.cause instanceof TypeError);
-        expect(mySfError.cause.message === 'An unexpected error occurred');
+        expect(mySfError.message).to.include('SfError.wrap received type ');
+        assert(mySfError.cause instanceof Error);
         expect(mySfError.cause.cause).to.equal(wrapMe);
       });
       it('a number', () => {
         const wrapMe = 2;
         const mySfError = SfError.wrap(wrapMe);
         expect(mySfError).to.be.an.instanceOf(SfError);
-        assert(mySfError.cause instanceof TypeError);
+        assert(mySfError.cause instanceof Error);
         expect(mySfError.cause.cause).to.equal(wrapMe);
       });
       it('an object', () => {
         const wrapMe = { a: 2 };
         const mySfError = SfError.wrap(wrapMe);
         expect(mySfError).to.be.an.instanceOf(SfError);
-        assert(mySfError.cause instanceof TypeError);
+        assert(mySfError.cause instanceof Error);
         expect(mySfError.cause.cause).to.equal(wrapMe);
       });
       it('an object that has a code', () => {
         const wrapMe = { a: 2, code: 'foo' };
         const mySfError = SfError.wrap(wrapMe);
         expect(mySfError).to.be.an.instanceOf(SfError);
-        assert(mySfError.cause instanceof TypeError);
+        assert(mySfError.cause instanceof Error);
         expect(mySfError.cause.cause).to.equal(wrapMe);
         expect(mySfError.code).to.equal('foo');
       });
@@ -181,14 +181,14 @@ describe('SfError', () => {
         const wrapMe = [1, 5, 6];
         const mySfError = SfError.wrap(wrapMe);
         expect(mySfError).to.be.an.instanceOf(SfError);
-        assert(mySfError.cause instanceof TypeError);
+        assert(mySfError.cause instanceof Error);
         expect(mySfError.cause.cause).to.equal(wrapMe);
       });
       it('a class', () => {
         const wrapMe = new (class Test {})();
         const mySfError = SfError.wrap(wrapMe);
         expect(mySfError).to.be.an.instanceOf(SfError);
-        assert(mySfError.cause instanceof TypeError);
+        assert(mySfError.cause instanceof Error);
         expect(mySfError.cause.cause).to.equal(wrapMe);
       });
     });
