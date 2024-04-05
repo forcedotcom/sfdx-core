@@ -123,12 +123,16 @@ export class SfError<T extends ErrorDataProperties = ErrorDataProperties> extend
     const sfError =
       err instanceof Error
         ? // a basic error with message and name.  We make it the cause to preserve any other properties
-          new SfError<T>(err.message, err.name, undefined, err)
+          SfError.create<T>({
+            message: err.message,
+            name: err.name,
+            cause: err,
+          })
         : // ok, something was throws that wasn't error or string.  Convert it to an Error that preserves the information as the cause and wrap that.
-          SfError.wrap<T>(
-            new TypeError(`SfError.wrap received type ${typeof err} but expects type Error or string`, { cause: err })
-          );
-
+          SfError.create<T>({
+            message: `SfError.wrap received type ${typeof err} but expects type Error or string`,
+            cause: err,
+          });
     // If the original error has a code, use that instead of name.
     if (hasString(err, 'code')) {
       sfError.code = err.code;
