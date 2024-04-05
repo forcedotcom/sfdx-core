@@ -12,7 +12,8 @@ export type SfErrorOptions<T extends ErrorDataProperties = ErrorDataProperties> 
   exitCode?: number;
   name?: string;
   data?: T;
-  cause?: Error;
+  /** pass an Error.  For convenience in catch blocks, code will check that it is, in fact, an Error */
+  cause?: unknown;
   context?: string;
   actions?: string[];
 };
@@ -74,12 +75,14 @@ export class SfError<T extends ErrorDataProperties = ErrorDataProperties> extend
     name = 'SfError',
     actions?: string[],
     exitCodeOrCause?: number | Error,
-    cause?: Error
+    cause?: unknown
   ) {
-    const derivedCause = exitCodeOrCause instanceof Error ? exitCodeOrCause : cause;
+    if (typeof cause !== 'undefined' && !(cause instanceof Error)) {
+      throw new TypeError(`The cause, if provided, must be an instance of Error. Received: ${typeof cause}`);
+    }
     super(message);
     this.name = name;
-    this.cause = derivedCause;
+    this.cause = exitCodeOrCause instanceof Error ? exitCodeOrCause : cause;
     this.actions = actions;
     if (typeof exitCodeOrCause === 'number') {
       this.exitCode = exitCodeOrCause;
@@ -88,12 +91,7 @@ export class SfError<T extends ErrorDataProperties = ErrorDataProperties> extend
     }
   }
 
-  public get fullStack(): string | undefined {
-    return recursiveStack(this).join('\nCaused by: ');
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public get code(): any {
+  public get code(): string {
     return this.#code ?? this.name;
   }
 
@@ -127,7 +125,9 @@ export class SfError<T extends ErrorDataProperties = ErrorDataProperties> extend
         ? // a basic error with message and name.  We make it the cause to preserve any other properties
           new SfError<T>(err.message, err.name, undefined, err)
         : // ok, something was throws that wasn't error or string.  Convert it to an Error that preserves the information as the cause and wrap that.
-          SfError.wrap<T>(new TypeError('An unexpected error occurred', { cause: err }));
+          SfError.wrap<T>(
+            new TypeError(`SfError.wrap received type ${typeof err} but expects type Error or string`, { cause: err })
+          );
 
     // If the original error has a code, use that instead of name.
     if (hasString(err, 'code')) {
@@ -171,6 +171,3 @@ export class SfError<T extends ErrorDataProperties = ErrorDataProperties> extend
     };
   }
 }
-
-const recursiveStack = (err: Error): string[] =>
-  (err.cause && err.cause instanceof Error ? [err.stack, ...recursiveStack(err.cause)] : [err.stack]).filter(isString);

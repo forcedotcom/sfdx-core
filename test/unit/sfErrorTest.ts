@@ -4,11 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { inspect } from 'node:util';
 import { expect, assert } from 'chai';
 import { Messages } from '../../src/messages';
 import { SfError } from '../../src/sfError';
 
 Messages.importMessageFile('pname', 'testMessages.json');
+
+const causeDelimiter = 'cause:';
 
 describe('SfError', () => {
   describe('constructor', () => {
@@ -70,32 +73,38 @@ describe('SfError', () => {
     });
   });
 
-  describe('fullStack', () => {
+  describe('nested errors', () => {
+    const causeRegex = new RegExp(causeDelimiter, 'g');
+    const nestedCauseRegex = new RegExp(/\[cause:\]/, 'g');
     it('returned `name:message` when no cause', () => {
       const err = new SfError('test');
-      expect(err.fullStack).to.include('SfError: test');
-      expect(err.fullStack).to.include('sfErrorTest.ts');
-      expect(err.fullStack).to.not.include('Caused by:');
+      expect(inspect(err)).to.include('SfError: test');
+      expect(inspect(err)).to.include('sfErrorTest.ts');
+      // there's always 1 cause from the `cause:` property, even if undefined
+      expect(inspect(err)?.match(causeRegex)).to.have.lengthOf(1);
     });
     it('1 cause', () => {
       const nestedError = new Error('nested');
       const err = new SfError('test', undefined, undefined, nestedError);
-      expect(err.fullStack).to.include('SfError: test');
-      expect(err.fullStack).to.include('sfErrorTest.ts');
-      expect(err.fullStack).to.include('nested');
-      expect(err.fullStack?.match(/Caused by:/g)).to.have.lengthOf(1);
+      expect(inspect(err)).to.include('SfError: test');
+      expect(inspect(err)).to.include('sfErrorTest.ts');
+      expect(inspect(err)).to.include('nested');
+      expect(inspect(err)?.match(causeRegex)).to.have.lengthOf(1);
+      expect(inspect(err)?.match(nestedCauseRegex)).to.be.null;
     });
     it('recurse through stacked causes', () => {
       const nestedError = new Error('nested');
       const nestedError2 = new Error('nested2', { cause: nestedError });
       const err = new SfError('test', undefined, undefined, nestedError2);
-      expect(err.fullStack).to.include('SfError: test');
-      expect(err.fullStack).to.include('sfErrorTest.ts');
-      expect(err.fullStack).to.include('nested');
-      expect(err.fullStack).to.include('nested2');
-      expect(err.fullStack?.match(/Caused by:/g)).to.have.lengthOf(2);
+      expect(inspect(err)).to.include('SfError: test');
+      expect(inspect(err)).to.include('sfErrorTest.ts');
+      expect(inspect(err)).to.include('nested');
+      expect(inspect(err)).to.include('nested2');
+      expect(inspect(err)?.match(causeRegex)).to.have.lengthOf(1);
+      expect(inspect(err)?.match(causeRegex)).to.have.lengthOf(1);
     });
   });
+
   describe('wrap', () => {
     it('should return a wrapped error', () => {
       const myErrorMsg = 'yikes! What did you do?';
@@ -106,7 +115,8 @@ describe('SfError', () => {
       expect(mySfError).to.be.an.instanceOf(SfError);
       expect(mySfError.message).to.equal(myErrorMsg);
       expect(mySfError.name).to.equal(myErrorName);
-      expect(mySfError.fullStack).to.contain('Caused by:').and.contain(myError.stack);
+      expect(mySfError.cause).to.equal(myError);
+      expect(inspect(mySfError)).to.contain(causeDelimiter).and.contain(myErrorMsg);
     });
 
     it('should return a wrapped error with a code', () => {
