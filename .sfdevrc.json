@@ -9,6 +9,12 @@
       "output": ["lib/**", "*.tsbuildinfo"],
       "clean": "if-file-deleted"
     },
+    "build": {
+      "dependencies": ["compile", "lint"]
+    },
+    "compile-typedoc": {
+      "command": "tsc -p typedocExamples"
+    },
     "link-check": {
       "command": "node -e \"process.exit(process.env.CI ? 0 : 1)\" || linkinator \"./*.md\" --skip \"examples/README.md|CHANGELOG.md|node_modules|test/|confluence.internal.salesforce.com|my.salesforce.com|%s\" --markdown --retry --directory-listing --verbosity error",
       "files": ["./*.md", "./examples/**/*.md", "./messages/**/*.md", "./!(CHANGELOG).md"],

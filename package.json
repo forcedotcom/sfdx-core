@@ -18,7 +18,6 @@
     "link-check": "wireit",
     "lint": "wireit",
     "lint-fix": "yarn sf-lint --fix",
-    "postcompile": "tsc -p typedocExamples",
     "prepack": "sf-prepack",
     "prepare": "sf-install",
     "test": "wireit",
@@ -160,6 +159,9 @@
         "./!(CHANGELOG).md"
       ],
       "output": []
+    },
+    "compile-typedoc": {
+      "command": "tsc -p typedocExamples"
     }
   }
 }
