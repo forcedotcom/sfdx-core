@@ -363,14 +363,14 @@ export class Messages<T extends string> {
     }
 
     if (!packageName) {
-      const errMessage = `Invalid or missing package.json file at '${moduleMessagesDirPath}'. If not using a package.json, pass in a packageName.`;
+      const message = `Invalid or missing package.json file at '${moduleMessagesDirPath}'. If not using a package.json, pass in a packageName.`;
       try {
         packageName = asString(ensureJsonMap(Messages.readFile(path.join(moduleMessagesDirPath, 'package.json'))).name);
         if (!packageName) {
-          throw new NamedError('MissingPackageName', errMessage);
+          throw SfError.create({ message, name: 'MissingPackageName' });
         }
       } catch (err) {
-        throw new NamedError('MissingPackageName', errMessage, err as Error);
+        throw SfError.create({ message, name: 'MissingPackageName', cause: err });
       }
     }
 
