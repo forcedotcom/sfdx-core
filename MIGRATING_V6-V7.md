@@ -6,6 +6,10 @@ If you use `@salesforce/core` AND jsforce together, you should switch to using `
 
 If you use another library that is using jsforce modules or types, be sure to update to a version of that library which uses `@jsforce/jsforce-node`
 
+## Interfaces=>Type
+
+We're going to standardize on Types instead of interfaces. They're almost identical except where they aren't. You probably won't notice.
+
 ## Breaking changes to AliasAccessor
 
 Alias accessor had previously deprecated methods that are removed by this PR.
@@ -16,6 +20,14 @@ Alias accessor had previously deprecated methods that are removed by this PR.
 - `write` (has been a no-op since v6)
 
 If you use these, typically via StateAggregator, update your code to use `setAndSave` or `unsetAndSave`
+
+## SfError
+
+SfError previously had a `cause` that conflicted with the more recent ES2022 native Error.cause
+
+SfError has some new convenience methods. SfError.create (pass in props instead of setting 5 via params and others via instance methods).  
+SfError.wrap and the `cause` prop of SfError.create are now typed as `unknown` for convenience (throw the `unknown` from a catch block without having to worry about types!).
+SfError.data is now constrained to be AnyJson (some sort of JSON/primitive or collection of that).
 
 ## Top-level exports
 
