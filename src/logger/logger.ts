@@ -256,11 +256,11 @@ export class Logger {
    * @see {@Link LoggerLevel}
    */
   public static getLevelByName(levelName: string): LoggerLevelValue {
-    const levelNameUpper = levelName.toUpperCase();
-    if (!isKeyOf(LoggerLevel, levelNameUpper)) {
-      throw new SfError(`Invalid log level "${levelNameUpper}".`, 'UnrecognizedLoggerLevelNameError');
+    const upperLevel = levelName.toUpperCase();
+    if (!isKeyOf(LoggerLevel, upperLevel)) {
+      throw new SfError(`Invalid log level "${upperLevel}".`, 'UnrecognizedLoggerLevelNameError');
     }
-    return LoggerLevel[levelNameUpper];
+    return LoggerLevel[upperLevel];
   }
 
   /** get the bare (pino) logger instead of using the class hierarchy */
@@ -339,10 +339,7 @@ export class Logger {
    */
   public readLogContentsAsText(): string {
     if (this.memoryLogger) {
-      return this.memoryLogger.loggedData.reduce((accum, line) => {
-        accum += JSON.stringify(line) + os.EOL;
-        return accum;
-      }, '');
+      return this.memoryLogger?.loggedData.map((line) => JSON.stringify(line)).join(os.EOL);
     } else {
       this.pinoLogger.warn(
         'readLogContentsAsText is not supported for file streams, only used when useMemoryLogging is true'
@@ -509,7 +506,7 @@ const numberToLevel = (level: number): string =>
   Object.entries(pino.levels.labels).find(([value]) => Number(value) > level)?.[1] ??
   'warn';
 
-const getDefaultLevel = (): LoggerLevelValue => {
+const getDefaultLevel = (): LoggerLevel => {
   const logLevelFromEnvVar = new Env().getString('SF_LOG_LEVEL');
   return logLevelFromEnvVar ? Logger.getLevelByName(logLevelFromEnvVar) : Logger.DEFAULT_LEVEL;
 };

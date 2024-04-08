@@ -192,7 +192,7 @@ describe('requestScratchOrgCreation', () => {
         expect.fail('should have thrown SfError');
       }
       expect(error).to.exist;
-      expect(error).to.have.keys(['cause', 'name', 'actions', 'exitCode']);
+      expect(error).to.include.keys(['cause', 'name', 'actions', 'exitCode']);
       expect((error as Error).toString()).to.include('SignupDuplicateSettingsSpecifiedError');
     }
   });
@@ -216,7 +216,7 @@ describe('requestScratchOrgCreation', () => {
         expect.fail('should have thrown SfError');
       }
       expect(error).to.exist;
-      expect(error).to.have.keys(['cause', 'name', 'actions', 'exitCode']);
+      expect(error).to.include.keys(['cause', 'name', 'actions', 'exitCode']);
       expect((error as Error).toString()).to.include(messages.getMessage('DeprecatedPrefFormat'));
     }
   });

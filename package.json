@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "6.7.4",
+  "version": "6.7.6",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/index",
   "types": "lib/index.d.ts",
@@ -74,7 +74,6 @@
     "link-check": "wireit",
     "lint": "wireit",
     "lint-fix": "yarn sf-lint --fix",
-    "postcompile": "tsc -p typedocExamples",
     "prepack": "sf-prepack",
     "prepare": "sf-install",
     "test": "wireit",
@@ -125,7 +124,7 @@
     "chai-string": "^1.5.0",
     "ts-node": "^10.9.2",
     "ts-patch": "^3.1.1",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.4"
   },
   "repository": {
     "type": "git",
@@ -216,6 +215,9 @@
         "./!(CHANGELOG).md"
       ],
       "output": []
+    },
+    "compile-typedoc": {
+      "command": "tsc -p typedocExamples"
     }
   }
 }

@@ -7,7 +7,7 @@
 
 import { EOL } from 'node:os';
 import { AsyncCreatable, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
-import { asJsonArray, asNumber, ensureJsonMap, ensureString, isJsonMap, Many } from '@salesforce/ts-types';
+import { asJsonArray, asNumber, ensureJsonMap, ensureString, isJsonMap, isString, Many } from '@salesforce/ts-types';
 import type { HttpRequest, HttpResponse, QueryResult, Schema, SObjectUpdateRecord } from '@jsforce/jsforce-node';
 import { HttpApi } from '@jsforce/jsforce-node/lib/http-api';
 import { Logger } from '../logger/logger';
@@ -85,18 +85,10 @@ async function retrieveUserFields(logger: Logger, username: string): Promise<Use
   const connection: Connection = await Connection.create({
     authInfo: await AuthInfo.create({ username }),
   });
+  const resolvedUsername = await resolveUsernameFromAccessToken(logger)(connection)(username);
 
-  if (matchesAccessToken(username)) {
-    logger.debug('received an accessToken for the username.  Converting...');
-    username = (await connection.identity()).username;
-    logger.debug(`accessToken converted to ${username}`);
-  } else {
-    logger.debug('not a accessToken');
-  }
-
-  const fromFields = Object.keys(REQUIRED_FIELDS).map(upperFirst);
-  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-  const requiredFieldsFromAdminQuery = `SELECT ${fromFields} FROM User WHERE Username='${username}'`;
+  const fromFields = Object.keys(REQUIRED_FIELDS).map(upperFirst).filter(isString).join(', ');
+  const requiredFieldsFromAdminQuery = `SELECT ${fromFields} FROM User WHERE Username='${resolvedUsername}'`;
   const result: QueryResult<string[]> = await connection.query<string[]>(requiredFieldsFromAdminQuery);
 
   logger.debug('Successfully retrieved the admin user for this org.');
@@ -119,7 +111,7 @@ async function retrieveUserFields(logger: Logger, username: string): Promise<Use
 
     return fields;
   } else {
-    throw messages.createError('userQueryFailed', [username]);
+    throw messages.createError('userQueryFailed', [resolvedUsername]);
   }
 }
 
@@ -499,8 +491,8 @@ export class User extends AsyncCreatable<User.Options> {
       throw new SfError(message, 'UserCreateHttpError');
     }
 
-    fields.id = ensureString(responseBody.id);
-    await this.updateRequiredUserFields(fields);
+    const fieldsWithId = { ...fields, id: ensureString(responseBody.id) };
+    await this.updateRequiredUserFields(fieldsWithId);
 
     const buffer = new SecureBuffer<string>();
     const headers = ensureJsonMap(response.headers);
@@ -508,7 +500,7 @@ export class User extends AsyncCreatable<User.Options> {
     buffer.consume(Buffer.from(autoApproveUser));
     return {
       buffer,
-      userId: fields.id,
+      userId: fieldsWithId.id,
     };
   }
 
@@ -551,3 +543,17 @@ export namespace User {
     org: Org;
   }
 }
+
+const resolveUsernameFromAccessToken =
+  (logger: Logger) =>
+  (conn: Connection) =>
+  async (usernameOrAccessToken: string): Promise<string> => {
+    if (matchesAccessToken(usernameOrAccessToken)) {
+      logger.debug('received an accessToken for the username.  Converting...');
+      const username = (await conn.identity()).username;
+      logger.debug(`accessToken converted to ${username}`);
+      return username;
+    }
+    logger.debug('not a accessToken');
+    return usernameOrAccessToken;
+  };
