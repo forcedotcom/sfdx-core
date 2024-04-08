@@ -1,3 +1,16 @@
+## [6.7.6](https://github.com/forcedotcom/sfdx-core/compare/6.7.5...6.7.6) (2024-04-04)
+
+
+
+## [6.7.5](https://github.com/forcedotcom/sfdx-core/compare/6.7.4...6.7.5) (2024-04-04)
+
+
+### Bug Fixes
+
+* current linter standards, allow 2 ([20601d0](https://github.com/forcedotcom/sfdx-core/commit/20601d09a48a7dbba47cc7acbc318fd379a2351e))
+
+
+
 ## [6.7.4](https://github.com/forcedotcom/sfdx-core/compare/6.7.3...6.7.4) (2024-03-31)
 
 

@@ -39,6 +39,10 @@ export type PackageDir = {
   dependencies?: PackageDirDependency[];
   includeProfileUserLicenses?: boolean;
   package?: string;
+  packageMetadataAccess?:  {
+     permissionSets: string | string[];
+     permissionSetLicenses: string | string[];
+  };
   path: string;
   postInstallScript?: string;
   postInstallUrl?: string;
