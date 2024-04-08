@@ -761,8 +761,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param alias alias to set
    */
   public async setAlias(alias: string): Promise<void> {
-    this.stateAggregator.aliases.set(alias, this.getUsername());
-    await this.stateAggregator.aliases.write();
+    return this.stateAggregator.aliases.setAndSave(alias, this.getUsername());
   }
 
   /**

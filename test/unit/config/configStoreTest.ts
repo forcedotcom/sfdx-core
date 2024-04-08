@@ -53,9 +53,9 @@ describe('ConfigStore', () => {
     const config = new TestConfig<{ '1': { a: string } }>();
     config.set('1', { a: 'a' });
 
-    config.get('1')!.a = 'b';
+    config.get('1').a = 'b';
 
-    expect(config.get('1')!.a).to.equal('b');
+    expect(config.get('1').a).to.equal('b');
   });
 
   it('updates the object reference', async () => {
@@ -64,8 +64,8 @@ describe('ConfigStore', () => {
 
     config.update('1', { b: 'c' });
 
-    expect(config.get('1')!.a).to.equal('a');
-    expect(config.get('1')!.b).to.equal('c');
+    expect(config.get('1').a).to.equal('a');
+    expect(config.get('1').b).to.equal('c');
   });
 
   it('undefined keys return undefined', async () => {

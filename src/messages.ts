@@ -601,10 +601,10 @@ const resolvePackageName = (moduleMessagesDirPath: string): string => {
       ensureJsonMap(Messages.readFile(path.join(moduleMessagesDirPath, 'package.json'))).name
     );
     if (!resolvedPackageName) {
-      throw new SfError(errMessage, 'MissingPackageName');
+      throw SfError.create({ message: errMessage, name: 'MissingPackageName' });
     }
     return resolvedPackageName;
   } catch (err) {
-    throw new SfError('errMessage', 'MissingPackageName', undefined, err as Error);
+    throw SfError.create({ message: errMessage, name: 'MissingPackageName', cause: err });
   }
 };

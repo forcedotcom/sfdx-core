@@ -518,7 +518,7 @@ describe('Org Tests', () => {
       const org = await createOrgViaAuthInfo();
 
       const stateAggregator = await StateAggregator.getInstance();
-      stateAggregator.aliases.set('foo', testData.username);
+      await stateAggregator.aliases.setAndSave('foo', testData.username);
 
       const user = stateAggregator.aliases.getUsername('foo');
       expect(user).eq(testData.username);
@@ -642,7 +642,7 @@ describe('Org Tests', () => {
       const org1Username = orgs[1].getUsername();
       assert(org1Username);
       const stateAggregator = await StateAggregator.getInstance();
-      stateAggregator.aliases.set('foo', org1Username);
+      await stateAggregator.aliases.setAndSave('foo', org1Username);
       const user = stateAggregator.aliases.getUsername('foo');
       expect(user).eq(org1Username);
 

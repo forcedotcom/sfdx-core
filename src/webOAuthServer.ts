@@ -289,7 +289,7 @@ export namespace WebOAuthServer {
  * Handles the actions specific to the http server
  */
 export class WebServer extends AsyncCreatable<WebServer.Options> {
-  public static DEFAULT_CLIENT_SOCKET_TIMEOUT = 20000;
+  public static DEFAULT_CLIENT_SOCKET_TIMEOUT = 20_000;
   public server!: http.Server;
   public port = WebOAuthServer.DEFAULT_PORT;
   public host = 'localhost';

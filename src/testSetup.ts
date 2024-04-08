@@ -14,6 +14,8 @@ import * as fs from 'node:fs';
 import { EventEmitter } from 'node:events';
 import { tmpdir as osTmpdir } from 'node:os';
 import { basename, join as pathJoin, dirname } from 'node:path';
+
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { SinonSandbox, SinonStatic, SinonStub } from 'sinon';
 
 import {
@@ -422,7 +424,7 @@ export class TestContext {
 const requireSinon = (sinon: Nullable<SinonStatic>): SinonStatic => {
   if (sinon) return sinon;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
     const newSinon = require('sinon');
     return newSinon as SinonStatic;
   } catch (e) {

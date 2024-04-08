@@ -182,7 +182,9 @@ export class AuthRemover extends AsyncOptionalCreatable {
     if (existingAliases.length === 0) return;
 
     this.logger.debug(`Found these aliases to remove: ${existingAliases.join(',')}`);
-    existingAliases.forEach((alias) => this.stateAggregator.aliases.unset(alias));
-    await this.stateAggregator.aliases.write();
+    for (const alias of existingAliases) {
+      // eslint-disable-next-line no-await-in-loop
+      await this.stateAggregator.aliases.unsetAndSave(alias);
+    }
   }
 }
