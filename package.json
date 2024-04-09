@@ -9,66 +9,17 @@
     "node": ">=18.0.0"
   },
   "exports": {
-    ".": {
-      "types": "./lib/index.d.ts",
-      "require": "./lib/index.js",
-      "import": "./lib/index.js",
-      "default": "./lib/index.js"
-    },
-    "./testSetup": {
-      "types": "./lib/testSetup.d.ts",
-      "require": "./lib/testSetup.js",
-      "import": "./lib/testSetup.js",
-      "default": "./lib/testSetup.js"
-    },
-    "./messages": {
-      "types": "./lib/messages.d.ts",
-      "require": "./lib/messages.js",
-      "import": "./lib/messages.js",
-      "default": "./lib/messages.js"
-    },
-    "./sfError": {
-      "types": "./lib/sfError.d.ts",
-      "require": "./lib/sfError.js",
-      "import": "./lib/sfError.js",
-      "default": "./lib/sfError.js"
-    },
-    "./lifecycle": {
-      "types": "./lib/lifecycleEvents.d.ts",
-      "require": "./lib/lifecycleEvents.js",
-      "import": "./lib/lifecycleEvents.js",
-      "default": "./lib/lifecycleEvents.js"
-    },
-    "./logger": {
-      "types": "./lib/logger/logger.d.ts",
-      "require": "./lib/logger/logger.js",
-      "import": "./lib/logger/logger.js",
-      "default": "./lib/logger/logger.js"
-    },
-    "./configAggregator": {
-      "types": "./lib/config/configAggregator.d.ts",
-      "require": "./lib/config/configAggregator.js",
-      "import": "./lib/config/configAggregator.js",
-      "default": "./lib/config/configAggregator.js"
-    },
-    "./config": {
-      "types": "./lib/config/config.d.ts",
-      "require": "./lib/config/config.js",
-      "import": "./lib/config/config.js",
-      "default": "./lib/config/config.js"
-    },
-    "./project": {
-      "types": "./lib/sfProject.d.ts",
-      "require": "./lib/sfProject.js",
-      "import": "./lib/sfProject.js",
-      "default": "./lib/sfProject.js"
-    },
-    "./messageTransformer": {
-      "types": "./lib/messageTransformer.d.ts",
-      "require": "./lib/messageTransformer.js",
-      "import": "./lib/messageTransformer.js",
-      "default": "./lib/messageTransformer.js"
-    }
+    ".": "./lib/index.js",
+    "./testSetup": "./lib/testSetup.js",
+    "./messages": "./lib/messages.js",
+    "./sfError": "./lib/sfError.js",
+    "./lifecycle": "./lib/lifecycleEvents.js",
+    "./logger": "./lib/logger/logger.js",
+    "./configAggregator": "./lib/config/configAggregator.js",
+    "./stateAggregator": "./lib/stateAggregator/stateAggregator.js",
+    "./config": "./lib/config/config.js",
+    "./project": "./lib/sfProject.js",
+    "./messageTransformer": "./lib/messageTransformer.js"
   },
   "scripts": {
     "build": "wireit",
