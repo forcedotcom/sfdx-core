@@ -103,7 +103,7 @@ export namespace PollingClient {
   /**
    * Options for the polling client.
    */
-  export interface Options {
+  export type Options = {
     /**
      * Polling function.
      */
@@ -124,7 +124,7 @@ export namespace PollingClient {
      * ```
      */
     timeoutErrorName?: string;
-  }
+  };
 
   /**
    * Default options set for polling. The default options specify a timeout of 3 minutes and polling frequency of 15

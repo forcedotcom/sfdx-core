@@ -32,7 +32,7 @@ type PartialScratchOrgInfo = Pick<
   | 'Username'
 >;
 
-export interface ScratchOrgInfoPayload extends PartialScratchOrgInfo {
+export type ScratchOrgInfoPayload = {
   orgName: string;
   package2AncestorIds: string;
   features: string | string[];
@@ -40,7 +40,7 @@ export interface ScratchOrgInfoPayload extends PartialScratchOrgInfo {
   namespace: string;
   connectedAppCallbackUrl: string;
   durationDays: number;
-}
+} & PartialScratchOrgInfo;
 
 const SNAPSHOT_UNSUPPORTED_OPTIONS = [
   'features',

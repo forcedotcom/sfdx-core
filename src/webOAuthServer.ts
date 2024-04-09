@@ -276,9 +276,9 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
 }
 
 export namespace WebOAuthServer {
-  export interface Options {
+  export type Options = {
     oauthConfig: JwtOAuth2Config;
-  }
+  };
 
   export type Request = http.IncomingMessage & {
     query: { code: string; state: string; error?: string; error_description?: string };
@@ -500,8 +500,8 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
 }
 
 namespace WebServer {
-  export interface Options {
+  export type Options = {
     port?: number;
     host?: string;
-  }
+  };
 }

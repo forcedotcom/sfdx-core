@@ -18,10 +18,10 @@ export const scratchOrgLifecycleStages = [
   'deploy settings',
   'done',
 ] as const;
-export interface ScratchOrgLifecycleEvent {
+export type ScratchOrgLifecycleEvent = {
   stage: (typeof scratchOrgLifecycleStages)[number];
   scratchOrgInfo?: ScratchOrgInfo;
-}
+};
 
 export const emit = async (event: ScratchOrgLifecycleEvent): Promise<void> =>
   Lifecycle.getInstance().emit(scratchOrgLifecycleEventName, event);

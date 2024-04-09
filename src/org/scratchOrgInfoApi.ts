@@ -6,6 +6,7 @@
  */
 
 import { env, Duration, upperFirst, omit } from '@salesforce/kit';
+
 import { AnyJson } from '@salesforce/ts-types';
 import { OAuth2Config, SaveResult } from '@jsforce/jsforce-node';
 import { retryDecorator, RetryError } from 'ts-retry-promise';
@@ -25,6 +26,9 @@ import { checkScratchOrgInfoForErrors } from './scratchOrgErrorCodes';
 import SettingsGenerator from './scratchOrgSettingsGenerator';
 import { ScratchOrgInfo } from './scratchOrgTypes';
 import { emit } from './scratchOrgLifecycleEvents';
+
+// preserving because it extends a class
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface JsForceError extends Error {
   errorCode: string;
   fields: string[];

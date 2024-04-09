@@ -34,14 +34,14 @@ const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgCreate');
 
 export const DEFAULT_STREAM_TIMEOUT_MINUTES = 6;
 
-export interface ScratchOrgCreateResult {
+export type ScratchOrgCreateResult = {
   username?: string;
   scratchOrgInfo?: ScratchOrgInfo;
   authInfo?: AuthInfo;
   authFields?: AuthFields;
   warnings: string[];
-}
-export interface ScratchOrgCreateOptions {
+};
+export type ScratchOrgCreateOptions = {
   /** the environment hub org */
   hubOrg: Org;
   /** The connected app consumer key. */
@@ -80,7 +80,7 @@ export interface ScratchOrgCreateOptions {
   setDefault?: boolean;
   /** if false, do not use source tracking for this scratch org */
   tracksSource?: boolean;
-}
+};
 
 const validateDuration = (durationDays: number): void => {
   const min = 1;

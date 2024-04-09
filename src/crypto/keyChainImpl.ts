@@ -85,7 +85,7 @@ const _validateProgram = async (
 /**
  * Basic keychain interface.
  */
-export interface PasswordStore {
+export type PasswordStore = {
   /**
    * Gets a password
    *
@@ -106,7 +106,7 @@ export interface PasswordStore {
    * @param fn function callback for password.
    */
   setPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, contents?: SecretContents) => void): Promise<void>;
-}
+};
 
 /**
  * @private
@@ -247,13 +247,13 @@ export class KeychainAccess implements PasswordStore {
   }
 }
 
-interface ProgramOpts {
+type ProgramOpts = {
   account: string;
   service: string;
   password?: string;
-}
+};
 
-interface OsImpl {
+type OsImpl = {
   getProgram(): string;
   getProgramOptions(opts: ProgramOpts): string[];
   getCommandFunc(
@@ -279,7 +279,7 @@ interface OsImpl {
     opts: ProgramOpts,
     fn: (err: Nullable<Error>) => void
   ): Promise<void>;
-}
+};
 
 /**
  * Linux implementation.

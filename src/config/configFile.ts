@@ -406,7 +406,7 @@ export namespace ConfigFile {
   /**
    * The interface for Config options.
    */
-  export interface Options extends BaseConfigStore.Options {
+  export type Options = {
     /**
      * The root folder where the config file is stored.
      */
@@ -435,5 +435,5 @@ export namespace ConfigFile {
      * Indicates if init should throw if the corresponding config file is not found.
      */
     throwOnNotFound?: boolean;
-  }
+  } & BaseConfigStore.Options;
 }

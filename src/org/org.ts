@@ -57,23 +57,23 @@ export enum OrgTypes {
   Sandbox = 'sandbox',
 }
 
-export interface StatusEvent {
+export type StatusEvent = {
   sandboxProcessObj: SandboxProcessObject;
   interval: number;
   remainingWait: number;
   waitingOnAuth: boolean;
-}
+};
 
-export interface ResultEvent {
+export type ResultEvent = {
   sandboxProcessObj: SandboxProcessObject;
   sandboxRes: SandboxUserAuthResponse;
-}
+};
 
-export interface SandboxUserAuthRequest {
+export type SandboxUserAuthRequest = {
   sandboxName: string;
   clientId: string;
   callbackUrl: string;
-}
+};
 
 export enum SandboxEvents {
   EVENT_STATUS = 'status',
@@ -84,12 +84,12 @@ export enum SandboxEvents {
   EVENT_MULTIPLE_SBX_PROCESSES = 'multipleMatchingSbxProcesses',
 }
 
-export interface SandboxUserAuthResponse {
+export type SandboxUserAuthResponse = {
   authUserName: string;
   authCode: string;
   instanceUrl: string;
   loginUrl: string;
-}
+};
 
 const resumableSandboxStatus = ['Activating', 'Pending', 'Pending Activation', 'Processing', 'Sampling', 'Completed'];
 
@@ -1607,12 +1607,12 @@ export namespace Org {
   /**
    * Constructor Options for and Org.
    */
-  export interface Options {
+  export type Options = {
     aliasOrUsername?: string;
     connection?: Connection;
     aggregator?: ConfigAggregator;
     isDevHub?: boolean;
-  }
+  };
 
   /**
    * Scratch Org status.

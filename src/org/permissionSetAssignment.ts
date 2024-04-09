@@ -20,10 +20,10 @@ const messages = Messages.loadMessages('@salesforce/core', 'permissionSetAssignm
 /**
  * Map of fields name for a permission set assignment
  */
-export interface PermissionSetAssignmentFields {
+export type PermissionSetAssignmentFields = {
   assigneeId: string;
   permissionSetId: string;
-}
+};
 
 /**
  * A class for assigning a Salesforce User to one or more permission sets.

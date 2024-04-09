@@ -45,6 +45,8 @@ export const SFDX_HTTP_HEADERS = {
 export const DNS_ERROR_NAME = 'DomainNotFoundError';
 export type DeployOptionsWithRest = Partial<DeployOptions> & { rest?: boolean };
 
+// preserving interface since it extends a class
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface Tooling<S extends Schema = Schema> extends JSForceTooling<S> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _logger: any;
@@ -466,17 +468,17 @@ export const SingleRecordQueryErrors = {
   NoRecords: 'SingleRecordQuery_NoRecords',
   MultipleRecords: 'SingleRecordQuery_MultipleRecords',
 };
-export interface SingleRecordQueryOptions {
+export type SingleRecordQueryOptions = {
   tooling?: boolean;
   returnChoicesOnMultiple?: boolean;
   choiceField?: string; // defaults to Name
-}
+};
 
 export namespace Connection {
   /**
    * Connection Options.
    */
-  export interface Options<S extends Schema> {
+  export type Options<S extends Schema> = {
     /**
      * AuthInfo instance.
      */
@@ -489,7 +491,7 @@ export namespace Connection {
      * Additional connection parameters.
      */
     connectionOptions?: ConnectionConfig<S>;
-  }
+  };
 }
 
 const getOptionsVersion = async <S extends Schema>(options: Connection.Options<S>): Promise<string | undefined> => {

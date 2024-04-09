@@ -46,10 +46,10 @@ export namespace OrgUsersConfig {
   /**
    * The config file options.
    */
-  export interface Options extends ConfigFile.Options {
+  export type Options = {
     /**
      * The org id associated with this user.
      */
     orgId: string;
-  }
+  } & ConfigFile.Options;
 }

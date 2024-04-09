@@ -7,7 +7,7 @@
 
 import { JsonMap } from '@salesforce/ts-types';
 
-export interface ScratchOrgInfo {
+export type ScratchOrgInfo = {
   AdminEmail?: string;
   readonly CreatedDate?: string;
   ConnectedAppCallbackUrl?: string;
@@ -42,9 +42,9 @@ export interface ScratchOrgInfo {
     enabled: string[];
     disabled: string[];
   };
-}
+};
 
-export interface ObjectSetting extends JsonMap {
+export type ObjectSetting = {
   sharingModel?: string;
   defaultRecordType?: string;
-}
+} & JsonMap;

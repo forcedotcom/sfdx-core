@@ -99,11 +99,11 @@ export type OrgAuthorization = {
 /**
  * Options for access token flow.
  */
-export interface AccessTokenOptions {
+export type AccessTokenOptions = {
   accessToken?: string;
   loginUrl?: string;
   instanceUrl?: string;
-}
+};
 
 export type AuthSideEffects = {
   alias?: string;
@@ -1246,7 +1246,7 @@ export namespace AuthInfo {
   /**
    * Constructor options for AuthInfo.
    */
-  export interface Options {
+  export type Options = {
     /**
      * Org signup username.
      */
@@ -1270,5 +1270,5 @@ export namespace AuthInfo {
     parentUsername?: string;
 
     isDevHub?: boolean;
-  }
+  };
 }
