@@ -51,6 +51,12 @@
       "import": "./lib/config/configAggregator.js",
       "default": "./lib/config/configAggregator.js"
     },
+    "./config": {
+      "types": "./lib/config/config.d.ts",
+      "require": "./lib/config/config.js",
+      "import": "./lib/config/config.js",
+      "default": "./lib/config/config.js"
+    },
     "./project": {
       "types": "./lib/sfProject.d.ts",
       "require": "./lib/sfProject.js",
