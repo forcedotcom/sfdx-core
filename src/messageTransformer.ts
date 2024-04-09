@@ -6,7 +6,7 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
-import * as ts from 'typescript';
+import ts from 'typescript';
 import { Messages, StoredMessageMap } from './messages';
 
 /**
