@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AnyJson, hasString, isString, JsonMap } from '@salesforce/ts-types';
+import { AnyJson, hasString, isString } from '@salesforce/ts-types';
 
 export type SfErrorOptions<T extends ErrorDataProperties = ErrorDataProperties> = {
   message: string;
@@ -19,6 +19,15 @@ export type SfErrorOptions<T extends ErrorDataProperties = ErrorDataProperties> 
 };
 
 type ErrorDataProperties = AnyJson;
+
+type SfErrorToObjectResult = {
+  name: string;
+  message: string;
+  exitCode: number;
+  actions?: string[];
+  context?: string;
+  data?: ErrorDataProperties;
+};
 
 /**
  * A generalized sfdx error which also contains an action. The action is used in the
@@ -83,7 +92,9 @@ export class SfError<T extends ErrorDataProperties = ErrorDataProperties> extend
     super(message);
     this.name = name;
     this.cause = exitCodeOrCause instanceof Error ? exitCodeOrCause : cause;
-    this.actions = actions;
+    if (actions?.length) {
+      this.actions = actions;
+    }
     if (typeof exitCodeOrCause === 'number') {
       this.exitCode = exitCodeOrCause;
     } else {
@@ -102,8 +113,12 @@ export class SfError<T extends ErrorDataProperties = ErrorDataProperties> extend
   /** like the constructor, but takes an typed object and let you also set context and data properties */
   public static create<T extends ErrorDataProperties = ErrorDataProperties>(inputs: SfErrorOptions<T>): SfError<T> {
     const error = new SfError<T>(inputs.message, inputs.name, inputs.actions, inputs.exitCode, inputs.cause);
-    error.data = inputs.data;
-    error.context = inputs.context;
+    if (inputs.data) {
+      error.data = inputs.data;
+    }
+    if (inputs.context) {
+      error.context = inputs.context;
+    }
     return error;
   }
   /**
@@ -164,12 +179,12 @@ export class SfError<T extends ErrorDataProperties = ErrorDataProperties> extend
   /**
    * Convert an {@link SfError} state to an object. Returns a plain object representing the state of this error.
    */
-  public toObject(): JsonMap {
+  public toObject(): SfErrorToObjectResult {
     return {
       name: this.name,
       message: this.message ?? this.name,
       exitCode: this.exitCode,
-      actions: this.actions,
+      ...(this.actions?.length ? { actions: this.actions } : {}),
       ...(this.context ? { context: this.context } : {}),
       ...(this.data ? { data: this.data } : {}),
     };

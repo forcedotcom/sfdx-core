@@ -249,7 +249,6 @@ describe('SfError', () => {
         name,
         message,
         exitCode: 1,
-        actions: undefined,
       });
     });
   });
