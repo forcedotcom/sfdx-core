@@ -105,6 +105,7 @@ export {
   scratchOrgLifecycleStages,
 } from './org/scratchOrgLifecycleEvents';
 export { ScratchOrgCache } from './org/scratchOrgCache';
+export { default as ScratchOrgSettingsGenerator } from './org/scratchOrgSettingsGenerator';
 
 // Utility sub-modules
 export * from './util/sfdc';
