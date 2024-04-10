@@ -1,3 +1,12 @@
+# [7.1.0](https://github.com/forcedotcom/sfdx-core/compare/7.0.0...7.1.0) (2024-04-10)
+
+
+### Features
+
+* export of scratchSettingsGenerator for pkg-library ([#1053](https://github.com/forcedotcom/sfdx-core/issues/1053)) ([920b5df](https://github.com/forcedotcom/sfdx-core/commit/920b5df712f6f75a3e00bf210ab146f388b04248))
+
+
+
 # [7.0.0](https://github.com/forcedotcom/sfdx-core/compare/6.7.6...7.0.0) (2024-04-10)
 
 
