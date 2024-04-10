@@ -113,10 +113,10 @@ const detectCryptoVersion = (pwd?: string): void => {
 Messages.importMessagesDirectory(pathJoin(__dirname));
 const messages = Messages.loadMessages('@salesforce/core', 'encryption');
 
-interface CredType {
+type CredType = {
   username: string;
   password: string;
-}
+};
 
 const makeSecureBuffer = (password: string, encoding: CryptoEncoding): SecureBuffer<string> => {
   const newSb = new SecureBuffer<string>();
@@ -179,12 +179,12 @@ const keychainPromises = {
   },
 };
 
-interface CryptoOptions {
+type CryptoOptions = {
   keychain?: KeyChain;
   platform?: string;
   retryStatus?: string;
   noResetOnClose?: boolean;
-}
+};
 
 /**
  * Class for managing encrypting and decrypting private auth information.

@@ -21,7 +21,7 @@ import {
   JsonMap,
   Nullable,
 } from '@salesforce/ts-types';
-import { HttpRequest, SaveResult } from 'jsforce';
+import { HttpRequest, SaveResult } from '@jsforce/jsforce-node';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { ConfigContents } from '../config/configStackTypes';
@@ -57,23 +57,23 @@ export enum OrgTypes {
   Sandbox = 'sandbox',
 }
 
-export interface StatusEvent {
+export type StatusEvent = {
   sandboxProcessObj: SandboxProcessObject;
   interval: number;
   remainingWait: number;
   waitingOnAuth: boolean;
-}
+};
 
-export interface ResultEvent {
+export type ResultEvent = {
   sandboxProcessObj: SandboxProcessObject;
   sandboxRes: SandboxUserAuthResponse;
-}
+};
 
-export interface SandboxUserAuthRequest {
+export type SandboxUserAuthRequest = {
   sandboxName: string;
   clientId: string;
   callbackUrl: string;
-}
+};
 
 export enum SandboxEvents {
   EVENT_STATUS = 'status',
@@ -84,12 +84,12 @@ export enum SandboxEvents {
   EVENT_MULTIPLE_SBX_PROCESSES = 'multipleMatchingSbxProcesses',
 }
 
-export interface SandboxUserAuthResponse {
+export type SandboxUserAuthResponse = {
   authUserName: string;
   authCode: string;
   instanceUrl: string;
   loginUrl: string;
-}
+};
 
 const resumableSandboxStatus = ['Activating', 'Pending', 'Pending Activation', 'Processing', 'Sampling', 'Completed'];
 
@@ -329,9 +329,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     sourceSandboxName: string,
     options: { wait?: Duration; interval?: Duration }
   ): Promise<SandboxProcessObject> {
-    sandboxReq.SourceId = (await this.querySandboxProcessBySandboxName(sourceSandboxName)).SandboxInfoId;
-    this.logger.debug(`Clone sandbox sourceId ${sandboxReq.SourceId}`);
-    return this.createSandbox(sandboxReq, options);
+    const SourceId = (await this.querySandboxProcessBySandboxName(sourceSandboxName)).SandboxInfoId;
+    this.logger.debug(`Clone sandbox sourceId ${SourceId}`);
+    return this.createSandbox({ ...sandboxReq, SourceId }, options);
   }
 
   /**
@@ -581,16 +581,17 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * @param controllingOrg username or Org that 'this.devhub' or 'this.production' refers to. AKA a DevHub for a scratch org, or a Production Org for a sandbox
    */
   public async deleteFrom(controllingOrg: string | Org): Promise<void> {
-    if (typeof controllingOrg === 'string') {
-      controllingOrg = await Org.create({
-        aggregator: this.configAggregator,
-        aliasOrUsername: controllingOrg,
-      });
-    }
+    const resolvedOrg =
+      typeof controllingOrg === 'string'
+        ? await Org.create({
+            aggregator: this.configAggregator,
+            aliasOrUsername: controllingOrg,
+          })
+        : controllingOrg;
     if (await this.isSandbox()) {
-      await this.deleteSandbox(controllingOrg);
+      await this.deleteSandbox(resolvedOrg);
     } else {
-      await this.deleteScratchOrg(controllingOrg);
+      await this.deleteScratchOrg(resolvedOrg);
     }
   }
 
@@ -1175,16 +1176,19 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   private async deleteSandbox(prodOrg?: Org): Promise<void> {
     const sandbox = await this.getSandboxConfig(this.getOrgId());
-    prodOrg ??= await Org.create({
-      aggregator: this.configAggregator,
-      aliasOrUsername: sandbox?.prodOrgUsername,
-    });
+    const resolvedProdOrg =
+      prodOrg ??
+      (await Org.create({
+        aggregator: this.configAggregator,
+        aliasOrUsername: sandbox?.prodOrgUsername,
+      }));
     let sandboxInfoId: string | undefined = sandbox?.sandboxInfoId;
     if (!sandboxInfoId) {
       let result: { SandboxInfoId: string };
       try {
         // grab sandboxName from config or try to calculate from the sandbox username
-        const sandboxName = sandbox?.sandboxName ?? (this.getUsername() ?? '').split(`${prodOrg.getUsername()}.`)[1];
+        const sandboxName =
+          sandbox?.sandboxName ?? (this.getUsername() ?? '').split(`${resolvedProdOrg.getUsername()}.`)[1];
         if (!sandboxName) {
           this.logger.debug('Sandbox name is not available');
           // jump to query by orgId
@@ -1192,7 +1196,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         }
         this.logger.debug(`attempting to locate sandbox with sandbox ${sandboxName}`);
         try {
-          result = await this.queryProduction(prodOrg, 'SandboxName', sandboxName);
+          result = await this.queryProduction(resolvedProdOrg, 'SandboxName', sandboxName);
         } catch (err) {
           this.logger.debug(`Failed to find sandbox with sandbox name: ${sandboxName}`);
           // jump to query by orgId
@@ -1203,7 +1207,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         const trimmedId = trimTo15(this.getOrgId());
         this.logger.debug(`defaulting to trimming id from ${this.getOrgId()} to ${trimmedId}`);
         try {
-          result = await this.queryProduction(prodOrg, 'SandboxOrganization', trimmedId);
+          result = await this.queryProduction(resolvedProdOrg, 'SandboxOrganization', trimmedId);
           sandboxInfoId = result.SandboxInfoId;
         } catch {
           // eating exceptions when trying to find sandbox process record by orgId
@@ -1214,7 +1218,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
 
     if (sandboxInfoId) {
-      const deleteResult = await this.destroySandbox(prodOrg, sandboxInfoId);
+      const deleteResult = await this.destroySandbox(resolvedProdOrg, sandboxInfoId);
       this.logger.debug(deleteResult, 'Return from calling tooling.delete');
     }
     // cleanup remaining artifacts
@@ -1229,17 +1233,17 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   private async deleteScratchOrg(devHub?: Org): Promise<void> {
     // if we didn't get a devHub, we'll get it from the this org
-    devHub ??= await this.getDevHubOrg();
-    if (!devHub) {
+    const resolvedDevHub = devHub ?? (await this.getDevHubOrg());
+    if (!resolvedDevHub) {
       throw messages.createError('noDevHubFound');
     }
-    if (devHub.getOrgId() === this.getOrgId()) {
+    if (resolvedDevHub.getOrgId() === this.getOrgId()) {
       // we're attempting to delete a DevHub
       throw messages.createError('deleteOrgHubError');
     }
 
     try {
-      const devHubConn = devHub.getConnection();
+      const devHubConn = resolvedDevHub.getConnection();
       const username = this.getUsername();
 
       const activeScratchOrgRecordId = (
@@ -1248,7 +1252,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         )
       ).Id;
       this.logger.trace(`found matching ActiveScratchOrg with SignupUsername: ${username}.  Deleting...`);
-      await this.destroyScratchOrg(devHub, activeScratchOrgRecordId);
+      await this.destroyScratchOrg(resolvedDevHub, activeScratchOrgRecordId);
       await this.remove();
     } catch (err) {
       this.logger.info(err instanceof Error ? err.message : err);
@@ -1603,12 +1607,12 @@ export namespace Org {
   /**
    * Constructor Options for and Org.
    */
-  export interface Options {
+  export type Options = {
     aliasOrUsername?: string;
     connection?: Connection;
     aggregator?: ConfigAggregator;
     isDevHub?: boolean;
-  }
+  };
 
   /**
    * Scratch Org status.

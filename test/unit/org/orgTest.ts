@@ -13,8 +13,8 @@ import { Duration, set } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, ensureJsonArray, ensureJsonMap, ensureString, JsonMap, Optional } from '@salesforce/ts-types';
 import { assert, expect, config as chaiConfig } from 'chai';
-import { OAuth2 } from 'jsforce';
-import { Transport } from 'jsforce/lib/transport';
+import { OAuth2 } from '@jsforce/jsforce-node';
+import { Transport } from '@jsforce/jsforce-node/lib/transport';
 import { SinonSpy, SinonStub } from 'sinon';
 import { Org, SandboxEvents, SandboxInfo, SandboxProcessObject, SandboxUserAuthResponse } from '../../../src/org/org';
 import { AuthInfo } from '../../../src/org/authInfo';
@@ -518,7 +518,7 @@ describe('Org Tests', () => {
       const org = await createOrgViaAuthInfo();
 
       const stateAggregator = await StateAggregator.getInstance();
-      stateAggregator.aliases.set('foo', testData.username);
+      await stateAggregator.aliases.setAndSave('foo', testData.username);
 
       const user = stateAggregator.aliases.getUsername('foo');
       expect(user).eq(testData.username);
@@ -642,7 +642,7 @@ describe('Org Tests', () => {
       const org1Username = orgs[1].getUsername();
       assert(org1Username);
       const stateAggregator = await StateAggregator.getInstance();
-      stateAggregator.aliases.set('foo', org1Username);
+      await stateAggregator.aliases.setAndSave('foo', org1Username);
       const user = stateAggregator.aliases.getUsername('foo');
       expect(user).eq(org1Username);
 

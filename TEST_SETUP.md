@@ -39,7 +39,7 @@ import { MockTestOrgData, TestContext } from '@salesforce/core/lib/testSetup';
 import { AnyJson, ensureJsonMap, JsonMap } from '@salesforce/ts-types';
 import { ensureString } from '@salesforce/ts-types';
 import { deepStrictEqual } from 'assert';
-import { QueryResult } from 'jsforce';
+import { QueryResult } from '@jsforce/jsforce-node';
 
 describe('Mocking a force server call', () => {
   const $$ = new TestContext();

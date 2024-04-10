@@ -7,7 +7,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { Duration } from '@salesforce/kit';
-import { Connection } from 'jsforce';
+import { Connection } from '@jsforce/jsforce-node';
 import { Org } from '../../../src/org/org';
 import { AuthInfo } from '../../../src/org/authInfo';
 import { SfProject, SfProjectJson } from '../../../src/sfProject';

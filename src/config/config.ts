@@ -29,7 +29,7 @@ const CONFIG_FILE_NAME = 'config.json';
 /**
  * Interface for meta information about config properties
  */
-export interface ConfigPropertyMeta {
+export type ConfigPropertyMeta = {
   /**
    * The config property name.
    */
@@ -65,12 +65,12 @@ export interface ConfigPropertyMeta {
    * Is only used if deprecated is set to true.
    */
   newKey?: string;
-}
+};
 
 /**
  * Config property input validation
  */
-export interface ConfigPropertyMetaInput {
+export type ConfigPropertyMetaInput = {
   /**
    * Tests if the input value is valid and returns true if the input data is valid.
    *
@@ -82,7 +82,7 @@ export interface ConfigPropertyMetaInput {
    * The message to return in the error if the validation fails.
    */
   failedMessage: string | ((value: ConfigValue) => string);
-}
+};
 
 export enum SfConfigProperties {
   /**

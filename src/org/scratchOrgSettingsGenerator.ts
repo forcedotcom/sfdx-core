@@ -32,21 +32,20 @@ export enum RequestStatus {
   Canceling = 'Canceling',
   Canceled = 'Canceled',
 }
-
 const breakPolling = ['Succeeded', 'SucceededPartial', 'Failed', 'Canceled'];
 
-export interface SettingType {
+export type SettingType = {
   members: string[];
   name: 'CustomObject' | 'RecordType' | 'BusinessProcess' | 'Settings';
-}
+};
 
-export interface PackageFile {
+export type PackageFile = {
   '@': {
     xmlns: string;
   };
   types: SettingType[];
   version: string;
-}
+};
 
 export const createObjectFileContent = ({
   allRecordTypes = [],

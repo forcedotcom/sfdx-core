@@ -7,9 +7,9 @@
 /* eslint-disable camelcase */
 /* eslint-disable @typescript-eslint/ban-types */
 
-import Transport from 'jsforce/lib/transport';
+import Transport from '@jsforce/jsforce-node/lib/transport';
 import { AsyncCreatable, Duration, parseJsonMap, sleep } from '@salesforce/kit';
-import { HttpRequest, OAuth2Config } from 'jsforce';
+import { HttpRequest, OAuth2Config } from '@jsforce/jsforce-node';
 import { ensureString, isString, JsonMap, Nullable } from '@salesforce/ts-types';
 import FormData from 'form-data';
 import { Logger } from './logger/logger';
@@ -21,14 +21,14 @@ import { Messages } from './messages';
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'auth');
 
-export interface DeviceCodeResponse extends JsonMap {
+export type DeviceCodeResponse = {
   device_code: string;
   interval: number;
   user_code: string;
   verification_uri: string;
-}
+} & JsonMap;
 
-export interface DeviceCodePollingResponse extends JsonMap {
+export type DeviceCodePollingResponse = {
   access_token: string;
   refresh_token: string;
   signature: string;
@@ -37,13 +37,13 @@ export interface DeviceCodePollingResponse extends JsonMap {
   id: string;
   token_type: string;
   issued_at: string;
-}
+} & JsonMap;
 
-interface DeviceCodeAuthError extends SfError {
+type DeviceCodeAuthError = {
   error: string;
   error_description: string;
   status: number;
-}
+} & SfError;
 
 async function makeRequest<T extends JsonMap>(options: HttpRequest): Promise<T> {
   const rawResponse = await new Transport().httpRequest(options);

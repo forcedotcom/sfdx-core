@@ -17,7 +17,7 @@ import { ConfigContents, ConfigEntry, ConfigValue, Key } from './configStackType
 /**
  * An interface for a config object with a persistent store.
  */
-export interface ConfigStore<P extends ConfigContents = ConfigContents> {
+export type ConfigStore<P extends ConfigContents = ConfigContents> = {
   // Map manipulation methods
   entries(): ConfigEntry[];
   // NEXT_RELEASE: update types to specify return can be P[K] | undefined
@@ -40,7 +40,7 @@ export interface ConfigStore<P extends ConfigContents = ConfigContents> {
 
   // Content methods
   getContents(): P;
-}
+};
 
 /**
  * An abstract class that implements all the config management functions but
@@ -144,18 +144,19 @@ export abstract class BaseConfigStore<
    * @param value The value.
    */
   public set<K extends Key<P>>(key: K, value: P[K]): void {
+    let resolvedValue = value;
     if (this.hasEncryption()) {
-      if (isJsonMap(value)) {
-        value = this.recursiveEncrypt(value, key as string) as P[K];
+      if (isJsonMap(resolvedValue)) {
+        resolvedValue = this.recursiveEncrypt(resolvedValue, key as string) as P[K];
       } else if (this.isCryptoKey(key as string)) {
-        value = this.encrypt(value) as P[K];
+        resolvedValue = this.encrypt(resolvedValue) as P[K];
       }
     }
     // set(key, undefined) means unset
-    if (value === undefined) {
+    if (resolvedValue === undefined) {
       this.unset(key);
     } else {
-      this.contents.set(key, value);
+      this.contents.set(key, resolvedValue);
     }
   }
 
@@ -276,10 +277,8 @@ export abstract class BaseConfigStore<
    * @param contents The contents.
    */
   protected setContents(contents: P = {} as P): void {
-    if (this.hasEncryption()) {
-      contents = this.recursiveEncrypt(contents);
-    }
-    entriesOf(contents).map(([key, value]) => {
+    const maybeEncryptedContents = this.hasEncryption() ? this.recursiveEncrypt(contents) : contents;
+    entriesOf(maybeEncryptedContents).map(([key, value]) => {
       this.contents.set(key, value);
     });
   }
@@ -420,6 +419,8 @@ export abstract class BaseConfigStore<
         this.recursiveCrypto(method, [...keyPaths, key, newKey], value);
       }
     } else if (this.isCryptoKey(key)) {
+      // I think this side effect is intentional
+      // eslint-disable-next-line no-param-reassign
       data[key] = method(value);
     }
   }
@@ -432,7 +433,7 @@ export namespace BaseConfigStore {
   /**
    * Options for the config store.
    */
-  export interface Options {
+  export type Options = {
     /**
      * Keys to encrypt.
      *
@@ -442,5 +443,5 @@ export namespace BaseConfigStore {
      * defining a new class.
      */
     encryptedKeys?: Array<string | RegExp>;
-  }
+  };
 }

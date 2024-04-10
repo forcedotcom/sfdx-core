@@ -9,19 +9,10 @@ import { StateAggregator } from '../../../../src/stateAggregator/stateAggregator
 import { AuthFields } from '../../../../src/org/authInfo';
 import { MockTestOrgData, shouldThrowSync, TestContext } from '../../../../src/testSetup';
 import { uniqid } from '../../../../src/util/uniqid';
+import { expectPartialDeepMatch } from '../../helpers';
 
 const username = 'espresso@coffee.com';
 const org = new MockTestOrgData(uniqid(), { username });
-
-function expectPartialDeepMatch(actual: AuthFields, expected: AuthFields, ignore = ['refreshToken', 'accessToken']) {
-  for (const key of ignore) {
-    // @ts-expect-error - element is implicit any
-    delete actual?.[key];
-    // @ts-expect-error - element is implicit any
-    delete expected?.[key];
-  }
-  expect(actual).to.deep.equal(expected);
-}
 
 describe('OrgAccessor', () => {
   const $$ = new TestContext();

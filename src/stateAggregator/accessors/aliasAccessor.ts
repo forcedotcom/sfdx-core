@@ -8,8 +8,7 @@
 import { join, dirname } from 'node:path';
 import { homedir } from 'node:os';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { writeFileSync, readFileSync } from 'node:fs';
-import { lock, unlock, lockSync, unlockSync } from 'proper-lockfile';
+import { lock, unlock } from 'proper-lockfile';
 
 import { AsyncOptionalCreatable, ensureArray } from '@salesforce/kit';
 
@@ -18,7 +17,7 @@ import { Global } from '../../global';
 import { AuthFields } from '../../org/authInfo';
 import { ConfigContents } from '../../config/configStackTypes';
 import { SfError } from '../../sfError';
-import { lockRetryOptions, lockOptions } from '../../util/lockRetryOptions';
+import { lockRetryOptions } from '../../util/lockRetryOptions';
 
 export type Aliasable = string | Partial<AuthFields>;
 export const DEFAULT_GROUP = 'orgs';
@@ -112,20 +111,6 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   /**
    * Set an alias for the given aliasable entity.  Writes to the file
    *
-   * @deprecated use setAndSave
-   * @param alias the alias you want to set
-   * @param entity the aliasable entity that's being aliased
-   */
-  public set(alias: string, entity: Aliasable): void {
-    // get a very fresh copy to merge with to avoid conflicts
-    this.readFileToAliasStoreSync();
-    this.aliasStore.set(alias, getNameOf(entity));
-    this.saveAliasStoreToFileSync();
-  }
-
-  /**
-   * Set an alias for the given aliasable entity.  Writes to the file
-   *
    * @param alias the alias you want to set
    * @param entity the aliasable entity that's being aliased
    */
@@ -134,18 +119,6 @@ export class AliasAccessor extends AsyncOptionalCreatable {
     await this.readFileToAliasStore(true);
     this.aliasStore.set(alias, getNameOf(entity));
     return this.saveAliasStoreToFile();
-  }
-
-  /**
-   * Unset the given alias.  Writes to the file
-   *
-   * @deprecated use unsetAndSave
-   *
-   */
-  public unset(alias: string): void {
-    this.readFileToAliasStoreSync();
-    this.aliasStore.delete(alias);
-    this.saveAliasStoreToFileSync();
   }
 
   /**
@@ -159,20 +132,6 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   }
 
   /**
-   * Unsets all the aliases for the given entity.
-   *
-   * @deprecated use unsetValuesAndSave
-   *
-   * @param entity the aliasable entity for which you want to unset all aliases
-   */
-  public unsetAll(entity: Aliasable): void {
-    this.readFileToAliasStoreSync();
-    const aliases = this.getAll(entity);
-    aliases.forEach((a) => this.aliasStore.delete(a));
-    this.saveAliasStoreToFileSync();
-  }
-
-  /**
    * Unset all the aliases for the given array of entity.
    *
    * @param entity the aliasable entity for which you want to unset all aliases
@@ -183,13 +142,6 @@ export class AliasAccessor extends AsyncOptionalCreatable {
       .flatMap((a) => this.getAll(a))
       .map((a) => this.aliasStore.delete(a));
     return this.saveAliasStoreToFile();
-  }
-
-  /**
-   * @deprecated the set/unset methods now write to the file when called.  Use (un)setAndSave instead of calling (un)set and then calling write()
-   */
-  public async write(): Promise<ConfigContents<string>> {
-    return Promise.resolve(this.getAll());
   }
 
   /**
@@ -231,30 +183,6 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   private async saveAliasStoreToFile(): Promise<void> {
     await writeFile(this.fileLocation, aliasStoreToRawFileContents(this.aliasStore));
     return unlockIfLocked(this.fileLocation);
-  }
-
-  /**
-   * @deprecated use the async version of this method instead
-   * provided for the legacy sync set/unset methods. */
-  private readFileToAliasStoreSync(): void {
-    // the file is guaranteed to exist because this init method ensures it
-    // put a lock in place.  This method is only used by legacy set/unset methods.
-    lockSync(this.fileLocation, lockOptions);
-    this.aliasStore = fileContentsRawToAliasStore(readFileSync(this.fileLocation, 'utf-8'));
-  }
-
-  /**
-   * @deprecated use the async version of this method instead
-   * provided for the legacy sync set/unset methods */
-  private saveAliasStoreToFileSync(): void {
-    writeFileSync(this.fileLocation, aliasStoreToRawFileContents(this.aliasStore));
-    try {
-      unlockSync(this.fileLocation);
-    } catch (e) {
-      // ignore the error.  If it wasn't locked, that's what we wanted
-      if (errorIsNotAcquired(e)) return;
-      throw e;
-    }
   }
 }
 

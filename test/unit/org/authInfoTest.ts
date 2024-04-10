@@ -16,9 +16,9 @@ import { env, includes } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, getJsonMap, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
-import { Transport } from 'jsforce/lib/transport';
+import { Transport } from '@jsforce/jsforce-node/lib/transport';
 
-import { OAuth2 } from 'jsforce';
+import { OAuth2 } from '@jsforce/jsforce-node';
 import { SinonSpy, SinonStub, match } from 'sinon';
 import { Org } from '../../../src/org/org';
 import { AuthFields, AuthInfo } from '../../../src/org/authInfo';
@@ -1329,10 +1329,10 @@ describe('AuthInfo', () => {
     const alias = 'MyAlias';
 
     it('should set alias', async () => {
-      const aliasAccessorSpy = spyMethod($$.SANDBOX, AliasAccessor.prototype, 'set');
+      const aliasAccessorSpy = spyMethod($$.SANDBOX, AliasAccessor.prototype, 'setAndSave');
       const authInfo = await AuthInfo.create({ username: testOrg.username });
       await authInfo.setAlias(alias);
-      expect(aliasAccessorSpy.calledOnce).to.be.true;
+      expect(aliasAccessorSpy.callCount).to.equal(1);
       expect(aliasAccessorSpy.firstCall.args).to.deep.equal([alias, testOrg.username]);
     });
   });

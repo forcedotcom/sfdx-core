@@ -1,12 +1,25 @@
 {
   "name": "@salesforce/core",
-  "version": "6.7.6",
+  "version": "6.7.7-qa.1",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/index",
   "types": "lib/index.d.ts",
   "license": "BSD-3-Clause",
   "engines": {
     "node": ">=18.0.0"
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./testSetup": "./lib/testSetup.js",
+    "./messages": "./lib/messages.js",
+    "./sfError": "./lib/sfError.js",
+    "./lifecycle": "./lib/lifecycleEvents.js",
+    "./logger": "./lib/logger/logger.js",
+    "./configAggregator": "./lib/config/configAggregator.js",
+    "./stateAggregator": "./lib/stateAggregator/stateAggregator.js",
+    "./config": "./lib/config/config.js",
+    "./project": "./lib/sfProject.js",
+    "./messageTransformer": "./lib/messageTransformer.js"
   },
   "scripts": {
     "build": "wireit",
@@ -18,7 +31,6 @@
     "link-check": "wireit",
     "lint": "wireit",
     "lint-fix": "yarn sf-lint --fix",
-    "postcompile": "tsc -p typedocExamples",
     "prepack": "sf-prepack",
     "prepare": "sf-install",
     "test": "wireit",
@@ -39,6 +51,7 @@
     "messageTransformer/messageTransformer.ts"
   ],
   "dependencies": {
+    "@jsforce/jsforce-node": "^3.1.0",
     "@salesforce/kit": "^3.1.0",
     "@salesforce/schemas": "^1.7.0",
     "@salesforce/ts-types": "^2.0.9",
@@ -47,7 +60,6 @@
     "faye": "^1.4.0",
     "form-data": "^4.0.0",
     "js2xmlparser": "^4.0.1",
-    "jsforce": "^2.0.0-beta.29",
     "jsonwebtoken": "9.0.2",
     "jszip": "3.10.1",
     "pino": "^8.19.0",
@@ -58,7 +70,7 @@
     "ts-retry-promise": "^0.7.1"
   },
   "devDependencies": {
-    "@salesforce/dev-scripts": "^8.4.2",
+    "@salesforce/dev-scripts": "^8.5.0",
     "@salesforce/ts-sinon": "^1.4.19",
     "@types/benchmark": "^2.1.5",
     "@types/chai-string": "^1.4.5",
@@ -160,6 +172,9 @@
         "./!(CHANGELOG).md"
       ],
       "output": []
+    },
+    "compile-typedoc": {
+      "command": "tsc -p typedocExamples"
     }
   }
 }

@@ -6,9 +6,9 @@
  */
 import { Readable } from 'node:stream';
 
-export interface StructuredWriter {
+export type StructuredWriter = {
   addToStore(contents: string | Readable | Buffer, path: string): Promise<void>;
   finalize(): Promise<void>;
   getDestinationPath(): string | undefined;
   get buffer(): Buffer;
-}
+};

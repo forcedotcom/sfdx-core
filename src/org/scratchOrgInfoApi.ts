@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { env, Duration, upperFirst } from '@salesforce/kit';
+import { env, Duration, upperFirst, omit } from '@salesforce/kit';
+
 import { AnyJson } from '@salesforce/ts-types';
-import { OAuth2Config, SaveResult } from 'jsforce';
+import { OAuth2Config, SaveResult } from '@jsforce/jsforce-node';
 import { retryDecorator, RetryError } from 'ts-retry-promise';
 import { JwtOAuth2Config } from '../org/authInfo';
 import { Logger } from '../logger/logger';
@@ -25,6 +26,9 @@ import { checkScratchOrgInfoForErrors } from './scratchOrgErrorCodes';
 import SettingsGenerator from './scratchOrgSettingsGenerator';
 import { ScratchOrgInfo } from './scratchOrgTypes';
 import { emit } from './scratchOrgLifecycleEvents';
+
+// preserving because it extends a class
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface JsForceError extends Error {
   errorCode: string;
   fields: string[];
@@ -283,10 +287,6 @@ export const requestScratchOrgCreation = async (
   if (!hubOrg.isDevHubOrg()) {
     throw messages.createError('hubOrgIsNotDevHub', [hubOrg.getUsername(), hubOrg.getOrgId()]);
   }
-  // If these were present, they were already used to initialize the scratchOrgSettingsGenerator.
-  // They shouldn't be submitted as part of the scratchOrgInfo.
-  delete scratchOrgRequest.settings;
-  delete scratchOrgRequest.objectSettings;
 
   // We do not allow you to specify the old and the new way of doing post create settings
   if (scratchOrgRequest.orgPreferences && settings.hasSettings()) {
@@ -299,7 +299,13 @@ export const requestScratchOrgCreation = async (
     throw new SfError(messages.getMessage('DeprecatedPrefFormat'));
   }
 
-  const scratchOrgInfo = mapKeys(scratchOrgRequest, upperFirst, true);
+  const scratchOrgInfo = mapKeys(
+    // If these were present, they were already used to initialize the scratchOrgSettingsGenerator.
+    // They shouldn't be submitted as part of the scratchOrgInfo.
+    omit(scratchOrgRequest, ['settings', 'objectSettings']),
+    upperFirst,
+    true
+  );
 
   if (typeof scratchOrgInfo.Username === 'string') {
     scratchOrgInfo.Username = scratchOrgInfo.Username.toLowerCase();
