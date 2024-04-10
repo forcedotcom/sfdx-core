@@ -10,16 +10,17 @@
   },
   "exports": {
     ".": "./lib/index.js",
-    "./testSetup": "./lib/testSetup.js",
-    "./messages": "./lib/messages.js",
-    "./sfError": "./lib/sfError.js",
+    "./config": "./lib/config/config.js",
+    "./configAggregator": "./lib/config/configAggregator.js",
+    "./envVars": "./lib/config/envVars.js",
     "./lifecycle": "./lib/lifecycleEvents.js",
     "./logger": "./lib/logger/logger.js",
-    "./configAggregator": "./lib/config/configAggregator.js",
-    "./stateAggregator": "./lib/stateAggregator/stateAggregator.js",
-    "./config": "./lib/config/config.js",
+    "./messages": "./lib/messages.js",
+    "./messageTransformer": "./lib/messageTransformer.js",
     "./project": "./lib/sfProject.js",
-    "./messageTransformer": "./lib/messageTransformer.js"
+    "./sfError": "./lib/sfError.js",
+    "./stateAggregator": "./lib/stateAggregator/stateAggregator.js",
+    "./testSetup": "./lib/testSetup.js"
   },
   "scripts": {
     "build": "wireit",
