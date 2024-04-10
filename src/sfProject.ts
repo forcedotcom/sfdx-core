@@ -39,9 +39,9 @@ export type PackageDir = {
   dependencies?: PackageDirDependency[];
   includeProfileUserLicenses?: boolean;
   package?: string;
-  packageMetadataAccess?:  {
-     permissionSets: string | string[];
-     permissionSetLicenses: string | string[];
+  packageMetadataAccess?: {
+    permissionSets: string | string[];
+    permissionSetLicenses: string | string[];
   };
   path: string;
   postInstallScript?: string;
@@ -420,12 +420,8 @@ export class SfProject {
    * **Throws** *{@link SfError}{ name: 'InvalidProjectWorkspaceError' }* If the current folder is not located in a workspace.
    */
   public static async resolve(path?: string): Promise<SfProject> {
-    path = await this.resolveProjectPath(path ?? process.cwd());
-    if (!SfProject.instances.has(path)) {
-      const project = new SfProject(path);
-      SfProject.instances.set(path, project);
-    }
-    return ensure(SfProject.instances.get(path));
+    const resolvedPath = await this.resolveProjectPath(path ?? process.cwd());
+    return this.getMemoizedInstance(resolvedPath);
   }
 
   /**
@@ -437,13 +433,8 @@ export class SfProject {
    */
   public static getInstance(path?: string): SfProject {
     // Store instance based on the path of the actual project.
-    path = this.resolveProjectPathSync(path ?? process.cwd());
-
-    if (!SfProject.instances.has(path)) {
-      const project = new SfProject(path);
-      SfProject.instances.set(path, project);
-    }
-    return ensure(SfProject.instances.get(path));
+    const resolvedPath = this.resolveProjectPathSync(path ?? process.cwd());
+    return this.getMemoizedInstance(resolvedPath);
   }
 
   /**
@@ -474,6 +465,16 @@ export class SfProject {
    */
   public static resolveProjectPathSync(dir?: string): string {
     return resolveProjectPathSync(dir);
+  }
+
+  /** shared method for resolve and getInstance.
+   * Cannot be a module-level function because instances is private */
+  private static getMemoizedInstance(path: string): SfProject {
+    if (!SfProject.instances.has(path)) {
+      const project = new SfProject(path);
+      SfProject.instances.set(path, project);
+    }
+    return ensure(SfProject.instances.get(path));
   }
 
   /**

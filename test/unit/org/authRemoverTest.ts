@@ -12,24 +12,14 @@ import { Config } from '../../../src/config/config';
 import { AliasAccessor } from '../../../src/stateAggregator/accessors/aliasAccessor';
 import { MockTestOrgData, shouldThrow, TestContext } from '../../../src/testSetup';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
-import { AuthFields } from '../../../src/org/authInfo';
 import { SfError } from '../../../src/sfError';
+import { expectPartialDeepMatch } from '../helpers';
 
 describe('AuthRemover', () => {
   const username = 'espresso@coffee.com';
   const orgId = '123456';
   const org = new MockTestOrgData(orgId, { username });
   const $$ = new TestContext();
-
-  function expectPartialDeepMatch(actual: AuthFields, expected: AuthFields, ignore = ['refreshToken', 'accessToken']) {
-    for (const key of ignore) {
-      // @ts-expect-error - type is any
-      delete actual[key];
-      // @ts-expect-error - type is any
-      delete expected[key];
-    }
-    expect(actual).to.deep.equal(expected);
-  }
 
   beforeEach(async () => {
     await $$.stubAuths(org);

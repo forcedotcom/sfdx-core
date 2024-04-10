@@ -334,10 +334,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public static getAuthorizationUrl(options: JwtOAuth2Config & { scope?: string }, oauth2?: OAuth2): string {
     // Unless explicitly turned off, use a code verifier for enhanced security
-    if (options.useVerifier !== false) {
-      options.useVerifier = true;
-    }
-    const oauth2Verifier = oauth2 ?? new OAuth2(options);
+    const oauth2Verifier = oauth2 ?? new OAuth2({ useVerifier: true, ...options });
 
     // The state parameter allows the redirectUri callback listener to ignore request
     // that don't contain the state value.
@@ -613,8 +610,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * Get the auth fields (decrypted) needed to make a connection.
    */
   public getConnectionOptions(): ConnectionOptions {
-    let opts: ConnectionOptions;
-
     const decryptedCopy = this.getFields(true);
     const { accessToken, instanceUrl, loginUrl } = decryptedCopy;
 
@@ -622,36 +617,33 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       this.logger.info('Returning fields for a connection using access token.');
 
       // Just auth with the accessToken
-      opts = { accessToken, instanceUrl, loginUrl };
-    } else if (this.isJwt()) {
+      return { accessToken, instanceUrl, loginUrl };
+    }
+    if (this.isJwt()) {
       this.logger.info('Returning fields for a connection using JWT config.');
-      opts = {
-        accessToken,
-        instanceUrl,
-        refreshFn: this.refreshFn.bind(this),
-      };
-    } else {
-      // @TODO: figure out loginUrl and redirectUri (probably get from config class)
-      //
-      // redirectUri: org.config.getOauthCallbackUrl()
-      // loginUrl: this.fields.instanceUrl || this.config.getAppConfig().sfdcLoginUrl
-      this.logger.info('Returning fields for a connection using OAuth config.');
-
-      // Decrypt a user provided client secret or use the default.
-      opts = {
-        oauth2: {
-          loginUrl: instanceUrl ?? SfdcUrl.PRODUCTION,
-          clientId: this.getClientId(),
-          redirectUri: this.getRedirectUri(),
-        },
+      return {
         accessToken,
         instanceUrl,
         refreshFn: this.refreshFn.bind(this),
       };
     }
+    // @TODO: figure out loginUrl and redirectUri (probably get from config class)
+    //
+    // redirectUri: org.config.getOauthCallbackUrl()
+    // loginUrl: this.fields.instanceUrl || this.config.getAppConfig().sfdcLoginUrl
+    this.logger.info('Returning fields for a connection using OAuth config.');
 
-    // decrypt the fields
-    return opts;
+    // Decrypt a user provided client secret or use the default.
+    return {
+      oauth2: {
+        loginUrl: instanceUrl ?? SfdcUrl.PRODUCTION,
+        clientId: this.getClientId(),
+        redirectUri: this.getRedirectUri(),
+      },
+      accessToken,
+      instanceUrl,
+      refreshFn: this.refreshFn.bind(this),
+    };
   }
 
   public getClientId(): string {
@@ -848,26 +840,26 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     let authConfig: AuthFields;
 
     if (options) {
-      options = structuredClone(options);
+      const clonedOptions = structuredClone(options);
 
-      if (this.isTokenOptions(options)) {
-        authConfig = options;
+      if (this.isTokenOptions(clonedOptions)) {
+        authConfig = clonedOptions;
         const userInfo = await this.retrieveUserInfo(
-          ensureString(options.instanceUrl),
-          ensureString(options.accessToken)
+          ensureString(clonedOptions.instanceUrl),
+          ensureString(clonedOptions.accessToken)
         );
         this.update({ username: userInfo?.username, orgId: userInfo?.organizationId });
       } else {
         if (this.options.parentUsername) {
           const parentFields = await this.loadDecryptedAuthFromConfig(this.options.parentUsername);
 
-          options.clientId = parentFields.clientId;
+          clonedOptions.clientId = parentFields.clientId;
 
           if (process.env.SFDX_CLIENT_SECRET) {
-            options.clientSecret = process.env.SFDX_CLIENT_SECRET;
+            clonedOptions.clientSecret = process.env.SFDX_CLIENT_SECRET;
           } else {
             // Grab whatever flow is defined
-            Object.assign(options, {
+            Object.assign(clonedOptions, {
               clientSecret: parentFields.clientSecret,
               privateKey: parentFields.privateKey ? pathResolve(parentFields.privateKey) : parentFields.privateKey,
             });
@@ -876,20 +868,20 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
         // jwt flow
         // Support both sfdx and jsforce private key values
-        if (!options.privateKey && options.privateKeyFile) {
-          options.privateKey = pathResolve(options.privateKeyFile);
+        if (!clonedOptions.privateKey && clonedOptions.privateKeyFile) {
+          clonedOptions.privateKey = pathResolve(clonedOptions.privateKeyFile);
         }
 
-        if (options.privateKey) {
-          authConfig = await this.authJwt(options);
-        } else if (!options.authCode && options.refreshToken) {
+        if (clonedOptions.privateKey) {
+          authConfig = await this.authJwt(clonedOptions);
+        } else if (!clonedOptions.authCode && clonedOptions.refreshToken) {
           // refresh token flow (from sfdxUrl or OAuth refreshFn)
-          authConfig = await this.buildRefreshTokenConfig(options);
+          authConfig = await this.buildRefreshTokenConfig(clonedOptions);
         } else if (this.options.oauth2 instanceof OAuth2) {
           // authcode exchange / web auth flow
-          authConfig = await this.exchangeToken(options, this.options.oauth2);
+          authConfig = await this.exchangeToken(clonedOptions, this.options.oauth2);
         } else {
-          authConfig = await this.exchangeToken(options);
+          authConfig = await this.exchangeToken(clonedOptions);
         }
       }
 
@@ -1053,21 +1045,20 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   // Build OAuth config for a refresh token auth flow
   private async buildRefreshTokenConfig(options: JwtOAuth2Config): Promise<AuthFields> {
-    // Ideally, this would be removed at some point in the distant future when all auth files
-    // now have the clientId stored in it.
-    if (!options.clientId) {
-      options.clientId = DEFAULT_CONNECTED_APP_INFO.clientId;
-      options.clientSecret = DEFAULT_CONNECTED_APP_INFO.clientSecret;
-    }
+    const fullOptions: JwtOAuth2Config = {
+      ...options,
+      redirectUri: options.redirectUri ?? this.getRedirectUri(),
+      // Ideally, this would be removed at some point in the distant future when all auth files
+      // now have the clientId stored in it.
+      ...(options.clientId
+        ? {}
+        : { clientId: DEFAULT_CONNECTED_APP_INFO.clientId, clientSecret: DEFAULT_CONNECTED_APP_INFO.clientSecret }),
+    };
 
-    if (!options.redirectUri) {
-      options.redirectUri = this.getRedirectUri();
-    }
-
-    const oauth2 = new OAuth2(options);
+    const oauth2 = new OAuth2(fullOptions);
     let authFieldsBuilder: TokenResponse;
     try {
-      authFieldsBuilder = await oauth2.refreshToken(ensure(options.refreshToken));
+      authFieldsBuilder = await oauth2.refreshToken(ensure(fullOptions.refreshToken));
     } catch (err) {
       throw messages.createError('refreshTokenAuthError', [(err as Error).message]);
     }
@@ -1086,10 +1077,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       username,
       accessToken: authFieldsBuilder.access_token,
       instanceUrl: authFieldsBuilder.instance_url,
-      loginUrl: options.loginUrl ?? authFieldsBuilder.instance_url,
-      refreshToken: options.refreshToken,
-      clientId: options.clientId,
-      clientSecret: options.clientSecret,
+      loginUrl: fullOptions.loginUrl ?? authFieldsBuilder.instance_url,
+      refreshToken: fullOptions.refreshToken,
+      clientId: fullOptions.clientId,
+      clientSecret: fullOptions.clientSecret,
     };
   }
 
@@ -1101,9 +1092,11 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   private async exchangeToken(options: JwtOAuth2Config, oauth2: OAuth2 = new OAuth2(options)): Promise<AuthFields> {
     if (!oauth2.redirectUri) {
+      // eslint-disable-next-line no-param-reassign
       oauth2.redirectUri = this.getRedirectUri();
     }
     if (!oauth2.clientId) {
+      // eslint-disable-next-line no-param-reassign
       oauth2.clientId = this.getClientId();
     }
 

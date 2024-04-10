@@ -11,7 +11,7 @@ import * as path from 'node:path';
 import * as util from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { AnyJson, asString, ensureJsonMap, ensureString, isJsonMap, isObject } from '@salesforce/ts-types';
-import { ensureArray, NamedError, upperFirst } from '@salesforce/kit';
+import { ensureArray, upperFirst } from '@salesforce/kit';
 import { SfError } from './sfError';
 
 export type Tokens = Array<string | boolean | number | null | undefined>;
@@ -362,17 +362,7 @@ export class Messages<T extends string> {
       moduleMessagesDirPath = projectRoot;
     }
 
-    if (!packageName) {
-      const message = `Invalid or missing package.json file at '${moduleMessagesDirPath}'. If not using a package.json, pass in a packageName.`;
-      try {
-        packageName = asString(ensureJsonMap(Messages.readFile(path.join(moduleMessagesDirPath, 'package.json'))).name);
-        if (!packageName) {
-          throw SfError.create({ message, name: 'MissingPackageName' });
-        }
-      } catch (err) {
-        throw SfError.create({ message, name: 'MissingPackageName', cause: err });
-      }
-    }
+    const resolvedPackageName = packageName ?? resolvePackageName(moduleMessagesDirPath);
 
     moduleMessagesDirPath += `${path.sep}messages`;
 
@@ -385,7 +375,7 @@ export class Messages<T extends string> {
           // When we support other locales, load them from /messages/<local>/<bundleName>.json
           // Change generateFileLoaderFunction to handle loading locales.
         } else if (stat.isFile()) {
-          this.importMessageFile(packageName, filePath);
+          this.importMessageFile(resolvedPackageName, filePath);
         }
       }
     }
@@ -423,7 +413,7 @@ export class Messages<T extends string> {
     }
 
     // Don't use messages inside messages
-    throw new NamedError('MissingBundleError', `Missing bundle ${key} for locale ${Messages.getLocale()}.`);
+    throw new SfError(`Missing bundle ${key} for locale ${Messages.getLocale()}.`, 'MissingBundleError');
   }
 
   /**
@@ -591,9 +581,9 @@ export class Messages<T extends string> {
     const msg = map.get(key);
     if (!msg) {
       // Don't use messages inside messages
-      throw new NamedError(
-        'MissingMessageError',
-        `Missing message ${this.bundleName}:${key} for locale ${Messages.getLocale()}.`
+      throw new SfError(
+        `Missing message ${this.bundleName}:${key} for locale ${Messages.getLocale()}.`,
+        'MissingMessageError'
       );
     }
     const messages = ensureArray(msg);
@@ -603,3 +593,18 @@ export class Messages<T extends string> {
     });
   }
 }
+
+const resolvePackageName = (moduleMessagesDirPath: string): string => {
+  const errMessage = `Invalid or missing package.json file at '${moduleMessagesDirPath}'. If not using a package.json, pass in a packageName.`;
+  try {
+    const resolvedPackageName = asString(
+      ensureJsonMap(Messages.readFile(path.join(moduleMessagesDirPath, 'package.json'))).name
+    );
+    if (!resolvedPackageName) {
+      throw SfError.create({ message: errMessage, name: 'MissingPackageName' });
+    }
+    return resolvedPackageName;
+  } catch (err) {
+    throw SfError.create({ message: errMessage, name: 'MissingPackageName', cause: err });
+  }
+};

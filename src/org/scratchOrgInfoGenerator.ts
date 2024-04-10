@@ -216,26 +216,23 @@ export const generateScratchOrgInfo = async ({
   } catch (e) {
     // project is not required
   }
-  scratchOrgInfoPayload.orgName = scratchOrgInfoPayload.orgName ?? 'Company';
 
-  scratchOrgInfoPayload.package2AncestorIds =
-    !ignoreAncestorIds && sfProject?.hasPackages()
-      ? await getAncestorIds(scratchOrgInfoPayload, sfProject, hubOrg)
-      : '';
-
-  // Use the Hub org's client ID value, if one wasn't provided to us, or the default
-  if (!scratchOrgInfoPayload.connectedAppConsumerKey) {
-    scratchOrgInfoPayload.connectedAppConsumerKey =
-      hubOrg.getConnection().getAuthInfoFields().clientId ?? DEFAULT_CONNECTED_APP_INFO.clientId;
-  }
-
-  if (!nonamespace && sfProject?.get('namespace')) {
-    scratchOrgInfoPayload.namespace = sfProject.get('namespace') as string;
-  }
-
-  // we already have the info, and want to get rid of configApi, so this doesn't use that
-  scratchOrgInfoPayload.connectedAppCallbackUrl = `http://localhost:${await WebOAuthServer.determineOauthPort()}/OauthRedirect`;
-  return scratchOrgInfoPayload;
+  return {
+    ...scratchOrgInfoPayload,
+    orgName: scratchOrgInfoPayload.orgName ?? 'Company',
+    // we already have the info, and want to get rid of configApi, so this doesn't use that
+    connectedAppCallbackUrl: `http://localhost:${await WebOAuthServer.determineOauthPort()}/OauthRedirect`,
+    ...(!nonamespace && sfProject?.get('namespace') ? { namespace: sfProject.get('namespace') as string } : {}),
+    // Use the Hub org's client ID value, if one wasn't provided to us, or the default
+    connectedAppConsumerKey:
+      scratchOrgInfoPayload.connectedAppConsumerKey ??
+      hubOrg.getConnection().getAuthInfoFields().clientId ??
+      DEFAULT_CONNECTED_APP_INFO.clientId,
+    package2AncestorIds:
+      !ignoreAncestorIds && sfProject?.hasPackages()
+        ? await getAncestorIds(scratchOrgInfoPayload, sfProject, hubOrg)
+        : '',
+  };
 };
 
 /**
