@@ -1,3 +1,12 @@
+# [7.2.0](https://github.com/forcedotcom/sfdx-core/compare/7.1.0...7.2.0) (2024-04-10)
+
+
+### Features
+
+* export envVars top-level ([0ed5e69](https://github.com/forcedotcom/sfdx-core/commit/0ed5e694eca8653d34c91a8c97e9e950555b2a02))
+
+
+
 # [7.1.0](https://github.com/forcedotcom/sfdx-core/compare/7.0.0...7.1.0) (2024-04-10)
 
 
