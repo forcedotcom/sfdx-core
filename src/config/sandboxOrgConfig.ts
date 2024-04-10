@@ -42,12 +42,12 @@ export namespace SandboxOrgConfig {
   /**
    * The config file options.
    */
-  export interface Options extends ConfigFile.Options {
+  export type Options = {
     /**
      * The org id associated with this sandbox.
      */
     orgId: string;
-  }
+  } & ConfigFile.Options;
 
   export enum Fields {
     /**

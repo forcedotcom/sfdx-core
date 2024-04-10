@@ -139,7 +139,7 @@ export namespace MyDomainResolver {
   /**
    * Options for the MyDomain DNS resolver.
    */
-  export interface Options {
+  export type Options = {
     /**
      * The host to resolve.
      */
@@ -154,5 +154,5 @@ export namespace MyDomainResolver {
      * The retry timeout.
      */
     frequency?: Duration;
-  }
+  };
 }

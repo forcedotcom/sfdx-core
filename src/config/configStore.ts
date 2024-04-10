@@ -17,7 +17,7 @@ import { ConfigContents, ConfigEntry, ConfigValue, Key } from './configStackType
 /**
  * An interface for a config object with a persistent store.
  */
-export interface ConfigStore<P extends ConfigContents = ConfigContents> {
+export type ConfigStore<P extends ConfigContents = ConfigContents> = {
   // Map manipulation methods
   entries(): ConfigEntry[];
   // NEXT_RELEASE: update types to specify return can be P[K] | undefined
@@ -40,7 +40,7 @@ export interface ConfigStore<P extends ConfigContents = ConfigContents> {
 
   // Content methods
   getContents(): P;
-}
+};
 
 /**
  * An abstract class that implements all the config management functions but
@@ -433,7 +433,7 @@ export namespace BaseConfigStore {
   /**
    * Options for the config store.
    */
-  export interface Options {
+  export type Options = {
     /**
      * Keys to encrypt.
      *
@@ -443,5 +443,5 @@ export namespace BaseConfigStore {
      * defining a new class.
      */
     encryptedKeys?: Array<string | RegExp>;
-  }
+  };
 }

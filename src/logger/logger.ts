@@ -19,7 +19,7 @@ import { cleanup } from './cleanup';
 /**
  * The common set of `Logger` options.
  */
-export interface LoggerOptions {
+export type LoggerOptions = {
   /**
    * The logger name.
    */
@@ -37,7 +37,7 @@ export interface LoggerOptions {
 
   /** log to memory instead of to a file.  Intended for Unit Testing */
   useMemoryLogger?: boolean;
-}
+};
 
 /**
  * Standard `Logger` levels.
@@ -71,7 +71,7 @@ export type FieldValue = string | number | boolean | Fields;
 /**
  * Log line interface
  */
-export interface LogLine {
+export type LogLine = {
   name: string;
   hostname: string;
   pid: string;
@@ -80,7 +80,7 @@ export interface LogLine {
   msg: string;
   time: string;
   v: number;
-}
+};
 
 /**
  * A logging abstraction powered by {@link https://github.com/pinojs/pino | Pino} that provides both a default

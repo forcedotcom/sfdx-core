@@ -9,7 +9,7 @@ import { get } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { fromStub, StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';
 import { Duration } from '@salesforce/kit';
-import { Connection as JSForceConnection, HttpRequest } from 'jsforce';
+import { Connection as JSForceConnection, HttpRequest } from '@jsforce/jsforce-node';
 import { AuthInfo } from '../../../src/org/authInfo';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { Connection, DNS_ERROR_NAME, SFDX_HTTP_HEADERS, SingleRecordQueryErrors } from '../../../src/org/connection';

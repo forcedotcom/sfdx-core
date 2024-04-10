@@ -52,12 +52,15 @@ import { uniqid } from './util/uniqid';
 
 // this was previously exported from the testSetup module
 export { uniqid };
+// stuff previously imported via /lib/foo and used in unit tests
+export { SecureBuffer } from './crypto/secureBuffer';
+
 /**
  * Different parts of the system that are mocked out. They can be restored for
  * individual tests. Test's stubs should always go on the DEFAULT which is exposed
  * on the TestContext.
  */
-export interface SandboxTypes {
+export type SandboxTypes = {
   DEFAULT: SinonSandbox;
   CRYPTO: SinonSandbox;
   CONFIG: SinonSandbox;
@@ -65,12 +68,12 @@ export interface SandboxTypes {
   CONNECTION: SinonSandbox;
   FS: SinonSandbox;
   ORGS: SinonSandbox;
-}
+};
 
 /**
  * Different hooks into {@link ConfigFile} used for testing instead of doing file IO.
  */
-export interface ConfigStub {
+export type ConfigStub = {
   /**
    * readFn A function that controls all aspect of {@link ConfigFile.read}. For example, it won't set the contents
    * unless explicitly done. Only use this if you know what you are doing. Use retrieveContents
@@ -93,7 +96,7 @@ export interface ConfigStub {
    * A function to conditionally read based on the config instance. The `this` value will be the config instance.
    */
   retrieveContents?: () => Promise<JsonMap>;
-}
+};
 
 /**
  * Instantiate a @salesforce/core test context.
@@ -747,7 +750,7 @@ export enum StreamingMockSubscriptionCall {
 /**
  * Additional subscription options for the StreamingMock.
  */
-export interface StreamingMockCometSubscriptionOptions {
+export type StreamingMockCometSubscriptionOptions = {
   /**
    * Target URL.
    */
@@ -768,7 +771,7 @@ export interface StreamingMockCometSubscriptionOptions {
    * A list of messages to playback for the client. One message per process tick.
    */
   messagePlaylist?: Message[];
-}
+};
 
 /**
  * Simulates a comet subscription to a streaming channel.

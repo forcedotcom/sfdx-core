@@ -25,7 +25,7 @@ const messages = Messages.loadMessages('@salesforce/core', 'streaming');
  * Inner streaming client interface. This implements the Cometd behavior.
  * Also allows for mocking the functional behavior.
  */
-export interface StreamingClientIfc {
+export type StreamingClientIfc = {
   /**
    * Returns a comet client implementation.
    *
@@ -39,7 +39,7 @@ export interface StreamingClientIfc {
    * @param logLine A log message passed to the the assigned function.
    */
   setLogger: (logLine: (message: string) => void) => void;
-}
+};
 
 /**
  * Validation helper
@@ -380,7 +380,7 @@ export namespace StreamingClient {
    *
    * @interface
    */
-  export interface Options {
+  export type Options = {
     /**
      * The org streaming target.
      */
@@ -409,7 +409,7 @@ export namespace StreamingClient {
      * The function for build the inner client impl. Allows for mocking.
      */
     streamingImpl: StreamingClientIfc;
-  }
+  };
 
   /**
    * Default Streaming Options. Uses Faye as the cometd impl.

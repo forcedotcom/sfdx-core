@@ -16,9 +16,9 @@ import { env, includes } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, getJsonMap, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
-import { Transport } from 'jsforce/lib/transport';
+import { Transport } from '@jsforce/jsforce-node/lib/transport';
 
-import { OAuth2 } from 'jsforce';
+import { OAuth2 } from '@jsforce/jsforce-node';
 import { SinonSpy, SinonStub, match } from 'sinon';
 import { Org } from '../../../src/org/org';
 import { AuthFields, AuthInfo } from '../../../src/org/authInfo';

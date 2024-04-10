@@ -10,7 +10,7 @@ import { randomBytes } from 'node:crypto';
 import { resolve as pathResolve } from 'node:path';
 import * as os from 'node:os';
 import * as fs from 'node:fs';
-import { Record as RecordType } from 'jsforce';
+import { Record as RecordType } from '@jsforce/jsforce-node';
 import { AsyncOptionalCreatable, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
   AnyJson,
@@ -26,8 +26,8 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
-import { OAuth2Config, OAuth2, TokenResponse } from 'jsforce';
-import Transport from 'jsforce/lib/transport';
+import { OAuth2Config, OAuth2, TokenResponse } from '@jsforce/jsforce-node';
+import Transport from '@jsforce/jsforce-node/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
@@ -99,11 +99,11 @@ export type OrgAuthorization = {
 /**
  * Options for access token flow.
  */
-export interface AccessTokenOptions {
+export type AccessTokenOptions = {
   accessToken?: string;
   loginUrl?: string;
   instanceUrl?: string;
-}
+};
 
 export type AuthSideEffects = {
   alias?: string;
@@ -1246,7 +1246,7 @@ export namespace AuthInfo {
   /**
    * Constructor options for AuthInfo.
    */
-  export interface Options {
+  export type Options = {
     /**
      * Org signup username.
      */
@@ -1270,5 +1270,5 @@ export namespace AuthInfo {
     parentUsername?: string;
 
     isDevHub?: boolean;
-  }
+  };
 }

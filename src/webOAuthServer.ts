@@ -12,7 +12,7 @@ import { parse as parseQueryString } from 'node:querystring';
 import { parse as parseUrl } from 'node:url';
 import { Socket } from 'node:net';
 import { EventEmitter } from 'node:events';
-import { OAuth2 } from 'jsforce';
+import { OAuth2 } from '@jsforce/jsforce-node';
 import { AsyncCreatable, Env, set, toNumber } from '@salesforce/kit';
 import { asString, get, Nullable } from '@salesforce/ts-types';
 import { Logger } from './logger/logger';
@@ -276,9 +276,9 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
 }
 
 export namespace WebOAuthServer {
-  export interface Options {
+  export type Options = {
     oauthConfig: JwtOAuth2Config;
-  }
+  };
 
   export type Request = http.IncomingMessage & {
     query: { code: string; state: string; error?: string; error_description?: string };
@@ -500,8 +500,8 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
 }
 
 namespace WebServer {
-  export interface Options {
+  export type Options = {
     port?: number;
     host?: string;
-  }
+  };
 }

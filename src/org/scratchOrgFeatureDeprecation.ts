@@ -36,11 +36,11 @@ const FEATURE_TYPES = {
   ],
 };
 
-interface FeatureTypes {
+type FeatureTypes = {
   simpleFeatureMapping: { [key: string]: string[] };
   quantifiedFeatureMapping: Record<string, string | number | boolean | null | undefined>;
   deprecatedFeatures: string[];
-}
+};
 
 export class ScratchOrgFeatureDeprecation {
   private featureTypes: FeatureTypes;

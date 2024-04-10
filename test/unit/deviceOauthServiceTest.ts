@@ -7,7 +7,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import { Transport } from 'jsforce/lib/transport';
+import { Transport } from '@jsforce/jsforce-node/lib/transport';
 import { StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
 import { MockTestOrgData, TestContext } from '../../src/testSetup';

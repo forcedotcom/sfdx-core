@@ -18,7 +18,7 @@ const messages = Messages.loadMessages('@salesforce/core', 'config');
 /**
  * Information about a config property.
  */
-export interface ConfigInfo {
+export type ConfigInfo = {
   /**
    * key The config key.
    */
@@ -57,7 +57,7 @@ export interface ConfigInfo {
    * True if the config property is deprecated.
    */
   deprecated?: boolean;
-}
+};
 
 /**
  * Aggregate global and local project config files, as well as environment variables for

@@ -8,8 +8,8 @@
 import { EOL } from 'node:os';
 import { AsyncCreatable, lowerFirst, mapKeys, omit, parseJsonMap, upperFirst } from '@salesforce/kit';
 import { asJsonArray, asNumber, ensureJsonMap, ensureString, isJsonMap, isString, Many } from '@salesforce/ts-types';
-import type { HttpRequest, HttpResponse, QueryResult, Schema, SObjectUpdateRecord } from 'jsforce';
-import { HttpApi } from 'jsforce/lib/http-api';
+import type { HttpRequest, HttpResponse, QueryResult, Schema, SObjectUpdateRecord } from '@jsforce/jsforce-node';
+import { HttpApi } from '@jsforce/jsforce-node/lib/http-api';
 import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { SecureBuffer } from '../crypto/secureBuffer';
@@ -22,13 +22,13 @@ import { AuthFields, AuthInfo } from './authInfo';
 
 const rand = (len: Many<string>): number => Math.floor(Math.random() * len.length);
 
-interface Complexity {
+type Complexity = {
   [key: string]: boolean | undefined;
   LOWER?: boolean;
   UPPER?: boolean;
   NUMBERS?: boolean;
   SYMBOLS?: boolean;
-}
+};
 
 const CHARACTERS: { [index: string]: string | string[] } = {
   LOWER: 'abcdefghijklmnopqrstuvwxyz',
@@ -195,16 +195,16 @@ export namespace DefaultUserFields {
    * Used to initialize default values for fields based on a templateUser user. This user will be part of the
    * Standard User profile.
    */
-  export interface Options {
+  export type Options = {
     templateUser: string;
     newUserName?: string;
-  }
+  };
 }
 
-export interface PasswordConditions {
+export type PasswordConditions = {
   length: number;
   complexity: number;
-}
+};
 
 /**
  * A class for creating a User, generating a password for a user, and assigning a user to one or more permission sets.
@@ -539,9 +539,9 @@ export namespace User {
    * Used to initialize default values for fields based on a templateUser user. This user will be part of the
    * Standard User profile.
    */
-  export interface Options {
+  export type Options = {
     org: Org;
-  }
+  };
 }
 
 const resolveUsernameFromAccessToken =

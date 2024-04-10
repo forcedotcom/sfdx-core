@@ -9,7 +9,7 @@ import { Messages } from './messages';
 
 Messages.importMessagesDirectory(__dirname);
 
-export { OAuth2Config } from 'jsforce';
+export { OAuth2Config } from '@jsforce/jsforce-node';
 export { ConfigFile } from './config/configFile';
 
 export { TTLConfig } from './config/ttlConfig';
