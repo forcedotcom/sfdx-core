@@ -103,7 +103,7 @@ function addTestSetupToIndex() {
 }
 
 // Run the update functions
-updatePackageJson();
+// updatePackageJson();
 updateLoggerTs();
-updateLoadMessagesParam();
+// updateLoadMessagesParam();
 addTestSetupToIndex();

@@ -109,3 +109,4 @@ export { default as ScratchOrgSettingsGenerator } from './org/scratchOrgSettings
 
 // Utility sub-modules
 export * from './util/sfdc';
+export * from './testSetup';
