@@ -26,8 +26,10 @@ jobs:
           node-version: ${{ inputs.nodeVersion }}
           registry-url: 'https://registry.npmjs.org'
           cache: yarn
+      - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
       - name: Install esbuild Dependencies
         run: |
+          yarn install
           yarn add -D esbuild@^0.19.5 esbuild-plugin-pino@^2.1.0 npm-dts@^1.3.12 esbuild-plugin-tsc@^0.4.0
       - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
       - name: Update for Bundling
@@ -35,7 +37,11 @@ jobs:
           node scripts/updateForBundling.js
       - name: Generate Bundle
         run: |
+          yarn build
           node scripts/build.js
+      - name: Post Bundling Update
+        run: |
+          node scripts/postBundling.js
       - name: Publish a Package
         run: |
           npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
