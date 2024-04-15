@@ -41,7 +41,7 @@ jobs:
           node scripts/build.js
       - name: Post Bundling Update
         run: |
-          node scripts/postBundling.js
+          node scripts/postBundlingUpdate.js
       - name: Publish a Package
         run: |
           npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
