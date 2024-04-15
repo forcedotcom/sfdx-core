@@ -1,3 +1,12 @@
+# [7.3.0](https://github.com/forcedotcom/sfdx-core/compare/7.2.0...7.3.0) (2024-04-15)
+
+
+### Features
+
+* **scratch:** remove language restriction ([97e1989](https://github.com/forcedotcom/sfdx-core/commit/97e19891089d4189181eb54ce5edb3dc03fb12c2))
+
+
+
 # [7.2.0](https://github.com/forcedotcom/sfdx-core/compare/7.1.0...7.2.0) (2024-04-10)
 
 
