@@ -8,20 +8,6 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "exports": {
-    ".": "./lib/index.js",
-    "./config": "./lib/config/config.js",
-    "./configAggregator": "./lib/config/configAggregator.js",
-    "./envVars": "./lib/config/envVars.js",
-    "./lifecycle": "./lib/lifecycleEvents.js",
-    "./logger": "./lib/logger/logger.js",
-    "./messages": "./lib/messages.js",
-    "./messageTransformer": "./lib/messageTransformer.js",
-    "./project": "./lib/sfProject.js",
-    "./sfError": "./lib/sfError.js",
-    "./stateAggregator": "./lib/stateAggregator/stateAggregator.js",
-    "./testSetup": "./lib/testSetup.js"
-  },
   "scripts": {
     "build": "wireit",
     "clean": "sf-clean",
