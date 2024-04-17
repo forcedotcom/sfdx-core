@@ -9,13 +9,16 @@ const esbuildPluginPino = require('esbuild-plugin-pino');
 const esbuildPluginTsc = require('esbuild-plugin-tsc');
 const { Generator } = require('npm-dts');
 const fs = require('fs');
+const CONSTANTS = require('./constants.json');
+const outputFolder = CONSTANTS.outputFilesFolder;
+const tmpOutputFolder = CONSTANTS.outputFilesTmpFolder;
 
 new Generator({
-  output: 'lib/index.d.ts',
+  output: `${tmpOutputFolder}/index.d.ts`,
 }).generate();
 
 const sharedConfig = {
-  entryPoints: ['src/index.ts'],
+  entryPoints: [`${outputFolder}/index.js`],
   bundle: true,
   // minify: true,
   plugins: [
@@ -31,22 +34,22 @@ const sharedConfig = {
     ...sharedConfig,
     // external: ['src/logger/transformStream.ts'],
     platform: 'node', // for CJS
-    outdir: 'lib',
+    outdir: tmpOutputFolder,
   });
-  const filePath = 'lib/index.js';
+  const filePath = `${tmpOutputFolder}/index.js`;
   let bundledEntryPoint = fs.readFileSync(filePath, 'utf8');
 
-  const searchString = /\$\{process\.cwd\(\)\}\$\{require\("path"\)\.sep\}lib/g;
+  const searchString = /\$\{process\.cwd\(\)\}\$\{require\("path"\)\.sep\}tmp-lib/g;
   const replacementString = `\${__dirname}\${require("path").sep}`;
 
   bundledEntryPoint = bundledEntryPoint.replace(searchString, replacementString);
   fs.writeFileSync(filePath, bundledEntryPoint, 'utf8');
 
   await build({
-    entryPoints: ['src/logger/transformStream.ts'],
+    entryPoints: [`${outputFolder}/logger/transformStream.js`],
     bundle: true,
     minify: true,
-    outdir: 'lib',
+    outdir: tmpOutputFolder,
     platform: 'node', // for CJS
     plugins: [
       // esbuildPluginPino({ transports: ['pino-pretty'] }),

@@ -25,6 +25,11 @@ function updatePackageJson() {
         delete packageJson.scripts.prepare;
       }
 
+      // Remove 'exports'
+      if (packageJson.exports) {
+        delete packageJson.exports;
+      }
+
       fs.writeFile(packagePath, JSON.stringify(packageJson, null, 2), 'utf8', (writeErr) => {
         if (writeErr) {
           console.error(`Error writing to package.json: ${writeErr}`);
