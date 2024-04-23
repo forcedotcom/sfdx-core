@@ -33,5 +33,31 @@ function deleteOriginalLib() {
   }
 }
 
+// Function to update logger.ts
+function updateLoggerTs() {
+  const loggerPath = './src/logger/logger.ts';
+
+  fs.readFile(loggerPath, 'utf8', (err, data) => {
+    if (err) {
+      console.error(`Error reading logger.ts: ${err}`);
+      return;
+    }
+
+    let updatedData = data.replace(
+      "target: './transformStream'",
+      "target: path.join('..', '..', 'lib', 'transformStream')"
+    );
+
+    fs.writeFile(loggerPath, updatedData, 'utf8', (writeErr) => {
+      if (writeErr) {
+        console.error(`Error writing to logger.ts: ${writeErr}`);
+      } else {
+        console.log('Logger.ts updated successfully.');
+      }
+    });
+  });
+}
+
 // Start the process
 deleteOriginalLib();
+updateLoggerTs();
