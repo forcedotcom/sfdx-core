@@ -15,9 +15,9 @@ function updatePackageJson() {
       const packageJson = JSON.parse(data);
 
       // Update package name if necessary
-      if (packageJson.name && packageJson.name === '@salesforce/core') {
-        packageJson.name = '@salesforce/core-bundle';
-      }
+      // if (packageJson.name && packageJson.name === '@salesforce/core') {
+      //   packageJson.name = '@salesforce/core-bundle';
+      // }
 
       // Remove 'prepack' and 'prepare' scripts
       if (packageJson.scripts) {
@@ -110,5 +110,5 @@ function addTestSetupToIndex() {
 // Run the update functions
 updatePackageJson();
 updateLoggerTs();
-updateLoadMessagesParam();
+// updateLoadMessagesParam();
 addTestSetupToIndex();
