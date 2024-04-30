@@ -1,3 +1,12 @@
+## [7.3.3](https://github.com/forcedotcom/sfdx-core/compare/7.3.2...7.3.3) (2024-04-30)
+
+
+### Bug Fixes
+
+* **deps:** bump @jsforce/jsforce-node from 3.1.0 to 3.2.0 ([#1062](https://github.com/forcedotcom/sfdx-core/issues/1062)) ([cfba51b](https://github.com/forcedotcom/sfdx-core/commit/cfba51bb37c9cacd328c17ca28182a72a3f97dfc))
+
+
+
 ## [7.3.2](https://github.com/forcedotcom/sfdx-core/compare/7.3.1...7.3.2) (2024-04-28)
 
 
