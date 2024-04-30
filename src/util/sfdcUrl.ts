@@ -223,6 +223,10 @@ export class SfdcUrl extends URL {
    * @returns {boolean} true if this domain is a lightning domain
    */
   public isLightningDomain(): boolean {
-    return this.origin.includes('.lightning.force.com') || this.origin.includes('.lightning.crmforce.mil') || this.origin.includes('.lightning.sfcrmapps.cn');
+    return (
+      this.origin.includes('.lightning.force.com') ||
+      this.origin.includes('.lightning.crmforce.mil') ||
+      this.origin.includes('.lightning.sfcrmapps.cn')
+    );
   }
 }
