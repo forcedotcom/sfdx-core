@@ -235,6 +235,9 @@ export class ConfigFile<
    */
   public async write(): Promise<P> {
     const lockResponse = await lockInit(this.getPath());
+    if (this.getPath().endsWith('sandbox-create-cache.json')) {
+      console.log('(async) time before write:', performance.now());
+    }
 
     // lock the file.  Returns an unlock function to call when done.
     try {
@@ -246,6 +249,11 @@ export class ConfigFile<
     }
     // write the merged LWWMap to file
     await lockResponse.writeAndUnlock(JSON.stringify(this.getContents(), null, 2));
+    if (this.getPath().endsWith('sandbox-create-cache.json')) {
+      console.log('(async) time after write:', performance.now());
+      console.dir(this.getContents(), { depth: 8 });
+      console.log('--------------------------------------');
+    }
 
     return this.getContents();
   }
@@ -258,10 +266,14 @@ export class ConfigFile<
    */
   public writeSync(): P {
     const lockResponse = lockInitSync(this.getPath());
+    if (this.getPath().endsWith('sandbox-create-cache.json')) {
+      console.log('(sync) time before write:', performance.now());
+    }
     try {
       // get the file modstamp.  Do this after the lock acquisition in case the file is being written to.
       const fileTimestamp = fs.statSync(this.getPath(), { bigint: true }).mtimeNs;
       const fileContents = parseJsonMap<P>(fs.readFileSync(this.getPath(), 'utf8'), this.getPath());
+
       this.logAndMergeContents(fileTimestamp, fileContents);
     } catch (err) {
       this.handleWriteError(err);
@@ -269,6 +281,11 @@ export class ConfigFile<
 
     // write the merged LWWMap to file
     lockResponse.writeAndUnlock(JSON.stringify(this.getContents(), null, 2));
+    if (this.getPath().endsWith('sandbox-create-cache.json')) {
+      console.log('(sync) time after write:', performance.now());
+      console.dir(this.getContents(), { depth: 8 });
+      console.log('--------------------------------------');
+    }
 
     return this.getContents();
   }
