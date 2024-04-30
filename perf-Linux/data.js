@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1713368747181,
+  "lastUpdate": 1714495251635,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -17814,6 +17814,72 @@ window.BENCHMARK_DATA = {
             "range": "±8.14%",
             "unit": "ops/sec",
             "extra": "53 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "cdominguez@salesforce.com",
+            "name": "Cristian Dominguez",
+            "username": "cristiand391"
+          },
+          "committer": {
+            "email": "cdominguez@salesforce.com",
+            "name": "Cristian Dominguez",
+            "username": "cristiand391"
+          },
+          "distinct": true,
+          "id": "fb71b4544474d267dcbff0b84326d61118147853",
+          "message": "test: stub requests done when instantiating AuthInfo\n\n`AuthInfo.determineIfDevHub` and `AuthInfo.getNamespacePrefix` do some\nrequests when creating a new AuthInfo instance, if we don't stub these\nmethods the requests are done and jsforce keeps retrying requests until\nmocha times out.",
+          "timestamp": "2024-04-30T13:35:18-03:00",
+          "tree_id": "fb9dee54bace75ae7211317ac8f8ffce33af6af3",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/fb71b4544474d267dcbff0b84326d61118147853"
+        },
+        "date": 1714495244792,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 477583,
+            "range": "±0.57%",
+            "unit": "ops/sec",
+            "extra": "90 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 785501,
+            "range": "±8.96%",
+            "unit": "ops/sec",
+            "extra": "43 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 620688,
+            "range": "±5.62%",
+            "unit": "ops/sec",
+            "extra": "73 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 6827,
+            "range": "±212.85%",
+            "unit": "ops/sec",
+            "extra": "14 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 465103,
+            "range": "±5.73%",
+            "unit": "ops/sec",
+            "extra": "68 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 397394,
+            "range": "±6.94%",
+            "unit": "ops/sec",
+            "extra": "59 samples"
           }
         ]
       }
