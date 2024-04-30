@@ -245,6 +245,9 @@ describe('AuthInfo', () => {
     });
 
     it('should return an AuthInfo instance when passed a parent username', async () => {
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
+
       await $$.stubConfig({ [OrgConfigProperties.ORG_INSTANCE_URL]: testOrg.instanceUrl });
       // Stub the http request (OAuth2.refreshToken())
       // This will be called for both, and we want to make sure the clientSecret is the
@@ -462,6 +465,9 @@ describe('AuthInfo', () => {
       });
 
       it('should return a JWT AuthInfo instance when passed a username and JWT auth options despite failed DNS lookup', async () => {
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
+
         $$.setConfigStubContents('AuthInfoConfig', { contents: await testOrg.getConfig() });
 
         const jwtConfig = {
@@ -531,6 +537,9 @@ describe('AuthInfo', () => {
 
     describe('Refresh Token', () => {
       it('should return a refresh token AuthInfo instance when passed a username and refresh token auth options', async () => {
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
+
         const refreshTokenConfig = {
           refreshToken: testOrg.refreshToken,
           loginUrl: testOrg.loginUrl,
@@ -585,6 +594,9 @@ describe('AuthInfo', () => {
       });
 
       it('should return a refresh token AuthInfo instance with username in auth options', async () => {
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
+
         const refreshTokenConfig = {
           refreshToken: testOrg.refreshToken,
           loginUrl: testOrg.loginUrl,
@@ -705,6 +717,9 @@ describe('AuthInfo', () => {
       });
 
       it('should return a refresh token AuthInfo instance with custom clientId and clientSecret', async () => {
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
+
         const refreshTokenConfig = {
           clientId: 'authInfoTest_clientId',
           clientSecret: 'authInfoTest_clientSecret',
@@ -986,6 +1001,9 @@ describe('AuthInfo', () => {
 
   describe('save', () => {
     it('should update the AuthInfo fields, and write to file', async () => {
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
+
       const refreshTokenConfig = {
         refreshToken: testOrg.refreshToken,
         loginUrl: testOrg.loginUrl,
@@ -1227,6 +1245,9 @@ describe('AuthInfo', () => {
 
   describe('getSfdxAuthUrl', () => {
     it('should return the correct sfdx auth url', async () => {
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
+
       const authResponse = {
         access_token: testOrg.accessToken,
         instance_url: testOrg.instanceUrl,
@@ -1251,6 +1272,9 @@ describe('AuthInfo', () => {
     });
 
     it('should handle undefined client secret', async () => {
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
+
       const authResponse = {
         access_token: testOrg.accessToken,
         instance_url: testOrg.instanceUrl,
@@ -1276,6 +1300,9 @@ describe('AuthInfo', () => {
     });
 
     it('should handle undefined refresh token', async () => {
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
+
       const authResponse = {
         access_token: testOrg.accessToken,
         instance_url: testOrg.instanceUrl,
@@ -1300,6 +1327,9 @@ describe('AuthInfo', () => {
     });
 
     it('should handle undefined instance url', async () => {
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
+
       const authResponse = {
         access_token: testOrg.accessToken,
         instance_url: testOrg.instanceUrl,
