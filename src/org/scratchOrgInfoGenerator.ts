@@ -37,7 +37,7 @@ export type ScratchOrgInfoPayload = {
   package2AncestorIds: string;
   features: string | string[];
   connectedAppConsumerKey: string;
-  namespace: string;
+  namespace?: string;
   connectedAppCallbackUrl: string;
   durationDays: number;
 } & PartialScratchOrgInfo;
@@ -216,12 +216,16 @@ export const generateScratchOrgInfo = async ({
     // project is not required
   }
 
+  const { namespace: originalNamespace, ...payload } = scratchOrgInfoPayload;
+
+  const namespace = originalNamespace ?? sfProject?.get('namespace');
+
   return {
-    ...scratchOrgInfoPayload,
+    ...payload,
     orgName: scratchOrgInfoPayload.orgName ?? 'Company',
     // we already have the info, and want to get rid of configApi, so this doesn't use that
     connectedAppCallbackUrl: `http://localhost:${await WebOAuthServer.determineOauthPort()}/OauthRedirect`,
-    ...(!nonamespace && sfProject?.get('namespace') ? { namespace: sfProject.get('namespace') as string } : {}),
+    ...(!nonamespace && namespace ? { namespace } : {}),
     // Use the Hub org's client ID value, if one wasn't provided to us, or the default
     connectedAppConsumerKey:
       scratchOrgInfoPayload.connectedAppConsumerKey ??
