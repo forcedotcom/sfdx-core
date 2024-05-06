@@ -1,3 +1,12 @@
+## [7.3.5](https://github.com/forcedotcom/sfdx-core/compare/7.3.4...7.3.5) (2024-05-06)
+
+
+### Bug Fixes
+
+* remove namespace if nonamespace option is set ([#1064](https://github.com/forcedotcom/sfdx-core/issues/1064)) ([f90ab68](https://github.com/forcedotcom/sfdx-core/commit/f90ab688658b8267f2cb1238fa90676d1f21d7af))
+
+
+
 ## [7.3.4](https://github.com/forcedotcom/sfdx-core/compare/7.3.3...7.3.4) (2024-05-05)
 
 
