@@ -734,7 +734,7 @@ describe('scratchOrgInfoGenerator', () => {
     });
   });
 
-  describe('generateScratchOrgInfo no nonamespace', () => {
+  describe('generateScratchOrgInfo with nonamespace', () => {
     const sandbox = sinon.createSandbox();
     beforeEach(() => {
       stubMethod(sandbox, Org, 'create').resolves(Org.prototype);
@@ -753,7 +753,7 @@ describe('scratchOrgInfoGenerator', () => {
     after(() => {
       sandbox.restore();
     });
-    it('calls generateScratchOrgInfo with no nonamespace but SfProjectJson.get("name") is true', async () => {
+    it('calls generateScratchOrgInfo with nonamespace=false but SfProjectJson.get("namespace") returns a value', async () => {
       expect(
         await generateScratchOrgInfo({
           hubOrg: await Org.create({}),
@@ -764,6 +764,43 @@ describe('scratchOrgInfoGenerator', () => {
       ).to.deep.equal({
         orgName: 'Company',
         namespace: 'my-namespace',
+        package2AncestorIds: '',
+        connectedAppConsumerKey: '1234',
+        connectedAppCallbackUrl: 'http://localhost:1717/OauthRedirect',
+      });
+    });
+
+    it('calls generateScratchOrgInfo with nonamespace=false with provided namespace and SfProjectJson.get("namespace") returns a value', async () => {
+      expect(
+        await generateScratchOrgInfo({
+          hubOrg: await Org.create({}),
+          scratchOrgInfoPayload: {
+            namespace: 'this-namespace-should-win',
+          } as ScratchOrgInfoPayload,
+          nonamespace: false,
+          ignoreAncestorIds: false,
+        })
+      ).to.deep.equal({
+        orgName: 'Company',
+        namespace: 'this-namespace-should-win',
+        package2AncestorIds: '',
+        connectedAppConsumerKey: '1234',
+        connectedAppCallbackUrl: 'http://localhost:1717/OauthRedirect',
+      });
+    });
+
+    it('calls generateScratchOrgInfo with nonamespace=true but a namespace is provided in payload', async () => {
+      expect(
+        await generateScratchOrgInfo({
+          hubOrg: await Org.create({}),
+          scratchOrgInfoPayload: {
+            namespace: 'my-namespace',
+          } as ScratchOrgInfoPayload,
+          nonamespace: true,
+          ignoreAncestorIds: false,
+        })
+      ).to.deep.equal({
+        orgName: 'Company',
         package2AncestorIds: '',
         connectedAppConsumerKey: '1234',
         connectedAppCallbackUrl: 'http://localhost:1717/OauthRedirect',
