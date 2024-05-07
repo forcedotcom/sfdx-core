@@ -6,18 +6,19 @@
  */
 import { promises as fs } from 'node:fs';
 import { parseJson } from '@salesforce/kit';
-import { ensureString } from '@salesforce/ts-types';
-import { SfProjectJson } from '../sfProject';
-import { WebOAuthServer } from '../webOAuthServer';
-import { Messages } from '../messages';
-import { SfError } from '../sfError';
-import { Org } from './org';
+import { isString } from '@salesforce/ts-types';
+import { SfProjectJson, isPackaged } from '../../sfProject';
+import { WebOAuthServer } from '../../webOAuthServer';
+import { Messages } from '../../messages';
+import { SfError } from '../../sfError';
+import { Org } from '../org';
+import { DEFAULT_CONNECTED_APP_INFO } from '../authInfo';
+import { queryAncestorFromHighest, packageHasAncestorVersion, queryIdFromAncestorVersion } from './ancestorQueries';
 import { ScratchOrgInfo } from './scratchOrgTypes';
 import { ScratchOrgFeatureDeprecation } from './scratchOrgFeatureDeprecation';
-import { DEFAULT_CONNECTED_APP_INFO } from './authInfo';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoGenerator');
+export const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoGenerator');
 
 type PartialScratchOrgInfo = Pick<
   ScratchOrgInfo,
@@ -90,104 +91,60 @@ export const getAncestorIds = async (
     throw new SfError(messages.getMessage('Package2AncestorsIdsKeyNotSupportedError'), 'DeprecationError');
   }
   const packagesWithAncestors = (await projectJson.getPackageDirectories())
+    .filter(isPackaged)
     // check that the package has any ancestor types (id or version)
     .filter((packageDir) => packageDir.ancestorId ?? packageDir.ancestorVersion);
   if (packagesWithAncestors.length === 0) {
     return '';
   }
-  const ancestorIds = await Promise.all(
-    packagesWithAncestors.map(async (packageDir) => {
-      // ancestorID can be 05i, or 04t, alias; OR "ancestorVersion": "4.6.0.1"
-      // according to docs, 05i is not ok: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev2gp_config_file.htm
+  const packageAliases = projectJson.get('packageAliases') as Record<string, string>;
+  const conn = hubOrg.getConnection();
 
-      // package can be an ID, but not according to docs
-      const packageAliases = projectJson.get('packageAliases') as Record<string, string>;
-      const packageId = packageAliases[ensureString(packageDir.package)] ?? packageDir.package;
+  const ancestorIds = (
+    await Promise.all(
+      packagesWithAncestors.map(async (packageDir) => {
+        // ancestorID can be 05i, or 04t, alias; OR "ancestorVersion": "4.6.0.1"
+        // according to docs, 05i is not ok: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev2gp_config_file.htm
 
-      // Handle HIGHEST and NONE in ancestor(Version|Id).
-      // Precedence chain: NONE -> HIGHEST -> ancestorVersion & ancestoryId
-      if (packageDir.ancestorVersion === 'NONE' || packageDir.ancestorId === 'NONE') {
-        return '';
-      } else if (packageDir.ancestorVersion === 'HIGHEST' || packageDir.ancestorId === 'HIGHEST') {
-        const query =
-          'SELECT Id FROM Package2Version ' +
-          `WHERE Package2Id = '${packageId}' AND IsReleased = True AND IsDeprecated = False AND PatchVersion = 0 ` +
-          'ORDER BY MajorVersion Desc, MinorVersion Desc, PatchVersion Desc, BuildNumber Desc LIMIT 1';
-        try {
-          return (await hubOrg.getConnection().singleRecordQuery<{ Id: string }>(query, { tooling: true })).Id;
-        } catch (err) {
-          if (packageDir.ancestorVersion === 'HIGHEST') {
-            throw new SfError(
-              messages.getMessage('NoMatchingAncestorError', [packageDir.ancestorVersion, packageDir.package]),
-              'NoMatchingAncestorError',
-              [messages.getMessage('AncestorNotReleasedError', [packageDir.ancestorVersion])]
-            );
-          } else {
-            throw new SfError(
-              messages.getMessage('NoMatchingAncestorIdError', [packageDir.ancestorId, packageDir.package]),
-              'NoMatchingAncestorIdError',
-              [messages.getMessage('AncestorNotReleasedError', [packageDir.ancestorId])]
-            );
-          }
+        // package can be an ID, but not according to docs
+        const packageId = packageAliases[packageDir.package] ?? packageDir.package;
+
+        // Handle HIGHEST and NONE in ancestor(Version|Id).
+        // Precedence chain: NONE -> HIGHEST -> ancestorVersion & ancestoryId
+        if (packageDir.ancestorVersion === 'NONE' || packageDir.ancestorId === 'NONE') {
+          return undefined;
         }
-      }
-
-      if (packageDir.ancestorVersion) {
-        if (!/^[0-9]+.[0-9]+.[0-9]+(.[0-9]+)?$/.test(packageDir.ancestorVersion)) {
-          throw messages.createError('InvalidAncestorVersionFormatError', [packageDir.ancestorVersion]);
+        if (packageDir.ancestorVersion === 'HIGHEST' || packageDir.ancestorId === 'HIGHEST') {
+          return queryAncestorFromHighest({ packageId, packageDir, conn });
         }
 
-        const [major, minor, patch] = packageDir.ancestorVersion.split('.');
-        let releasedAncestor;
-        try {
-          releasedAncestor = await hubOrg
-            .getConnection()
-            .singleRecordQuery<{ Id: string; IsReleased: boolean }>(
-              `SELECT Id, IsReleased FROM Package2Version WHERE Package2Id = '${packageId}' AND MajorVersion = ${major} AND MinorVersion = ${minor} AND PatchVersion = ${patch} and IsReleased = true`,
-              { tooling: true }
-            );
-        } catch (err) {
-          throw new SfError(
-            messages.getMessage('NoMatchingAncestorError', [packageDir.ancestorVersion, packageDir.package]),
-            'NoMatchingAncestorError',
-            [messages.getMessage('AncestorNotReleasedError', [packageDir.ancestorVersion])]
-          );
-        }
-        if (packageDir.ancestorId && packageDir.ancestorId !== releasedAncestor.Id) {
-          throw messages.createError('AncestorIdVersionMismatchError', [
-            packageDir.ancestorVersion,
-            packageDir.ancestorId,
-          ]);
+        if (packageHasAncestorVersion(packageDir)) {
+          return queryIdFromAncestorVersion({ packageId, packageDir, conn });
         }
 
-        return releasedAncestor.Id;
-      }
-
-      if (packageDir?.ancestorId?.startsWith('05i')) {
-        // if it's already a 05i return it, otherwise query for it
-        return packageDir.ancestorId;
-      }
-      if (packageDir?.ancestorId?.startsWith('04t')) {
-        // query for the Id
-        return (
-          await hubOrg
-            .getConnection()
-            .singleRecordQuery<{ Id: string }>(
+        if (packageDir.ancestorId?.startsWith('05i')) {
+          // if it's already a 05i return it, otherwise query for it
+          return packageDir.ancestorId;
+        }
+        if (packageDir.ancestorId?.startsWith('04t')) {
+          // query for the Id
+          return (
+            await conn.singleRecordQuery<{ Id: string }>(
               `SELECT Id FROM Package2Version WHERE SubscriberPackageVersionId = '${packageDir.ancestorId}'`,
               { tooling: true }
             )
-        ).Id;
-      }
-      // ancestorID can be an alias; get it from projectJson
-      if (packageDir.ancestorId && packageAliases?.[packageDir.ancestorId]) {
-        return packageAliases[packageDir.ancestorId];
-      }
-      throw new SfError(`Invalid ancestorId ${packageDir.ancestorId}`, 'InvalidAncestorId');
-    })
-  );
+          ).Id;
+        }
+        // ancestorID can be an alias; get it from projectJson
+        if (packageDir.ancestorId && packageAliases?.[packageDir.ancestorId]) {
+          return packageAliases[packageDir.ancestorId];
+        }
+        throw new SfError(`Invalid ancestorId ${packageDir.ancestorId}`, 'InvalidAncestorId');
+      })
+    )
+  ).filter(isString); // strip out undefined due to NONE
 
-  // strip out '' due to NONE
-  return Array.from(new Set(ancestorIds.filter((id) => id !== ''))).join(';');
+  return Array.from(new Set(ancestorIds)).join(';');
 };
 
 /**

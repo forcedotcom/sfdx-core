@@ -8,6 +8,11 @@ import { basename, dirname, isAbsolute, normalize, resolve, sep } from 'node:pat
 import * as fs from 'node:fs';
 import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
+import {
+  PackageDir as PackageDirFromSchemas,
+  ProjectJson as ProjectJsonFromSchemas,
+  PackagePackageDir,
+} from '@salesforce/schemas';
 import { SfdcUrl } from './util/sfdcUrl';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
@@ -31,30 +36,7 @@ export type PackageDirDependency = {
   versionNumber?: string;
 };
 
-export type PackageDir = {
-  ancestorId?: string;
-  ancestorVersion?: string;
-  default?: boolean;
-  definitionFile?: string;
-  dependencies?: PackageDirDependency[];
-  includeProfileUserLicenses?: boolean;
-  package?: string;
-  packageMetadataAccess?: {
-    permissionSets: string | string[];
-    permissionSetLicenses: string | string[];
-  };
-  path: string;
-  postInstallScript?: string;
-  postInstallUrl?: string;
-  releaseNotesUrl?: string;
-  scopeProfiles?: boolean;
-  uninstallScript?: string;
-  versionDescription?: string;
-  versionName?: string;
-  versionNumber?: string;
-  unpackagedMetadata?: { path: string };
-  seedMetadata?: { path: string };
-};
+export type PackageDir = PackageDirFromSchemas;
 
 export type NamedPackageDir = PackageDir & {
   /**
@@ -67,16 +49,7 @@ export type NamedPackageDir = PackageDir & {
   fullPath: string;
 };
 
-export type ProjectJson = ConfigContents & {
-  packageDirectories: PackageDir[];
-  namespace?: string;
-  sourceApiVersion?: string;
-  sfdcLoginUrl?: string;
-  signupTargetLoginUrl?: string;
-  oauthLocalPort?: number;
-  plugins?: { [k: string]: unknown };
-  packageAliases?: { [k: string]: string };
-};
+export type ProjectJson = ConfigContents & ProjectJsonFromSchemas;
 
 /**
  * The sfdx-project.json config object. This file determines if a folder is a valid sfdx project.
@@ -335,32 +308,32 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
    * If the package directory already exists, the new directory
    * properties will be merged with the existing properties.
    *
-   * @param packageDir
+   * @param newPackageDir
    */
-  public addPackageDirectory(packageDir: NamedPackageDir): void {
+  public addPackageDirectory(newPackageDir: NamedPackageDir): void {
     // there is no notion of uniqueness in package directory entries
     // so an attempt of matching an existing entry is a bit convoluted
     // an entry w/o a package or id is considered a directory entry for which a package has yet to be created
     // so first attempt is to find a matching dir entry that where path is the same and id and package are not present
     // if that fails, then find a matching dir entry package is present and is same as the new entry
-    const dirIndex = this.getContents().packageDirectories.findIndex((pd) => {
-      const withId = pd as NamedPackageDir & { id: string };
-      return (
-        (withId.path === packageDir.path && !withId.id && !withId.package) ||
-        (!!packageDir.package && packageDir.package === withId.package)
-      );
-    });
+    const dirIndex = this.getContents().packageDirectories.findIndex(
+      (pd) =>
+        // match by path where there is no id/package
+        (pd.path === newPackageDir.path && !('id' in pd) && !('package' in pd)) ||
+        // match by package
+        ('package' in newPackageDir && 'package' in pd && newPackageDir.package === pd.package)
+    );
     // merge new package dir with existing entry, if present
     const packageDirEntry: PackageDir = Object.assign(
       {},
-      dirIndex > -1 ? this.getContents().packageDirectories[dirIndex] : packageDir,
-      packageDir
+      dirIndex > -1 ? this.getContents().packageDirectories[dirIndex] : newPackageDir,
+      newPackageDir
     );
 
     const modifiedPackagesDirs =
       dirIndex > -1
         ? // replace the matching entry with the new entry
-          this.getContents().packageDirectories.map((pd, i) => (i === dirIndex ? packageDir : pd))
+          this.getContents().packageDirectories.map((pd, i) => (i === dirIndex ? newPackageDir : pd))
         : // add the new entry to the end of the list
           [...(this.getContents()?.packageDirectories ?? []), packageDirEntry];
 
@@ -600,7 +573,8 @@ export class SfProject {
    */
   public getPackageNameFromPath(path: string): Optional<string> {
     const packageDir = this.getPackageFromPath(path);
-    return packageDir ? packageDir.package ?? packageDir.path : undefined;
+    if (!packageDir) return undefined;
+    return 'package' in packageDir ? packageDir.package : packageDir.path;
   }
 
   /**
@@ -760,3 +734,5 @@ export class SfProject {
       .map(([key]) => key);
   }
 }
+
+export const isPackaged = (pd: PackageDir | NamedPackageDir): pd is PackagePackageDir => 'package' in pd;
