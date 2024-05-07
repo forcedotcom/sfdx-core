@@ -14,8 +14,8 @@ import { SfError } from '../../sfError';
 import { Org } from '../org';
 import { DEFAULT_CONNECTED_APP_INFO } from '../authInfo';
 import { queryAncestorFromHighest, packageHasAncestorVersion, queryIdFromAncestorVersion } from './ancestorQueries';
-import { ScratchOrgInfo } from './scratchOrgTypes';
-import { ScratchOrgFeatureDeprecation } from './scratchOrgFeatureDeprecation';
+import { ScratchOrgInfo } from './types';
+import { ScratchOrgFeatureDeprecation } from './featureDeprecation';
 
 Messages.importMessagesDirectory(__dirname);
 export const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgInfoGenerator');

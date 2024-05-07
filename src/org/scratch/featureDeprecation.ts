@@ -13,7 +13,7 @@
 import { isString } from '@salesforce/ts-types';
 
 // Local
-import { Messages } from '../messages';
+import { Messages } from '../../messages';
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgFeatureDeprecation');
 const FEATURE_TYPES = {

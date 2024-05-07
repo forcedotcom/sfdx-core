@@ -15,8 +15,8 @@ import { Connection } from '../../../src/org/connection';
 import { AuthInfo } from '../../../src/org/authInfo';
 import { shouldThrow } from '../../../src/testSetup';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
-import SettingsGenerator from '../../../src/org/scratchOrgSettingsGenerator';
-import * as mockForStandaloneFunctions from '../../../src/org/scratchOrgInfoApi';
+import SettingsGenerator from '../../../src/org/scratch/settingsGenerator';
+import * as mockForStandaloneFunctions from '../../../src/org/scratch/scratchOrgInfoApi';
 import {
   authorizeScratchOrg,
   deploySettings,
@@ -24,8 +24,8 @@ import {
   pollForScratchOrgInfo,
   requestScratchOrgCreation,
   resolveUrl,
-} from '../../../src/org/scratchOrgInfoApi';
-import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
+} from '../../../src/org/scratch/scratchOrgInfoApi';
+import { ScratchOrgInfo } from '../../../src/org/scratch/types';
 import { Messages } from '../../../src/messages';
 import { SfError } from '../../../src/sfError';
 

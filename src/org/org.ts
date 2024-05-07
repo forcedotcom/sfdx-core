@@ -38,7 +38,7 @@ import { PollingClient } from '../status/pollingClient';
 import { StatusResult } from '../status/types';
 import { Connection, SingleRecordQueryErrors } from './connection';
 import { AuthFields, AuthInfo } from './authInfo';
-import { scratchOrgCreate, ScratchOrgCreateOptions, ScratchOrgCreateResult } from './scratchOrgCreate';
+import { scratchOrgCreate, ScratchOrgCreateOptions, ScratchOrgCreateResult } from './scratch/scratchOrgCreate';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);

@@ -11,8 +11,8 @@ import { Connection } from '@jsforce/jsforce-node';
 import { Org } from '../../../src/org/org';
 import { AuthInfo } from '../../../src/org/authInfo';
 import { SfProject, SfProjectJson } from '../../../src/sfProject';
-import { scratchOrgCreate, ScratchOrgCreateOptions, scratchOrgResume } from '../../../src/org/scratchOrgCreate';
-import { ScratchOrgCache } from '../../../src/org/scratchOrgCache';
+import { scratchOrgCreate, ScratchOrgCreateOptions, scratchOrgResume } from '../../../src/org/scratch/scratchOrgCreate';
+import { ScratchOrgCache } from '../../../src/org/scratch/scratchOrgCache';
 
 const packageId = '05iB0000000cWwnIAE';
 const packageVersionSubscriberId = '04tB0000000cWwnIAE';

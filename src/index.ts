@@ -96,16 +96,16 @@ export {
   ScratchOrgCreateResult,
   scratchOrgCreate,
   scratchOrgResume,
-} from './org/scratchOrgCreate';
+} from './org/scratch/scratchOrgCreate';
 
-export { ScratchOrgInfo } from './org/scratchOrgTypes';
+export { ScratchOrgInfo } from './org/scratch/types';
 export {
   ScratchOrgLifecycleEvent,
   scratchOrgLifecycleEventName,
   scratchOrgLifecycleStages,
-} from './org/scratchOrgLifecycleEvents';
-export { ScratchOrgCache } from './org/scratchOrgCache';
-export { default as ScratchOrgSettingsGenerator } from './org/scratchOrgSettingsGenerator';
+} from './org/scratch/lifecycle';
+export { ScratchOrgCache } from './org/scratch/scratchOrgCache';
+export { default as ScratchOrgSettingsGenerator } from './org/scratch/settingsGenerator';
 
 // Utility sub-modules
 export * from './util/sfdc';

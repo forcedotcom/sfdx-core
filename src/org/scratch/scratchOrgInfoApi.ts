@@ -10,22 +10,22 @@ import { env, Duration, upperFirst, omit } from '@salesforce/kit';
 import { AnyJson } from '@salesforce/ts-types';
 import { OAuth2Config, SaveResult } from '@jsforce/jsforce-node';
 import { retryDecorator, RetryError } from 'ts-retry-promise';
-import { JwtOAuth2Config } from '../org/authInfo';
-import { Logger } from '../logger/logger';
-import { Messages } from '../messages';
-import { SfError } from '../sfError';
-import { SfdcUrl } from '../util/sfdcUrl';
-import { StatusResult } from '../status/types';
-import { PollingClient } from '../status/pollingClient';
-import { MyDomainResolver } from '../status/myDomainResolver';
-import { Lifecycle } from '../lifecycleEvents';
-import mapKeys from '../util/mapKeys';
-import { AuthInfo } from './authInfo';
-import { Org } from './org';
-import { checkScratchOrgInfoForErrors } from './scratchOrgErrorCodes';
-import SettingsGenerator from './scratchOrgSettingsGenerator';
-import { ScratchOrgInfo } from './scratchOrgTypes';
-import { emit } from './scratchOrgLifecycleEvents';
+import { JwtOAuth2Config } from '../authInfo';
+import { Logger } from '../../logger/logger';
+import { Messages } from '../../messages';
+import { SfError } from '../../sfError';
+import { SfdcUrl } from '../../util/sfdcUrl';
+import { StatusResult } from '../../status/types';
+import { PollingClient } from '../../status/pollingClient';
+import { MyDomainResolver } from '../../status/myDomainResolver';
+import { Lifecycle } from '../../lifecycleEvents';
+import mapKeys from '../../util/mapKeys';
+import { AuthInfo } from '../authInfo';
+import { Org } from '../org';
+import { checkScratchOrgInfoForErrors } from './errorCodes';
+import SettingsGenerator from './settingsGenerator';
+import { ScratchOrgInfo } from './types';
+import { emit } from './lifecycle';
 
 // preserving because it extends a class
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

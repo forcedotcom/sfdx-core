@@ -12,11 +12,11 @@ import { Org } from '../../../src/org/org';
 import { Connection } from '../../../src/org/connection';
 import { validateApiVersion } from '../../../src/util/sfdc';
 import { ZipWriter } from '../../../src/util/zipWriter';
-import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
+import { ScratchOrgInfo } from '../../../src/org/scratch/types';
 import SettingsGenerator, {
   createObjectFileContent,
   createRecordTypeAndBusinessProcessFileContent,
-} from '../../../src/org/scratchOrgSettingsGenerator';
+} from '../../../src/org/scratch/settingsGenerator';
 import { MockTestOrgData, shouldThrow } from '../../../src/testSetup';
 
 const TEMPLATE_SCRATCH_ORG_INFO: ScratchOrgInfo = {
@@ -399,7 +399,7 @@ describe('scratchOrgSettingsGenerator', () => {
       sandbox.restore();
     });
 
-    it('tries to deploy the settings to the org pools untill succeded', async () => {
+    it('tries to deploy the settings to the org pools until succeeded', async () => {
       const scratchDef = {
         ...TEMPLATE_SCRATCH_ORG_INFO,
         settings: {
@@ -505,7 +505,7 @@ describe('scratchOrgSettingsGenerator', () => {
       sandbox.restore();
     });
 
-    it('tries to deploy the settings to the org pools untill timeouts', async () => {
+    it('tries to deploy the settings to the org pools until timeouts', async () => {
       const timeout = 10 * 60 * 1000; // 10 minutes
       const frequency = 1000;
       const settings = new SettingsGenerator();
