@@ -67,7 +67,7 @@
     "pino-abstract-transport": "^1.1.0",
     "pino-pretty": "^10.3.1",
     "proper-lockfile": "^4.1.2",
-    "semver": "^7.6.0",
+    "semver": "^7.6.2",
     "ts-retry-promise": "^0.7.1"
   },
   "devDependencies": {
