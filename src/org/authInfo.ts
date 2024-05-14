@@ -1106,7 +1106,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       this.logger.info(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
       authFields = await oauth2.requestToken(ensure(options.authCode));
     } catch (err) {
-      throw messages.createError('authCodeExchangeError', [(err as Error).message]);
+      const error = SfError.wrap(err);
+      error.message = messages.getMessage('authCodeExchangeError', [error.message]);
+      error.setData(getRedactedErrData(options));
+      throw error;
     }
 
     const { orgId } = parseIdUrl(authFields.id);
@@ -1241,6 +1244,21 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
   }
 }
+
+const getRedactedErrData = (options: JwtOAuth2Config): AnyJson => {
+  const keysToRedact = ['privateKey', 'privateKeyFile', 'authCode', 'refreshToken', 'username', 'clientSecret'];
+  const oauth2OptionsKeys = Object.getOwnPropertyNames(options);
+  return oauth2OptionsKeys.map((k) => {
+    if (keysToRedact.includes(k)) {
+      // @ts-expect-error no index signature with a parameter of type 'string' was found on type JwtOAuth2Config
+      return options[k] ? `${k}:'<REDACTED>'` : `${k}:'<unset>'`;
+    } else if (k === 'clientId') {
+      return options[k] === 'PlatformCLI' ? `${k}:${options[k]}` : `${k}:'<REDACTED>'`;
+    }
+    // @ts-expect-error no index signature with a parameter of type 'string' was found on type JwtOAuth2Config
+    return `${k}:${options[k]}`;
+  });
+};
 
 export namespace AuthInfo {
   /**
