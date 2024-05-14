@@ -1106,8 +1106,20 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       this.logger.info(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
       authFields = await oauth2.requestToken(ensure(options.authCode));
     } catch (err) {
-      const error = SfError.wrap(err);
-      error.message = messages.getMessage('authCodeExchangeError', [error.message]);
+      let error: SfError;
+      let errorMsg: string;
+      if (err instanceof Error) {
+        errorMsg = `${err.name}::${err.message}`;
+        error = SfError.create({
+          message: errorMsg,
+          name: 'AuthCodeExchangeError',
+          cause: err,
+        });
+      } else {
+        error = SfError.wrap(err);
+        errorMsg = error.message;
+      }
+      error.message = messages.getMessage('authCodeExchangeError', [errorMsg]);
       error.setData(getRedactedErrData(options));
       throw error;
     }
