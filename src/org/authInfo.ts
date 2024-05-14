@@ -37,6 +37,7 @@ import { matchesAccessToken, trimTo15 } from '../util/sfdc';
 import { StateAggregator } from '../stateAggregator/stateAggregator';
 import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
+import { filterSecrets } from '../logger/filters';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { OrgConfigProperties } from './orgConfigProperties';
 import { Org, SandboxFields } from './org';
@@ -1106,22 +1107,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       this.logger.info(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
       authFields = await oauth2.requestToken(ensure(options.authCode));
     } catch (err) {
-      let error: SfError;
-      let errorMsg: string;
-      if (err instanceof Error) {
-        errorMsg = `${err.name}::${err.message}`;
-        error = SfError.create({
-          message: errorMsg,
-          name: 'AuthCodeExchangeError',
-          cause: err,
-        });
-      } else {
-        error = SfError.wrap(err);
-        errorMsg = error.message;
-      }
-      error.message = messages.getMessage('authCodeExchangeError', [errorMsg]);
-      error.setData(getRedactedErrData(options));
-      throw error;
+      const msg = err instanceof Error ? `${err.name}::${err.message}` : typeof err === 'string' ? err : 'UNKNOWN';
+      throw SfError.create({
+        message: messages.getMessage('authCodeExchangeError', [msg]),
+        name: 'AuthCodeExchangeError',
+        ...(err instanceof Error ? { cause: err } : {}),
+        data: filterSecrets(options) as JwtOAuth2Config,
+      });
     }
 
     const { orgId } = parseIdUrl(authFields.id);
@@ -1256,21 +1248,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
   }
 }
-
-const getRedactedErrData = (options: JwtOAuth2Config): AnyJson => {
-  const keysToRedact = ['privateKey', 'privateKeyFile', 'authCode', 'refreshToken', 'username', 'clientSecret'];
-  const oauth2OptionsKeys = Object.getOwnPropertyNames(options);
-  return oauth2OptionsKeys.map((k) => {
-    if (keysToRedact.includes(k)) {
-      // @ts-expect-error no index signature with a parameter of type 'string' was found on type JwtOAuth2Config
-      return options[k] ? `${k}:'<REDACTED>'` : `${k}:'<unset>'`;
-    } else if (k === 'clientId') {
-      return options[k] === 'PlatformCLI' ? `${k}:${options[k]}` : `${k}:'<REDACTED>'`;
-    }
-    // @ts-expect-error no index signature with a parameter of type 'string' was found on type JwtOAuth2Config
-    return `${k}:${options[k]}`;
-  });
-};
 
 export namespace AuthInfo {
   /**
