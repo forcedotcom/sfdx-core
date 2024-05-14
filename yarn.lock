@@ -587,10 +587,10 @@
   resolved "https://registry.yarnpkg.com/@salesforce/prettier-config/-/prettier-config-0.0.3.tgz#ba648d4886bb38adabe073dbea0b3a91b3753bb0"
   integrity sha512-hYOhoPTCSYMDYn+U1rlEk16PoBeAJPkrdg4/UtAzupM1mRRJOwEPMG1d7U8DxJFKuXW3DMEYWr2MwAIBDaHmFg==
 
-"@salesforce/schemas@^1.7.0":
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/@salesforce/schemas/-/schemas-1.7.0.tgz#b7e0af3ee414ae7160bce351c0184d77ccb98fe3"
-  integrity sha512-Z0PiCEV55khm0PG+DsnRYCjaDmacNe3HDmsoSm/CSyYvJJm+D5vvkHKN9/PKD/gaRe8XAU836yfamIYFblLINw==
+"@salesforce/schemas@^1.8.1":
+  version "1.8.1"
+  resolved "https://registry.yarnpkg.com/@salesforce/schemas/-/schemas-1.8.1.tgz#4f4181742386db3387b5683ada769c767425a6a1"
+  integrity sha512-7Z6mCvpNNGpfIsMj6vVILfADaCSCI4BiJ7VHkYuy8jryKYdvRXxYu3FOaFFdaonMx0/bH0KZyoj6d92PEKpmGw==
 
 "@salesforce/ts-sinon@^1.4.19":
   version "1.4.19"
