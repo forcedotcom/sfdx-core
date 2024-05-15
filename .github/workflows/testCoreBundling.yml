@@ -35,7 +35,7 @@ jobs:
     with:
       packageName: '@salesforce/core'
       externalProjectGitUrl: ${{ matrix.externalProjectGitUrl }}
-      command: 'yarn test:nuts'
+      command: 'yarn test'
       os: ${{ matrix.os }}
       useCache: false
       preSwapCommands: 'yarn upgrade @jsforce/jsforce-node@latest; npx yarn-deduplicate; yarn install'
