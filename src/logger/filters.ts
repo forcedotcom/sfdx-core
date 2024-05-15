@@ -35,6 +35,7 @@ const FILTERED_KEYS: FilteredKeyDefinition[] = [
   // Any json attribute that contains the words "refresh" and "token" will have the attribute/value hidden
   { name: 'refresh_token', regex: 'refresh[^\'"]*token' },
   { name: 'clientsecret' },
+  { name: 'authcode' },
 ];
 
 const FILTERED_KEYS_FOR_PROCESSING: FilteredKeyForProcessing[] = FILTERED_KEYS.map((key) => ({

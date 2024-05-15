@@ -19,6 +19,7 @@ describe('filters', () => {
   })}`;
   const obj1 = { accessToken: `${sid}`, refreshToken: `${sid}` };
   const obj2 = { key: 'Access Token', value: `${sid}` };
+  const obj3 = { authCode: 'authcode value' };
   const arr1 = [
     { key: 'ACCESS token ', value: `${sid}` },
     { key: 'refresh  TOKEN', value: `${sid}` },
@@ -57,6 +58,14 @@ describe('filters', () => {
     const bigString = JSON.stringify(result);
     expect(bigString).to.not.contain(sid);
     expect(bigString).to.contain('REDACTED ACCESS TOKEN');
+  });
+
+  it('filters obj3 correctly', () => {
+    const result = getUnwrapped(obj3);
+    assert(result);
+    const bigString = JSON.stringify(result);
+    expect(bigString).to.not.contain('authCode value');
+    expect(bigString).to.contain('authcode - HIDDEN');
   });
 
   it('filters arr1 correctly', () => {
