@@ -1108,11 +1108,12 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       authFields = await oauth2.requestToken(ensure(options.authCode));
     } catch (err) {
       const msg = err instanceof Error ? `${err.name}::${err.message}` : typeof err === 'string' ? err : 'UNKNOWN';
+      const redacted = filterSecrets(options);
       throw SfError.create({
         message: messages.getMessage('authCodeExchangeError', [msg]),
         name: 'AuthCodeExchangeError',
         ...(err instanceof Error ? { cause: err } : {}),
-        data: getRedactedErrData(options),
+        data: (isArray(redacted) ? redacted[0] : redacted) as JwtOAuth2Config,
       });
     }
 
@@ -1248,17 +1249,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
   }
 }
-
-const getRedactedErrData = (options: JwtOAuth2Config): AnyJson => {
-  const filteredData = filterSecrets(options) as JwtOAuth2Config;
-  // we need an object but it probably returned an array
-  const fData = (isArray(filteredData) ? filteredData[0] : filteredData) as JwtOAuth2Config;
-
-  if (fData?.clientId?.trim() !== 'PlatformCLI') {
-    fData.clientId = '<REDACTED CLIENT ID>';
-  }
-  return fData;
-};
 
 export namespace AuthInfo {
   /**
