@@ -1,3 +1,12 @@
+## [7.3.7](https://github.com/forcedotcom/sfdx-core/compare/7.3.6...7.3.7) (2024-05-16)
+
+
+### Bug Fixes
+
+* add oauth options data to auth code exchange errors ([#1068](https://github.com/forcedotcom/sfdx-core/issues/1068)) ([ea859ed](https://github.com/forcedotcom/sfdx-core/commit/ea859edee8f6ff8b068433d66bd9606f1278b776))
+
+
+
 ## [7.3.6](https://github.com/forcedotcom/sfdx-core/compare/7.3.5...7.3.6) (2024-05-12)
 
 
