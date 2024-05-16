@@ -61,6 +61,11 @@ const replacementFunctions = FILTERED_KEYS_FOR_PROCESSING.flatMap(
     input
       .replace(new RegExp(accessTokenRegex, 'g'), '<REDACTED ACCESS TOKEN>')
       .replace(new RegExp(sfdxAuthUrlRegex, 'g'), '<REDACTED AUTH URL TOKEN>'),
+  // conditional replacement for clientId: leave the value if it's the Platform CLI, otherwise redact it
+  (input: string): string =>
+    input.replace(/(['"]client.*Id['"])\s*:\s*(['"][^'"]*['"])/gi, (all, key: string, value: string) =>
+      value.includes('Platform CLI') ? `${key}:${value}` : `${key}:"<REDACTED CLIENT ID>"`
+    ),
 ]);
 
 const fullReplacementChain = compose(...replacementFunctions);
