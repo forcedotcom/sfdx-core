@@ -35,6 +35,7 @@ import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { matchesAccessToken, trimTo15 } from '../util/sfdc';
 import { StateAggregator } from '../stateAggregator/stateAggregator';
+import { filterSecrets } from '../logger/filters';
 import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
@@ -1106,7 +1107,14 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       this.logger.info(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
       authFields = await oauth2.requestToken(ensure(options.authCode));
     } catch (err) {
-      throw messages.createError('authCodeExchangeError', [(err as Error).message]);
+      const msg = err instanceof Error ? `${err.name}::${err.message}` : typeof err === 'string' ? err : 'UNKNOWN';
+      const redacted = filterSecrets(options);
+      throw SfError.create({
+        message: messages.getMessage('authCodeExchangeError', [msg]),
+        name: 'AuthCodeExchangeError',
+        ...(err instanceof Error ? { cause: err } : {}),
+        data: (isArray(redacted) ? redacted[0] : redacted) as JwtOAuth2Config,
+      });
     }
 
     const { orgId } = parseIdUrl(authFields.id);
