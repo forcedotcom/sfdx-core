@@ -134,18 +134,18 @@ describe('filters', () => {
     });
     describe('clientId', () => {
       it('default connected app', () => {
-        const input = { clientId: 'Platform CLI' };
+        const input = { clientId: 'PlatformCLI' };
         const result = getUnwrapped(input);
         expect(result).to.deep.equal(input);
       });
       it('default connected app (case insensitive)', () => {
-        const input = { ClientID: 'Platform CLI' };
+        const input = { ClientID: 'PlatformCLI' };
         const result = getUnwrapped(input);
         expect(result).to.deep.equal(input);
       });
       it('default connected app (case insensitive)', () => {
         // eslint-disable-next-line camelcase
-        const input = { client_id: 'Platform CLI' };
+        const input = { client_id: 'PlatformCLI' };
         const result = getUnwrapped(input);
         expect(result).to.deep.equal(input);
       });
