@@ -73,6 +73,7 @@ describe('filters', () => {
     });
 
     it('filters clientId correctly (separator)', () => {
+      // eslint-disable-next-line camelcase
       const result = getUnwrapped({ Client_Id: 'clientIdValue' });
       assert(result);
       const bigString = JSON.stringify(result);
@@ -143,6 +144,7 @@ describe('filters', () => {
         expect(result).to.deep.equal(input);
       });
       it('default connected app (case insensitive)', () => {
+        // eslint-disable-next-line camelcase
         const input = { client_id: 'Platform CLI' };
         const result = getUnwrapped(input);
         expect(result).to.deep.equal(input);
