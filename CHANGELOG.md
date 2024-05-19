@@ -1,3 +1,12 @@
+## [7.3.9](https://github.com/forcedotcom/sfdx-core/compare/7.3.8...7.3.9) (2024-05-19)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/schemas from 1.7.0 to 1.9.0 ([0e3e42d](https://github.com/forcedotcom/sfdx-core/commit/0e3e42daf8d7bc0b03db32763a00963a84bb8854))
+
+
+
 ## [7.3.8](https://github.com/forcedotcom/sfdx-core/compare/7.3.7...7.3.8) (2024-05-16)
 
 
