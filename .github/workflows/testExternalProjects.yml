@@ -85,6 +85,3 @@ jobs:
           max_attempts: ${{ inputs.attempts }}
           command: yarn test
           retry_on: error
-        env:
-          SF_DISABLE_TELEMETRY: true
-          DEBUG: ${{ vars.DEBUG }}

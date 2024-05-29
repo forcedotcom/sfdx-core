@@ -22,11 +22,15 @@ jobs:
       branch: ${{ inputs.branch }}
       nodeVersion: ${{ inputs.nodeVersion }}
   publish:
+    needs: bundle
     runs-on: ubuntu-latest
     steps:
-    - name: Publish a Package
-      run: |
-        npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
-        npm publish
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+      - name: Publish a Package
+        run: |
+          npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
