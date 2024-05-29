@@ -22,6 +22,8 @@ jobs:
         with:
           cache: yarn
       - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
+        with:
+          ignore-scripts: true
       - run: yarn build
       - run: npm run test:perf | tee test/perf/output.txt
 

@@ -1,3 +1,30 @@
+## [7.3.9](https://github.com/forcedotcom/sfdx-core/compare/7.3.8...7.3.9) (2024-05-19)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/schemas from 1.7.0 to 1.9.0 ([0e3e42d](https://github.com/forcedotcom/sfdx-core/commit/0e3e42daf8d7bc0b03db32763a00963a84bb8854))
+
+
+
+## [7.3.8](https://github.com/forcedotcom/sfdx-core/compare/7.3.7...7.3.8) (2024-05-16)
+
+
+### Bug Fixes
+
+* use PlatformCLI not Platform CLI ([#1073](https://github.com/forcedotcom/sfdx-core/issues/1073)) ([281488f](https://github.com/forcedotcom/sfdx-core/commit/281488fb91620a2af062a8c8822fda5b909951a3))
+
+
+
+## [7.3.7](https://github.com/forcedotcom/sfdx-core/compare/7.3.6...7.3.7) (2024-05-16)
+
+
+### Bug Fixes
+
+* add oauth options data to auth code exchange errors ([#1068](https://github.com/forcedotcom/sfdx-core/issues/1068)) ([ea859ed](https://github.com/forcedotcom/sfdx-core/commit/ea859edee8f6ff8b068433d66bd9606f1278b776))
+
+
+
 ## [7.3.6](https://github.com/forcedotcom/sfdx-core/compare/7.3.5...7.3.6) (2024-05-12)
 
 

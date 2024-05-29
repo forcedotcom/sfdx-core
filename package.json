@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "7.3.6",
+  "version": "7.3.9",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/index",
   "types": "lib/index.d.ts",
@@ -54,7 +54,7 @@
   "dependencies": {
     "@jsforce/jsforce-node": "^3.2.0",
     "@salesforce/kit": "^3.1.1",
-    "@salesforce/schemas": "^1.7.0",
+    "@salesforce/schemas": "^1.9.0",
     "@salesforce/ts-types": "^2.0.9",
     "ajv": "^8.13.0",
     "change-case": "^4.1.2",

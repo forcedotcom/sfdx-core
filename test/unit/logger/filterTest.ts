@@ -17,18 +17,6 @@ describe('filters', () => {
     // eslint-disable-next-line camelcase
     access_token: sid,
   })}`;
-  const obj1 = { accessToken: `${sid}`, refreshToken: `${sid}` };
-  const obj2 = { key: 'Access Token', value: `${sid}` };
-  const arr1 = [
-    { key: 'ACCESS token ', value: `${sid}` },
-    { key: 'refresh  TOKEN', value: `${sid}` },
-    { key: 'Sfdx Auth Url', value: `${sid}` },
-  ];
-  const arr2 = [
-    { key: ' AcCESS 78token', value: ` ${sid} ` },
-    { key: ' refresh  _TOKEn ', value: ` ${sid} ` },
-    { key: ' SfdX__AuthUrl  ', value: ` ${sid} ` },
-  ];
 
   it(`filters ${simpleString} correctly`, () => {
     const result = getUnwrapped(simpleString);
@@ -42,8 +30,8 @@ describe('filters', () => {
     expect(result).to.contain('REDACTED ACCESS TOKEN');
   });
 
-  it('filters obj1 correctly', () => {
-    const result = getUnwrapped(obj1);
+  it('filters regular object correctly', () => {
+    const result = getUnwrapped({ accessToken: `${sid}`, refreshToken: `${sid}` });
     assert(result);
     const bigString = JSON.stringify(result);
     expect(bigString).to.not.contain(sid);
@@ -51,16 +39,55 @@ describe('filters', () => {
     expect(bigString).to.contain('refresh_token - HIDDEN');
   });
 
-  it('filters obj2 correctly', () => {
-    const result = getUnwrapped(obj2);
+  it('filters key/value object correctly', () => {
+    const result = getUnwrapped({ key: 'Access Token', value: `${sid}` });
     assert(result);
     const bigString = JSON.stringify(result);
     expect(bigString).to.not.contain(sid);
     expect(bigString).to.contain('REDACTED ACCESS TOKEN');
   });
 
-  it('filters arr1 correctly', () => {
-    const result = getUnwrapped(arr1);
+  it('filters auth code correctly', () => {
+    const result = getUnwrapped({ authCode: 'authcode value' });
+    assert(result);
+    const bigString = JSON.stringify(result);
+    expect(bigString).to.not.contain('authCode value');
+    expect(bigString).to.contain('authcode - HIDDEN');
+  });
+
+  describe('client id', () => {
+    it('filters clientId correctly', () => {
+      const result = getUnwrapped({ clientId: 'clientIdValue' });
+      assert(result);
+      const bigString = JSON.stringify(result);
+      expect(bigString).to.not.contain('clientIdValue');
+      expect(bigString).to.contain('REDACTED CLIENT ID');
+    });
+
+    it('filters clientId correctly (case insensitive)', () => {
+      const result = getUnwrapped({ ClientId: 'clientIdValue' });
+      assert(result);
+      const bigString = JSON.stringify(result);
+      expect(bigString).to.not.contain('clientIdValue');
+      expect(bigString).to.contain('REDACTED CLIENT ID');
+    });
+
+    it('filters clientId correctly (separator)', () => {
+      // eslint-disable-next-line camelcase
+      const result = getUnwrapped({ Client_Id: 'clientIdValue' });
+      assert(result);
+      const bigString = JSON.stringify(result);
+      expect(bigString).to.not.contain('clientIdValue');
+      expect(bigString).to.contain('REDACTED CLIENT ID');
+    });
+  });
+
+  it('filters array correctly', () => {
+    const result = getUnwrapped([
+      { key: 'ACCESS token ', value: `${sid}` },
+      { key: 'refresh  TOKEN', value: `${sid}` },
+      { key: 'Sfdx Auth Url', value: `${sid}` },
+    ]);
     assert(result);
     assert(Array.isArray(result));
     const bigString = JSON.stringify(result);
@@ -70,8 +97,12 @@ describe('filters', () => {
     expect(bigString).to.contain('refresh_token - HIDDEN');
   });
 
-  it('filters arr2 correctly', () => {
-    const result = getUnwrapped(arr2);
+  it('filters another array correctly', () => {
+    const result = getUnwrapped([
+      { key: ' AcCESS 78token', value: ` ${sid} ` },
+      { key: ' refresh  _TOKEn ', value: ` ${sid} ` },
+      { key: ' SfdX__AuthUrl  ', value: ` ${sid} ` },
+    ]);
     assert(result);
     assert(Array.isArray(result));
     const bigString = JSON.stringify(result);
@@ -100,6 +131,24 @@ describe('filters', () => {
       const result = getUnwrapped(input);
       expect(result).to.have.property('foo', 'bar');
       expect(result).to.have.property('accessToken').contains('REDACTED ACCESS TOKEN');
+    });
+    describe('clientId', () => {
+      it('default connected app', () => {
+        const input = { clientId: 'PlatformCLI' };
+        const result = getUnwrapped(input);
+        expect(result).to.deep.equal(input);
+      });
+      it('default connected app (case insensitive)', () => {
+        const input = { ClientID: 'PlatformCLI' };
+        const result = getUnwrapped(input);
+        expect(result).to.deep.equal(input);
+      });
+      it('default connected app (case insensitive)', () => {
+        // eslint-disable-next-line camelcase
+        const input = { client_id: 'PlatformCLI' };
+        const result = getUnwrapped(input);
+        expect(result).to.deep.equal(input);
+      });
     });
   });
 });
