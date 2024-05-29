@@ -6,37 +6,33 @@ on:
     inputs:
       branch:
         description: 'Set the branch to bundle core'
-        required: false
         type: string
+        required: false
+        default: main
       nodeVersion:
         description: version of node to use.  It's better to specify latest, lts/* or lts/-1 than to hardode numbers
         type: string
-        default: lts/*
         required: false
+        default: lts/*
 
 jobs:
   bundle:
     uses: ./.github/workflows/bundle.yml
-    secrets: inherit
     with:
-      branch: ${{ inputs.branch }}
+      branch: ${{ github.ref_name || inputs.branch }}
       nodeVersion: ${{ inputs.nodeVersion }}
-  xNuts:
+  tests:
     needs: bundle
-    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
+    uses: ./.github/workflows/testExternalProjects.yml
     secrets: inherit
     strategy:
       fail-fast: false
       matrix:
         os: ['ubuntu-latest', 'windows-latest']
-        externalProjectGitUrl:
-          - https://github.com/forcedotcom/salesforcedx-templates
-          - https://github.com/forcedotcom/salesforcedx-apex
+        externalProjectGit:
+          - forcedotcom/salesforcedx-templates
+          - forcedotcom/salesforcedx-apex
     with:
-      packageName: '@salesforce/core'
-      externalProjectGitUrl: ${{ matrix.externalProjectGitUrl }}
-      command: 'yarn test'
+      externalProjectGit: ${{ matrix.externalProjectGit }}
       os: ${{ matrix.os }}
-      useCache: false
-      preSwapCommands: 'yarn upgrade @jsforce/jsforce-node@latest; npx yarn-deduplicate; yarn install'
-      preExternalBuildCommands: 'shx rm -rf node_modules/@salesforce/core/node_modules/@jsforce/jsforce-node shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core node_modules/@salesforce/cli-plugins-testkit/node_modules/@salesforce/core node_modules/@salesforce/source-tracking/node_modules/@salesforce/core node_modules/@salesforce/source-deploy-retrieve/node_modules/@salesforce/core node_modules/@salesforce/apex-node/node_modules/@salesforce/core'
+      bundledBranch: ${{ github.ref_name || inputs.branch }}

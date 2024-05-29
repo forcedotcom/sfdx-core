@@ -1,0 +1,92 @@
+name: Test External Projects
+on:
+  workflow_call:
+    inputs:
+      externalProjectGit:
+        description: 'The url that will be cloned.  This contains the tests you want to run.  Ex: https://github.com/forcedotcom/templates'
+        type: string
+        required: true
+      nodeVersion:
+        required: false
+        description: version of node to run tests against.  Use things like [lts/-1, lts/*, latest] to avoid hardcoding versions
+        type: string
+        default: lts/*
+      os:
+        required: false
+        description: 'runs-on property, ex: ubuntu-latest, windows-latest'
+        type: string
+        default: 'ubuntu-latest'
+      attempts:
+        required: false
+        type: number
+        default: 3
+      bundledBranch:
+        required: false
+        description: Branch with the bundled version of core"
+        type: string
+        default: 'main'
+
+jobs:
+  external-test:
+    name: run tests
+    runs-on: ${{ inputs.os }}
+    steps:
+      - name: Configure Git to handle long file paths on Windows
+        if: ${{ runner.os == 'Windows' }}
+        run: git config --system core.longpaths true
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.nodeVersion }}
+      - name: Checkout to external project
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.externalProjectGit }}
+      - name: Swap this dependency for the bundled version
+        run: |
+          yarn install  --network-timeout 600000
+          yarn remove @salesforce/core
+          yarn add forcedotcom/sfdx-core#${{ inputs.bundledBranch }}
+      - name: Add dependencies to bundle node_modules
+        run: |
+          yarn install  --network-timeout 600000
+          yarn add -D esbuild@^0.19.5 esbuild-plugin-pino@^2.1.0 npm-dts@^1.3.12 esbuild-plugin-tsc@^0.4.0
+        working-directory: node_modules/@salesforce/core
+      - name: Update for bundling
+        run: node scripts/updateForBundling.js
+        working-directory: node_modules/@salesforce/core
+      - name: Generate Bundle
+        run: |
+          yarn build
+          node scripts/build.js
+        working-directory: node_modules/@salesforce/core
+      - name: Post Bundling Update
+        run: |
+          node scripts/postBundlingUpdate.js
+        working-directory: node_modules/@salesforce/core
+      - name: Yarn deduplicate
+        run: |
+          npx yarn-deduplicate
+      - name: Retrieve Scripts
+        run: |
+          git clone https://github.com/forcedotcom/bundle-publish-scripts.git
+      - name: Update references for core bundle
+        run: |
+          node bundle-publish-scripts/scripts/updateForCoreBundle.js
+      - name: Update folder name
+        run: |
+          mv core core-bundle
+        working-directory: node_modules/@salesforce
+      - name: Remove scripts
+        run: rm -rf ./bundle-publish-scripts
+      - name: Build the external project (where the tests are)
+        run: yarn build
+      - name: Run tests with ${{ inputs.attempts }} attempts
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: ${{ inputs.attempts }}
+          command: yarn test
+          retry_on: error
+        env:
+          SF_DISABLE_TELEMETRY: true
+          DEBUG: ${{ vars.DEBUG }}
