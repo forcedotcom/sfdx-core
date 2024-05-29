@@ -77,8 +77,6 @@ jobs:
         run: |
           mv core core-bundle
         working-directory: node_modules/@salesforce
-      - name: Remove scripts
-        run: rm -rf ./bundle-publish-scripts
       - name: Build the external project (where the tests are)
         run: yarn build
       - name: Run tests with ${{ inputs.attempts }} attempts
