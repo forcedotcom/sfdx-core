@@ -1,6 +1,11 @@
 name: esbuild Compilation & npm Publish Workflow
 
 on:
+  workflow_run:
+    workflows:
+      - create-github-release
+    types:
+      - completed
   workflow_dispatch:
     inputs:
       branch:
@@ -16,18 +21,19 @@ on:
 
 jobs:
   bundle:
+    if: ${{ inputs.branch || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')}}
     uses: ./.github/workflows/bundle.yml
     secrets: inherit
     with:
-      branch: ${{ inputs.branch }}
-      nodeVersion: ${{ inputs.nodeVersion }}
+      branch: ${{ inputs.branch || 'main' }}
+      nodeVersion: ${{ inputs.nodeVersion || 'lts/*'}}
   publish:
     needs: bundle
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.branch }}
+          ref: ${{ inputs.branch || 'main' }}
       - name: Publish a Package
         run: |
           npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
