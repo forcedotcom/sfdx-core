@@ -60,18 +60,18 @@
     "change-case": "^4.1.2",
     "faye": "^1.4.0",
     "form-data": "^4.0.0",
-    "js2xmlparser": "^4.0.1",
+    "js2xmlparser": "^5.0.0",
     "jsonwebtoken": "9.0.2",
     "jszip": "3.10.1",
-    "pino": "^8.21.0",
+    "pino": "^9.1.0",
     "pino-abstract-transport": "^1.2.0",
-    "pino-pretty": "^10.3.1",
+    "pino-pretty": "^11.1.0",
     "proper-lockfile": "^4.1.2",
     "semver": "^7.6.2",
     "ts-retry-promise": "^0.8.1"
   },
   "devDependencies": {
-    "@salesforce/dev-scripts": "^8.5.0",
+    "@salesforce/dev-scripts": "^9.1.2",
     "@salesforce/ts-sinon": "^1.4.19",
     "@types/benchmark": "^2.1.5",
     "@types/chai-string": "^1.4.5",
@@ -81,7 +81,7 @@
     "benchmark": "^2.1.4",
     "chai-string": "^1.5.0",
     "ts-node": "^10.9.2",
-    "ts-patch": "^3.1.1",
+    "ts-patch": "^3.1.2",
     "typescript": "^5.4.5"
   },
   "repository": {
