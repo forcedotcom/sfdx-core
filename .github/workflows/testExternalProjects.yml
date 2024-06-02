@@ -29,6 +29,7 @@ on:
 jobs:
   external-test:
     name: run tests
+    if: ${{ inputs.externalProjectGit == 'forcedotcom/salesforcedx-apex' || (inputs.externalProjectGit == 'forcedotcom/salesforcedx-templates' && inputs.os == 'ubuntu-latest') }}
     runs-on: ${{ inputs.os }}
     steps:
       - name: Configure Git to handle long file paths on Windows
