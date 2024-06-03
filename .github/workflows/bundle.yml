@@ -1,18 +1,11 @@
-name: esbuild Compilation & npm Publish Workflow
-
+name: Bundle
 on:
-  workflow_run:
-    workflows:
-      - create-github-release
-    types:
-      - completed
-  workflow_dispatch:
+  workflow_call:
     inputs:
       branch:
-        description: 'Set the branch to use for automation tests'
-        type: string
+        description: 'Set the branch to bundle core'
         required: false
-        default: 'main'
+        type: string
       nodeVersion:
         description: version of node to use.  It's better to specify latest, lts/* or lts/-1 than to hardode numbers
         type: string
@@ -22,7 +15,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ inputs.branch || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')}}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,9 +39,3 @@ jobs:
       - name: Post Bundling Update
         run: |
           node scripts/postBundlingUpdate.js
-      - name: Publish a Package
-        run: |
-          npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
-          npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
