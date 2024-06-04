@@ -1,3 +1,12 @@
+## [7.3.10](https://github.com/forcedotcom/sfdx-core/compare/7.3.9...7.3.10) (2024-06-04)
+
+
+### Bug Fixes
+
+* **deps:** bump ajv from 8.14.0 to 8.15.0 ([66208eb](https://github.com/forcedotcom/sfdx-core/commit/66208eb96499848030d960239bad99a6048d180d))
+
+
+
 ## [7.3.9](https://github.com/forcedotcom/sfdx-core/compare/7.3.8...7.3.9) (2024-05-19)
 
 
