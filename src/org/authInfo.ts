@@ -38,6 +38,7 @@ import { StateAggregator } from '../stateAggregator/stateAggregator';
 import { filterSecrets } from '../logger/filters';
 import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
+import { findSuggestion } from '../util/findSuggestion';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { OrgConfigProperties } from './orgConfigProperties';
 import { Org, SandboxFields } from './org';
@@ -813,7 +814,16 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
     // If a username with NO oauth options, ensure authorization already exist.
     else if (username && !authOptions && !(await this.stateAggregator.orgs.exists(username))) {
-      throw messages.createError('namedOrgNotFound', [username]);
+      throw SfError.create({
+        name: 'NamedOrgNotFoundError',
+        message: messages.getMessage('namedOrgNotFound', [username]),
+        actions: [
+          `It looks like you mistyped the username or alias. Did you mean "${findSuggestion(username, [
+            ...(await this.stateAggregator.orgs.list()).map((f) => f.split('.json')[0]),
+            ...Object.keys(this.stateAggregator.aliases.getAll()),
+          ])}"?`,
+        ],
+      });
     } else {
       await this.initAuthOptions(authOptions);
     }

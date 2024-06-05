@@ -31,6 +31,8 @@ import { OrgAccessor } from '../../../src/stateAggregator/accessors/orgAccessor'
 import { Crypto } from '../../../src/crypto/crypto';
 import { Config } from '../../../src/config/config';
 import { SfdcUrl } from '../../../src/util/sfdcUrl';
+import * as suggestion from '../../../src/util/findSuggestion';
+import { SfError } from '../../../src';
 
 class AuthInfoMockOrg extends MockTestOrgData {
   public privateKey = 'authInfoTest/jwt/server.key';
@@ -2083,11 +2085,16 @@ describe('AuthInfo No fs mock', () => {
 
   it('invalid devhub username', async () => {
     const expectedErrorName = 'NamedOrgNotFoundError';
+    stubMethod($$.SANDBOX, suggestion, 'findSuggestion').returns('doe_not_exist@gb.com');
     try {
       await shouldThrow(AuthInfo.create({ username: 'does_not_exist@gb.com', isDevHub: true }));
     } catch (e) {
       expect(e).to.have.property('name', expectedErrorName);
       expect(e).to.have.property('message', 'No authorization information found for does_not_exist@gb.com.');
+      expect(e).to.have.property('actions');
+      expect((e as SfError).actions).to.deep.equal([
+        'It looks like you mistyped the username or alias. Did you mean "doe_not_exist@gb.com"?',
+      ]);
     }
   });
 });
