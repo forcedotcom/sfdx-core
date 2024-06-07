@@ -1,3 +1,12 @@
+## [7.3.12](https://github.com/forcedotcom/sfdx-core/compare/7.3.11...7.3.12) (2024-06-07)
+
+
+### Bug Fixes
+
+* non-reference clone of transferred listeners ([#1080](https://github.com/forcedotcom/sfdx-core/issues/1080)) ([f5b2b02](https://github.com/forcedotcom/sfdx-core/commit/f5b2b02c77ffc572f25d39f663126eca977cb29b))
+
+
+
 ## [7.3.11](https://github.com/forcedotcom/sfdx-core/compare/7.3.10...7.3.11) (2024-06-07)
 
 
