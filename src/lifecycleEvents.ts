@@ -16,6 +16,8 @@ import { Logger } from './logger/logger';
 // Data of any type can be passed to the callback. Can be cast to any type that is given in emit().
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type callback = (data: any) => Promise<void>;
+type ListenerMap = Map<string, callback>;
+type UniqueListenerMap = Map<string, ListenerMap>;
 
 declare const global: {
   salesforceCoreLifecycle?: Lifecycle;
@@ -89,8 +91,11 @@ export class Lifecycle {
     ) {
       const oldInstance = global.salesforceCoreLifecycle;
       // use the newer version and transfer any listeners from the old version
-      // object spread keeps them from being references
-      global.salesforceCoreLifecycle = new Lifecycle({ ...oldInstance.listeners }, oldInstance.uniqueListeners);
+      // object spread and the clone fn keep them from being references
+      global.salesforceCoreLifecycle = new Lifecycle(
+        { ...oldInstance.listeners },
+        cloneUniqueListeners(oldInstance.uniqueListeners)
+      );
       // clean up any listeners on the old version
       Object.keys(oldInstance.listeners).map((eventName) => {
         oldInstance.removeAllListeners(eventName);
@@ -176,7 +181,7 @@ export class Lifecycle {
     if (uniqueListenerIdentifier) {
       if (!this.uniqueListeners.has(eventName)) {
         // nobody is listening to the event yet
-        this.uniqueListeners.set(eventName, new Map<string, callback>([[uniqueListenerIdentifier, cb]]));
+        this.uniqueListeners.set(eventName, new Map([[uniqueListenerIdentifier, cb]]));
       } else if (!this.uniqueListeners.get(eventName)?.has(uniqueListenerIdentifier)) {
         // the unique listener identifier is not already registered
         this.uniqueListeners.get(eventName)?.set(uniqueListenerIdentifier, cb);
@@ -231,3 +236,7 @@ export class Lifecycle {
     }
   }
 }
+
+const cloneListeners: (listeners: ListenerMap) => ListenerMap = (listeners) => new Map(Array.from(listeners.entries()));
+const cloneUniqueListeners = (uniqueListeners: UniqueListenerMap): UniqueListenerMap =>
+  new Map(Array.from(uniqueListeners.entries()).map(([key, value]) => [key, cloneListeners(value)]));
