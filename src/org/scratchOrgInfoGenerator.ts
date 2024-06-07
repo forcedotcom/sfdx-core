@@ -7,7 +7,7 @@
 import { promises as fs } from 'node:fs';
 import { parseJson } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
-import { SfProjectJson } from '../sfProject';
+import { SfProjectJson, isPackagingDirectory } from '../sfProject';
 import { WebOAuthServer } from '../webOAuthServer';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
@@ -90,6 +90,7 @@ export const getAncestorIds = async (
     throw new SfError(messages.getMessage('Package2AncestorsIdsKeyNotSupportedError'), 'DeprecationError');
   }
   const packagesWithAncestors = (await projectJson.getPackageDirectories())
+    .filter(isPackagingDirectory)
     // check that the package has any ancestor types (id or version)
     .filter((packageDir) => packageDir.ancestorId ?? packageDir.ancestorVersion);
   if (packagesWithAncestors.length === 0) {
