@@ -814,15 +814,18 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
     // If a username with NO oauth options, ensure authorization already exist.
     else if (username && !authOptions && !(await this.stateAggregator.orgs.exists(username))) {
+      const likeName = findSuggestion(username, [
+        ...(await this.stateAggregator.orgs.list()).map((f) => f.split('.json')[0]),
+        ...Object.keys(this.stateAggregator.aliases.getAll()),
+      ]);
+
       throw SfError.create({
         name: 'NamedOrgNotFoundError',
         message: messages.getMessage('namedOrgNotFound', [username]),
-        actions: [
-          `It looks like you mistyped the username or alias. Did you mean "${findSuggestion(username, [
-            ...(await this.stateAggregator.orgs.list()).map((f) => f.split('.json')[0]),
-            ...Object.keys(this.stateAggregator.aliases.getAll()),
-          ])}"?`,
-        ],
+        actions:
+          likeName === ''
+            ? undefined
+            : [`It looks like you mistyped the username or alias. Did you mean "${likeName}"?`],
       });
     } else {
       await this.initAuthOptions(authOptions);
