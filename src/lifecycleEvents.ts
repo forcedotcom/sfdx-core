@@ -15,9 +15,9 @@ import { Logger } from './logger/logger';
 
 // Data of any type can be passed to the callback. Can be cast to any type that is given in emit().
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type callback = (data: any) => Promise<void>;
+export type callback = (data: any) => Promise<void>;
 type ListenerMap = Map<string, callback>;
-type UniqueListenerMap = Map<string, ListenerMap>;
+export type UniqueListenerMap = Map<string, ListenerMap>;
 
 declare const global: {
   salesforceCoreLifecycle?: Lifecycle;
@@ -51,7 +51,7 @@ export class Lifecycle {
 
   private constructor(
     private readonly listeners: Dictionary<callback[]> = {},
-    private readonly uniqueListeners: Map<string, Map<string, callback>> = new Map<string, Map<string, callback>>()
+    private readonly uniqueListeners: UniqueListenerMap = new Map<string, Map<string, callback>>()
   ) {}
 
   /**
@@ -238,5 +238,5 @@ export class Lifecycle {
 }
 
 const cloneListeners: (listeners: ListenerMap) => ListenerMap = (listeners) => new Map(Array.from(listeners.entries()));
-const cloneUniqueListeners = (uniqueListeners: UniqueListenerMap): UniqueListenerMap =>
+export const cloneUniqueListeners = (uniqueListeners: UniqueListenerMap): UniqueListenerMap =>
   new Map(Array.from(uniqueListeners.entries()).map(([key, value]) => [key, cloneListeners(value)]));
