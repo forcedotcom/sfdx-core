@@ -1,3 +1,12 @@
+## [7.3.11](https://github.com/forcedotcom/sfdx-core/compare/7.3.10...7.3.11) (2024-06-07)
+
+
+### Bug Fixes
+
+* add a did you mean action to AuthInfo ([#1079](https://github.com/forcedotcom/sfdx-core/issues/1079)) ([da5483e](https://github.com/forcedotcom/sfdx-core/commit/da5483e7bbbdd1837f313d168fe5aeaa5e5ec016))
+
+
+
 ## [7.3.10](https://github.com/forcedotcom/sfdx-core/compare/7.3.9...7.3.10) (2024-06-04)
 
 
