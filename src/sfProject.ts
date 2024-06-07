@@ -725,7 +725,7 @@ export class SfProject {
   }
 }
 
-/** differentiate between the Base PackageDir (path, maybe default) and the Packaging version (path) by whether is has the `package` property */
+/** differentiate between the Base PackageDir (path, maybe default) and the Packaging version (package and maybe a LOT of other fields) by whether is has the `package` property */
 export const isPackagingDirectory = (packageDir: PackageDir): packageDir is PackagePackageDir =>
   'package' in packageDir && typeof packageDir.package === 'string';
 export const isNamedPackagingDirectory = (packageDir: NamedPackageDir): packageDir is NamedPackagingDir =>
