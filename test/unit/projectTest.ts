@@ -8,11 +8,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 import { join, sep } from 'node:path';
-import { expect } from 'chai';
+import { expect, assert } from 'chai';
 
 import { env } from '@salesforce/kit';
-import { Messages, NamedPackageDir } from '../../src';
-import { SfProject, SfProjectJson } from '../../src/sfProject';
+import { SfError } from '../../src/sfError';
+import { Messages } from '../../src/messages';
+import { SfProject, SfProjectJson, NamedPackageDir } from '../../src/sfProject';
 import { shouldThrow, shouldThrowSync, TestContext } from '../../src/testSetup';
 
 describe('SfProject', () => {
@@ -431,6 +432,21 @@ describe('SfProject', () => {
         default: true,
       };
       expect(actual).to.deep.equal(expected);
+    });
+
+    it('defaultPackage should error when no package dirs', async () => {
+      $$.setConfigStubContents('SfProjectJson', {
+        contents: { packageDirectories: [] },
+      });
+      const project = await SfProject.resolve();
+
+      try {
+        shouldThrowSync(() => project.getDefaultPackage());
+      } catch (e) {
+        assert(e instanceof SfError);
+        expect(e.name).to.equal('NoPackageDirectories');
+        expect(e.actions).to.have.length.greaterThan(0);
+      }
     });
 
     it('should error when one package is defined and set to default=false', async () => {
