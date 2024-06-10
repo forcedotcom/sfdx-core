@@ -7,10 +7,10 @@
 
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
-import { URL } from 'url';
-import { AsyncResult, DeployOptions, DeployResultLocator } from 'jsforce/api/metadata';
+import { URL } from 'node:url';
+import { AsyncResult, DeployOptions, DeployResultLocator } from '@jsforce/jsforce-node/lib/api/metadata';
 import { Duration, env, maxBy } from '@salesforce/kit';
-import { asString, ensure, isString, JsonCollection, JsonMap, Optional } from '@salesforce/ts-types';
+import { asString, ensure, isString, JsonMap, Optional } from '@salesforce/ts-types';
 import {
   Connection as JSForceConnection,
   ConnectionConfig,
@@ -20,12 +20,12 @@ import {
   QueryResult,
   Record,
   Schema,
-} from 'jsforce';
-import { Tooling as JSForceTooling } from 'jsforce/lib/api/tooling';
-import { StreamPromise } from 'jsforce/lib/util/promise';
+} from '@jsforce/jsforce-node';
+import { Tooling as JSForceTooling } from '@jsforce/jsforce-node/lib/api/tooling';
+import { StreamPromise } from '@jsforce/jsforce-node/lib/util/promise';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { ConfigAggregator } from '../config/configAggregator';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { validateApiVersion } from '../util/sfdc';
 import { Messages } from '../messages';
@@ -43,9 +43,10 @@ export const SFDX_HTTP_HEADERS = {
 };
 
 export const DNS_ERROR_NAME = 'DomainNotFoundError';
-type recentValidationOptions = { id: string; rest?: boolean };
 export type DeployOptionsWithRest = Partial<DeployOptions> & { rest?: boolean };
 
+// preserving interface since it extends a class
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export interface Tooling<S extends Schema = Schema> extends JSForceTooling<S> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _logger: any;
@@ -112,34 +113,26 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     this: new (options: Connection.Options<S>) => Connection<S>,
     options: Connection.Options<S>
   ): Promise<Connection<S>> {
-    const baseOptions: ConnectionConfig = {
-      version: options.connectionOptions?.version,
+    // Get connection options from auth info and create a new jsForce connection
+    const connectionOptions: ConnectionConfig<S> = {
+      version: await getOptionsVersion<S>(options),
       callOptions: {
         client: clientId,
       },
-    };
+      ...options.authInfo.getConnectionOptions(),
+      // this assertion is questionable, but has existed before core7
+    } as ConnectionConfig<S>;
 
-    if (!baseOptions.version) {
-      // Set the API version obtained from the config aggregator.
-      const configAggregator = options.configAggregator ?? (await ConfigAggregator.create());
-      baseOptions.version = asString(configAggregator.getInfo('org-api-version').value);
-    }
-
-    const providedOptions = options.authInfo.getConnectionOptions();
-
-    // Get connection options from auth info and create a new jsForce connection
-    options.connectionOptions = Object.assign(baseOptions, providedOptions) as ConnectionConfig<S>;
-
-    const conn = new this(options);
+    const conn = new this({ ...options, connectionOptions });
     await conn.init();
 
     try {
       // No version passed in or in the config, so load one.
-      if (!baseOptions.version) {
+      if (!connectionOptions.version) {
         await conn.useLatestApiVersion();
       } else {
         conn.logger.debug(
-          `The org-api-version ${baseOptions.version} was found from ${
+          `The org-api-version ${connectionOptions.version} was found from ${
             options.connectionOptions?.version ? 'passed in options' : 'config'
           }`
         );
@@ -173,16 +166,15 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     zipInput: Buffer,
     options: DeployOptionsWithRest
   ): Promise<DeployResultLocator<AsyncResult & Schema>> {
-    const rest = options.rest;
     // neither API expects this option
-    delete options.rest;
+    const { rest, ...optionsWithoutRest } = options;
     if (rest) {
       this.logger.debug('deploy with REST');
       await this.refreshAuth();
-      return this.metadata.deployRest(zipInput, options);
+      return this.metadata.deployRest(zipInput, optionsWithoutRest);
     } else {
       this.logger.debug('deploy with SOAP');
-      return this.metadata.deploy(zipInput, options);
+      return this.metadata.deploy(zipInput, optionsWithoutRest);
     }
   }
 
@@ -203,7 +195,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       ...SFDX_HTTP_HEADERS,
       ...lowercasedHeaders,
     };
-    this.logger.debug(`request: ${JSON.stringify(httpRequest)}`);
+    this.logger.getRawLogger().debug(httpRequest, 'request');
     return super.request(httpRequest, options);
   }
 
@@ -216,19 +208,6 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     return super._baseUrl();
   }
 
-  /**
-   * Will deploy a recently validated deploy request - directly calling jsforce now that this is supported.
-   * WARNING: will always return a string from jsforce, the type is JsonCollection to support backwards compatibility
-   *
-   * @param options.id = the deploy ID that's been validated already from a previous checkOnly deploy request
-   * @param options.rest = a boolean whether or not to use the REST API
-   * @deprecated use {@link Connection.metadata#deployRecentValidation} instead - the jsforce implementation, instead of this wrapper
-   */
-  public async deployRecentValidation(options: recentValidationOptions): Promise<JsonCollection> {
-    // REST returns an object with an id property, SOAP returns the id as a string directly. That is now handled
-    // in jsforce, so we have to cast a string as unknown as JsonCollection to support backwards compatibility.
-    return (await this.metadata.deployRecentValidation(options)) as unknown as JsonCollection;
-  }
   /**
    * Retrieves the highest api version that is supported by the target server instance.
    */
@@ -382,7 +361,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     const config: ConfigAggregator = await ConfigAggregator.create();
     // take the limit from the calling function, then the config, then default 10,000
     const maxFetch: number =
-      ((config.getInfo(OrgConfigProperties.ORG_MAX_QUERY_LIMIT).value as number) || queryOptions.maxFetch) ?? 10000;
+      ((config.getInfo(OrgConfigProperties.ORG_MAX_QUERY_LIMIT).value as number) || queryOptions.maxFetch) ?? 10_000;
 
     const { tooling, ...queryOptionsWithoutTooling } = queryOptions;
 
@@ -396,7 +375,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       void Lifecycle.getInstance().emitWarning(
         `The query result is missing ${
           query.totalSize - query.records.length
-        } records due to a ${maxFetch} record limit. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SFDX_MAX_QUERY_LIMIT" to ${
+        } records due to a ${maxFetch} record limit. Increase the number of records returned by setting the config value "maxQueryLimit" or the environment variable "SF_ORG_MAX_QUERY_LIMIT" to ${
           query.totalSize
         } or greater than ${maxFetch}.`
       );
@@ -489,17 +468,17 @@ export const SingleRecordQueryErrors = {
   NoRecords: 'SingleRecordQuery_NoRecords',
   MultipleRecords: 'SingleRecordQuery_MultipleRecords',
 };
-export interface SingleRecordQueryOptions {
+export type SingleRecordQueryOptions = {
   tooling?: boolean;
   returnChoicesOnMultiple?: boolean;
   choiceField?: string; // defaults to Name
-}
+};
 
 export namespace Connection {
   /**
    * Connection Options.
    */
-  export interface Options<S extends Schema> {
+  export type Options<S extends Schema> = {
     /**
      * AuthInfo instance.
      */
@@ -512,8 +491,17 @@ export namespace Connection {
      * Additional connection parameters.
      */
     connectionOptions?: ConnectionConfig<S>;
-  }
+  };
 }
+
+const getOptionsVersion = async <S extends Schema>(options: Connection.Options<S>): Promise<string | undefined> => {
+  if (options.connectionOptions) {
+    return options.connectionOptions.version;
+  }
+  // Set the API version obtained from the config aggregator.
+  const configAggregator = options.configAggregator ?? (await ConfigAggregator.create());
+  return asString(configAggregator.getInfo('org-api-version').value);
+};
 
 // jsforce does some interesting proxy loading on lib classes.
 // Setting this in the Connection.tooling getter will not work, it

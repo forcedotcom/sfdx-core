@@ -10,7 +10,7 @@ import { SinonSpyCall } from 'sinon';
 import { Duration } from '@salesforce/kit';
 import { get, JsonMap } from '@salesforce/ts-types';
 import { CometClient, StatusResult, StreamingClient } from '../../../src/status/streamingClient';
-import { Connection } from '../../../src/org';
+import { Connection } from '../../../src/org/connection';
 // import { Crypto } from '../../../src/crypto/crypto';
 import { Org } from '../../../src/org/org';
 import { SfError } from '../../../src/sfError';
@@ -273,8 +273,8 @@ describe('streaming client tests', () => {
   });
 
   it('subscribe should timeout setTimeout spy', async () => {
-    const JENNYS_NUMBER = 8675309;
-    const GHOSTBUSTERS_NUMBER = 5552368;
+    const JENNYS_NUMBER = 8_675_309;
+    const GHOSTBUSTERS_NUMBER = 5_552_368;
 
     const setTimeoutSpy = spyMethod($$.SANDBOX, global, 'setTimeout');
 

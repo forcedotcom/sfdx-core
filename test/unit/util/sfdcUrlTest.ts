@@ -27,13 +27,13 @@ describe('util/sfdcUrl', () => {
 
   describe('toLightningdomain', () => {
     describe('official test cases from domains team', () => {
-      describe('SFDC (non-propagated)', () => {
+      it('SFDC (non-propagated)', () => {
         expect(new SfdcUrl('https://na44.salesforce.com').toLightningDomain()).to.equal(
           'https://na44.lightning.force.com'
         );
       });
 
-      describe('SFDC/DB/CLOUDFORCE (legacy instanceless domains) ', () => {
+      it('SFDC/DB/CLOUDFORCE (legacy instanceless domains) ', () => {
         expect(new SfdcUrl('https://org62.my.salesforce.com').toLightningDomain()).to.equal(
           'https://org62.lightning.force.com'
         );
@@ -53,7 +53,7 @@ describe('util/sfdcUrl', () => {
           'https://org62--sbox1.lightning.force.com'
         );
       });
-      describe('alternative domains with weird hyphen pattern', () => {
+      it('alternative domains with weird hyphen pattern', () => {
         expect(new SfdcUrl('https://org62.my-salesforce.com').toLightningDomain()).to.equal(
           'https://org62.my-lightning.com'
         );
@@ -61,7 +61,7 @@ describe('util/sfdcUrl', () => {
           'https://sbox1.org62.sandbox.my-lightning.com'
         );
       });
-      describe('mil', () => {
+      it('mil', () => {
         expect(new SfdcUrl('https://org62.my.salesforce.mil').toLightningDomain()).to.equal(
           'https://org62.lightning.crmforce.mil'
         );
@@ -69,7 +69,7 @@ describe('util/sfdcUrl', () => {
           'https://org62--sbox1.sandbox.lightning.crmforce.mil'
         );
       });
-      describe('enhanced domains', () => {
+      it('enhanced domains', () => {
         expect(new SfdcUrl('https://org62.my.salesforce.com').toLightningDomain()).to.equal(
           'https://org62.lightning.force.com'
         );
@@ -122,6 +122,18 @@ describe('util/sfdcUrl', () => {
         );
       });
     });
+    describe('cnEdition', () => {
+      it('prod', () => {
+        expect(new SfdcUrl('https://foo.my.sfcrmproducts.cn').toLightningDomain()).to.equal(
+          'https://foo.lightning.sfcrmapps.cn'
+        );
+      });
+      it('sbox', () => {
+        expect(new SfdcUrl('https://foo--sbox1.sandbox.my.sfcrmproducts.cn').toLightningDomain()).to.equal(
+          'https://foo--sbox1.sandbox.lightning.sfcrmapps.cn'
+        );
+      });
+    });
   });
 
   describe('isSalesforceDomain', () => {
@@ -138,6 +150,16 @@ describe('util/sfdcUrl', () => {
     it('is allowlist host', () => {
       const url = new SfdcUrl('https://developer.salesforce.com');
       expect(url.isSalesforceDomain()).to.be.true;
+    });
+
+    it('cnEdition', () => {
+      const url = new SfdcUrl('https://foo.my.sfcrmproducts.cn');
+      expect(url.isSalesforceDomain()).to.be.true;
+    });
+
+    it('cnEdition with .com returns value', () => {
+      const url = new SfdcUrl('https://foo.my.sfcrmproducts.com');
+      expect(url.isSalesforceDomain()).to.be.false;
     });
   });
 
@@ -309,6 +331,19 @@ describe('util/sfdcUrl', () => {
       const isLightningDomain = url.isLightningDomain();
       expect(isLightningDomain).to.be.false;
     });
+
+    it('mil', () => {
+      expect(new SfdcUrl('https://foo.lightning.crmforce.mil').isLightningDomain()).to.be.true;
+    });
+    it('mil but not lightning', () => {
+      expect(new SfdcUrl('https://foo.my.salesforce.mil').isLightningDomain()).to.be.false;
+    });
+    it('cnEdition', () => {
+      expect(new SfdcUrl('https://foo.lightning.sfcrmapps.cn').isLightningDomain()).to.be.true;
+    });
+    it('cnEdition but not lightning', () => {
+      expect(new SfdcUrl('https://foo.my.sfcrmproducts.cn').isLightningDomain()).to.be.false;
+    });
   });
 
   describe('Salesforce standard urls', () => {
@@ -321,28 +356,6 @@ describe('util/sfdcUrl', () => {
     });
   });
 
-  describe('isSandboxUrl', () => {
-    it('regular sandboxes with -- in domain but not the word "sandbox" ', () => {
-      const url = new SfdcUrl('https://some--thing.my.salesforce.com');
-      expect(url.isSandboxUrl()).to.be.true;
-    });
-    it('false for "normal" myDomains', () => {
-      const url = new SfdcUrl('https://something.my.salesforce.com');
-      expect(url.isSandboxUrl()).to.be.false;
-    });
-    it('.mil sandboxes with trailing slash', () => {
-      const url = new SfdcUrl('https://domain--sboxname.sandbox.my.salesforce.mil/');
-      expect(url.isSandboxUrl()).to.be.true;
-    });
-    it('.mil sandboxes without trailing slash', () => {
-      const url = new SfdcUrl('https://domain--sboxname.sandbox.my.salesforce.mil');
-      expect(url.isSandboxUrl()).to.be.true;
-    });
-    it('cs123', () => {
-      const url = new SfdcUrl('https://cs123.force.com');
-      expect(url.isSandboxUrl()).to.be.true;
-    });
-  });
   describe('getLoginAudienceCombos', () => {
     it('should return 11 combos when login and audience URLs are not test/prod and are different', () => {
       const combos = getLoginAudienceCombos('https://foo.bar.baz', 'https://foo.bar.bat');

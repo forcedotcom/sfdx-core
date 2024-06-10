@@ -4,14 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { AnyFunction, AnyJson, JsonMap } from '@salesforce/ts-types';
 
 export type Message = JsonMap;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Callback<T = unknown> = (...args: any[]) => T;
 
-export interface StatusResult {
+export type StatusResult = {
   /**
    * If the result of the streaming or polling client is expected to return a result
    */
@@ -21,20 +21,20 @@ export interface StatusResult {
    * the messaging exchanges with the endpoint.
    */
   completed: boolean;
-}
+};
 
 /**
  * The subscription object returned from the cometd subscribe object.
  */
-export interface CometSubscription {
+export type CometSubscription = {
   callback(callback: () => void): void;
   errback(callback: (error: Error) => void): void;
-}
+};
 
 /**
  * Types for defining extensions.
  */
-export interface StreamingExtension {
+export type StreamingExtension = {
   /**
    * Extension for outgoing message.
    *
@@ -49,7 +49,7 @@ export interface StreamingExtension {
    * @param callback The callback to invoke after the message is processed.
    */
   incoming?: (message: JsonMap, callback: AnyFunction) => void;
-}
+};
 
 /**
  * Function type for processing messages

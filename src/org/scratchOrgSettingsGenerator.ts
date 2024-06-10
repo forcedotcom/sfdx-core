@@ -5,19 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
+import * as path from 'node:path';
 import { isEmpty, env, upperFirst, Duration } from '@salesforce/kit';
 import { ensureObject, JsonMap } from '@salesforce/ts-types';
 import * as js2xmlparser from 'js2xmlparser';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { StructuredWriter } from '../util/structuredWriter';
 import { StatusResult } from '../status/types';
 import { PollingClient } from '../status/pollingClient';
 import { ZipWriter } from '../util/zipWriter';
 import { DirectoryWriter } from '../util/directoryWriter';
+import { Lifecycle } from '../lifecycleEvents';
+import { Messages } from '../messages';
 import { ScratchOrgInfo, ObjectSetting } from './scratchOrgTypes';
 import { Org } from './org';
+
+Messages.importMessagesDirectory(__dirname);
 
 export enum RequestStatus {
   Pending = 'Pending',
@@ -28,21 +32,20 @@ export enum RequestStatus {
   Canceling = 'Canceling',
   Canceled = 'Canceled',
 }
-
 const breakPolling = ['Succeeded', 'SucceededPartial', 'Failed', 'Canceled'];
 
-export interface SettingType {
+export type SettingType = {
   members: string[];
   name: 'CustomObject' | 'RecordType' | 'BusinessProcess' | 'Settings';
-}
+};
 
-export interface PackageFile {
+export type PackageFile = {
   '@': {
     xmlns: string;
   };
   types: SettingType[];
   version: string;
-}
+};
 
 export const createObjectFileContent = ({
   allRecordTypes = [],
@@ -82,13 +85,19 @@ export const createObjectFileContent = ({
   return { ...output, ...{ version: apiVersion } };
 };
 
-const calculateBusinessProcess = (objectName: string, defaultRecordType: string): Array<string | null> => {
+const calculateBusinessProcess = (
+  objectName: string,
+  defaultRecordType: string,
+  capitalizeBusinessProcess: boolean
+): Array<string | null> => {
   let businessProcessName = null;
   let businessProcessPicklistVal = null;
   // These four objects require any record type to specify a "business process"--
   // a restricted set of items from a standard picklist on the object.
   if (['Case', 'Lead', 'Opportunity', 'Solution'].includes(objectName)) {
-    businessProcessName = upperFirst(defaultRecordType) + 'Process';
+    businessProcessName = capitalizeBusinessProcess
+      ? `${upperFirst(defaultRecordType)}Process`
+      : `${defaultRecordType}Process`;
     switch (objectName) {
       case 'Case':
         businessProcessPicklistVal = 'New';
@@ -110,7 +119,8 @@ export const createRecordTypeAndBusinessProcessFileContent = (
   objectName: string,
   json: Record<string, unknown>,
   allRecordTypes: string[],
-  allBusinessProcesses: string[]
+  allBusinessProcesses: string[],
+  capitalizeRecordTypes: boolean
 ): JsonMap => {
   let output = {
     '@': {
@@ -126,15 +136,23 @@ export const createRecordTypeAndBusinessProcessFileContent = (
     };
   }
 
-  const defaultRecordType = json.defaultRecordType;
+  const defaultRecordType = capitalizeRecordTypes
+    ? upperFirst(json.defaultRecordType as string)
+    : json.defaultRecordType;
+
   if (typeof defaultRecordType === 'string') {
     // We need to keep track of these globally for when we generate the package XML.
-    allRecordTypes.push(`${name}.${upperFirst(defaultRecordType)}`);
-    const [businessProcessName, businessProcessPicklistVal] = calculateBusinessProcess(name, defaultRecordType);
+    allRecordTypes.push(`${name}.${defaultRecordType}`);
+    const [businessProcessName, businessProcessPicklistVal] = calculateBusinessProcess(
+      name,
+      defaultRecordType,
+      capitalizeRecordTypes
+    );
+
     // Create the record type
     const recordTypes = {
-      fullName: upperFirst(defaultRecordType),
-      label: upperFirst(defaultRecordType),
+      fullName: defaultRecordType,
+      label: defaultRecordType,
       active: true,
     };
 
@@ -186,9 +204,22 @@ export default class SettingsGenerator {
   private allBusinessProcesses: string[] = [];
   private readonly shapeDirName: string;
   private readonly packageFilePath: string;
+  private readonly capitalizeRecordTypes: boolean;
 
-  public constructor(options?: { mdApiTmpDir?: string; shapeDirName?: string; asDirectory?: boolean }) {
+  public constructor(options?: {
+    mdApiTmpDir?: string;
+    shapeDirName?: string;
+    asDirectory?: boolean;
+    capitalizeRecordTypes?: boolean;
+  }) {
     this.logger = Logger.childFromRoot('SettingsGenerator');
+    if (options?.capitalizeRecordTypes === undefined) {
+      const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgSettingsGenerator');
+      void Lifecycle.getInstance().emitWarning(messages.getMessage('noCapitalizeRecordTypeConfigVar'));
+      this.capitalizeRecordTypes = true;
+    } else {
+      this.capitalizeRecordTypes = options.capitalizeRecordTypes;
+    }
     // If SFDX_MDAPI_TEMP_DIR is set, copy settings to that dir for people to inspect.
     const mdApiTmpDir = options?.mdApiTmpDir ?? env.getString('SFDX_MDAPI_TEMP_DIR');
     this.shapeDirName = options?.shapeDirName ?? `shape_${Date.now()}`;
@@ -286,12 +317,17 @@ export default class SettingsGenerator {
     const client = await PollingClient.create(pollingOptions);
     const status = await client.subscribe<string>();
 
-    if (status !== RequestStatus.Succeeded) {
+    type FailureMessage = {
+      problemType: string;
+      fullName: string;
+      problem: string;
+    };
+    if (status !== RequestStatus.Succeeded.toString()) {
       const componentFailures = ensureObject<{
-        componentFailures: Record<string, unknown> | Array<Record<string, unknown>>;
+        componentFailures: FailureMessage | FailureMessage[];
       }>(result.details).componentFailures;
       const failures = (Array.isArray(componentFailures) ? componentFailures : [componentFailures])
-        .map((failure) => failure.problem)
+        .map((failure) => `[${failure.problemType}] ${failure.fullName} : ${failure.problem} `)
         .join('\n');
       const error = new SfError(
         `A scratch org was created with username ${username}, but the settings failed to deploy due to: \n${failures}`,
@@ -339,7 +375,8 @@ export default class SettingsGenerator {
             item,
             value,
             allRecordTypes,
-            allbusinessProcesses
+            allbusinessProcesses,
+            this.capitalizeRecordTypes
           );
           const xml = js2xmlparser.parse('CustomObject', fileContent);
           return this.writer.addToStore(xml, path.join(objectsDir, upperFirst(item) + '.object'));

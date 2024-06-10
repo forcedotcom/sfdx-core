@@ -8,11 +8,11 @@
 import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { JsonMap } from '@salesforce/ts-types';
 import { ConfigAggregator } from '../config/configAggregator';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
-import { StateAggregator } from '../stateAggregator';
+import { StateAggregator } from '../stateAggregator/stateAggregator';
 import { OrgConfigProperties } from './orgConfigProperties';
-import { AuthFields } from '.';
+import { AuthFields } from './authInfo';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'auth');
@@ -55,7 +55,6 @@ export class AuthRemover extends AsyncOptionalCreatable {
     this.logger.debug(`Removing authorization for user ${username}`);
     await this.unsetConfigValues(username);
     await this.unsetAliases(username);
-    await this.unsetTokens(username);
     await this.stateAggregator.orgs.remove(username);
   }
 
@@ -183,18 +182,9 @@ export class AuthRemover extends AsyncOptionalCreatable {
     if (existingAliases.length === 0) return;
 
     this.logger.debug(`Found these aliases to remove: ${existingAliases.join(',')}`);
-    existingAliases.forEach((alias) => this.stateAggregator.aliases.unset(alias));
-    await this.stateAggregator.aliases.write();
-  }
-
-  private async unsetTokens(username: string): Promise<void> {
-    this.logger.debug(`Clearing tokens for username: ${username}`);
-    const tokens = this.stateAggregator.tokens.getAll();
-    for (const [key, token] of Object.entries(tokens)) {
-      if (token.user === username) {
-        this.stateAggregator.tokens.unset(key);
-      }
+    for (const alias of existingAliases) {
+      // eslint-disable-next-line no-await-in-loop
+      await this.stateAggregator.aliases.unsetAndSave(alias);
     }
-    await this.stateAggregator.tokens.write();
   }
 }

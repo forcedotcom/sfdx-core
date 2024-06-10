@@ -1,5 +1,5 @@
 import { DefaultUserFields, User, UserFields } from '../src/org/user';
-import { Org } from '../src/org';
+import { Org } from '../src/org/org';
 import { Connection } from '../src/org/connection';
 import { AuthInfo } from '../src/org/authInfo';
 

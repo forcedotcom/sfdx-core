@@ -8,10 +8,10 @@ The org cannot be found
 
 # domainNotFoundError.actions
 
-- Verify that the org still exists',
-- If your org is newly created, wait a minute and run your command again',
-- If you deployed or updated the org's My Domain, logout from the CLI and authenticate again",
-- If you are running in a CI environment with a DNS that blocks external IPs, try setting SFDX_DISABLE_DNS_CHECK=true'
+- Verify that the org still exists,
+- If your org is newly created, wait a minute and run your command again,
+- If you deployed or updated the org's My Domain, logout from the CLI and authenticate again,
+- If you are running in a CI environment with a DNS that blocks external IPs, try setting SFDX_DISABLE_DNS_CHECK=true
 
 # noInstanceUrlError
 

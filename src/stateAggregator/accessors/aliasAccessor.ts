@@ -5,17 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncOptionalCreatable } from '@salesforce/kit';
-import { Nullable } from '@salesforce/ts-types';
-import { AliasesConfig } from '../../config/aliasesConfig';
-import { AuthFields, ConfigContents } from '../../exported';
-import { SfError } from '../../sfError';
-import { SfToken } from './tokenAccessor';
+import { join, dirname } from 'node:path';
+import { homedir } from 'node:os';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { lock, unlock } from 'proper-lockfile';
 
-export type Aliasable = string | (Partial<AuthFields> & Partial<SfToken>);
+import { AsyncOptionalCreatable, ensureArray } from '@salesforce/kit';
+
+import { Nullable } from '@salesforce/ts-types';
+import { Global } from '../../global';
+import { AuthFields } from '../../org/authInfo';
+import { ConfigContents } from '../../config/configStackTypes';
+import { SfError } from '../../sfError';
+import { lockRetryOptions } from '../../util/lockRetryOptions';
+
+export type Aliasable = string | Partial<AuthFields>;
+export const DEFAULT_GROUP = 'orgs';
+export const FILENAME = 'alias.json';
 
 export class AliasAccessor extends AsyncOptionalCreatable {
-  private config!: AliasesConfig;
+  // set in init method
+  private fileLocation!: string;
+  /** orgs is the default group */
+  private aliasStore!: Map<string, string>;
 
   /**
    * Returns all the aliases for all the values
@@ -30,14 +42,14 @@ export class AliasAccessor extends AsyncOptionalCreatable {
   public getAll(entity?: Aliasable): string[] | ConfigContents<string> {
     // This will only return aliases under "orgs". This will need to be modified
     // if/when we want to support more aliases groups.
-    const all = (this.config.getGroup() ?? {}) as ConfigContents<string>;
+
     if (entity) {
-      const value = this.getNameOf(entity);
-      return Object.entries(all)
-        .filter((entry) => entry[1] === value)
-        .map((entry) => entry[0]);
+      const nameFromEntity = getNameOf(entity);
+      return Array.from(this.aliasStore.entries())
+        .filter(([, value]) => nameFromEntity === value)
+        .map(([alias]) => alias);
     } else {
-      return all;
+      return Object.fromEntries(this.aliasStore.entries());
     }
   }
 
@@ -47,7 +59,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    * @param entity the aliasable entity that you want to get the alias of
    */
   public get(entity: Aliasable): Nullable<string> {
-    return this.getAll(entity).find((alias) => alias) ?? null;
+    return this.getAll(entity)[0] ?? null;
   }
 
   /**
@@ -56,7 +68,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    * @param alias the alias that corresponds to a value
    */
   public getValue(alias: string): Nullable<string> {
-    return this.getAll()[alias] ?? null;
+    return this.aliasStore.get(alias) ?? null;
   }
 
   /**
@@ -65,21 +77,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    * @param alias the alias that corresponds to a username
    */
   public getUsername(alias: string): Nullable<string> {
-    return this.getAll()[alias] ?? null;
-  }
-
-  /**
-   * If the provided string is an alias, it returns the corresponding value.
-   * If the provided string is not an alias, we assume that the provided string
-   * is the value and return it.
-   *
-   * This method is helpful when you don't know if the string you have is a value
-   * or an alias.
-   *
-   * @param valueOrAlias a string that might be a value or might be an alias
-   */
-  public resolveValue(valueOrAlias: string): string {
-    return this.getValue(valueOrAlias) ?? valueOrAlias;
+    return this.aliasStore.get(alias) ?? null;
   }
 
   /**
@@ -105,41 +103,45 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    *
    * @param usernameOrAlias a string that might be a username or might be an alias
    */
-  public resolveAlias(usernameOrAlias: string): Nullable<string> {
-    if (this.has(usernameOrAlias)) return usernameOrAlias;
-    return Object.entries(this.getAll()).find(([, username]) => username === usernameOrAlias)?.[0];
+  public resolveAlias(usernameOrAlias: string): string | undefined {
+    if (this.aliasStore.has(usernameOrAlias)) return usernameOrAlias;
+    return Array.from(this.aliasStore.entries()).find(([, value]) => value === usernameOrAlias)?.[0];
   }
 
   /**
-   * Set an alias for the given aliasable entity
+   * Set an alias for the given aliasable entity.  Writes to the file
    *
    * @param alias the alias you want to set
    * @param entity the aliasable entity that's being aliased
    */
-  public set(alias: string, entity: Aliasable): void {
-    this.config.set(alias, this.getNameOf(entity));
+  public async setAndSave(alias: string, entity: Aliasable): Promise<void> {
+    // get a very fresh copy to merge with to avoid conflicts, then lock
+    await this.readFileToAliasStore(true);
+    this.aliasStore.set(alias, getNameOf(entity));
+    return this.saveAliasStoreToFile();
   }
 
   /**
-   * Unset the given alias.
+   * Unset the given alias(es).  Writes to the file
    *
    */
-  public unset(alias: string): void {
-    this.config.unset(alias);
+  public async unsetAndSave(alias: string): Promise<void> {
+    await this.readFileToAliasStore(true);
+    this.aliasStore.delete(alias);
+    return this.saveAliasStoreToFile();
   }
 
   /**
-   * Unsets all the aliases for the given entity.
+   * Unset all the aliases for the given array of entity.
    *
    * @param entity the aliasable entity for which you want to unset all aliases
    */
-  public unsetAll(entity: Aliasable): void {
-    const aliases = this.getAll(entity);
-    aliases.forEach((alias) => this.unset(alias));
-  }
-
-  public async write(): Promise<ConfigContents> {
-    return this.config.write();
+  public async unsetValuesAndSave(aliasees: Aliasable[]): Promise<void> {
+    await this.readFileToAliasStore(true);
+    ensureArray(aliasees)
+      .flatMap((a) => this.getAll(a))
+      .map((a) => this.aliasStore.delete(a));
+    return this.saveAliasStoreToFile();
   }
 
   /**
@@ -148,23 +150,78 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    * @param alias the alias you want to check
    */
   public has(alias: string): boolean {
-    return this.config.has(alias);
+    return this.aliasStore.has(alias);
   }
 
   protected async init(): Promise<void> {
-    this.config = await AliasesConfig.create(AliasesConfig.getDefaultOptions());
+    this.fileLocation = getFileLocation();
+    await this.readFileToAliasStore();
   }
 
   /**
-   * Returns the username of given aliasable entity
+   * go to the fileSystem and read the file, storing a copy in the class's store
+   * if the file doesn't exist, create it empty
    */
-  // eslint-disable-next-line class-methods-use-this
-  private getNameOf(entity: Aliasable): string {
-    if (typeof entity === 'string') return entity;
-    const aliaseeName = entity.username ?? entity.user;
-    if (!aliaseeName) {
-      throw new SfError(`Invalid aliasee, it must contain a user or username property: ${JSON.stringify(entity)}`);
+  private async readFileToAliasStore(useLock = false): Promise<void> {
+    if (useLock) {
+      await lock(this.fileLocation, lockRetryOptions);
     }
-    return aliaseeName;
+    try {
+      this.aliasStore = fileContentsRawToAliasStore(await readFile(this.fileLocation, 'utf-8'));
+    } catch (e) {
+      if (e instanceof Error && 'code' in e && e.code === 'ENOENT') {
+        this.aliasStore = new Map<string, string>();
+        await mkdir(dirname(this.fileLocation), { recursive: true });
+        await this.saveAliasStoreToFile();
+        return;
+      }
+      if (useLock) return unlockIfLocked(this.fileLocation);
+      throw e;
+    }
+  }
+
+  private async saveAliasStoreToFile(): Promise<void> {
+    await writeFile(this.fileLocation, aliasStoreToRawFileContents(this.aliasStore));
+    return unlockIfLocked(this.fileLocation);
   }
 }
+
+/**
+ * Returns the username of given aliasable entity
+ */
+const getNameOf = (entity: Aliasable): string => {
+  if (typeof entity === 'string') return entity;
+  const aliaseeName = entity.username;
+  if (!aliaseeName) {
+    throw new SfError(`Invalid aliasee, it must contain a user or username property: ${JSON.stringify(entity)}`);
+  }
+  return aliaseeName;
+};
+
+const fileContentsRawToAliasStore = (contents: string): Map<string, string> => {
+  const fileContents = JSON.parse(contents) as {
+    [group: string]: { [alias: string]: string };
+    [DEFAULT_GROUP]: { [alias: string]: string };
+  };
+
+  // handle when alias file exists but is missing the org property
+  return new Map(Object.entries(fileContents[DEFAULT_GROUP] ?? {}));
+};
+
+const aliasStoreToRawFileContents = (aliasStore: Map<string, string>): string =>
+  JSON.stringify({ [DEFAULT_GROUP]: Object.fromEntries(Array.from(aliasStore.entries())) });
+
+// exported for testSetup mocking
+export const getFileLocation = (): string => join(homedir(), Global.SFDX_STATE_FOLDER, FILENAME);
+
+const unlockIfLocked = async (fileLocation: string): Promise<void> => {
+  try {
+    await unlock(fileLocation);
+  } catch (e) {
+    // ignore the error.  If it wasn't locked, that's what we wanted
+    if (errorIsNotAcquired(e)) return;
+    throw e;
+  }
+};
+
+const errorIsNotAcquired = (e: unknown): boolean => e instanceof Error && 'code' in e && e.code === 'ENOTACQUIRED';

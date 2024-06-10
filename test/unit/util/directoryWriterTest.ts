@@ -4,12 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as os from 'os';
-import * as fs from 'fs';
-import * as path from 'path';
-import { Readable } from 'stream';
+import * as os from 'node:os';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { Readable } from 'node:stream';
 import * as chai from 'chai';
-import * as chaiString from 'chai-string';
+import chaiString from 'chai-string';
 import { DirectoryWriter } from '../../../src/util/directoryWriter';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires

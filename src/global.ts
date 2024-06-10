@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { env } from '@salesforce/kit';
 import { SfError } from './sfError';
 
@@ -76,13 +76,6 @@ export class Global {
   }
 
   /**
-   * The full system path to the global log file.
-   */
-  // member ordering conflicts with the TS use-before-declaration error
-  // eslint-disable-next-line @typescript-eslint/member-ordering
-  public static readonly LOG_FILE_PATH: string = path.join(Global.SF_DIR, 'sf.log');
-
-  /**
    * Gets the current mode environment variable as a {@link Mode} instance.
    *
    * ```
@@ -90,7 +83,10 @@ export class Global {
    * ```
    */
   public static getEnvironmentMode(): Mode {
-    return Mode[env.getKeyOf('SFDX_ENV', Mode, Mode.PRODUCTION, (value) => value.toUpperCase())];
+    const envValue = env.getString('SF_ENV') ?? env.getString('SFDX_ENV', Mode.PRODUCTION);
+    return envValue in Mode || envValue.toUpperCase() in Mode
+      ? Mode[envValue.toUpperCase() as keyof typeof Mode]
+      : Mode.PRODUCTION;
   }
 
   /**
@@ -100,15 +96,15 @@ export class Global {
    * @param dirPath The directory path to be created within {@link Global.SFDX_DIR}.
    */
   public static async createDir(dirPath?: string): Promise<void> {
-    dirPath = dirPath ? path.join(Global.SFDX_DIR, dirPath) : Global.SFDX_DIR;
+    const resolvedPath = dirPath ? path.join(Global.SFDX_DIR, dirPath) : Global.SFDX_DIR;
     try {
       if (process.platform === 'win32') {
-        await fs.promises.mkdir(dirPath, { recursive: true });
+        await fs.promises.mkdir(resolvedPath, { recursive: true });
       } else {
-        await fs.promises.mkdir(dirPath, { recursive: true, mode: 0o700 });
+        await fs.promises.mkdir(resolvedPath, { recursive: true, mode: 0o700 });
       }
     } catch (error) {
-      throw new SfError(`Failed to create directory or set permissions for: ${dirPath}`);
+      throw new SfError(`Failed to create directory or set permissions for: ${resolvedPath}`);
     }
   }
 }

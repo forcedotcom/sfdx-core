@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
-import * as fs from 'fs';
+import * as path from 'node:path';
+import * as fs from 'node:fs';
 import { Nullable } from '@salesforce/ts-types';
 import { expect } from 'chai';
-import * as _ from 'lodash';
 import { retrieveKeychain } from '../../../src/crypto/keyChain';
 import {
   GenericUnixKeychainAccess,
@@ -20,23 +19,23 @@ import { TestContext } from '../../../src/testSetup';
 
 describe('keyChain', () => {
   const $$ = new TestContext();
-  const OLD_SFDX_GENERIC_VAL = process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN;
+  const OLD_SFDX_GENERIC_VAL = process.env.SF_USE_GENERIC_UNIX_KEYCHAIN;
   const OLD_GENERIC_VAL = process.env.USE_GENERIC_UNIX_KEYCHAIN;
 
   beforeEach(() => {
     // Testing crypto functionality, so restore global stubs.
     $$.SANDBOXES.CRYPTO.restore();
 
-    process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = 'false';
+    process.env.SF_USE_GENERIC_UNIX_KEYCHAIN = 'false';
     process.env.USE_GENERIC_UNIX_KEYCHAIN = 'false';
   });
 
   after(() => {
-    process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = OLD_SFDX_GENERIC_VAL || '';
-    process.env.USE_GENERIC_UNIX_KEYCHAIN = OLD_GENERIC_VAL || '';
+    process.env.SF_USE_GENERIC_UNIX_KEYCHAIN = OLD_SFDX_GENERIC_VAL ?? '';
+    process.env.USE_GENERIC_UNIX_KEYCHAIN = OLD_GENERIC_VAL ?? '';
   });
 
-  it('should return OSX keychain and lib secret', () => {
+  it('should return OSX keychain and lib secret', async () => {
     $$.SANDBOX.stub(keyChainImpl.linux, 'validateProgram').resolves();
 
     const testArray = [
@@ -47,22 +46,30 @@ describe('keyChain', () => {
       },
     ];
 
-    const promiseArray = testArray.map((obj) => retrieveKeychain(obj.osName));
-
-    return Promise.all(promiseArray).then((_keychains) => {
-      _.forEach(_keychains, (_keychain: any) => {
-        expect(_keychain).to.have.property('osImpl');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        const program = _keychain['osImpl'].getProgram();
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        const testArrayMeta = _.find(testArray, (elem: any) => program.includes(elem.validateString));
-        expect(testArrayMeta == null).to.be.false;
-      });
+    const keyChains = await Promise.all(testArray.map((obj) => retrieveKeychain(obj.osName)));
+    keyChains.map((kc) => {
+      expect(kc).to.have.property('osImpl');
+      // @ts-expect-error osImpl is a private member
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      const program = kc['osImpl'].getProgram();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      const testArrayMeta = testArray.find((elem) => program.includes(elem.validateString));
+      expect(testArrayMeta == null).to.be.false;
     });
+    // return Promise.all(promiseArray).then((_keychains) => {
+    //   _.forEach(_keychains, (_keychain: any) => {
+    //     expect(_keychain).to.have.property('osImpl');
+    //     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    //     const program = _keychain['osImpl'].getProgram();
+    //     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    //     const testArrayMeta = _.find(testArray, (elem: any) => program.includes(elem.validateString));
+    //     expect(testArrayMeta == null).to.be.false;
+    //   });
+    // });
   });
 
   it('should return generic unix for OSX and Linux', async () => {
-    process.env.SFDX_USE_GENERIC_UNIX_KEYCHAIN = 'true';
+    process.env.SF_USE_GENERIC_UNIX_KEYCHAIN = 'true';
     const darwinKeychain = await retrieveKeychain('darwin');
     const linuxKeychain = await retrieveKeychain('linux');
 

@@ -5,22 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { StateAggregator } from '../../../../src/stateAggregator';
-import { AuthFields } from '../../../../src/org';
-import { MockTestOrgData, shouldThrowSync, TestContext, uniqid } from '../../../../src/testSetup';
+import { StateAggregator } from '../../../../src/stateAggregator/stateAggregator';
+import { AuthFields } from '../../../../src/org/authInfo';
+import { MockTestOrgData, shouldThrowSync, TestContext } from '../../../../src/testSetup';
+import { uniqid } from '../../../../src/util/uniqid';
+import { expectPartialDeepMatch } from '../../helpers';
 
 const username = 'espresso@coffee.com';
 const org = new MockTestOrgData(uniqid(), { username });
-
-function expectPartialDeepMatch(actual: AuthFields, expected: AuthFields, ignore = ['refreshToken', 'accessToken']) {
-  for (const key of ignore) {
-    // @ts-expect-error - element is implicit any
-    delete actual?.[key];
-    // @ts-expect-error - element is implicit any
-    delete expected?.[key];
-  }
-  expect(actual).to.deep.equal(expected);
-}
 
 describe('OrgAccessor', () => {
   const $$ = new TestContext();

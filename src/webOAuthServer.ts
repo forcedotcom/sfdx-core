@@ -7,21 +7,26 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import * as http from 'http';
-import { parse as parseQueryString } from 'querystring';
-import { parse as parseUrl } from 'url';
-import { Socket } from 'net';
-import { JwtOAuth2Config, OAuth2 } from 'jsforce';
+import * as http from 'node:http';
+import { parse as parseQueryString } from 'node:querystring';
+import { parse as parseUrl } from 'node:url';
+import { Socket } from 'node:net';
+import { EventEmitter } from 'node:events';
+import { OAuth2 } from '@jsforce/jsforce-node';
 import { AsyncCreatable, Env, set, toNumber } from '@salesforce/kit';
 import { asString, get, Nullable } from '@salesforce/ts-types';
-import { Logger } from './logger';
-import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org';
+import { Logger } from './logger/logger';
+import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org/authInfo';
 import { SfError } from './sfError';
 import { Messages } from './messages';
 import { SfProjectJson } from './sfProject';
+import { JwtOAuth2Config } from './org/authInfo';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'auth');
+
+// Server ignores requests for site icons
+const iconPaths = ['/favicon.ico', '/apple-touch-icon-precomposed.png'];
 
 /**
  * Handles the creation of a web server for web based login flows.
@@ -46,6 +51,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   private webServer!: WebServer;
   private oauth2!: OAuth2;
   private oauthConfig: JwtOAuth2Config;
+  private oauthError = new Error('Oauth Error');
 
   public constructor(options: WebOAuthServer.Options) {
     super(options);
@@ -94,11 +100,12 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
                 oauth2: this.oauth2,
               });
               await authInfo.save();
-              this.webServer.doRedirect(303, authInfo.getOrgFrontDoorUrl(), response);
+              await this.webServer.handleSuccess(response);
               response.end();
               resolve(authInfo);
             } catch (err) {
-              this.webServer.reportError(err as Error, response);
+              this.oauthError = err as Error;
+              await this.webServer.handleError(response);
               reject(err);
             }
           })
@@ -134,6 +141,8 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
     if (!this.oauthConfig.clientId) this.oauthConfig.clientId = DEFAULT_CONNECTED_APP_INFO.clientId;
     if (!this.oauthConfig.loginUrl) this.oauthConfig.loginUrl = AuthInfo.getDefaultInstanceUrl();
     if (!this.oauthConfig.redirectUri) this.oauthConfig.redirectUri = `http://localhost:${port}/OauthRedirect`;
+    // Unless explicitly turned off, use a code verifier as a best practice
+    if (this.oauthConfig.useVerifier !== false) this.oauthConfig.useVerifier = true;
 
     this.webServer = await WebServer.create({ port });
     this.oauth2 = new OAuth2(this.oauthConfig);
@@ -148,40 +157,61 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   private async executeOauthRequest(): Promise<http.ServerResponse> {
     return new Promise((resolve, reject) => {
       this.logger.debug('Starting web auth flow');
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises, @typescript-eslint/no-explicit-any, @typescript-eslint/require-await
-      this.webServer.server.on('request', async (request: any, response) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        const url = parseUrl(request.url);
-        this.logger.debug(`processing request for uri: ${url.pathname as string}`);
-        if (request.method === 'GET') {
-          if (url.pathname?.startsWith('/OauthRedirect')) {
-            request.query = parseQueryString(url.query as string);
-            if (request.query.error) {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-              const err = new SfError(request.query.error_description ?? request.query.error, request.query.error);
-              this.webServer.reportError(err, response);
-              return reject(err);
+      // - async method when sync expected
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      this.webServer.server.on('request', async (request: WebOAuthServer.Request, response) => {
+        if (request.url) {
+          const url = parseUrl(request.url);
+          this.logger.debug(`processing request for uri: ${url.pathname}`);
+          if (request.method === 'GET') {
+            if (url.pathname?.startsWith('/OauthRedirect') && url.query) {
+              // eslint-disable-next-line no-param-reassign
+              request.query = parseQueryString(url.query) as {
+                code: string;
+                state: string;
+                error?: string | undefined;
+                error_description?: string;
+              };
+              if (request.query.error) {
+                const errorName: string =
+                  typeof request.query.error_description === 'string'
+                    ? request.query.error_description
+                    : request.query.error;
+                this.oauthError = new SfError(errorName, request.query.error);
+                await this.webServer.handleError(response);
+                return reject(this.oauthError);
+              }
+              this.logger.debug(`request.query.state: ${request.query.state}`);
+              try {
+                this.oauthConfig.authCode = asString(this.parseAuthCodeFromRequest(response, request));
+                resolve(response);
+              } catch (err) {
+                reject(err);
+              }
+            } else if (url.pathname === '/OauthSuccess') {
+              this.webServer.reportSuccess(response);
+            } else if (url.pathname === '/OauthError') {
+              this.webServer.reportError(this.oauthError, response);
+            } else if (iconPaths.includes(url.pathname ?? '')) {
+              this.logger.debug(`Ignoring request for icon path: ${url.pathname}`);
+            } else {
+              this.webServer.sendError(404, 'Resource not found', response);
+              const errName = 'invalidRequestUri';
+              const errMessage = messages.getMessage(errName, [url.pathname]);
+              reject(new SfError(errMessage, errName));
             }
-            this.logger.debug(`request.query.state: ${request.query.state as string}`);
-            try {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-              this.oauthConfig.authCode = asString(this.parseAuthCodeFromRequest(response, request));
-              resolve(response);
-            } catch (err) {
-              reject(err);
-            }
+          } else if (
+            request.method === 'OPTIONS' &&
+            request.headers['access-control-request-private-network'] === 'true' &&
+            request.headers['access-control-request-method']
+          ) {
+            this.webServer.handlePreflightRequest(response);
           } else {
-            this.webServer.sendError(404, 'Resource not found', response);
-            const errName = 'invalidRequestUri';
-            const errMessage = messages.getMessage(errName, [url.pathname]);
+            this.webServer.sendError(405, 'Unsupported http methods', response);
+            const errName = 'invalidRequestMethod';
+            const errMessage = messages.getMessage(errName, [request.method]);
             reject(new SfError(errMessage, errName));
           }
-        } else {
-          this.webServer.sendError(405, 'Unsupported http methods', response);
-          const errName = 'invalidRequestMethod';
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          const errMessage = messages.getMessage(errName, [request.method]);
-          reject(new SfError(errMessage, errName));
         }
       });
     });
@@ -197,7 +227,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   private parseAuthCodeFromRequest(response: http.ServerResponse, request: WebOAuthServer.Request): Nullable<string> {
     if (!this.validateState(request)) {
       const error = new SfError('urlStateMismatch');
-      this.webServer.sendError(400, `${error.message}\n`, response);
+      this.webServer.sendError(400, error.message, response);
       this.closeRequest(request);
       this.logger.warn('urlStateMismatchAttempt detected.');
       if (!get(this.webServer.server, 'urlStateMismatchAttempt')) {
@@ -216,6 +246,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
       this.logger.debug(`oauthConfig.loginUrl: ${this.oauthConfig.loginUrl}`);
       this.logger.debug(`oauthConfig.clientId: ${this.oauthConfig.clientId}`);
       this.logger.debug(`oauthConfig.redirectUri: ${this.oauthConfig.redirectUri}`);
+      this.logger.debug(`oauthConfig.useVerifier: ${this.oauthConfig.useVerifier}`);
       return authCode;
     }
     return null;
@@ -245,23 +276,26 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
 }
 
 export namespace WebOAuthServer {
-  export interface Options {
+  export type Options = {
     oauthConfig: JwtOAuth2Config;
-  }
+  };
 
-  export type Request = http.IncomingMessage & { query: { code: string; state: string } };
+  export type Request = http.IncomingMessage & {
+    query: { code: string; state: string; error?: string; error_description?: string };
+  };
 }
 
 /**
  * Handles the actions specific to the http server
  */
 export class WebServer extends AsyncCreatable<WebServer.Options> {
-  public static DEFAULT_CLIENT_SOCKET_TIMEOUT = 20000;
+  public static DEFAULT_CLIENT_SOCKET_TIMEOUT = 20_000;
   public server!: http.Server;
   public port = WebOAuthServer.DEFAULT_PORT;
   public host = 'localhost';
   private logger!: Logger;
   private sockets: Socket[] = [];
+  private redirectStatus = new EventEmitter();
 
   public constructor(options: WebServer.Options) {
     super(options);
@@ -312,12 +346,14 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
   /**
    * sends a response error.
    *
-   * @param statusCode he statusCode for the response.
+   * @param status the statusCode for the response.
    * @param message the message for the http body.
    * @param response the response to write the error to.
    */
   public sendError(status: number, message: string, response: http.ServerResponse): void {
+    // eslint-disable-next-line no-param-reassign
     response.statusMessage = message;
+    // eslint-disable-next-line no-param-reassign
     response.statusCode = status;
     response.end();
   }
@@ -325,11 +361,12 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
   /**
    * sends a response redirect.
    *
-   * @param statusCode the statusCode for the response.
+   * @param status the statusCode for the response.
    * @param url the url to redirect to.
    * @param response the response to write the redirect to.
    */
   public doRedirect(status: number, url: string, response: http.ServerResponse): void {
+    this.logger.debug(`Redirecting to ${url}`);
     response.setHeader('Content-Type', 'text/plain');
     const body = `${status} - Redirecting to ${url}`;
     response.setHeader('Content-Length', Buffer.byteLength(body));
@@ -340,18 +377,74 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
   /**
    * sends a response to the browser reporting an error.
    *
-   * @param error the error
-   * @param response the response to write the redirect to.
+   * @param error the oauth error
+   * @param response the HTTP response.
    */
   public reportError(error: Error, response: http.ServerResponse): void {
     response.setHeader('Content-Type', 'text/html');
-    const body = messages.getMessage('serverErrorHTMLResponse', [error.message]);
-    response.setHeader('Content-Length', Buffer.byteLength(body));
+    const currentYear = new Date().getFullYear();
+    const encodedImg = messages.getMessage('serverSfdcImage');
+    const body = messages.getMessage('serverErrorHTMLResponse', [encodedImg, error.name, error.message, currentYear]);
+    response.setHeader('Content-Length', Buffer.byteLength(body, 'utf8'));
     response.end(body);
+    if (error.stack) {
+      this.logger.debug(error.stack);
+    }
+    this.redirectStatus.emit('complete');
+  }
+
+  /**
+   * sends a response to the browser reporting the success.
+   *
+   * @param response the HTTP response.
+   */
+  public reportSuccess(response: http.ServerResponse): void {
+    response.setHeader('Content-Type', 'text/html');
+    const currentYear = new Date().getFullYear();
+    const encodedImg = messages.getMessage('serverSfdcImage');
+    const body = messages.getMessage('serverSuccessHTMLResponse', [encodedImg, currentYear]);
+    response.setHeader('Content-Length', Buffer.byteLength(body, 'utf8'));
+    response.end(body);
+    this.redirectStatus.emit('complete');
+  }
+
+  /**
+   * Preflight request:
+   *
+   * https://developer.mozilla.org/en-US/docs/Glossary/Preflight_request
+   * https://www.w3.org/TR/2020/SPSD-cors-20200602/#resource-preflight-requests
+   */
+  public handlePreflightRequest(response: http.ServerResponse): void {
+    // We don't validate the origin here because:
+    // 1. The default login URL (login.salesforce.com) will not match after a redirect or if user choose a custom domain in login.
+    // 2. There's no fixed list of auth URLs we could check against.
+    // eslint-disable-next-line no-param-reassign
+    response.statusCode = 204; // No Content response
+    response.setHeader('Access-Control-Allow-Methods', 'GET');
+    response.setHeader('Access-Control-Request-Headers', 'GET');
+    response.end();
+  }
+
+  public async handleSuccess(response: http.ServerResponse): Promise<void> {
+    return this.handleRedirect(response, '/OauthSuccess');
+  }
+
+  public async handleError(response: http.ServerResponse): Promise<void> {
+    return this.handleRedirect(response, '/OauthError');
   }
 
   protected async init(): Promise<void> {
     this.logger = await Logger.child(this.constructor.name);
+  }
+
+  private async handleRedirect(response: http.ServerResponse, url: '/OauthSuccess' | '/OauthError'): Promise<void> {
+    return new Promise((resolve) => {
+      this.redirectStatus.on('complete', () => {
+        this.logger.debug('Redirect complete');
+        resolve();
+      });
+      this.doRedirect(303, url, response);
+    });
   }
 
   /**
@@ -407,8 +500,8 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
 }
 
 namespace WebServer {
-  export interface Options {
+  export type Options = {
     port?: number;
     host?: string;
-  }
+  };
 }

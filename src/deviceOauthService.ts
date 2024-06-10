@@ -7,27 +7,28 @@
 /* eslint-disable camelcase */
 /* eslint-disable @typescript-eslint/ban-types */
 
-import Transport from 'jsforce/lib/transport';
-import { AsyncCreatable, Duration, parseJsonMap } from '@salesforce/kit';
-import { HttpRequest, OAuth2Config } from 'jsforce';
-import { ensureString, JsonMap, Nullable } from '@salesforce/ts-types';
-import * as FormData from 'form-data';
-import { Logger } from './logger';
-import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, SFDX_HTTP_HEADERS } from './org';
+import Transport from '@jsforce/jsforce-node/lib/transport';
+import { AsyncCreatable, Duration, parseJsonMap, sleep } from '@salesforce/kit';
+import { HttpRequest, OAuth2Config } from '@jsforce/jsforce-node';
+import { ensureString, isString, JsonMap, Nullable } from '@salesforce/ts-types';
+import FormData from 'form-data';
+import { Logger } from './logger/logger';
+import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org/authInfo';
+import { SFDX_HTTP_HEADERS } from './org/connection';
 import { SfError } from './sfError';
 import { Messages } from './messages';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'auth');
 
-export interface DeviceCodeResponse extends JsonMap {
+export type DeviceCodeResponse = {
   device_code: string;
   interval: number;
   user_code: string;
   verification_uri: string;
-}
+} & JsonMap;
 
-export interface DeviceCodePollingResponse extends JsonMap {
+export type DeviceCodePollingResponse = {
   access_token: string;
   refresh_token: string;
   signature: string;
@@ -36,17 +37,25 @@ export interface DeviceCodePollingResponse extends JsonMap {
   id: string;
   token_type: string;
   issued_at: string;
-}
+} & JsonMap;
 
-async function wait(ms = 1000): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
+type DeviceCodeAuthError = {
+  error: string;
+  error_description: string;
+  status: number;
+} & SfError;
 
 async function makeRequest<T extends JsonMap>(options: HttpRequest): Promise<T> {
   const rawResponse = await new Transport().httpRequest(options);
+
+  if (rawResponse?.headers?.['content-type'] === 'text/html') {
+    const htmlResponseError = messages.createError('error.HttpApi');
+    htmlResponseError.setData(rawResponse.body);
+    throw htmlResponseError;
+  }
+
   const response = parseJsonMap<T>(rawResponse.body);
+
   if (response.error) {
     const errorDescription = typeof response.error_description === 'string' ? response.error_description : '';
     const error = typeof response.error === 'string' ? response.error : 'Unknown';
@@ -174,21 +183,25 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
     );
     try {
       return await makeRequest<DeviceCodePollingResponse>(httpRequest);
-    } catch (e) {
-      /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/restrict-template-expressions */
-      const err: any = (e as SfError).data;
-      if (err.error && err.status === 400 && err.error === 'authorization_pending') {
+    } catch (e: unknown) {
+      if (e instanceof SfError && e.name === 'HttpApiError') {
+        throw e;
+      }
+
+      const err = (e instanceof SfError ? e.data : SfError.wrap(isString(e) ? e : 'unknown').data) as
+        | DeviceCodeAuthError
+        | undefined;
+      if (err?.error && err?.status === 400 && err?.error === 'authorization_pending') {
         // do nothing because we're still waiting
       } else {
-        if (err.error && err.error_description) {
+        if (err?.error && err?.error_description) {
           this.logger.error(`Polling error: ${err.error}: ${err.error_description}`);
         } else {
           this.logger.error('Unknown Polling Error:');
-          this.logger.error(err);
+          this.logger.error(err ?? e);
         }
-        throw err;
+        throw err ?? e;
       }
-      /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/restrict-template-expressions */
     }
   }
 
@@ -211,7 +224,7 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
       } else {
         this.logger.debug(`waiting ${interval} ms...`);
         // eslint-disable-next-line no-await-in-loop
-        await wait(interval);
+        await sleep(interval);
         this.pollingCount += 1;
       }
     }

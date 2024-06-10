@@ -10,13 +10,11 @@ import { Global } from '../global';
 import { AliasAccessor } from './accessors/aliasAccessor';
 import { OrgAccessor } from './accessors/orgAccessor';
 import { SandboxAccessor } from './accessors/sandboxAccessor';
-import { TokenAccessor } from './accessors/tokenAccessor';
 export class StateAggregator extends AsyncOptionalCreatable {
   private static instanceMap: Map<string, StateAggregator> = new Map();
   public aliases!: AliasAccessor;
   public orgs!: OrgAccessor;
   public sandboxes!: SandboxAccessor;
-  public tokens!: TokenAccessor;
 
   /**
    * Reuse a StateAggregator if one was already created for the current global state directory
@@ -44,6 +42,5 @@ export class StateAggregator extends AsyncOptionalCreatable {
     this.orgs = await OrgAccessor.create();
     this.sandboxes = await SandboxAccessor.create();
     this.aliases = await AliasAccessor.create();
-    this.tokens = await TokenAccessor.create();
   }
 }

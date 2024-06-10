@@ -5,17 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
-import { constants as fsConstants, Stats as fsStats } from 'fs';
-import { homedir as osHomedir } from 'os';
-import { dirname as pathDirname, join as pathJoin } from 'path';
-import { isPlainObject } from '@salesforce/ts-types';
+import * as fs from 'node:fs';
+import { constants as fsConstants, Stats as fsStats } from 'node:fs';
+import { homedir as osHomedir } from 'node:os';
+import { join as pathJoin } from 'node:path';
 import { parseJsonMap } from '@salesforce/kit';
 import { Global } from '../global';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { resolveProjectPath, resolveProjectPathSync } from '../util/internal';
-import { BaseConfigStore, ConfigContents } from './configStore';
+import { lockInit, lockInitSync } from '../util/fileLocking';
+import { BaseConfigStore } from './configStore';
+import { ConfigContents } from './configStackTypes';
+import { stateFromContents } from './lwwMap';
 
 /**
  * Represents a json config file used to manage settings and state. Global config
@@ -160,23 +162,30 @@ export class ConfigFile<
       // Only need to read config files once.  They are kept up to date
       // internally and updated persistently via write().
       if (!this.hasRead || force) {
-        this.logger.info(`Reading config file: ${this.getPath()}`);
-        const obj = parseJsonMap(await fs.promises.readFile(this.getPath(), 'utf8'));
-        this.setContentsFromObject(obj);
+        this.logger.debug(
+          `Reading config file: ${this.getPath()} because ${
+            !this.hasRead ? 'hasRead is false' : 'force parameter is true'
+          }`
+        );
+
+        const obj = parseJsonMap<P>(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath());
+        this.setContentsFromFileContents(obj, (await fs.promises.stat(this.getPath(), { bigint: true })).mtimeNs);
       }
-      return this.getContents();
-    } catch (err) {
-      if ((err as SfError).code === 'ENOENT') {
-        if (!throwOnNotFound) {
-          this.setContents();
-          return this.getContents();
-        }
-      }
-      throw err;
-    } finally {
       // Necessarily set this even when an error happens to avoid infinite re-reading.
       // To attempt another read, pass `force=true`.
       this.hasRead = true;
+      return this.getContents();
+    } catch (err) {
+      this.hasRead = true;
+      if ((err as SfError).code === 'ENOENT') {
+        if (!throwOnNotFound) {
+          this.setContentsFromFileContents({} as P);
+          return this.getContents();
+        }
+      }
+      // Necessarily set this even when an error happens to avoid infinite re-reading.
+      // To attempt another read, pass `force=true`.
+      throw err;
     }
   }
 
@@ -194,15 +203,19 @@ export class ConfigFile<
       // Only need to read config files once.  They are kept up to date
       // internally and updated persistently via write().
       if (!this.hasRead || force) {
-        this.logger.info(`Reading config file: ${this.getPath()}`);
-        const obj = parseJsonMap(fs.readFileSync(this.getPath(), 'utf8'));
-        this.setContentsFromObject(obj);
+        this.logger.debug(`Reading config file: ${this.getPath()}`);
+        const obj = parseJsonMap<P>(fs.readFileSync(this.getPath(), 'utf8'));
+        this.setContentsFromFileContents(obj, fs.statSync(this.getPath(), { bigint: true }).mtimeNs);
       }
+      // Necessarily set this even when an error happens to avoid infinite re-reading.
+      // To attempt another read, pass `force=true`.
+      this.hasRead = true;
       return this.getContents();
     } catch (err) {
+      this.hasRead = true;
       if ((err as SfError).code === 'ENOENT') {
         if (!throwOnNotFound) {
-          this.setContents();
+          this.setContentsFromFileContents({} as P);
           return this.getContents();
         }
       }
@@ -220,19 +233,19 @@ export class ConfigFile<
    *
    * @param newContents The new contents of the file.
    */
-  public async write(newContents?: P): Promise<P> {
-    if (newContents) {
-      this.setContents(newContents);
-    }
+  public async write(): Promise<P> {
+    const lockResponse = await lockInit(this.getPath());
 
+    // lock the file.  Returns an unlock function to call when done.
     try {
-      await fs.promises.mkdir(pathDirname(this.getPath()), { recursive: true });
+      const fileTimestamp = (await fs.promises.stat(this.getPath(), { bigint: true })).mtimeNs;
+      const fileContents = parseJsonMap<P>(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath());
+      this.logAndMergeContents(fileTimestamp, fileContents);
     } catch (err) {
-      throw SfError.wrap(err as Error);
+      this.handleWriteError(err);
     }
-
-    this.logger.info(`Writing to config file: ${this.getPath()}`);
-    await fs.promises.writeFile(this.getPath(), JSON.stringify(this.toObject(), null, 2));
+    // write the merged LWWMap to file
+    await lockResponse.writeAndUnlock(JSON.stringify(this.getContents(), null, 2));
 
     return this.getContents();
   }
@@ -243,19 +256,19 @@ export class ConfigFile<
    *
    * @param newContents The new contents of the file.
    */
-  public writeSync(newContents?: P): P {
-    if (isPlainObject(newContents)) {
-      this.setContents(newContents);
-    }
-
+  public writeSync(): P {
+    const lockResponse = lockInitSync(this.getPath());
     try {
-      fs.mkdirSync(pathDirname(this.getPath()), { recursive: true });
+      // get the file modstamp.  Do this after the lock acquisition in case the file is being written to.
+      const fileTimestamp = fs.statSync(this.getPath(), { bigint: true }).mtimeNs;
+      const fileContents = parseJsonMap<P>(fs.readFileSync(this.getPath(), 'utf8'), this.getPath());
+      this.logAndMergeContents(fileTimestamp, fileContents);
     } catch (err) {
-      throw SfError.wrap(err as Error);
+      this.handleWriteError(err);
     }
 
-    this.logger.info(`Writing to config file: ${this.getPath()}`);
-    fs.writeFileSync(this.getPath(), JSON.stringify(this.toObject(), null, 2));
+    // write the merged LWWMap to file
+    lockResponse.writeAndUnlock(JSON.stringify(this.getContents(), null, 2));
 
     return this.getContents();
   }
@@ -366,13 +379,34 @@ export class ConfigFile<
     // Read the file, which also sets the path and throws any errors around project paths.
     await this.read(this.options.throwOnNotFound);
   }
+
+  // method exists to share code between write() and writeSync()
+  private logAndMergeContents(fileTimestamp: bigint, fileContents: P): void {
+    this.logger.debug(`Existing file contents on filesystem (timestamp: ${fileTimestamp.toString()}`, fileContents);
+    this.logger.debug('Contents in configFile in-memory', this.getContents());
+
+    // read the file contents into a LWWMap using the modstamp
+    const stateFromFile = stateFromContents<P>(fileContents, fileTimestamp);
+    // merge the new contents into the in-memory LWWMap
+    this.contents.merge(stateFromFile);
+    this.logger.debug('Result from merge', this.getContents());
+  }
+
+  // shared error handling for both write() and writeSync()
+  private handleWriteError(err: unknown): void {
+    if (err instanceof Error && err.message.includes('ENOENT')) {
+      this.logger.debug(`No file found at ${this.getPath()}.  Write will create it.`);
+    } else {
+      throw err;
+    }
+  }
 }
 
 export namespace ConfigFile {
   /**
    * The interface for Config options.
    */
-  export interface Options extends BaseConfigStore.Options {
+  export type Options = {
     /**
      * The root folder where the config file is stored.
      */
@@ -401,5 +435,5 @@ export namespace ConfigFile {
      * Indicates if init should throw if the corresponding config file is not found.
      */
     throwOnNotFound?: boolean;
-  }
+  } & BaseConfigStore.Options;
 }

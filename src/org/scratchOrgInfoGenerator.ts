@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { promises as fs } from 'fs';
+import { promises as fs } from 'node:fs';
 import { parseJson } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
 import { SfProjectJson } from '../sfProject';
@@ -32,15 +32,15 @@ type PartialScratchOrgInfo = Pick<
   | 'Username'
 >;
 
-export interface ScratchOrgInfoPayload extends PartialScratchOrgInfo {
+export type ScratchOrgInfoPayload = {
   orgName: string;
   package2AncestorIds: string;
   features: string | string[];
   connectedAppConsumerKey: string;
-  namespace: string;
+  namespace?: string;
   connectedAppCallbackUrl: string;
   durationDays: number;
-}
+} & PartialScratchOrgInfo;
 
 const SNAPSHOT_UNSUPPORTED_OPTIONS = [
   'features',
@@ -49,7 +49,6 @@ const SNAPSHOT_UNSUPPORTED_OPTIONS = [
   'sourceOrg',
   'settingsPath',
   'releaseVersion',
-  'language',
 ];
 
 // A validator function to ensure any options parameters entered by the user adhere
@@ -216,26 +215,27 @@ export const generateScratchOrgInfo = async ({
   } catch (e) {
     // project is not required
   }
-  scratchOrgInfoPayload.orgName = scratchOrgInfoPayload.orgName ?? 'Company';
 
-  scratchOrgInfoPayload.package2AncestorIds =
-    !ignoreAncestorIds && sfProject?.hasPackages()
-      ? await getAncestorIds(scratchOrgInfoPayload, sfProject, hubOrg)
-      : '';
+  const { namespace: originalNamespace, ...payload } = scratchOrgInfoPayload;
 
-  // Use the Hub org's client ID value, if one wasn't provided to us, or the default
-  if (!scratchOrgInfoPayload.connectedAppConsumerKey) {
-    scratchOrgInfoPayload.connectedAppConsumerKey =
-      hubOrg.getConnection().getAuthInfoFields().clientId ?? DEFAULT_CONNECTED_APP_INFO.clientId;
-  }
+  const namespace = originalNamespace ?? sfProject?.get('namespace');
 
-  if (!nonamespace && sfProject?.get('namespace')) {
-    scratchOrgInfoPayload.namespace = sfProject.get('namespace') as string;
-  }
-
-  // we already have the info, and want to get rid of configApi, so this doesn't use that
-  scratchOrgInfoPayload.connectedAppCallbackUrl = `http://localhost:${await WebOAuthServer.determineOauthPort()}/OauthRedirect`;
-  return scratchOrgInfoPayload;
+  return {
+    ...payload,
+    orgName: scratchOrgInfoPayload.orgName ?? 'Company',
+    // we already have the info, and want to get rid of configApi, so this doesn't use that
+    connectedAppCallbackUrl: `http://localhost:${await WebOAuthServer.determineOauthPort()}/OauthRedirect`,
+    ...(!nonamespace && namespace ? { namespace } : {}),
+    // Use the Hub org's client ID value, if one wasn't provided to us, or the default
+    connectedAppConsumerKey:
+      scratchOrgInfoPayload.connectedAppConsumerKey ??
+      hubOrg.getConnection().getAuthInfoFields().clientId ??
+      DEFAULT_CONNECTED_APP_INFO.clientId,
+    package2AncestorIds:
+      !ignoreAncestorIds && sfProject?.hasPackages()
+        ? await getAncestorIds(scratchOrgInfoPayload, sfProject, hubOrg)
+        : '',
+  };
 };
 
 /**

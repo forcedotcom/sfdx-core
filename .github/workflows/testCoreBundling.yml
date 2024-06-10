@@ -1,0 +1,38 @@
+name: Test Core Bundling
+on:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Set the branch to bundle core'
+        type: string
+        required: false
+        default: main
+      nodeVersion:
+        description: version of node to use.  It's better to specify latest, lts/* or lts/-1 than to hardode numbers
+        type: string
+        required: false
+        default: lts/*
+
+jobs:
+  bundle:
+    uses: ./.github/workflows/bundle.yml
+    with:
+      branch: ${{ github.ref_name || inputs.branch }}
+      nodeVersion: ${{ inputs.nodeVersion }}
+  tests:
+    needs: bundle
+    uses: ./.github/workflows/testExternalProjects.yml
+    secrets: inherit
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['ubuntu-latest', 'windows-latest']
+        externalProjectGit:
+          - forcedotcom/salesforcedx-templates
+          - forcedotcom/salesforcedx-apex
+    with:
+      externalProjectGit: ${{ matrix.externalProjectGit }}
+      os: ${{ matrix.os }}
+      bundledBranch: ${{ github.ref_name || inputs.branch }}

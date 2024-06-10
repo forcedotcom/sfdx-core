@@ -6,11 +6,12 @@
  */
 /* eslint-disable class-methods-use-this */
 
-import { randomBytes } from 'crypto';
-import { resolve as pathResolve } from 'path';
-import * as os from 'os';
-import * as fs from 'fs';
-import { AsyncOptionalCreatable, cloneJson, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
+import { randomBytes } from 'node:crypto';
+import { resolve as pathResolve } from 'node:path';
+import * as os from 'node:os';
+import * as fs from 'node:fs';
+import { Record as RecordType } from '@jsforce/jsforce-node';
+import { AsyncOptionalCreatable, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
   AnyJson,
   asString,
@@ -25,20 +26,22 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
-import { JwtOAuth2, JwtOAuth2Config, OAuth2, TokenResponse } from 'jsforce';
-import Transport from 'jsforce/lib/transport';
+import { OAuth2Config, OAuth2, TokenResponse } from '@jsforce/jsforce-node';
+import Transport from '@jsforce/jsforce-node/lib/transport';
 import * as jwt from 'jsonwebtoken';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { matchesAccessToken, trimTo15 } from '../util/sfdc';
-import { StateAggregator } from '../stateAggregator';
+import { StateAggregator } from '../stateAggregator/stateAggregator';
+import { filterSecrets } from '../logger/filters';
 import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
+import { findSuggestion } from '../util/findSuggestion';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { OrgConfigProperties } from './orgConfigProperties';
-import { Org } from './org';
+import { Org, SandboxFields } from './org';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'core');
@@ -98,17 +101,25 @@ export type OrgAuthorization = {
 /**
  * Options for access token flow.
  */
-export interface AccessTokenOptions {
+export type AccessTokenOptions = {
   accessToken?: string;
   loginUrl?: string;
   instanceUrl?: string;
-}
+};
 
 export type AuthSideEffects = {
   alias?: string;
   setDefault: boolean;
   setDefaultDevHub: boolean;
   setTracksSource?: boolean;
+};
+
+export type JwtOAuth2Config = OAuth2Config & {
+  privateKey?: string;
+  privateKeyFile?: string;
+  authCode?: string;
+  refreshToken?: string;
+  username?: string;
 };
 
 type UserInfo = AnyJson & {
@@ -234,7 +245,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @returns {string}
    */
   public static getDefaultInstanceUrl(): string {
-    const configuredInstanceUrl = ConfigAggregator.getValue(OrgConfigProperties.ORG_INSTANCE_URL).value as string;
+    const configuredInstanceUrl = ConfigAggregator.getValue(OrgConfigProperties.ORG_INSTANCE_URL)?.value as string;
     return configuredInstanceUrl ?? SfdcUrl.PRODUCTION;
   }
 
@@ -324,9 +335,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param options The options to generate the URL.
    */
   public static getAuthorizationUrl(options: JwtOAuth2Config & { scope?: string }, oauth2?: OAuth2): string {
-    // Always use a verifier for enhanced security
-    options.useVerifier = true;
-    const oauth2Verifier = oauth2 ?? new OAuth2(options);
+    // Unless explicitly turned off, use a code verifier for enhanced security
+    const oauth2Verifier = oauth2 ?? new OAuth2({ useVerifier: true, ...options });
 
     // The state parameter allows the redirectUri callback listener to ignore request
     // that don't contain the state value.
@@ -353,7 +363,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     sfdxAuthUrl: string
   ): Pick<AuthFields, 'clientId' | 'clientSecret' | 'refreshToken' | 'loginUrl'> {
     const match = sfdxAuthUrl.match(
-      /^force:\/\/([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]*):([a-zA-Z0-9._-]+={0,2})@([a-zA-Z0-9._-]+)/
+      /^force:\/\/([a-zA-Z0-9._-]+={0,2}):([a-zA-Z0-9._-]*={0,2}):([a-zA-Z0-9._-]+={0,2})@([a-zA-Z0-9._-]+)/
     );
 
     if (!match) {
@@ -373,7 +383,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   /**
    * Given a set of decrypted fields and an authInfo, determine if the org belongs to an available
-   * dev hub.
+   * dev hub, or if the org is a sandbox of another CLI authed production org.
    *
    * @param fields
    * @param orgAuthInfo
@@ -384,21 +394,29 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // authInfo before it is necessary.
     const logger = await Logger.child('Common', { tag: 'identifyPossibleScratchOrgs' });
 
-    // return if we already know the hub org we know it is a devhub or prod-like or no orgId present
-    if (fields.isDevHub || fields.devHubUsername || !fields.orgId) return;
+    // return if we already know the hub org, we know it is a devhub or prod-like, or no orgId present
+    if (Boolean(fields.isDevHub) || Boolean(fields.devHubUsername) || !fields.orgId) return;
 
-    logger.debug('getting devHubs');
+    logger.debug('getting devHubs and prod orgs to identify scratch orgs and sandboxes');
 
     // TODO: return if url is not sandbox-like to avoid constantly asking about production orgs
     // TODO: someday we make this easier by asking the org if it is a scratch org
 
     const hubAuthInfos = await AuthInfo.getDevHubAuthInfos();
+    // Get a list of org auths that are known not to be scratch orgs or sandboxes.
+    const possibleProdOrgs = await AuthInfo.listAllAuthorizations(
+      (orgAuth) => orgAuth && !orgAuth.isScratchOrg && !orgAuth.isSandbox
+    );
+
     logger.debug(`found ${hubAuthInfos.length} DevHubs`);
-    if (hubAuthInfos.length === 0) return;
+    logger.debug(`found ${possibleProdOrgs.length} possible prod orgs`);
+    if (hubAuthInfos.length === 0 && possibleProdOrgs.length === 0) {
+      return;
+    }
 
     // ask all those orgs if they know this orgId
-    await Promise.all(
-      hubAuthInfos.map(async (hubAuthInfo) => {
+    await Promise.all([
+      ...hubAuthInfos.map(async (hubAuthInfo) => {
         try {
           const soi = await AuthInfo.queryScratchOrg(hubAuthInfo.username, fields.orgId as string);
           // if any return a result
@@ -419,10 +437,17 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
             logger.debug(`error updating auth file for ${orgAuthInfo.getUsername()}`, error);
           }
         } catch (error) {
-          logger.error(`Error connecting to devhub ${hubAuthInfo.username}`, error);
+          if (error instanceof Error && error.name === 'NoActiveScratchOrgFound') {
+            logger.error(`devhub ${hubAuthInfo.username} has no scratch orgs`, error);
+          } else {
+            logger.error(`Error connecting to devhub ${hubAuthInfo.username}`, error);
+          }
         }
-      })
-    );
+      }),
+      ...possibleProdOrgs.map(async (pOrgAuthInfo) => {
+        await AuthInfo.identifyPossibleSandbox(pOrgAuthInfo, fields, orgAuthInfo, logger);
+      }),
+    ]);
   }
 
   /**
@@ -432,16 +457,83 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     return AuthInfo.listAllAuthorizations((possibleHub) => possibleHub?.isDevHub ?? false);
   }
 
+  private static async identifyPossibleSandbox(
+    possibleProdOrg: OrgAuthorization,
+    fields: AuthFields,
+    orgAuthInfo: AuthInfo,
+    logger: Logger
+  ): Promise<void> {
+    if (!fields.orgId) {
+      return;
+    }
+
+    try {
+      const prodOrg = await Org.create({ aliasOrUsername: possibleProdOrg.username });
+      const sbxProcess = await prodOrg.querySandboxProcessByOrgId(fields.orgId);
+      if (!sbxProcess?.SandboxInfoId) {
+        return;
+      }
+      logger.debug(`${fields.orgId} is a sandbox of ${possibleProdOrg.username}`);
+
+      try {
+        await orgAuthInfo.save({
+          ...fields,
+          isScratch: false,
+          isSandbox: true,
+        });
+      } catch (err) {
+        logger.debug(`error updating auth file for: ${orgAuthInfo.getUsername()}`, err);
+        throw err; // rethrow; don't want a sandbox config file with an invalid auth file
+      }
+
+      try {
+        // set the sandbox config value
+        const sfSandbox: SandboxFields = {
+          sandboxUsername: fields.username,
+          sandboxOrgId: fields.orgId,
+          prodOrgUsername: possibleProdOrg.username,
+          sandboxName: sbxProcess.SandboxName,
+          sandboxProcessId: sbxProcess.Id,
+          sandboxInfoId: sbxProcess.SandboxInfoId,
+          timestamp: new Date().toISOString(),
+        };
+
+        const stateAggregator = await StateAggregator.getInstance();
+        stateAggregator.sandboxes.set(fields.orgId, sfSandbox);
+        logger.debug(`writing sandbox auth file for: ${orgAuthInfo.getUsername()} with ID: ${fields.orgId}`);
+        await stateAggregator.sandboxes.write(fields.orgId);
+      } catch (e) {
+        logger.debug(`error writing sandbox auth file for: ${orgAuthInfo.getUsername()}`, e);
+      }
+    } catch (err) {
+      logger.debug(`${fields.orgId} is not a sandbox of ${possibleProdOrg.username}`);
+    }
+  }
+
+  /**
+   * Checks active scratch orgs to match by the ScratchOrg field (the 15-char org id)
+   * if you pass an 18-char scratchOrgId, it will be trimmed to 15-char for query purposes
+   * Throws is no matching scratch org is found
+   */
   private static async queryScratchOrg(
     devHubUsername: string | undefined,
     scratchOrgId: string
   ): Promise<{ Id: string; ExpirationDate: string }> {
     const devHubOrg = await Org.create({ aliasOrUsername: devHubUsername });
+    const trimmedId = trimTo15(scratchOrgId);
     const conn = devHubOrg.getConnection();
-    const data = await conn.singleRecordQuery<{ Id: string; ExpirationDate: string }>(
-      `select Id, ExpirationDate from ScratchOrgInfo where ScratchOrg = '${trimTo15(scratchOrgId)}'`
+    const data = await conn.query<{ Id: string; ExpirationDate: string; ScratchOrg: string }>(
+      `select Id, ExpirationDate, ScratchOrg from ScratchOrgInfo where ScratchOrg = '${trimmedId}' and Status = 'Active'`
     );
-    return data;
+    // where ScratchOrg='00DDE00000485Lg' will return a record for both 00DDE00000485Lg and 00DDE00000485LG.
+    // this is our way of enforcing case sensitivity on a 15-char Id (which is unfortunately how ScratchOrgInfo stores it)
+    const result = data.records.filter((r) => r.ScratchOrg === trimmedId)[0];
+    if (result) return result;
+
+    throw new SfError(
+      `DevHub ${devHubUsername} has no active scratch orgs that match ${trimmedId}`,
+      'NoActiveScratchOrgFound'
+    );
   }
 
   /**
@@ -520,8 +612,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * Get the auth fields (decrypted) needed to make a connection.
    */
   public getConnectionOptions(): ConnectionOptions {
-    let opts: ConnectionOptions;
-
     const decryptedCopy = this.getFields(true);
     const { accessToken, instanceUrl, loginUrl } = decryptedCopy;
 
@@ -529,36 +619,33 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       this.logger.info('Returning fields for a connection using access token.');
 
       // Just auth with the accessToken
-      opts = { accessToken, instanceUrl, loginUrl };
-    } else if (this.isJwt()) {
+      return { accessToken, instanceUrl, loginUrl };
+    }
+    if (this.isJwt()) {
       this.logger.info('Returning fields for a connection using JWT config.');
-      opts = {
-        accessToken,
-        instanceUrl,
-        refreshFn: this.refreshFn.bind(this),
-      };
-    } else {
-      // @TODO: figure out loginUrl and redirectUri (probably get from config class)
-      //
-      // redirectUri: org.config.getOauthCallbackUrl()
-      // loginUrl: this.fields.instanceUrl || this.config.getAppConfig().sfdcLoginUrl
-      this.logger.info('Returning fields for a connection using OAuth config.');
-
-      // Decrypt a user provided client secret or use the default.
-      opts = {
-        oauth2: {
-          loginUrl: instanceUrl ?? SfdcUrl.PRODUCTION,
-          clientId: this.getClientId(),
-          redirectUri: this.getRedirectUri(),
-        },
+      return {
         accessToken,
         instanceUrl,
         refreshFn: this.refreshFn.bind(this),
       };
     }
+    // @TODO: figure out loginUrl and redirectUri (probably get from config class)
+    //
+    // redirectUri: org.config.getOauthCallbackUrl()
+    // loginUrl: this.fields.instanceUrl || this.config.getAppConfig().sfdcLoginUrl
+    this.logger.info('Returning fields for a connection using OAuth config.');
 
-    // decrypt the fields
-    return opts;
+    // Decrypt a user provided client secret or use the default.
+    return {
+      oauth2: {
+        loginUrl: instanceUrl ?? SfdcUrl.PRODUCTION,
+        clientId: this.getClientId(),
+        redirectUri: this.getRedirectUri(),
+      },
+      accessToken,
+      instanceUrl,
+      refreshFn: this.refreshFn.bind(this),
+    };
   }
 
   public getClientId(): string {
@@ -573,8 +660,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * Get the authorization fields.
    *
    * @param decrypt Decrypt the fields.
+   *
+   * Returns a ReadOnly object of the fields.  If you need to modify the fields, use AuthInfo.update()
    */
-  public getFields(decrypt?: boolean): AuthFields {
+  public getFields(decrypt?: boolean): Readonly<AuthFields> {
     return this.stateAggregator.orgs.get(this.username, decrypt) ?? {};
   }
 
@@ -622,7 +711,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public async handleAliasAndDefaultSettings(sideEffects: AuthSideEffects): Promise<void> {
     if (
-      sideEffects.alias ||
+      Boolean(sideEffects.alias) ||
       sideEffects.setDefault ||
       sideEffects.setDefaultDevHub ||
       typeof sideEffects.setTracksSource === 'boolean'
@@ -674,8 +763,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param alias alias to set
    */
   public async setAlias(alias: string): Promise<void> {
-    this.stateAggregator.aliases.set(alias, this.getUsername());
-    await this.stateAggregator.aliases.write();
+    return this.stateAggregator.aliases.setAndSave(alias, this.getUsername());
   }
 
   /**
@@ -726,7 +814,19 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
     // If a username with NO oauth options, ensure authorization already exist.
     else if (username && !authOptions && !(await this.stateAggregator.orgs.exists(username))) {
-      throw messages.createError('namedOrgNotFound', [username]);
+      const likeName = findSuggestion(username, [
+        ...(await this.stateAggregator.orgs.list()).map((f) => f.split('.json')[0]),
+        ...Object.keys(this.stateAggregator.aliases.getAll()),
+      ]);
+
+      throw SfError.create({
+        name: 'NamedOrgNotFoundError',
+        message: messages.getMessage('namedOrgNotFound', [username]),
+        actions:
+          likeName === ''
+            ? undefined
+            : [`It looks like you mistyped the username or alias. Did you mean "${likeName}"?`],
+      });
     } else {
       await this.initAuthOptions(authOptions);
     }
@@ -754,7 +854,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     let authConfig: AuthFields;
 
     if (options) {
-      options = cloneJson(options);
+      options = structuredClone(options);
 
       if (this.isTokenOptions(options)) {
         authConfig = options;
@@ -803,6 +903,15 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         ensureString(authConfig.instanceUrl),
         ensureString(authConfig.accessToken)
       );
+
+      const namespacePrefix = await this.getNamespacePrefix(
+        ensureString(authConfig.instanceUrl),
+        ensureString(authConfig.accessToken)
+      );
+
+      if (namespacePrefix) {
+        authConfig.namespacePrefix = namespacePrefix;
+      }
 
       if (authConfig.username) await this.stateAggregator.orgs.read(authConfig.username, false, false);
 
@@ -938,29 +1047,32 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       }
     );
 
-    const oauth2 = new JwtOAuth2({ loginUrl });
-    // jsforce has it types as any
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return ensureJsonMap(await oauth2.jwtAuthorize(jwtToken));
+    const oauth2 = new OAuth2({ loginUrl });
+    return ensureJsonMap(
+      await oauth2.requestToken({
+        // eslint-disable-next-line camelcase
+        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+        assertion: jwtToken,
+      })
+    );
   }
 
   // Build OAuth config for a refresh token auth flow
   private async buildRefreshTokenConfig(options: JwtOAuth2Config): Promise<AuthFields> {
-    // Ideally, this would be removed at some point in the distant future when all auth files
-    // now have the clientId stored in it.
-    if (!options.clientId) {
-      options.clientId = DEFAULT_CONNECTED_APP_INFO.clientId;
-      options.clientSecret = DEFAULT_CONNECTED_APP_INFO.clientSecret;
-    }
+    const fullOptions: JwtOAuth2Config = {
+      ...options,
+      redirectUri: options.redirectUri ?? this.getRedirectUri(),
+      // Ideally, this would be removed at some point in the distant future when all auth files
+      // now have the clientId stored in it.
+      ...(options.clientId
+        ? {}
+        : { clientId: DEFAULT_CONNECTED_APP_INFO.clientId, clientSecret: DEFAULT_CONNECTED_APP_INFO.clientSecret }),
+    };
 
-    if (!options.redirectUri) {
-      options.redirectUri = this.getRedirectUri();
-    }
-
-    const oauth2 = new OAuth2(options);
+    const oauth2 = new OAuth2(fullOptions);
     let authFieldsBuilder: TokenResponse;
     try {
-      authFieldsBuilder = await oauth2.refreshToken(ensure(options.refreshToken));
+      authFieldsBuilder = await oauth2.refreshToken(ensure(fullOptions.refreshToken));
     } catch (err) {
       throw messages.createError('refreshTokenAuthError', [(err as Error).message]);
     }
@@ -979,10 +1091,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       username,
       accessToken: authFieldsBuilder.access_token,
       instanceUrl: authFieldsBuilder.instance_url,
-      loginUrl: options.loginUrl ?? authFieldsBuilder.instance_url,
-      refreshToken: options.refreshToken,
-      clientId: options.clientId,
-      clientSecret: options.clientSecret,
+      loginUrl: fullOptions.loginUrl ?? authFieldsBuilder.instance_url,
+      refreshToken: fullOptions.refreshToken,
+      clientId: fullOptions.clientId,
+      clientSecret: fullOptions.clientSecret,
     };
   }
 
@@ -994,9 +1106,11 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   private async exchangeToken(options: JwtOAuth2Config, oauth2: OAuth2 = new OAuth2(options)): Promise<AuthFields> {
     if (!oauth2.redirectUri) {
+      // eslint-disable-next-line no-param-reassign
       oauth2.redirectUri = this.getRedirectUri();
     }
     if (!oauth2.clientId) {
+      // eslint-disable-next-line no-param-reassign
       oauth2.clientId = this.getClientId();
     }
 
@@ -1006,7 +1120,14 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       this.logger.info(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
       authFields = await oauth2.requestToken(ensure(options.authCode));
     } catch (err) {
-      throw messages.createError('authCodeExchangeError', [(err as Error).message]);
+      const msg = err instanceof Error ? `${err.name}::${err.message}` : typeof err === 'string' ? err : 'UNKNOWN';
+      const redacted = filterSecrets(options);
+      throw SfError.create({
+        message: messages.getMessage('authCodeExchangeError', [msg]),
+        name: 'AuthCodeExchangeError',
+        ...(err instanceof Error ? { cause: err } : {}),
+        data: (isArray(redacted) ? redacted[0] : redacted) as JwtOAuth2Config,
+      });
     }
 
     const { orgId } = parseIdUrl(authFields.id);
@@ -1050,7 +1171,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         this.throwUserGetException(response);
       } else {
         const userInfoJson = parseJsonMap(response.body) as UserInfoResult;
-        const url = `${baseUrl.toString()}/services/data/${apiVersion}/sobjects/User/${userInfoJson.user_id}`;
+        const url = `${baseUrl.toString()}services/data/${apiVersion}/sobjects/User/${userInfoJson.user_id}`;
         this.logger.info(`Sending request for User SObject after successful auth code exchange to URL: ${url}`);
         response = await new Transport().httpRequest({ url, method: 'GET', headers });
         if (response.statusCode >= 400) {
@@ -1088,6 +1209,32 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     throw new SfError(errorMsg);
   }
 
+  private async getNamespacePrefix(instanceUrl: string, accessToken: string): Promise<string | undefined> {
+    // Make a REST call for the Organization obj directly.  Normally this is done via a connection
+    // but we don't want to create circular dependencies or lots of snowflakes
+    // within this file to support it.
+    const apiVersion = 'v51.0'; // hardcoding to v51.0 just for this call is okay.
+    const instance = ensure(instanceUrl);
+    const baseUrl = new SfdcUrl(instance);
+    const namespacePrefixOrgUrl = `${baseUrl.toString()}/services/data/${apiVersion}/query?q=Select%20Namespaceprefix%20FROM%20Organization`;
+    const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
+
+    try {
+      const res = await new Transport().httpRequest({ url: namespacePrefixOrgUrl, method: 'GET', headers });
+      if (res.statusCode >= 400) {
+        return;
+      }
+
+      const namespacePrefix = JSON.parse(res.body) as {
+        records: RecordType[];
+      };
+
+      return ensureString(namespacePrefix.records[0]?.NamespacePrefix);
+    } catch (err) {
+      /* Doesn't have a namespace */
+      return;
+    }
+  }
   /**
    * Returns `true` if the org is a Dev Hub.
    *
@@ -1120,7 +1267,7 @@ export namespace AuthInfo {
   /**
    * Constructor options for AuthInfo.
    */
-  export interface Options {
+  export type Options = {
     /**
      * Org signup username.
      */
@@ -1144,5 +1291,5 @@ export namespace AuthInfo {
     parentUsername?: string;
 
     isDevHub?: boolean;
-  }
+  };
 }

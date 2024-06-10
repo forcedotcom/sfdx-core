@@ -1,9 +1,14 @@
 {
   "extends": "@salesforce/dev-config/tsconfig-test-strict",
-  "include": ["unit/**/*.ts"],
+  "include": ["unit/**/*.ts", "perf/**/*.ts"],
   "compilerOptions": {
     "noEmit": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "lib": ["ES2022"],
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "target": "ES2022"
   }
 }

@@ -4,15 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { join as pathJoin } from 'path';
+import { join as pathJoin } from 'node:path';
 import { Dictionary, Nullable } from '@salesforce/ts-types';
 import { camelCase, snakeCase } from 'change-case';
 import { Env } from '@salesforce/kit';
 import { Messages } from '../messages';
-import { Global } from '../global';
+import { Lifecycle } from '../lifecycleEvents';
 
 Messages.importMessagesDirectory(pathJoin(__dirname));
 const messages = Messages.loadMessages('@salesforce/core', 'envVars');
+
 export enum EnvironmentVariable {
   'FORCE_OPEN_URL' = 'FORCE_OPEN_URL',
   'FORCE_SHOW_SPINNER' = 'FORCE_SHOW_SPINNER',
@@ -24,7 +25,6 @@ export enum EnvironmentVariable {
   'SFDX_ACCESS_TOKEN' = 'SFDX_ACCESS_TOKEN',
   'SFDX_API_VERSION' = 'SFDX_API_VERSION',
   'SFDX_AUDIENCE_URL' = 'SFDX_AUDIENCE_URL',
-  'SFDX_CODE_COVERAGE_REQUIREMENT' = 'SFDX_CODE_COVERAGE_REQUIREMENT',
   'SFDX_CONTENT_TYPE' = 'SFDX_CONTENT_TYPE',
   'SFDX_DEFAULTDEVHUBUSERNAME' = 'SFDX_DEFAULTDEVHUBUSERNAME',
   'SFDX_DEFAULTUSERNAME' = 'SFDX_DEFAULTUSERNAME',
@@ -61,7 +61,6 @@ export enum EnvironmentVariable {
   'SF_ACCESS_TOKEN' = 'SF_ACCESS_TOKEN',
   'SF_ORG_API_VERSION' = 'SF_ORG_API_VERSION',
   'SF_AUDIENCE_URL' = 'SF_AUDIENCE_URL',
-  'SF_CODE_COVERAGE_REQUIREMENT' = 'SF_CODE_COVERAGE_REQUIREMENT',
   'SF_CONTENT_TYPE' = 'SF_CONTENT_TYPE',
   'SF_DISABLE_AUTOUPDATE' = 'SF_DISABLE_AUTOUPDATE',
   'SF_AUTOUPDATE_DISABLE' = 'SF_AUTOUPDATE_DISABLE',
@@ -90,9 +89,11 @@ export enum EnvironmentVariable {
   'SF_UPDATE_INSTRUCTIONS' = 'SF_UPDATE_INSTRUCTIONS',
   'SF_INSTALLER' = 'SF_INSTALLER',
   'SF_ENV' = 'SF_ENV',
+  'SF_CAPITALIZE_RECORD_TYPES' = 'SF_CAPITALIZE_RECORD_TYPES',
 }
 type EnvMetaData = {
   description: string;
+  /** the env has been renamed.  synonymOf points to the new env */
   synonymOf: Nullable<string>;
 };
 
@@ -144,10 +145,6 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   [EnvironmentVariable.SFDX_AUDIENCE_URL]: {
     description: getMessage(EnvironmentVariable.SFDX_AUDIENCE_URL),
     synonymOf: EnvironmentVariable.SF_AUDIENCE_URL,
-  },
-  [EnvironmentVariable.SFDX_CODE_COVERAGE_REQUIREMENT]: {
-    description: getMessage(EnvironmentVariable.SFDX_CODE_COVERAGE_REQUIREMENT),
-    synonymOf: EnvironmentVariable.SF_CODE_COVERAGE_REQUIREMENT,
   },
   [EnvironmentVariable.SFDX_CONTENT_TYPE]: {
     description: getMessage(EnvironmentVariable.SFDX_CONTENT_TYPE),
@@ -241,7 +238,8 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SFDX_REST_DEPLOY]: {
     description: getMessage(EnvironmentVariable.SFDX_REST_DEPLOY),
-    synonymOf: null,
+    // this is not an "official" env var, but it supports the env=>config naming convention for the config that lives in plugin-deploy-retrieve
+    synonymOf: 'SF_ORG_METADATA_REST_DEPLOY',
   },
   [EnvironmentVariable.SFDX_SOURCE_MEMBER_POLLING_TIMEOUT]: {
     description: getMessage(EnvironmentVariable.SFDX_SOURCE_MEMBER_POLLING_TIMEOUT),
@@ -277,11 +275,11 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SF_TARGET_ORG]: {
     description: getMessage(EnvironmentVariable.SF_TARGET_ORG),
-    synonymOf: EnvironmentVariable.SFDX_DEFAULTUSERNAME,
+    synonymOf: null,
   },
   [EnvironmentVariable.SF_TARGET_DEV_HUB]: {
     description: getMessage(EnvironmentVariable.SF_TARGET_DEV_HUB),
-    synonymOf: EnvironmentVariable.SFDX_DEFAULTDEVHUBUSERNAME,
+    synonymOf: null,
   },
   // sf vars
   [EnvironmentVariable.SF_ACCESS_TOKEN]: {
@@ -290,14 +288,10 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SF_ORG_API_VERSION]: {
     description: getMessage(EnvironmentVariable.SF_ORG_API_VERSION),
-    synonymOf: EnvironmentVariable.SFDX_API_VERSION,
+    synonymOf: null,
   },
   [EnvironmentVariable.SF_AUDIENCE_URL]: {
     description: getMessage(EnvironmentVariable.SF_AUDIENCE_URL),
-    synonymOf: null,
-  },
-  [EnvironmentVariable.SF_CODE_COVERAGE_REQUIREMENT]: {
-    description: getMessage(EnvironmentVariable.SF_CODE_COVERAGE_REQUIREMENT),
     synonymOf: null,
   },
   [EnvironmentVariable.SF_CONTENT_TYPE]: {
@@ -342,7 +336,7 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SF_DISABLE_LOG_FILE]: {
     description: getMessage(EnvironmentVariable.SF_DISABLE_LOG_FILE),
-    synonymOf: EnvironmentVariable.SFDX_DISABLE_LOG_FILE,
+    synonymOf: null,
   },
   [EnvironmentVariable.SF_LOG_LEVEL]: {
     description: getMessage(EnvironmentVariable.SF_LOG_LEVEL),
@@ -358,7 +352,7 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SF_ORG_MAX_QUERY_LIMIT]: {
     description: getMessage(EnvironmentVariable.SF_ORG_MAX_QUERY_LIMIT),
-    synonymOf: EnvironmentVariable.SFDX_MAX_QUERY_LIMIT,
+    synonymOf: null,
   },
   [EnvironmentVariable.SF_MDAPI_TEMP_DIR]: {
     description: getMessage(EnvironmentVariable.SF_MDAPI_TEMP_DIR),
@@ -414,6 +408,10 @@ export const SUPPORTED_ENV_VARS: EnvType = {
     description: getMessage(EnvironmentVariable.SF_ENV),
     synonymOf: null,
   },
+  [EnvironmentVariable.SF_CAPITALIZE_RECORD_TYPES]: {
+    description: getMessage(EnvironmentVariable.SF_CAPITALIZE_RECORD_TYPES),
+    synonymOf: null,
+  },
 };
 
 export class EnvVars extends Env {
@@ -427,48 +425,52 @@ export class EnvVars extends Env {
   }
 
   private static defaultPrefix(): string {
-    if (process.argv[0].startsWith('sfdx')) return 'SFDX_';
-    if (process.argv[0].startsWith('sf')) return 'SF_';
-    return 'SFDX_';
+    return 'SF_';
   }
 
   public getPropertyFromEnv<T>(property: string, prefix = EnvVars.defaultPrefix()): Nullable<T> {
     const envName = EnvVars.propertyToEnvName(property, prefix);
-    const synonym = SUPPORTED_ENV_VARS[envName as EnvironmentVariable]?.synonymOf;
-    return this.get(envName) ?? this.get(synonym as string);
+    return this.get(envName);
   }
 
   public asDictionary(): Dictionary<unknown> {
-    return this.entries().reduce<Dictionary<unknown>>((accumulator, [key, value]) => {
-      accumulator[key] = value;
-      return accumulator;
-    }, {});
+    return Object.fromEntries(this.entries());
   }
 
-  public asMap(): Map<string, string> {
-    return this.entries().reduce((accumulator, [key, value]) => {
-      accumulator.set(key, value);
-      return accumulator;
-    }, new Map<string, string>());
+  public asMap(): Map<string, unknown> {
+    return new Map<string, unknown>(this.entries());
   }
 
   private resolve(): void {
+    // iterate everything in the real environment
+    const corrections = new Map<string, string>();
+
     this.entries().forEach(([key, value]) => {
-      if (SUPPORTED_ENV_VARS[key as EnvironmentVariable]) {
-        // cross populate value to synonym if synonym exists
-        if (SUPPORTED_ENV_VARS[key as EnvironmentVariable].synonymOf) {
-          const synonym = SUPPORTED_ENV_VARS[key as EnvironmentVariable].synonymOf;
-          // set synonym only if it is in the map and running in interoperability mode
-          if (synonym && Global.SFDX_INTEROPERABILITY) {
-            this.setString(synonym, value);
+      if (SUPPORTED_ENV_VARS[key as EnvironmentVariable]?.synonymOf) {
+        // we are looking at an "old" key that has a new name
+        // if the new key has a value set, use that for the old key, too
+        const newEnvName = SUPPORTED_ENV_VARS[key as EnvironmentVariable].synonymOf;
+        if (newEnvName) {
+          const valueOfNewName = this.getString(newEnvName);
+          if (!valueOfNewName) {
+            void Lifecycle.getInstance().emitWarning(messages.getMessage('deprecatedEnv', [key, newEnvName]));
+            corrections.set(newEnvName, value);
+          } else if (valueOfNewName !== value) {
+            void Lifecycle.getInstance().emitWarning(
+              messages.getMessage('deprecatedEnvDisagreement', [key, newEnvName, newEnvName])
+            );
+            corrections.set(key, valueOfNewName ?? value);
           }
         }
       }
     });
+    corrections.forEach((v, k) => {
+      this.setString(k, v);
+    });
   }
 
   private get<T>(envName: string): T {
-    return this.asDictionary()[envName] as T;
+    return this.asMap().get(envName) as T;
   }
 }
 

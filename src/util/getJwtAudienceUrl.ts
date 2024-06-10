@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OAuth2Config } from 'jsforce';
+import { OAuth2Config } from '@jsforce/jsforce-node';
 import { SfdcUrl } from './sfdcUrl';
 
 export async function getJwtAudienceUrl(options: OAuth2Config & { createdOrgInstance?: string }): Promise<string> {

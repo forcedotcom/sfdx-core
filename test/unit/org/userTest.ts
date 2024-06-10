@@ -9,7 +9,11 @@ import { AnyJson, isString } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { SecureBuffer } from '../../../src/crypto/secureBuffer';
 import { MockTestOrgData, shouldThrow, shouldThrowSync, TestContext } from '../../../src/testSetup';
-import { DefaultUserFields, User, PermissionSetAssignment, Org, Connection, AuthInfo } from '../../../src/org';
+import { Org } from '../../../src/org/org';
+import { DefaultUserFields, User } from '../../../src/org/user';
+import { AuthInfo } from '../../../src/org/authInfo';
+import { Connection } from '../../../src/org/connection';
+import { PermissionSetAssignment } from '../../../src/org/permissionSetAssignment';
 
 describe('User Tests', () => {
   const $$ = new TestContext();
@@ -182,6 +186,7 @@ describe('User Tests', () => {
           'auto-approve-user': '789101',
         },
       });
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
 
       const org = await Org.create({
         connection: await Connection.create({
@@ -191,7 +196,7 @@ describe('User Tests', () => {
       const user = await User.create({ org });
 
       const options: DefaultUserFields.Options = {
-        templateUser: org.getUsername() || '',
+        templateUser: org.getUsername() ?? '',
       };
       const fields = (await DefaultUserFields.create(options)).getFields();
       const info = await user.createUser(fields);

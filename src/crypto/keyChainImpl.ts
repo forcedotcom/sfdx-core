@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as childProcess from 'child_process';
-import * as nodeFs from 'fs';
-import * as fs from 'fs';
-import * as os from 'os';
-import { homedir } from 'os';
-import * as path from 'path';
+import * as childProcess from 'node:child_process';
+import * as nodeFs from 'node:fs';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import { homedir } from 'node:os';
+import * as path from 'node:path';
 import { asString, ensureString, Nullable } from '@salesforce/ts-types';
 import { parseJsonMap } from '@salesforce/kit';
 import { Global } from '../global';
@@ -46,7 +46,7 @@ const isExe = (mode: number, gid: number, uid: number): boolean => {
 
   return Boolean(
     mode & parseInt('0001', 8) ||
-      (mode & parseInt('0010', 8) && process.getgid && gid === process.getgid()) ||
+      Boolean(mode & parseInt('0010', 8) && process.getgid && gid === process.getgid()) ||
       (mode & parseInt('0100', 8) && process.getuid && uid === process.getuid())
   );
 };
@@ -85,7 +85,7 @@ const _validateProgram = async (
 /**
  * Basic keychain interface.
  */
-export interface PasswordStore {
+export type PasswordStore = {
   /**
    * Gets a password
    *
@@ -106,7 +106,7 @@ export interface PasswordStore {
    * @param fn function callback for password.
    */
   setPassword(opts: ProgramOpts, fn: (error: Nullable<Error>, contents?: SecretContents) => void): Promise<void>;
-}
+};
 
 /**
  * @private
@@ -247,13 +247,13 @@ export class KeychainAccess implements PasswordStore {
   }
 }
 
-interface ProgramOpts {
+type ProgramOpts = {
   account: string;
   service: string;
   password?: string;
-}
+};
 
-interface OsImpl {
+type OsImpl = {
   getProgram(): string;
   getProgramOptions(opts: ProgramOpts): string[];
   getCommandFunc(
@@ -279,7 +279,7 @@ interface OsImpl {
     opts: ProgramOpts,
     fn: (err: Nullable<Error>) => void
   ): Promise<void>;
-}
+};
 
 /**
  * Linux implementation.

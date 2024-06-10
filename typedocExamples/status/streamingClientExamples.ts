@@ -1,8 +1,8 @@
 import { ensureJsonMap, ensureString, JsonCollection, JsonMap } from '@salesforce/ts-types';
-import { Org } from '../../src/org';
+import { Org } from '../../src/org/org';
 import { StreamingClient, StatusResult } from '../../src/status/streamingClient';
 
-import { HttpRequest } from 'jsforce';
+import { HttpRequest } from '@jsforce/jsforce-node';
 
 export const streamingClientExamples = {
   classDoc: async () => {

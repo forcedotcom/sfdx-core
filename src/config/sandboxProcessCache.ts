@@ -5,14 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Duration } from '@salesforce/kit';
-import { SandboxProcessObject, SandboxRequest } from '../org';
+import { SandboxProcessObject, SandboxRequest } from '../org/org';
 import { Global } from '../global';
 import { TTLConfig } from './ttlConfig';
 
 export type SandboxRequestCacheEntry = {
   alias?: string;
-  setDefault: boolean;
+  setDefault?: boolean;
   prodOrgUsername: string;
+  action: 'Create' | 'Refresh'; // Sandbox create and refresh requests can be cached
   sandboxProcessObject: Partial<SandboxProcessObject>;
   sandboxRequest: Partial<SandboxRequest>;
   tracksSource?: boolean;

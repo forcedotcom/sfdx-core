@@ -9,8 +9,9 @@
 import { Duration, sleep } from '@salesforce/kit/lib/duration';
 import { spyMethod } from '@salesforce/ts-sinon';
 import * as chai from 'chai';
-import { Lifecycle } from '../../src/lifecycleEvents';
+import { Lifecycle, callback, cloneUniqueListeners } from '../../src/lifecycleEvents';
 import { TestContext } from '../../src/testSetup';
+import { Logger } from '../../src/logger/logger';
 
 describe('lifecycleEvents', () => {
   const $$ = new TestContext();
@@ -26,7 +27,7 @@ describe('lifecycleEvents', () => {
   const fake = new Foo();
 
   beforeEach(() => {
-    loggerSpy = spyMethod($$.SANDBOX, Lifecycle.getInstance(), 'debug');
+    loggerSpy = spyMethod($$.SANDBOX, Logger.prototype, 'debug');
     fakeSpy = spyMethod($$.SANDBOX, fake, 'bar');
   });
 
@@ -69,6 +70,45 @@ describe('lifecycleEvents', () => {
     Lifecycle.getInstance().removeAllListeners('telemetry');
   });
 
+  it("uniqueListeners adds listeners only when they don't already exist", async () => {
+    Lifecycle.getInstance().on(
+      'test1',
+      async (result) => {
+        // @ts-expect-error: called is a sinon spy property
+        fake.bar('test1', result);
+      },
+      'id000'
+    );
+    chai.expect(Lifecycle.getInstance().getListeners('test1').length).to.equal(1);
+    Lifecycle.getInstance().on(
+      'test1',
+      async (result) => {
+        // @ts-expect-error: called is a sinon spy property
+        fake.bar('test1', result);
+      },
+      'id001'
+    );
+    // both of these should be ignored
+    chai.expect(Lifecycle.getInstance().getListeners('test1').length).to.equal(2);
+    Lifecycle.getInstance().on(
+      'test1',
+      async (result) => {
+        // @ts-expect-error: called is a sinon spy property
+        fake.bar('test1', result);
+      },
+      'id000'
+    );
+    chai.expect(Lifecycle.getInstance().getListeners('test1').length).to.equal(2);
+    Lifecycle.getInstance().on(
+      'test1',
+      async (result) => {
+        // @ts-expect-error: called is a sinon spy property
+        fake.bar('test1', result);
+      },
+      'id001'
+    );
+    Lifecycle.getInstance().removeAllListeners('test1');
+  });
   it('successful event registration and emitting causes the callback to be called', async () => {
     Lifecycle.getInstance().on('test1', async (result) => {
       // @ts-expect-error: called is a sinon spy property
@@ -131,13 +171,24 @@ describe('lifecycleEvents', () => {
       // @ts-expect-error: called is a sinon spy property
       fake.bar('test5', result);
     });
+    Lifecycle.getInstance().on(
+      'test5',
+      async (result) => {
+        // @ts-expect-error: called is a sinon spy property
+        fake.bar('test5', result);
+      },
+      'id000'
+    );
     await Lifecycle.getInstance().emit('test5', 'Success');
-    chai.expect(fakeSpy.callCount).to.be.equal(1);
+    chai.expect(fakeSpy.callCount).to.be.equal(2);
     chai.expect(fakeSpy.args[0][1]).to.be.equal('Success');
-
+    chai.expect(fakeSpy.args[1][1]).to.be.equal('Success');
+    loggerSpy.resetHistory();
+    fakeSpy.resetHistory();
     Lifecycle.getInstance().removeAllListeners('test5');
     await Lifecycle.getInstance().emit('test5', 'Failure: Listener Removed');
-    chai.expect(fakeSpy.callCount).to.be.equal(1);
+    chai.expect(fakeSpy.callCount).to.be.equal(0);
+
     chai.expect(loggerSpy.callCount).to.be.equal(1);
     chai
       .expect(loggerSpy.args[0][0])
@@ -146,7 +197,7 @@ describe('lifecycleEvents', () => {
       );
   });
 
-  it('getListeners works', async () => {
+  it('getListeners works, including uniqueListeners', async () => {
     const x = async (result: Record<string, unknown>) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       fake.bar('test6', result);
@@ -154,6 +205,36 @@ describe('lifecycleEvents', () => {
     Lifecycle.getInstance().on('test6', x);
     chai.expect(Lifecycle.getInstance().getListeners('test6')).to.have.lengthOf(1);
     chai.expect(Lifecycle.getInstance().getListeners('test6')[0]).to.deep.equal(x);
+
+    chai.expect(Lifecycle.getInstance().getListeners('undefinedKey').length).to.be.equal(0);
+    Lifecycle.getInstance().removeAllListeners('test6');
+  });
+
+  it('getListeners works (unique Listeners)', async () => {
+    const x = async (result: Record<string, unknown>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      fake.bar('test6', result);
+    };
+    Lifecycle.getInstance().on('test6', x, 'id000');
+
+    chai.expect(Lifecycle.getInstance().getListeners('test6')).to.have.lengthOf(1);
+    chai.expect(Lifecycle.getInstance().getListeners('test6')[0]).to.deep.equal(x);
+
+    chai.expect(Lifecycle.getInstance().getListeners('undefinedKey').length).to.be.equal(0);
+    Lifecycle.getInstance().removeAllListeners('test6');
+  });
+
+  it('getListeners works (mixed unique and non-unique)', async () => {
+    const x = async (result: Record<string, unknown>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      fake.bar('test6', result);
+    };
+    Lifecycle.getInstance().on('test6', x);
+    Lifecycle.getInstance().on('test6', x, 'id000');
+
+    chai.expect(Lifecycle.getInstance().getListeners('test6')).to.have.lengthOf(2);
+    chai.expect(Lifecycle.getInstance().getListeners('test6')[0]).to.deep.equal(x);
+    chai.expect(Lifecycle.getInstance().getListeners('test6')[1]).to.deep.equal(x);
 
     chai.expect(Lifecycle.getInstance().getListeners('undefinedKey').length).to.be.equal(0);
     Lifecycle.getInstance().removeAllListeners('test6');
@@ -174,5 +255,31 @@ describe('lifecycleEvents', () => {
     // original instance's listeners are removed
     chai.expect(lifecycle.getListeners('test7')).to.have.lengthOf(0);
     lifecycle2.removeAllListeners('test7');
+  });
+});
+
+describe('listener map cloning', () => {
+  const cb = (): Promise<void> => Promise.resolve();
+  it('clones map, breaking event name reference', () => {
+    const map1 = new Map<string, Map<string, callback>>();
+    map1.set('evt', new Map([['uniqueId', cb]]));
+
+    const map2 = cloneUniqueListeners(map1);
+    chai.expect(map2).to.deep.equal(map1);
+    map1.delete('evt');
+    chai.expect(map1.has('evt')).to.be.false;
+    chai.expect(map2.has('evt')).to.be.true;
+  });
+  it('clones map, breaking uniqueId reference', () => {
+    const map1 = new Map<string, Map<string, callback>>();
+    map1.set('evt', new Map([['uniqueId', cb]]));
+
+    const map2 = cloneUniqueListeners(map1);
+    chai.expect(map2).to.deep.equal(map1);
+    map2.get('evt')?.set('uniqueId2', cb);
+    chai.expect(map1.has('evt')).to.be.true;
+    chai.expect(map2.has('evt')).to.be.true;
+    chai.expect(map1.get('evt')?.has('uniqueId2')).to.be.false;
+    chai.expect(map2.get('evt')?.has('uniqueId2')).to.be.true;
   });
 });

@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { join as pathJoin } from 'path';
+import { join as pathJoin } from 'node:path';
 import { isString } from '@salesforce/ts-types';
-import { ConfigValue } from '../config/configStore';
+import { ConfigValue } from '../config/configStackTypes';
 import { Messages } from '../messages';
 import { SfdcUrl } from '../util/sfdcUrl';
 import { validateApiVersion } from '../util/sfdc';
@@ -48,9 +48,17 @@ export enum OrgConfigProperties {
    * The url for the debugger configuration.
    */
   ORG_ISV_DEBUGGER_URL = 'org-isv-debugger-url',
+  /**
+   * Capitalize record types when deploying scratch org settings
+   */
+  ORG_CAPITALIZE_RECORD_TYPES = 'org-capitalize-record-types',
 }
 
 export const ORG_CONFIG_ALLOWED_PROPERTIES = [
+  {
+    key: OrgConfigProperties.ORG_CAPITALIZE_RECORD_TYPES,
+    description: messages.getMessage(OrgConfigProperties.ORG_CAPITALIZE_RECORD_TYPES),
+  },
   {
     key: OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES,
     description: messages.getMessage(OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES),

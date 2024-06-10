@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as crypto from 'crypto';
+import * as crypto from 'node:crypto';
 import { ensure, Optional } from '@salesforce/ts-types';
 
 const cipherName = 'aes-256-cbc';

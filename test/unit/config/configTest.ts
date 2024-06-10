@@ -9,20 +9,19 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { stubMethod } from '@salesforce/ts-sinon';
-import { ensureString, JsonMap } from '@salesforce/ts-types';
+import { ensureString } from '@salesforce/ts-types';
 import { expect } from 'chai';
+import * as lockfileLib from 'proper-lockfile';
 import { Config, ConfigPropertyMeta } from '../../../src/config/config';
 import { ConfigFile } from '../../../src/config/configFile';
-import { ConfigContents } from '../../../src/config/configStore';
-import { OrgConfigProperties } from '../../../src/exported';
+import { ConfigContents } from '../../../src/config/configStackTypes';
+import { OrgConfigProperties } from '../../../src';
 import { shouldThrowSync, TestContext } from '../../../src/testSetup';
 
 const configFileContentsString = '{"target-dev-hub": "configTest_devhub","target-org": "configTest_default"}';
 const configFileContentsJson = { 'target-dev-hub': 'configTest_devhub', 'target-org': 'configTest_default' };
-
-const clone = (obj: JsonMap) => JSON.parse(JSON.stringify(obj));
 
 describe('Config', () => {
   const $$ = new TestContext();
@@ -74,7 +73,9 @@ describe('Config', () => {
       const config = await Config.create(Config.getDefaultOptions(true));
 
       stubMethod($$.SANDBOX, fs.promises, 'readFile').withArgs(config.getPath()).resolves(configFileContentsString);
-
+      stubMethod($$.SANDBOX, fs.promises, 'stat')
+        .withArgs(config.getPath())
+        .resolves({ mtimeNs: BigInt(new Date().valueOf() - 1000 * 60 * 5) });
       // Manipulate config.hasRead to force a read
       // @ts-expect-error -> hasRead is protected. Ignore for testing.
       config.hasRead = false;
@@ -88,11 +89,15 @@ describe('Config', () => {
   });
 
   describe('set', () => {
-    it('calls Config.write with updated file contents', async () => {
+    beforeEach(() => {
+      $$.SANDBOX.stub(lockfileLib, 'lock').resolves(() => Promise.resolve());
       stubMethod($$.SANDBOX, fs.promises, 'readFile').resolves(configFileContentsString);
+      stubMethod($$.SANDBOX, fs.promises, 'stat').resolves({ mtimeNs: BigInt(new Date().valueOf() - 1000 * 60 * 5) });
+    });
+    it('calls Config.write with updated file contents', async () => {
       const writeStub = stubMethod($$.SANDBOX, fs.promises, 'writeFile');
 
-      const expectedFileContents = clone(configFileContentsJson);
+      const expectedFileContents = structuredClone(configFileContentsJson);
       const newUsername = 'updated_val';
       expectedFileContents['target-org'] = newUsername;
 
@@ -102,13 +107,12 @@ describe('Config', () => {
     });
 
     it('calls Config.write with deleted file contents', async () => {
-      const expectedFileContents = clone(configFileContentsJson);
+      const expectedFileContents = structuredClone(configFileContentsJson);
       const newUsername = 'updated_val';
       expectedFileContents['target-org'] = newUsername;
 
       await Config.update(false, 'target-org', newUsername);
 
-      stubMethod($$.SANDBOX, fs.promises, 'readFile').resolves(configFileContentsString);
       const writeStub = stubMethod($$.SANDBOX, fs.promises, 'writeFile');
       const targetDevhub = configFileContentsJson['target-dev-hub'];
 
@@ -225,11 +229,13 @@ describe('Config', () => {
 
   describe('unset', () => {
     it('calls Config.write with updated file contents', async () => {
+      $$.SANDBOX.stub(lockfileLib, 'lock').resolves(() => Promise.resolve());
       stubMethod($$.SANDBOX, fs.promises, 'readFile').resolves(configFileContentsString);
+      stubMethod($$.SANDBOX, fs.promises, 'stat').resolves({ mtimeNs: BigInt(new Date().valueOf() - 1000 * 60 * 5) });
       const writeStub = stubMethod($$.SANDBOX, fs.promises, 'writeFile');
 
-      const expectedFileContents = clone(configFileContentsJson);
-      delete expectedFileContents['target-org'];
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { 'target-org': deleteThis, ...expectedFileContents } = structuredClone(configFileContentsJson);
 
       const config = await Config.create({ isGlobal: false });
       config.unset('target-org');
@@ -273,7 +279,7 @@ describe('Config', () => {
       stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.read.name).callsFake(async function () {
         // @ts-expect-error -> this is any
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        this.setContentsFromObject({ unknown: 'unknown config key and value' });
+        this.setContentsFromFileContents({ unknown: 'unknown config key and value' });
       });
 
       const config = await Config.create({ isGlobal: true });

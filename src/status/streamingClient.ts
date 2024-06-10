@@ -7,11 +7,11 @@
 
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
-import { resolve as resolveUrl } from 'url';
+import { resolve as resolveUrl } from 'node:url';
 import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit/lib';
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types/lib';
-import * as Faye from 'faye';
-import { Logger } from '../logger';
+import Faye from 'faye';
+import { Logger } from '../logger/logger';
 import { Org } from '../org/org';
 import { SfError } from '../sfError';
 import { Messages } from '../messages';
@@ -25,7 +25,7 @@ const messages = Messages.loadMessages('@salesforce/core', 'streaming');
  * Inner streaming client interface. This implements the Cometd behavior.
  * Also allows for mocking the functional behavior.
  */
-export interface StreamingClientIfc {
+export type StreamingClientIfc = {
   /**
    * Returns a comet client implementation.
    *
@@ -39,7 +39,7 @@ export interface StreamingClientIfc {
    * @param logLine A log message passed to the the assigned function.
    */
   setLogger: (logLine: (message: string) => void) => void;
-}
+};
 
 /**
  * Validation helper
@@ -199,6 +199,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
       outgoing: (message: JsonMap, callback: AnyFunction): void => {
         if (message.channel === '/meta/subscribe') {
           if (!message.ext) {
+            // eslint-disable-next-line no-param-reassign
             message.ext = {};
           }
           const replayFromMap: JsonMap = {};
@@ -215,7 +216,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
    * Provides a convenient way to handshake with the server endpoint before trying to subscribe.
    */
   public handshake(): Promise<StreamingClient.ConnectionState> {
-    let timeout: NodeJS.Timer;
+    let timeout: NodeJS.Timeout;
 
     return new Promise((resolve, reject) => {
       timeout = setTimeout(() => {
@@ -243,7 +244,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
    * {@link StatusResult}
    */
   public subscribe(streamInit?: () => Promise<void>): Promise<AnyJson | void> {
-    let timeout: NodeJS.Timer;
+    let timeout: NodeJS.Timeout;
 
     // This outer promise is to hold the streaming promise chain open until the streaming processor
     // says it's complete.
@@ -323,7 +324,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
     cb(message);
   }
 
-  private doTimeout(timeout: NodeJS.Timer, error: SfError): SfError {
+  private doTimeout(timeout: NodeJS.Timeout, error: SfError): SfError {
     this.disconnect();
     clearTimeout(timeout);
     this.log(JSON.stringify(error));
@@ -379,7 +380,7 @@ export namespace StreamingClient {
    *
    * @interface
    */
-  export interface Options {
+  export type Options = {
     /**
      * The org streaming target.
      */
@@ -408,7 +409,7 @@ export namespace StreamingClient {
      * The function for build the inner client impl. Allows for mocking.
      */
     streamingImpl: StreamingClientIfc;
-  }
+  };
 
   /**
    * Default Streaming Options. Uses Faye as the cometd impl.

@@ -5,18 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { dirname as pathDirname, join as pathJoin } from 'path';
-import * as fs from 'fs';
-import { keyBy, parseJsonMap, set } from '@salesforce/kit';
-import { Dictionary, ensure, isString, JsonPrimitive, Nullable } from '@salesforce/ts-types';
+import { dirname as pathDirname, join as pathJoin } from 'node:path';
+import * as fs from 'node:fs';
+import { keyBy, parseJsonMap } from '@salesforce/kit';
+import { Dictionary, ensure, isString, Nullable } from '@salesforce/ts-types';
 import { Global } from '../global';
-import { Logger } from '../logger';
+import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { validateApiVersion } from '../util/sfdc';
 import { SfdcUrl } from '../util/sfdcUrl';
 import { ORG_CONFIG_ALLOWED_PROPERTIES, OrgConfigProperties } from '../org/orgConfigProperties';
+import { Lifecycle } from '../lifecycleEvents';
 import { ConfigFile } from './configFile';
-import { ConfigContents, ConfigValue } from './configStore';
+import { ConfigContents, ConfigValue, Key } from './configStackTypes';
+import { LWWState, stateFromContents } from './lwwMap';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
@@ -27,7 +29,7 @@ const CONFIG_FILE_NAME = 'config.json';
 /**
  * Interface for meta information about config properties
  */
-export interface ConfigPropertyMeta {
+export type ConfigPropertyMeta = {
   /**
    * The config property name.
    */
@@ -63,12 +65,12 @@ export interface ConfigPropertyMeta {
    * Is only used if deprecated is set to true.
    */
   newKey?: string;
-}
+};
 
 /**
  * Config property input validation
  */
-export interface ConfigPropertyMetaInput {
+export type ConfigPropertyMetaInput = {
   /**
    * Tests if the input value is valid and returns true if the input data is valid.
    *
@@ -80,7 +82,7 @@ export interface ConfigPropertyMetaInput {
    * The message to return in the error if the validation fails.
    */
   failedMessage: string | ((value: ConfigValue) => string);
-}
+};
 
 export enum SfConfigProperties {
   /**
@@ -94,7 +96,7 @@ export const SF_ALLOWED_PROPERTIES = [
     key: SfConfigProperties.DISABLE_TELEMETRY,
     description: messages.getMessage(SfConfigProperties.DISABLE_TELEMETRY),
     input: {
-      validator: (value: ConfigValue): boolean => value == null || ['true', 'false'].includes(value.toString()),
+      validator: (value: ConfigValue): boolean => value == null || isBooleanOrBooleanString(value),
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
     },
   },
@@ -246,7 +248,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     deprecated: true,
     description: messages.getMessage(SfdxPropertyKeys.DISABLE_TELEMETRY),
     input: {
-      validator: (value: ConfigValue): boolean => value == null || ['true', 'false'].includes(value.toString()),
+      validator: (value: ConfigValue): boolean => value == null || isBooleanOrBooleanString(value),
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
     },
   },
@@ -263,7 +265,7 @@ export const SFDX_ALLOWED_PROPERTIES = [
     newKey: 'org-metadata-rest-deploy',
     deprecated: true,
     input: {
-      validator: (value: ConfigValue): boolean => value != null && ['true', 'false'].includes(value.toString()),
+      validator: (value: ConfigValue): boolean => value != null && isBooleanOrBooleanString(value),
       failedMessage: messages.getMessage('invalidBooleanConfigValue'),
     },
   },
@@ -286,7 +288,10 @@ export const SFDX_ALLOWED_PROPERTIES = [
 // Generic global config properties. Specific properties can be loaded like orgConfigProperties.ts.
 export const SfProperty: { [index: string]: ConfigPropertyMeta } = {};
 
-export type ConfigProperties = { [index: string]: JsonPrimitive };
+/* A very loose type to account for the possibility of plugins adding properties via configMeta.
+ * The class itself is doing runtime validation to check property keys and values.
+ */
+export type ConfigProperties = ConfigContents;
 
 /**
  * The files where sfdx config values are stored for projects and the global space.
@@ -308,28 +313,24 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     ...ORG_CONFIG_ALLOWED_PROPERTIES,
   ];
 
-  private sfdxConfig: SfdxConfig;
+  private sfdxPath?: string;
 
   public constructor(options?: ConfigFile.Options) {
-    super(
-      Object.assign(
-        {
-          isGlobal: false,
-        },
-        options ?? {},
-        {
-          // Don't let consumers of config override this. If they really really want to,
-          // they can extend this class.
-          isState: true,
-          filename: Config.getFileName(),
-          stateFolder: Global.SF_STATE_FOLDER,
-        }
-      )
-    );
+    super({
+      ...{ isGlobal: false },
+      ...(options ?? {}),
+      // Don't let consumers of config override this. If they really really want to,
+      // they can extend this class.
+      isState: true,
+      filename: Config.getFileName(),
+      stateFolder: Global.SF_STATE_FOLDER,
+    });
 
     // Resolve the config path on creation.
     this.getPath();
-    this.sfdxConfig = new SfdxConfig(this.options, this);
+    if (Global.SFDX_INTEROPERABILITY) {
+      this.sfdxPath = buildSfdxPath(this.options);
+    }
   }
 
   /**
@@ -377,31 +378,33 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    * @param propertyName The name of the property to set.
    * @param value The property value.
    */
-  public static async update(isGlobal: boolean, propertyName: string, value?: ConfigValue): Promise<ConfigContents> {
+  public static async update<K extends Key<ConfigProperties>>(
+    isGlobal: boolean,
+    propertyName: K,
+    value?: ConfigProperties[K]
+  ): Promise<ConfigContents> {
     const config = await Config.create({ isGlobal });
 
-    const content = await config.read();
+    await config.read();
 
     if (value == null) {
-      delete content[propertyName];
+      config.unset(propertyName);
     } else {
-      set(content, propertyName, value);
+      config.set(propertyName, value);
     }
-
-    return config.write(content);
+    return config.write();
   }
 
   /**
    * Clear all the configured properties both local and global.
    */
   public static async clear(): Promise<void> {
-    const globalConfig = await Config.create({ isGlobal: true });
-    globalConfig.clear();
-    await globalConfig.write();
+    const [globalConfig, localConfig] = await Promise.all([Config.create({ isGlobal: true }), Config.create()]);
 
-    const localConfig = await Config.create();
+    globalConfig.clear();
     localConfig.clear();
-    await localConfig.write();
+
+    await Promise.all([globalConfig.write(), localConfig.write()]);
   }
 
   public static getPropertyConfigMeta(propertyName: string): Nullable<ConfigPropertyMeta> {
@@ -422,10 +425,12 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    */
   public async read(force = true): Promise<ConfigProperties> {
     try {
-      const config = await super.read(false, force);
-      // Merge .sfdx/sfdx-config.json and .sf/config.json
-      const merged = this.sfdxConfig.merge(config);
-      this.setContents(merged);
+      await super.read(false, force);
+      if (Global.SFDX_INTEROPERABILITY) {
+        // will exist if Global.SFDX_INTEROPERABILITY is enabled
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        this.contents.merge(stateFromSfdxFileSync(this.sfdxPath!, this));
+      }
       await this.cryptProperties(false);
       return this.getContents();
     } finally {
@@ -434,10 +439,13 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   }
 
   public readSync(force = true): ConfigProperties {
-    const config = super.readSync(false, force);
-    // Merge .sfdx/sfdx-config.json and .sf/config.json
-    const merged = this.sfdxConfig.merge(config);
-    this.setContents(merged);
+    super.readSync(false, force);
+    if (Global.SFDX_INTEROPERABILITY) {
+      // will exist if Global.SFDX_INTEROPERABILITY is enabled
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.contents.merge(stateFromSfdxFileSync(this.sfdxPath!, this));
+    }
+
     return this.getContents();
   }
 
@@ -446,16 +454,17 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    *
    * @param newContents The new Config value to persist.
    */
-  public async write(newContents?: ConfigProperties): Promise<ConfigProperties> {
-    if (newContents != null) {
-      this.setContents(newContents);
-    }
-
+  public async write(): Promise<ConfigProperties> {
     await this.cryptProperties(true);
 
+    // super.write will merge the contents if the target file had newer properties
     await super.write();
-    if (Global.SFDX_INTEROPERABILITY) await this.sfdxConfig.write();
 
+    if (Global.SFDX_INTEROPERABILITY) {
+      // will exist if Global.SFDX_INTEROPERABILITY is enabled
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      await writeToSfdx(this.sfdxPath!, this.getContents());
+    }
     await this.cryptProperties(false);
 
     return this.getContents();
@@ -483,17 +492,19 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    * @param key The property to set.
    * @param value The value of the property.
    */
-  public set(key: string, value: JsonPrimitive): ConfigProperties {
+  public set<K extends Key<ConfigProperties>>(key: K, value: ConfigProperties[K]): ConfigProperties {
     const property = Config.allowedProperties.find((allowedProp) => allowedProp.key === key);
 
     if (!property) {
       throw messages.createError('unknownConfigKey', [key]);
     }
     if (property.deprecated && property.newKey) {
-      throw messages.createError('deprecatedConfigKey', [key, property.newKey]);
+      // you're trying to set a deprecated key, but we'll set the new key instead
+      void Lifecycle.getInstance().emitWarning(messages.getMessage('deprecatedConfigKey', [key, property.newKey]));
+      return this.set(property.newKey, value);
     }
 
-    if (property.input) {
+    if (value !== undefined && property.input) {
       if (property.input?.validator(value)) {
         super.set(property.key, value);
       } else {
@@ -526,7 +537,10 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     }
 
     if (property.deprecated && property.newKey) {
-      throw messages.createError('deprecatedConfigKey', [key, property.newKey]);
+      // you're trying to set a deprecated key, so we'll ALSO unset the new key
+      void Lifecycle.getInstance().emitWarning(messages.getMessage('deprecatedConfigKey', [key, property.newKey]));
+      super.unset(property.key);
+      return this.unset(property.newKey);
     }
 
     return super.unset(property.key);
@@ -544,6 +558,10 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     const prop = Config.propertyConfigMap()[propertyName];
 
     if (!prop) {
+      const newEquivalent = Config.allowedProperties.find((p) => p.newKey);
+      if (newEquivalent) {
+        return this.getPropertyConfig(newEquivalent.key);
+      }
       throw messages.createError('unknownConfigKey', [propertyName]);
     }
     return prop;
@@ -579,97 +597,71 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
   }
 }
 
-export class SfdxConfig {
-  private sfdxPath: string;
-  public constructor(private options: ConfigFile.Options = {}, private config: Config) {
-    this.sfdxPath = this.getSfdxPath();
+/**
+ * convert from "new" to "old" config names
+ * - For example, `target-org` will be renamed to `defaultusername`.
+ */
+const translateToSfdx = (sfContents: ConfigProperties): ConfigProperties =>
+  Object.fromEntries(
+    Object.entries(sfContents).map(([key, value]) => {
+      const propConfig = Config.getAllowedProperties().find((c) => c.newKey === key) ?? ({} as ConfigPropertyMeta);
+      return propConfig.deprecated && propConfig.newKey ? [propConfig.key, value] : [key, value];
+    })
+  );
+
+/**
+ * convert from "old" to "new" config names
+ * - For example, `defaultusername` will be renamed to `target-org`
+ */
+const translateToSf = (sfdxContents: ConfigProperties, SfConfig: Config): ConfigProperties =>
+  Object.fromEntries(
+    Object.entries(sfdxContents).map(([key, value]) => {
+      const propConfig = SfConfig.getPropertyConfig(key);
+      return propConfig.deprecated && propConfig.newKey ? [propConfig.newKey, value] : [key, value];
+    })
+  );
+
+/** given the ConfigFile options, calculate the full path where the config file goes */
+const buildSfdxPath = (options: ConfigFile.Options): string => {
+  // Don't let users store config files in homedir without being in the state folder.
+  const configRootFolder = options.rootFolder ?? ConfigFile.resolveRootFolderSync(!!options.isGlobal);
+  const rootWithState =
+    options.isGlobal === true || options.isState === true
+      ? pathJoin(configRootFolder, Global.SFDX_STATE_FOLDER)
+      : configRootFolder;
+
+  return pathJoin(rootWithState, SFDX_CONFIG_FILE_NAME);
+};
+
+/**
+ * writes (in an unsafe way) the configuration file to the sfdx file location.
+ * Make sure you call ConfigFile.write and getContents so that the contents passed here are not cross-saving something
+ */
+const writeToSfdx = async (path: string, contents: ConfigProperties): Promise<void> => {
+  try {
+    const translated = translateToSfdx(contents);
+    await fs.promises.mkdir(pathDirname(path), { recursive: true });
+    await fs.promises.writeFile(path, JSON.stringify(translated, null, 2));
+  } catch (e) {
+    const logger = Logger.childFromRoot('core:config:writeToSfdx');
+    logger.debug(`Error writing to sfdx config file at ${path}: ${e instanceof Error ? e.message : ''}`);
   }
+};
 
-  /**
-   * If Global.SFDX_INTEROPERABILITY is enabled, merge the sfdx config into the sf config
-   */
-  public merge(config: ConfigProperties): ConfigProperties | undefined {
-    if (!Global.SFDX_INTEROPERABILITY) return config;
-    const sfdxConfig = this.readSync();
-
-    const sfdxPropKeys = Object.values(SfdxPropertyKeys) as string[];
-
-    // Get a list of config keys that are NOT provided by SfdxPropertyKeys
-    const nonSfdxPropKeys = Config.getAllowedProperties()
-      .filter((p) => !sfdxPropKeys.includes(p.key))
-      .map((p) => p.key);
-
-    // Remove any config from .sf that isn't also in .sfdx
-    // This handles the scenario where a config has been deleted
-    // from .sfdx and we want to mirror that change in .sf
-    for (const key of nonSfdxPropKeys) {
-      if (!sfdxConfig[key]) delete config[key];
-    }
-
-    return Object.assign(config, sfdxConfig);
+/** turn the sfdx config file into a LWWState based on its contents and its timestamp */
+const stateFromSfdxFileSync = (path: string, config: Config): LWWState<ConfigProperties> => {
+  try {
+    const fileContents = fs.readFileSync(path, 'utf8');
+    const mtimeNs = fs.statSync(path, { bigint: true }).mtimeNs;
+    const translatedContents = translateToSf(parseJsonMap<ConfigProperties>(fileContents, path), config);
+    // get the file timestamp
+    return stateFromContents(translatedContents, mtimeNs);
+  } catch (e) {
+    const logger = Logger.childFromRoot('core:config:stateFromSfdxFileSync');
+    logger.debug(`Error reading state from sfdx config file at ${path}: ${e instanceof Error ? e.message : ''}`);
+    return {};
   }
+};
 
-  public async write(config = this.config.toObject()): Promise<void> {
-    try {
-      const translated = this.translate(config as ConfigProperties, 'toOld');
-      const sfdxPath = this.getSfdxPath();
-      await fs.promises.mkdir(pathDirname(sfdxPath), { recursive: true });
-      await fs.promises.writeFile(sfdxPath, JSON.stringify(translated, null, 2));
-    } catch (error) {
-      /* Do nothing */
-    }
-  }
-
-  private readSync(): ConfigProperties {
-    try {
-      const contents = parseJsonMap<ConfigProperties>(fs.readFileSync(this.getSfdxPath(), 'utf8'));
-      return this.translate(contents, 'toNew');
-    } catch (error) {
-      /* Do nothing */
-      return {};
-    }
-  }
-
-  private getSfdxPath(): string {
-    if (!this.sfdxPath) {
-      const stateFolder = Global.SFDX_STATE_FOLDER;
-      const fileName = SFDX_CONFIG_FILE_NAME;
-
-      // Don't let users store config files in homedir without being in the state folder.
-      let configRootFolder = this.options.rootFolder
-        ? this.options.rootFolder
-        : ConfigFile.resolveRootFolderSync(!!this.options.isGlobal);
-
-      if (this.options.isGlobal === true || this.options.isState === true) {
-        configRootFolder = pathJoin(configRootFolder, stateFolder);
-      }
-
-      this.sfdxPath = pathJoin(configRootFolder, fileName);
-    }
-    return this.sfdxPath;
-  }
-
-  /**
-   * If toNew is specified: migrate all deprecated configs with a newKey to the newKey.
-   * - For example, defaultusername will be renamed to target-org.
-   *
-   * If toOld is specified: migrate all deprecated configs back to their original key.
-   * - For example, target-org will be renamed to defaultusername.
-   */
-  private translate(contents: ConfigProperties, direction: 'toNew' | 'toOld'): ConfigProperties {
-    const translated = {} as ConfigProperties;
-    for (const [key, value] of Object.entries(contents)) {
-      const propConfig =
-        direction === 'toNew'
-          ? this.config.getPropertyConfig(key)
-          : Config.getAllowedProperties().find((c) => c.newKey === key) ?? ({} as ConfigPropertyMeta);
-      if (propConfig.deprecated && propConfig.newKey) {
-        const normalizedKey = direction === 'toNew' ? propConfig.newKey : propConfig.key;
-        translated[normalizedKey] = value;
-      } else {
-        translated[key] = value;
-      }
-    }
-    return translated;
-  }
-}
+const isBooleanOrBooleanString = (value: unknown): boolean =>
+  (typeof value === 'string' && ['true', 'false'].includes(value)) || typeof value === 'boolean';
