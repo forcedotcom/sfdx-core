@@ -309,7 +309,7 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
    *
    * @param packageDir
    */
-  public addPackageDirectory(packageDir: NamedPackageDir): void {
+  public addPackageDirectory(packageDir: PackageDir): void {
     const dirIndex = this.getContents().packageDirectories.findIndex(findPackageDir(packageDir));
 
     // merge new package dir with existing entry, if present
@@ -736,7 +736,7 @@ export const isNamedPackagingDirectory = (packageDir: NamedPackageDir): packageD
  * so an attempt of matching an existing entry is a bit convoluted
  */
 const findPackageDir =
-  (target: NamedPackageDir) =>
+  (target: PackageDir) =>
   (potentialMatch: PackageDir): boolean =>
     // an entry w/o a package or id is considered a directory entry for which a package has yet to be created
     //  find a matching dir entry that where path is the same and id and package are not present
