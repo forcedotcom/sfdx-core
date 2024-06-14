@@ -329,12 +329,12 @@ export default class SettingsGenerator {
       const failures = (Array.isArray(componentFailures) ? componentFailures : [componentFailures])
         .map((failure) => `[${failure.problemType}] ${failure.fullName} : ${failure.problem} `)
         .join('\n');
-      const error = new SfError(
-        `A scratch org was created with username ${username}, but the settings failed to deploy due to: \n${failures}`,
-        'ProblemDeployingSettings'
-      );
-      error.setData(result);
-      throw error;
+      throw SfError.create({
+        message: `A scratch org was created with username ${username}, but the settings failed to deploy due to: \n${failures}`,
+        name: 'ProblemDeployingSettings',
+        data: { ...result, username },
+        exitCode: 68,
+      });
     }
   }
 

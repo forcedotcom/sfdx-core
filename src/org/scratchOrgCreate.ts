@@ -288,8 +288,6 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   });
 
   // anything after this point (org is created and auth'd) is potentially recoverable with the resume scratch command.
-  process.exitCode = 68;
-
   await scratchOrgAuthInfo.handleAliasAndDefaultSettings({
     ...{
       alias,
@@ -322,7 +320,6 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   cache.unset(scratchOrgInfoId);
   const authFields = authInfo.getFields();
   await Promise.all([emit({ stage: 'done', scratchOrgInfo: soi }), cache.write(), emitPostOrgCreate(authFields)]);
-  process.exitCode = 0;
   return {
     username,
     scratchOrgInfo: soi,
