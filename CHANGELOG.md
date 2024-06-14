@@ -1,3 +1,12 @@
+## [7.4.1](https://github.com/forcedotcom/sfdx-core/compare/7.4.0...7.4.1) (2024-06-14)
+
+
+### Bug Fixes
+
+* scratch creation partial success ([74f9e1b](https://github.com/forcedotcom/sfdx-core/commit/74f9e1b553ef842c96fadc2732c08bb4ae548860))
+
+
+
 # [7.4.0](https://github.com/forcedotcom/sfdx-core/compare/7.3.12...7.4.0) (2024-06-12)
 
 
