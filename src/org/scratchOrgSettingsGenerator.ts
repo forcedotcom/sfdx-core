@@ -333,7 +333,6 @@ export default class SettingsGenerator {
         message: `A scratch org was created with username ${username}, but the settings failed to deploy due to: \n${failures}`,
         name: 'ProblemDeployingSettings',
         data: { ...result, username },
-        exitCode: 68,
       });
     }
   }
