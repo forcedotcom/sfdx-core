@@ -362,7 +362,7 @@ const setExitCodeIfError =
     try {
       return await p;
     } catch (e) {
-      const sfError = e instanceof SfError ? e : SfError.wrap(e);
+      const sfError = SfError.wrap(e);
       sfError.exitCode = exitCode;
       throw sfError;
     }
