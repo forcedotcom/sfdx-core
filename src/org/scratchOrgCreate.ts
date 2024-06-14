@@ -287,17 +287,25 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     retry: retry || 0,
   });
 
-  // we'll need this scratch org connection later;
-  const scratchOrg = await Org.create({
-    aliasOrUsername: soi.Username ?? soi.SignupUsername,
+  // anything after this point (org is created and auth'd) is potentially recoverable with the resume scratch command.
+  process.exitCode = 68;
+
+  await scratchOrgAuthInfo.handleAliasAndDefaultSettings({
+    ...{
+      alias,
+      setDefault,
+      setDefaultDevHub: false,
+      setTracksSource: tracksSource === false ? false : true,
+    },
   });
+
+  // we'll need this scratch org connection later;
+  const scratchOrg = await Org.create({ aliasOrUsername: soi.Username ?? soi.SignupUsername });
   const username = scratchOrg.getUsername();
   logger.debug(`scratch org username ${username}`);
 
   await emit({ stage: 'deploy settings', scratchOrgInfo: soi });
-
   const configAggregator = await ConfigAggregator.create();
-
   const [authInfo] = await Promise.all([
     resolveUrl(scratchOrgAuthInfo),
     deploySettings(
@@ -311,18 +319,10 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     ),
   ]);
 
-  await scratchOrgAuthInfo.handleAliasAndDefaultSettings({
-    ...{
-      alias,
-      setDefault,
-      setDefaultDevHub: false,
-      setTracksSource: tracksSource === false ? false : true,
-    },
-  });
   cache.unset(scratchOrgInfoId);
   const authFields = authInfo.getFields();
   await Promise.all([emit({ stage: 'done', scratchOrgInfo: soi }), cache.write(), emitPostOrgCreate(authFields)]);
-
+  process.exitCode = 0;
   return {
     username,
     scratchOrgInfo: soi,

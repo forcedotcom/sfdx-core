@@ -427,6 +427,7 @@ export const deploySettings = async (
 };
 
 /**
+ * Makes sure the scratch org's instanceUrl is resolvable (that is, DNS is ready)
  *
  * @param scratchOrgAuthInfo an AuthInfo class from the scratch org
  * @returns AuthInfo
@@ -435,13 +436,14 @@ export const resolveUrl = async (scratchOrgAuthInfo: AuthInfo): Promise<AuthInfo
   const logger = await Logger.child('scratchOrgInfoApi-resolveUrl');
   const { instanceUrl } = scratchOrgAuthInfo.getFields();
   if (!instanceUrl) {
-    const sfError = new SfError('Org does not have instanceUrl');
-    sfError.setData({
-      orgId: scratchOrgAuthInfo.getFields().orgId,
-      username: scratchOrgAuthInfo.getFields().username,
-      instanceUrl,
+    throw SfError.create({
+      message: 'Org does not have instanceUrl',
+      data: {
+        orgId: scratchOrgAuthInfo.getFields().orgId,
+        username: scratchOrgAuthInfo.getFields().username,
+        instanceUrl,
+      },
     });
-    throw sfError;
   }
   logger.debug(`processScratchOrgInfoResult - resultData.instanceUrl: ${instanceUrl}`);
   const options = {
