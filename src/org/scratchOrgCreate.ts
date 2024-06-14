@@ -12,6 +12,7 @@ import { ConfigAggregator } from '../config/configAggregator';
 import { OrgConfigProperties } from '../org/orgConfigProperties';
 import { SfProject } from '../sfProject';
 import { StateAggregator } from '../stateAggregator/stateAggregator';
+import { SfError } from '../sfError';
 import { Org } from './org';
 import {
   authorizeScratchOrg,
@@ -148,6 +149,15 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
         retry: 0,
       });
 
+  await setExitCodeIfError(68)(
+    scratchOrgAuthInfo.handleAliasAndDefaultSettings({
+      alias,
+      setDefault: setDefault ?? false,
+      setDefaultDevHub: false,
+      setTracksSource: tracksSource ?? true,
+    })
+  );
+
   const scratchOrg = await Org.create({ aliasOrUsername: username });
 
   const configAggregator = await ConfigAggregator.create();
@@ -160,23 +170,19 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
     capitalizeRecordTypes,
   });
   await settingsGenerator.extract({ ...soi, ...definitionjson });
-  const [authInfo] = await Promise.all([
-    resolveUrl(scratchOrgAuthInfo),
-    deploySettings(
-      scratchOrg,
-      settingsGenerator,
-      apiVersion ??
-        configAggregator.getPropertyValue(OrgConfigProperties.ORG_API_VERSION) ??
-        (await scratchOrg.retrieveMaxApiVersion())
-    ),
-  ]);
+  const [authInfo] = await setExitCodeIfError(68)(
+    Promise.all([
+      resolveUrl(scratchOrgAuthInfo),
+      deploySettings(
+        scratchOrg,
+        settingsGenerator,
+        apiVersion ??
+          configAggregator.getPropertyValue(OrgConfigProperties.ORG_API_VERSION) ??
+          (await scratchOrg.retrieveMaxApiVersion())
+      ),
+    ])
+  );
 
-  await scratchOrgAuthInfo.handleAliasAndDefaultSettings({
-    alias,
-    setDefault: setDefault ?? false,
-    setDefaultDevHub: false,
-    setTracksSource: tracksSource ?? true,
-  });
   cache.unset(soi.Id ?? jobId);
   const authFields = authInfo.getFields();
 
@@ -287,42 +293,43 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     retry: retry || 0,
   });
 
+  // anything after this point (org is created and auth'd) is potentially recoverable with the resume scratch command.
+  await setExitCodeIfError(68)(
+    scratchOrgAuthInfo.handleAliasAndDefaultSettings({
+      ...{
+        alias,
+        setDefault,
+        setDefaultDevHub: false,
+        setTracksSource: tracksSource === false ? false : true,
+      },
+    })
+  );
+
   // we'll need this scratch org connection later;
-  const scratchOrg = await Org.create({
-    aliasOrUsername: soi.Username ?? soi.SignupUsername,
-  });
+  const scratchOrg = await Org.create({ aliasOrUsername: soi.Username ?? soi.SignupUsername });
   const username = scratchOrg.getUsername();
   logger.debug(`scratch org username ${username}`);
 
   await emit({ stage: 'deploy settings', scratchOrgInfo: soi });
-
   const configAggregator = await ConfigAggregator.create();
+  const [authInfo] = await setExitCodeIfError(68)(
+    Promise.all([
+      resolveUrl(scratchOrgAuthInfo),
+      deploySettings(
+        scratchOrg,
+        settingsGenerator,
+        apiversion ??
+          configAggregator.getPropertyValue(OrgConfigProperties.ORG_API_VERSION) ??
+          (await scratchOrg.retrieveMaxApiVersion()),
+        // some of our "wait" time has already been used.  Calculate how much remains that we can spend on the deployment.
+        Duration.milliseconds(wait.milliseconds - (Date.now() - startTimestamp))
+      ),
+    ])
+  );
 
-  const [authInfo] = await Promise.all([
-    resolveUrl(scratchOrgAuthInfo),
-    deploySettings(
-      scratchOrg,
-      settingsGenerator,
-      apiversion ??
-        configAggregator.getPropertyValue(OrgConfigProperties.ORG_API_VERSION) ??
-        (await scratchOrg.retrieveMaxApiVersion()),
-      // some of our "wait" time has already been used.  Calculate how much remains that we can spend on the deployment.
-      Duration.milliseconds(wait.milliseconds - (Date.now() - startTimestamp))
-    ),
-  ]);
-
-  await scratchOrgAuthInfo.handleAliasAndDefaultSettings({
-    ...{
-      alias,
-      setDefault,
-      setDefaultDevHub: false,
-      setTracksSource: tracksSource === false ? false : true,
-    },
-  });
   cache.unset(scratchOrgInfoId);
   const authFields = authInfo.getFields();
   await Promise.all([emit({ stage: 'done', scratchOrgInfo: soi }), cache.write(), emitPostOrgCreate(authFields)]);
-
   return {
     username,
     scratchOrgInfo: soi,
@@ -345,9 +352,18 @@ const getSignupTargetLoginUrl = async (): Promise<string | undefined> => {
 async function getCapitalizeRecordTypesConfig(): Promise<boolean | undefined> {
   const configAgg = await ConfigAggregator.create();
   const value = configAgg.getInfo('org-capitalize-record-types').value as string | undefined;
-
-  if (value !== undefined) return toBoolean(value);
-
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-  return value as undefined;
+  return value !== undefined ? toBoolean(value) : undefined;
 }
+
+/** wrap an async function, intercept error and set the given exit code   */
+const setExitCodeIfError =
+  (exitCode: number) =>
+  async <P>(p: Promise<P>): Promise<P> => {
+    try {
+      return await p;
+    } catch (e) {
+      const sfError = SfError.wrap(e);
+      sfError.exitCode = exitCode;
+      throw sfError;
+    }
+  };
