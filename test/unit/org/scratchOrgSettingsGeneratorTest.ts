@@ -307,6 +307,7 @@ describe('scratchOrgSettingsGenerator', () => {
                 problem: 'settings/True.settings is not a valid metadata object. Check the name and casing of the file',
               },
             },
+            username: scratchOrg.getUsername(),
           });
       }
     });
@@ -369,6 +370,7 @@ describe('scratchOrgSettingsGenerator', () => {
                 problem: 'settings/True.settings is not a valid metadata object. Check the name and casing of the file',
               },
             },
+            username: scratchOrg.getUsername(),
           });
       }
     });
