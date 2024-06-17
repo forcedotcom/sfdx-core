@@ -31,6 +31,7 @@ const messages = Messages.loadMessages('@salesforce/core', 'config');
 
 const coreMessages = Messages.loadMessages('@salesforce/core', 'core');
 
+/** @deprecated.  Use PackageDirDependency from @salesforce/schemas */
 export type PackageDirDependency = PackageDirDependencySchema;
 
 type NamedDirAdditions = {
@@ -44,6 +45,7 @@ type NamedDirAdditions = {
   fullPath: string;
 };
 
+/** @deprecated.  Use PackageDir from @salesforce/schemas */
 export type PackageDir = PackageDirSchema;
 export type NamedPackagingDir = PackagePackageDir & NamedDirAdditions;
 export type NamedPackageDir = PackageDir & NamedDirAdditions;
