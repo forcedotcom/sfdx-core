@@ -111,7 +111,7 @@ function createStubs() {
       id: '1',
     })
   );
-  sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'mybuffer');
+  sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'myBuffer');
   getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
 }
 
@@ -266,7 +266,7 @@ describe('scratchOrgSettingsGenerator', () => {
           id: '1',
         })
       );
-      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'mybuffer');
+      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'myBuffer');
       getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
       getConnectionStub = fakeConnection(sandbox, scratchOrg, deployId, 'SucceededPartial');
     });
@@ -307,6 +307,7 @@ describe('scratchOrgSettingsGenerator', () => {
                 problem: 'settings/True.settings is not a valid metadata object. Check the name and casing of the file',
               },
             },
+            username: scratchOrg.getUsername(),
           });
       }
     });
@@ -328,7 +329,7 @@ describe('scratchOrgSettingsGenerator', () => {
           id: '1',
         })
       );
-      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'mybuffer');
+      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'myBuffer');
       getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
       getConnectionStub = fakeConnection(sandbox, scratchOrg, deployId, 'Failed');
     });
@@ -369,6 +370,7 @@ describe('scratchOrgSettingsGenerator', () => {
                 problem: 'settings/True.settings is not a valid metadata object. Check the name and casing of the file',
               },
             },
+            username: scratchOrg.getUsername(),
           });
       }
     });
@@ -390,7 +392,7 @@ describe('scratchOrgSettingsGenerator', () => {
           id: '1',
         })
       );
-      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'mybuffer');
+      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'myBuffer');
       getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
       getConnectionStub = fakeConnection(sandbox, scratchOrg, deployId, ['InProgress', 'Succeeded']);
     });
@@ -399,7 +401,7 @@ describe('scratchOrgSettingsGenerator', () => {
       sandbox.restore();
     });
 
-    it('tries to deploy the settings to the org pools untill succeded', async () => {
+    it('tries to deploy the settings to the org pools until succeeded', async () => {
       const scratchDef = {
         ...TEMPLATE_SCRATCH_ORG_INFO,
         settings: {
@@ -495,7 +497,7 @@ describe('scratchOrgSettingsGenerator', () => {
           id: '1',
         })
       );
-      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'mybuffer');
+      sandbox.stub(ZipWriter.prototype, 'buffer').get(() => 'myBuffer');
       getUsernameStub = sandbox.stub(scratchOrg, 'getUsername').returns(adminTestData.username);
       getConnectionStub = fakeConnection(sandbox, scratchOrg, deployId, 'InProgress');
     });
@@ -505,7 +507,7 @@ describe('scratchOrgSettingsGenerator', () => {
       sandbox.restore();
     });
 
-    it('tries to deploy the settings to the org pools untill timeouts', async () => {
+    it('tries to deploy the settings to the org pools until timeouts', async () => {
       const timeout = 10 * 60 * 1000; // 10 minutes
       const frequency = 1000;
       const settings = new SettingsGenerator();

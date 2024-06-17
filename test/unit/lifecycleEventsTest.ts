@@ -9,7 +9,7 @@
 import { Duration, sleep } from '@salesforce/kit/lib/duration';
 import { spyMethod } from '@salesforce/ts-sinon';
 import * as chai from 'chai';
-import { Lifecycle } from '../../src/lifecycleEvents';
+import { Lifecycle, callback, cloneUniqueListeners } from '../../src/lifecycleEvents';
 import { TestContext } from '../../src/testSetup';
 import { Logger } from '../../src/logger/logger';
 
@@ -255,5 +255,31 @@ describe('lifecycleEvents', () => {
     // original instance's listeners are removed
     chai.expect(lifecycle.getListeners('test7')).to.have.lengthOf(0);
     lifecycle2.removeAllListeners('test7');
+  });
+});
+
+describe('listener map cloning', () => {
+  const cb = (): Promise<void> => Promise.resolve();
+  it('clones map, breaking event name reference', () => {
+    const map1 = new Map<string, Map<string, callback>>();
+    map1.set('evt', new Map([['uniqueId', cb]]));
+
+    const map2 = cloneUniqueListeners(map1);
+    chai.expect(map2).to.deep.equal(map1);
+    map1.delete('evt');
+    chai.expect(map1.has('evt')).to.be.false;
+    chai.expect(map2.has('evt')).to.be.true;
+  });
+  it('clones map, breaking uniqueId reference', () => {
+    const map1 = new Map<string, Map<string, callback>>();
+    map1.set('evt', new Map([['uniqueId', cb]]));
+
+    const map2 = cloneUniqueListeners(map1);
+    chai.expect(map2).to.deep.equal(map1);
+    map2.get('evt')?.set('uniqueId2', cb);
+    chai.expect(map1.has('evt')).to.be.true;
+    chai.expect(map2.has('evt')).to.be.true;
+    chai.expect(map1.get('evt')?.has('uniqueId2')).to.be.false;
+    chai.expect(map2.get('evt')?.has('uniqueId2')).to.be.true;
   });
 });
