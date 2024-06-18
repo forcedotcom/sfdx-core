@@ -53,7 +53,7 @@
   ],
   "dependencies": {
     "@jsforce/jsforce-node": "^3.2.0",
-    "@salesforce/kit": "^3.1.5",
+    "@salesforce/kit": "^3.1.6",
     "@salesforce/schemas": "^1.9.0",
     "@salesforce/ts-types": "^2.0.10",
     "ajv": "^8.15.0",
@@ -72,8 +72,8 @@
     "ts-retry-promise": "^0.8.1"
   },
   "devDependencies": {
-    "@salesforce/dev-scripts": "^8.5.0",
-    "@salesforce/ts-sinon": "^1.4.19",
+    "@salesforce/dev-scripts": "^10.1.1",
+    "@salesforce/ts-sinon": "^1.4.22",
     "@types/benchmark": "^2.1.5",
     "@types/chai-string": "^1.4.5",
     "@types/fast-levenshtein": "^0.0.4",
