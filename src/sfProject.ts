@@ -8,12 +8,7 @@ import { basename, dirname, isAbsolute, normalize, resolve, sep } from 'node:pat
 import * as fs from 'node:fs';
 import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
-import {
-  PackageDir as PackageDirSchema,
-  PackageDirDependency as PackageDirDependencySchema,
-  ProjectJson as ProjectJsonSchema,
-  PackagePackageDir,
-} from '@salesforce/schemas';
+import { PackageDir, ProjectJson as ProjectJsonSchema, PackagePackageDir } from '@salesforce/schemas';
 import { SfdcUrl } from './util/sfdcUrl';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
@@ -29,9 +24,6 @@ import { ensureNoUppercaseKeys } from './util/findUppercaseKeys';
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
 
-/** @deprecated.  Use PackageDirDependency from @salesforce/schemas */
-export type PackageDirDependency = PackageDirDependencySchema;
-
 type NamedDirAdditions = {
   /**
    * The [normalized](https://nodejs.org/api/path.html#path_path_normalize_path) path used as the package name.
@@ -43,8 +35,6 @@ type NamedDirAdditions = {
   fullPath: string;
 };
 
-/** @deprecated.  Use PackageDir from @salesforce/schemas */
-export type PackageDir = PackageDirSchema;
 export type NamedPackagingDir = PackagePackageDir & NamedDirAdditions;
 export type NamedPackageDir = PackageDir & NamedDirAdditions;
 
