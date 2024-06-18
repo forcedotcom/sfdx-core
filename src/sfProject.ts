@@ -24,12 +24,10 @@ import { resolveProjectPath, resolveProjectPathSync, SFDX_PROJECT_JSON } from '.
 
 import { SfError } from './sfError';
 import { Messages } from './messages';
-import { findUpperCaseKeys } from './util/findUppercaseKeys';
+import { ensureNoUppercaseKeys } from './util/findUppercaseKeys';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
-
-const coreMessages = Messages.loadMessages('@salesforce/core', 'core');
 
 /** @deprecated.  Use PackageDirDependency from @salesforce/schemas */
 export type PackageDirDependency = PackageDirDependencySchema;
@@ -70,6 +68,7 @@ export type ProjectJson = ConfigContents & ProjectJsonSchema;
  * **See** [force:project:create](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm)
  */
 export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
+  /** json properties that are uppercase, or allow uppercase keys inside them */
   public static BLOCKLIST = ['packageAliases'];
 
   public static getFileName(): string {
@@ -338,11 +337,7 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
   }
 
   private validateKeys(): void {
-    // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
-    const upperCaseKey = findUpperCaseKeys(this.toObject(), SfProjectJson.BLOCKLIST);
-    if (upperCaseKey) {
-      throw coreMessages.createError('invalidJsonCasing', [upperCaseKey, this.getPath()]);
-    }
+    ensureNoUppercaseKeys(this.getPath())(SfProjectJson.BLOCKLIST)(this.toObject());
   }
 }
 
