@@ -8,6 +8,7 @@ import { basename, dirname, isAbsolute, normalize, resolve, sep } from 'node:pat
 import * as fs from 'node:fs';
 import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
+import { PackageDir, ProjectJson as ProjectJsonSchema, PackagePackageDir } from '@salesforce/schemas';
 import { SfdcUrl } from './util/sfdcUrl';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
@@ -18,45 +19,12 @@ import { resolveProjectPath, resolveProjectPathSync, SFDX_PROJECT_JSON } from '.
 
 import { SfError } from './sfError';
 import { Messages } from './messages';
-import { findUpperCaseKeys } from './util/findUppercaseKeys';
+import { ensureNoUppercaseKeys } from './util/findUppercaseKeys';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
 
-const coreMessages = Messages.loadMessages('@salesforce/core', 'core');
-
-export type PackageDirDependency = {
-  [k: string]: unknown;
-  package: string;
-  versionNumber?: string;
-};
-
-export type PackageDir = {
-  ancestorId?: string;
-  ancestorVersion?: string;
-  default?: boolean;
-  definitionFile?: string;
-  dependencies?: PackageDirDependency[];
-  includeProfileUserLicenses?: boolean;
-  package?: string;
-  packageMetadataAccess?: {
-    permissionSets: string | string[];
-    permissionSetLicenses: string | string[];
-  };
-  path: string;
-  postInstallScript?: string;
-  postInstallUrl?: string;
-  releaseNotesUrl?: string;
-  scopeProfiles?: boolean;
-  uninstallScript?: string;
-  versionDescription?: string;
-  versionName?: string;
-  versionNumber?: string;
-  unpackagedMetadata?: { path: string };
-  seedMetadata?: { path: string };
-};
-
-export type NamedPackageDir = PackageDir & {
+type NameAndFullPath = {
   /**
    * The [normalized](https://nodejs.org/api/path.html#path_path_normalize_path) path used as the package name.
    */
@@ -67,16 +35,10 @@ export type NamedPackageDir = PackageDir & {
   fullPath: string;
 };
 
-export type ProjectJson = ConfigContents & {
-  packageDirectories: PackageDir[];
-  namespace?: string;
-  sourceApiVersion?: string;
-  sfdcLoginUrl?: string;
-  signupTargetLoginUrl?: string;
-  oauthLocalPort?: number;
-  plugins?: { [k: string]: unknown };
-  packageAliases?: { [k: string]: string };
-};
+export type NamedPackagingDir = PackagePackageDir & NameAndFullPath;
+export type NamedPackageDir = PackageDir & NameAndFullPath;
+
+export type ProjectJson = ConfigContents & ProjectJsonSchema;
 
 /**
  * The sfdx-project.json config object. This file determines if a folder is a valid sfdx project.
@@ -96,6 +58,7 @@ export type ProjectJson = ConfigContents & {
  * **See** [force:project:create](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_create_new.htm)
  */
 export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
+  /** json properties that are uppercase, or allow uppercase keys inside them */
   public static BLOCKLIST = ['packageAliases'];
 
   public static getFileName(): string {
@@ -337,19 +300,9 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
    *
    * @param packageDir
    */
-  public addPackageDirectory(packageDir: NamedPackageDir): void {
-    // there is no notion of uniqueness in package directory entries
-    // so an attempt of matching an existing entry is a bit convoluted
-    // an entry w/o a package or id is considered a directory entry for which a package has yet to be created
-    // so first attempt is to find a matching dir entry that where path is the same and id and package are not present
-    // if that fails, then find a matching dir entry package is present and is same as the new entry
-    const dirIndex = this.getContents().packageDirectories.findIndex((pd) => {
-      const withId = pd as NamedPackageDir & { id: string };
-      return (
-        (withId.path === packageDir.path && !withId.id && !withId.package) ||
-        (!!packageDir.package && packageDir.package === withId.package)
-      );
-    });
+  public addPackageDirectory(packageDir: PackageDir): void {
+    const dirIndex = this.getContents().packageDirectories.findIndex(findPackageDir(packageDir));
+
     // merge new package dir with existing entry, if present
     const packageDirEntry: PackageDir = Object.assign(
       {},
@@ -367,17 +320,14 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
     this.set('packageDirectories', modifiedPackagesDirs);
   }
 
+  // keep it because testSetup stubs it!
   // eslint-disable-next-line class-methods-use-this
   private doesPackageExist(packagePath: string): boolean {
     return fs.existsSync(packagePath);
   }
 
   private validateKeys(): void {
-    // Verify that the configObject does not have upper case keys; throw if it does.  Must be heads down camel case.
-    const upperCaseKey = findUpperCaseKeys(this.toObject(), SfProjectJson.BLOCKLIST);
-    if (upperCaseKey) {
-      throw coreMessages.createError('invalidJsonCasing', [upperCaseKey, this.getPath()]);
-    }
+    ensureNoUppercaseKeys(this.getPath())(SfProjectJson.BLOCKLIST)(this.toObject());
   }
 }
 
@@ -600,7 +550,8 @@ export class SfProject {
    */
   public getPackageNameFromPath(path: string): Optional<string> {
     const packageDir = this.getPackageFromPath(path);
-    return packageDir ? packageDir.package ?? packageDir.path : undefined;
+    if (!packageDir) return undefined;
+    return isNamedPackagingDirectory(packageDir) ? packageDir.package : packageDir.path;
   }
 
   /**
@@ -762,3 +713,26 @@ export class SfProject {
       .map(([key]) => key);
   }
 }
+
+/** differentiate between the Base PackageDir (path, maybe default) and the Packaging version (package and maybe a LOT of other fields) by whether is has the `package` property */
+export const isPackagingDirectory = (packageDir: PackageDir): packageDir is PackagePackageDir =>
+  isPackagingDir(packageDir);
+
+/** differentiate between the Base PackageDir (path, maybe default) and the Packaging version (package and maybe a LOT of other fields) by whether is has the `package` property */
+export const isNamedPackagingDirectory = (packageDir: NamedPackageDir): packageDir is NamedPackagingDir =>
+  isPackagingDir(packageDir);
+
+const isPackagingDir = (packageDir: PackageDir | NamedPackageDir): boolean =>
+  'package' in packageDir && typeof packageDir.package === 'string';
+/**
+ * there is no notion of uniqueness in package directory entries
+ * so an attempt of matching an existing entry is a bit convoluted
+ */
+const findPackageDir =
+  (target: PackageDir) =>
+  (potentialMatch: PackageDir): boolean =>
+    // an entry w/o a package or id is considered a directory entry for which a package has yet to be created
+    //  find a matching dir entry that where path is the same and id and package are not present
+    (potentialMatch.path === target.path && !('id' in potentialMatch) && !isPackagingDirectory(potentialMatch)) ||
+    // if that fails, then find a matching dir entry package is present and is same as the new entry
+    (isPackagingDirectory(target) && isPackagingDirectory(potentialMatch) && target.package === potentialMatch.package);
