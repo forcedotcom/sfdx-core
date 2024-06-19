@@ -1,3 +1,12 @@
+## [8.0.1](https://github.com/forcedotcom/sfdx-core/compare/7.5.0...8.0.1) (2024-06-19)
+
+
+### Bug Fixes
+
+* bump major ([#1091](https://github.com/forcedotcom/sfdx-core/issues/1091)) ([69e6a5c](https://github.com/forcedotcom/sfdx-core/commit/69e6a5cef8cec642f97fce670850c9512d14cc04))
+
+
+
 # [7.5.0](https://github.com/forcedotcom/sfdx-core/compare/7.4.1...7.5.0) (2024-06-19)
 
 
