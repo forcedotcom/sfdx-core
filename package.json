@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "7.4.1",
+  "version": "7.5.0",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/index",
   "types": "lib/index.d.ts",
