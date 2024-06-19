@@ -24,7 +24,7 @@ import { ensureNoUppercaseKeys } from './util/findUppercaseKeys';
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
 
-type NamedDirAdditions = {
+type NameAndFullPath = {
   /**
    * The [normalized](https://nodejs.org/api/path.html#path_path_normalize_path) path used as the package name.
    */
@@ -35,8 +35,8 @@ type NamedDirAdditions = {
   fullPath: string;
 };
 
-export type NamedPackagingDir = PackagePackageDir & NamedDirAdditions;
-export type NamedPackageDir = PackageDir & NamedDirAdditions;
+export type NamedPackagingDir = PackagePackageDir & NameAndFullPath;
+export type NamedPackageDir = PackageDir & NameAndFullPath;
 
 export type ProjectJson = ConfigContents & ProjectJsonSchema;
 
