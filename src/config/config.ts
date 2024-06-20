@@ -420,16 +420,6 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     return keyBy(Config.allowedProperties, 'key');
   }
 
-  private static findProperty(key: string): ConfigPropertyMeta {
-    const property = Config.allowedProperties.find((allowedProp) => allowedProp.key === key);
-
-    if (!property) {
-      throw messages.createError('unknownConfigKey', [key]);
-    }
-
-    return property;
-  }
-
   /**
    * Read, assign, and return the config contents.
    */
@@ -503,8 +493,11 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    * @param value The value of the property.
    */
   public set<K extends Key<ConfigProperties>>(key: K, value: ConfigProperties[K]): ConfigProperties {
-    const property = Config.findProperty(key);
+    const property = Config.allowedProperties.find((allowedProp) => allowedProp.key === key);
 
+    if (!property) {
+      throw messages.createError('unknownConfigKey', [key]);
+    }
     if (property.deprecated && property.newKey) {
       // you're trying to set a deprecated key, but we'll set the new key instead
       void Lifecycle.getInstance().emitWarning(messages.getMessage('deprecatedConfigKey', [key, property.newKey]));
@@ -597,30 +590,10 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
 
       this.forEach((key, value) => {
         if (this.getPropertyConfig(key).encrypted && isString(value)) {
-          if (encrypt) {
-            this.setEncryptedProperty(key, ensure(crypto.encrypt(value)));
-          } else {
-            this.set(key, ensure(crypto.decrypt(value)));
-          }
+          super.set(key, ensure(encrypt ? crypto.encrypt(value) : crypto.decrypt(value)));
         }
       });
     }
-  }
-
-  /**
-   * Set an encrypted property without rerunning the validator. Should only be used by `cryptProperties` method.
-   */
-  private setEncryptedProperty<K extends Key<ConfigProperties>>(key: K, value: ConfigProperties[K]): ConfigProperties {
-    const property = Config.findProperty(key);
-
-    if (property.deprecated && property.newKey) {
-      // you're trying to set a deprecated key, but we'll set the new key instead
-      void Lifecycle.getInstance().emitWarning(messages.getMessage('deprecatedConfigKey', [key, property.newKey]));
-      return this.set(property.newKey, value);
-    }
-
-    super.set(property.key, value);
-    return this.getContents();
   }
 }
 
