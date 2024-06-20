@@ -260,12 +260,10 @@ describe('Config', () => {
     it('calls ConfigFile.write with encrypted values contents', async () => {
       const TEST_VAL = 'test';
 
-      const writeStub = stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.write.name).callsFake(
-        async function (this: Config) {
-          expect(ensureString(this.get('org-isv-debugger-sid')).length).to.be.greaterThan(TEST_VAL.length);
-          expect(ensureString(this.get('org-isv-debugger-sid'))).to.not.equal(TEST_VAL);
-        }
-      );
+      const writeStub = stubMethod($$.SANDBOX, ConfigFile.prototype, 'write').callsFake(async function (this: Config) {
+        expect(ensureString(this.get('org-isv-debugger-sid')).length).to.be.greaterThan(TEST_VAL.length);
+        expect(ensureString(this.get('org-isv-debugger-sid'))).to.not.equal(TEST_VAL);
+      });
 
       const config = await Config.create(Config.getDefaultOptions(true));
       config.set(OrgConfigProperties.ORG_ISV_DEBUGGER_SID, TEST_VAL);
@@ -275,8 +273,8 @@ describe('Config', () => {
     });
 
     it('calls ConfigFile.read with unknown key and does not throw on crypt', async () => {
-      stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.readSync.name).callsFake(async () => {});
-      stubMethod($$.SANDBOX, ConfigFile.prototype, ConfigFile.prototype.read.name).callsFake(async function () {
+      stubMethod($$.SANDBOX, ConfigFile.prototype, 'readSync').callsFake(async () => {});
+      stubMethod($$.SANDBOX, ConfigFile.prototype, 'read').callsFake(async function () {
         // @ts-expect-error -> this is any
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         this.setContentsFromFileContents({ unknown: 'unknown config key and value' });
@@ -285,18 +283,64 @@ describe('Config', () => {
       const config = await Config.create({ isGlobal: true });
       expect(config).to.exist;
     });
+
+    describe('set', () => {
+      let originalAllowedProperties: ConfigPropertyMeta[];
+
+      beforeEach(() => {
+        // @ts-expect-error because allowedProperties is protected
+        originalAllowedProperties = Config.allowedProperties;
+        (Config as any).allowedProperties = [];
+      });
+
+      afterEach(() => {
+        // @ts-expect-error because allowedProperties is protected
+        Config.allowedProperties = originalAllowedProperties;
+      });
+
+      it('does not rerun validation when setting an encrypted value', async () => {
+        const validationSpy = $$.SANDBOX.stub().callsFake(
+          (value) => typeof value === 'string' && value.startsWith('123')
+        );
+        Config.addAllowedProperties([
+          {
+            key: 'encrypted-token',
+            description: 'encrypted token',
+            encrypted: true,
+            input: {
+              validator: validationSpy,
+              failedMessage: 'Token must start with 123',
+            },
+          },
+        ]);
+        const config = await Config.create({ ...Config.getDefaultOptions(true), encryptedKeys: ['encrypted-token'] });
+        try {
+          config.set('encrypted-token', '123456');
+          // config.write will call cryptProperties(true). It's easier to call it directly than to stub the file system operations
+          // If it doesn't throw, then the validation was not rerun on the encrypted value
+          // @ts-expect-error because cryptProperties is private
+          await config.cryptProperties(true);
+          expect(validationSpy.calledOnce).to.be.true;
+          expect(config.get('encrypted-token')).to.be.ok;
+        } catch (err) {
+          expect(err, 'No error should have been thrown').to.be.undefined;
+        }
+      });
+    });
   });
 
   describe('allowed properties', () => {
     let originalAllowedProperties: ConfigPropertyMeta[];
 
     beforeEach(() => {
-      originalAllowedProperties = (Config as any).allowedProperties;
+      // @ts-expect-error because allowedProperties is protected
+      originalAllowedProperties = Config.allowedProperties;
       (Config as any).allowedProperties = [];
     });
 
     afterEach(() => {
-      (Config as any).allowedProperties = originalAllowedProperties;
+      // @ts-expect-error because allowedProperties is protected
+      Config.allowedProperties = originalAllowedProperties;
     });
 
     it('has default properties assigned', () => {
