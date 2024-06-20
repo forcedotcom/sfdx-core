@@ -290,7 +290,8 @@ describe('Config', () => {
       beforeEach(() => {
         // @ts-expect-error because allowedProperties is protected
         originalAllowedProperties = Config.allowedProperties;
-        (Config as any).allowedProperties = [];
+        // @ts-expect-error because allowedProperties is protected
+        Config.allowedProperties = [];
       });
 
       afterEach(() => {
@@ -335,7 +336,8 @@ describe('Config', () => {
     beforeEach(() => {
       // @ts-expect-error because allowedProperties is protected
       originalAllowedProperties = Config.allowedProperties;
-      (Config as any).allowedProperties = [];
+      // @ts-expect-error because allowedProperties is protected
+      Config.allowedProperties = [];
     });
 
     afterEach(() => {
