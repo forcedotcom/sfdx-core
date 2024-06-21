@@ -8,13 +8,8 @@ import * as os from 'node:os';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Readable } from 'node:stream';
-import * as chai from 'chai';
-import chaiString from 'chai-string';
+import { expect } from 'chai';
 import { DirectoryWriter } from '../../../src/util/directoryWriter';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { expect } = chai;
-chai.use(chaiString);
 
 function validateFileContents(filePath: string, expectedContents: string): void {
   const fileContents = fs.readFileSync(filePath, 'utf8');
@@ -32,7 +27,7 @@ describe('DirectoryWriter', () => {
   });
   it('addToStore - string', async () => {
     const contents = 'my-contents';
-    expect(directoryPath).to.startWith(os.tmpdir());
+    expect(directoryPath.startsWith(os.tmpdir())).to.be.true;
     await directoryWriter.addToStore(contents, filename);
     await directoryWriter.finalize();
     expect(fs.existsSync(path.join(directoryPath, filename))).to.be.true;
