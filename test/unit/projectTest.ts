@@ -45,13 +45,13 @@ describe('SfProject', () => {
       });
       describe('plugins', () => {
         const pluginsContent = { SomePlugin: 'value', SomeOtherPlugin: { NestedCap: true } };
-        it('allows uppercase packaging aliases on write', async () => {
+        it('allows uppercase keys in plugins on write', async () => {
           const json = await SfProjectJson.create();
           json.set('plugins', pluginsContent);
           await json.write();
           expect($$.getConfigStubContents('SfProjectJson').plugins).to.deep.equal(pluginsContent);
         });
-        it('allows uppercase packaging aliases on read', async () => {
+        it('allows uppercase keys in plugins on read', async () => {
           $$.setConfigStubContents('SfProjectJson', { contents: { plugins: pluginsContent } });
           const json = await SfProjectJson.create();
           expect(json.get('plugins')).to.deep.equal(pluginsContent);
