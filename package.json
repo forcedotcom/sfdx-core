@@ -82,7 +82,7 @@
     "benchmark": "^2.1.4",
     "ts-node": "^10.9.2",
     "ts-patch": "^3.2.0",
-    "typescript": "^5.4.5"
+    "typescript": "5.4.5"
   },
   "repository": {
     "type": "git",
