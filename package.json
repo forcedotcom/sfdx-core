@@ -75,13 +75,11 @@
     "@salesforce/dev-scripts": "^10.1.1",
     "@salesforce/ts-sinon": "^1.4.22",
     "@types/benchmark": "^2.1.5",
-    "@types/chai-string": "^1.4.5",
     "@types/fast-levenshtein": "^0.0.4",
     "@types/jsonwebtoken": "9.0.6",
     "@types/proper-lockfile": "^4.1.4",
     "@types/semver": "^7.5.8",
     "benchmark": "^2.1.4",
-    "chai-string": "^1.5.0",
     "ts-node": "^10.9.2",
     "ts-patch": "^3.2.0",
     "typescript": "^5.4.5"
