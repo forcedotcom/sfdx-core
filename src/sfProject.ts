@@ -59,7 +59,7 @@ export type ProjectJson = ConfigContents & ProjectJsonSchema;
  */
 export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
   /** json properties that are uppercase, or allow uppercase keys inside them */
-  public static BLOCKLIST = ['packageAliases'];
+  public static BLOCKLIST = ['packageAliases', 'plugins'];
 
   public static getFileName(): string {
     return SFDX_PROJECT_JSON;

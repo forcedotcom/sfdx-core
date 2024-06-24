@@ -1,3 +1,12 @@
+## [8.0.3](https://github.com/forcedotcom/sfdx-core/compare/8.0.2...8.0.3) (2024-06-21)
+
+
+### Bug Fixes
+
+* allow uppercase keys inside project.plugins ([5b112f8](https://github.com/forcedotcom/sfdx-core/commit/5b112f8c124a2c19dc1a090b97bb32a20cc11d83))
+
+
+
 ## [8.0.2](https://github.com/forcedotcom/sfdx-core/compare/8.0.1...8.0.2) (2024-06-20)
 
 

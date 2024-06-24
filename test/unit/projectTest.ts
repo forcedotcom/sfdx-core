@@ -27,19 +27,38 @@ describe('SfProject', () => {
   });
 
   describe('json', () => {
-    it('allows uppercase packaging aliases on write', async () => {
-      const json = await SfProjectJson.create();
-      json.set('packageAliases', { MyName: 'somePackage' });
-      await json.write();
-      // @ts-expect-error possibly undefined
-      expect($$.getConfigStubContents('SfProjectJson').packageAliases['MyName']).to.equal('somePackage');
+    describe('allowed uppercase', () => {
+      describe('packageAliases', () => {
+        it('allows uppercase packaging aliases on write', async () => {
+          const json = await SfProjectJson.create();
+          json.set('packageAliases', { MyName: 'somePackage' });
+          await json.write();
+          // @ts-expect-error possibly undefined
+          expect($$.getConfigStubContents('SfProjectJson').packageAliases['MyName']).to.equal('somePackage');
+        });
+        it('allows uppercase packaging aliases on read', async () => {
+          $$.setConfigStubContents('SfProjectJson', { contents: { packageAliases: { MyName: 'somePackage' } } });
+          const json = await SfProjectJson.create();
+          // @ts-expect-error possibly undefined
+          expect(json.get('packageAliases')['MyName']).to.equal('somePackage');
+        });
+      });
+      describe('plugins', () => {
+        const pluginsContent = { SomePlugin: 'value', SomeOtherPlugin: { NestedCap: true } };
+        it('allows uppercase keys in plugins on write', async () => {
+          const json = await SfProjectJson.create();
+          json.set('plugins', pluginsContent);
+          await json.write();
+          expect($$.getConfigStubContents('SfProjectJson').plugins).to.deep.equal(pluginsContent);
+        });
+        it('allows uppercase keys in plugins on read', async () => {
+          $$.setConfigStubContents('SfProjectJson', { contents: { plugins: pluginsContent } });
+          const json = await SfProjectJson.create();
+          expect(json.get('plugins')).to.deep.equal(pluginsContent);
+        });
+      });
     });
-    it('allows uppercase packaging aliases on read', async () => {
-      $$.setConfigStubContents('SfProjectJson', { contents: { packageAliases: { MyName: 'somePackage' } } });
-      const json = await SfProjectJson.create();
-      // @ts-expect-error possibly undefined
-      expect(json.get('packageAliases')['MyName']).to.equal('somePackage');
-    });
+
     it('getPackageDirectories should transform packageDir paths to have path separators that match the OS', async () => {
       let defaultPP: string;
       let transformedDefaultPP: string;
