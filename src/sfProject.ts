@@ -44,7 +44,8 @@ export type ProjectJson = ConfigContents & ProjectJsonSchema;
  * The sfdx-project.json config object. This file determines if a folder is a valid sfdx project.
  *
  * *Note:* Any non-standard (not owned by Salesforce) properties stored in sfdx-project.json should
- * be in a top level property that represents your project.  Plugins should store their configuration via getPluginConfiguration and setPluginConfiguration
+ * be in a top level property that represents your project.
+ * Plugins should store their configuration @see SfProject.getPluginConfiguration and @see SfProject.setPluginConfiguration
  *
  * @example reading a standard property
  * ```
