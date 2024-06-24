@@ -890,4 +890,79 @@ describe('SfProject', () => {
       expect(foundPkg?.default).to.be.false;
     });
   });
+
+  describe('plugins', () => {
+    describe('read', () => {
+      it('throws on read when no existing plugins', async () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {},
+        });
+        const project = SfProject.getInstance();
+        try {
+          await project.getPluginConfiguration('fooPlugin');
+          assert.fail('Expected error to be thrown');
+        } catch (e) {
+          assert(e instanceof SfError);
+          expect(e.name).to.equal('NoPluginsDefined');
+        }
+      });
+      it('throws on read when no existing plugin when named', async () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            plugins: { someOtherPlugin: {} },
+          },
+        });
+        const project = SfProject.getInstance();
+        try {
+          await project.getPluginConfiguration('fooPlugin');
+          assert.fail('Expected error to be thrown');
+        } catch (e) {
+          assert(e instanceof SfError);
+          expect(e.name).to.equal('PluginNotFound');
+        }
+      });
+      it('read returns valid data', async () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            plugins: { someOtherPlugin: {}, fooPlugin: { foo: 'bar' } },
+          },
+        });
+        const project = SfProject.getInstance();
+        const config = await project.getPluginConfiguration('fooPlugin');
+        expect(config).to.deep.equal({ foo: 'bar' });
+      });
+    });
+    describe('write', () => {
+      it('write when no existing plugins', async () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {},
+        });
+        const project = SfProject.getInstance();
+        await project.setPluginConfiguration('fooPlugin', { foo: 'bar' });
+        expect($$.getConfigStubContents('SfProjectJson').plugins).to.deep.equal({ fooPlugin: { foo: 'bar' } });
+      });
+      it('write new plugin', async () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: { plugins: { otherPlugin: {} } },
+        });
+        const project = SfProject.getInstance();
+        await project.setPluginConfiguration('fooPlugin', { foo: 'bar' });
+        expect($$.getConfigStubContents('SfProjectJson').plugins).to.deep.equal({
+          otherPlugin: {},
+          fooPlugin: { foo: 'bar' },
+        });
+      });
+      it('update existing plugin', async () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: { plugins: { otherPlugin: {}, fooPlugin: { foo: 'bat', removeMe: 0 } } },
+        });
+        const project = SfProject.getInstance();
+        await project.setPluginConfiguration('fooPlugin', { foo: 'bar' });
+        expect($$.getConfigStubContents('SfProjectJson').plugins).to.deep.equal({
+          otherPlugin: {},
+          fooPlugin: { foo: 'bar' },
+        });
+      });
+    });
+  });
 });
