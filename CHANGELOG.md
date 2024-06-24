@@ -1,3 +1,12 @@
+## [8.0.4](https://github.com/forcedotcom/sfdx-core/compare/8.0.3...8.0.4) (2024-06-24)
+
+
+### Bug Fixes
+
+* prevent validations on encrypted values ([#1092](https://github.com/forcedotcom/sfdx-core/issues/1092)) ([50d2a91](https://github.com/forcedotcom/sfdx-core/commit/50d2a915b1bb43ac5ef2e8a55fcbacee42ccbe3a))
+
+
+
 ## [8.0.3](https://github.com/forcedotcom/sfdx-core/compare/8.0.2...8.0.3) (2024-06-21)
 
 
