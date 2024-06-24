@@ -590,7 +590,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
 
       this.forEach((key, value) => {
         if (this.getPropertyConfig(key).encrypted && isString(value)) {
-          this.set(key, ensure(encrypt ? crypto.encrypt(value) : crypto.decrypt(value)));
+          super.set(key, ensure(encrypt ? crypto.encrypt(value) : crypto.decrypt(value)));
         }
       });
     }
