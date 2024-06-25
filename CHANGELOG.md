@@ -1,3 +1,12 @@
+## [8.0.5](https://github.com/forcedotcom/sfdx-core/compare/8.0.4...8.0.5) (2024-06-25)
+
+
+### Bug Fixes
+
+* **deps:** new jsforce for loop/pword fix ([#1095](https://github.com/forcedotcom/sfdx-core/issues/1095)) ([853d147](https://github.com/forcedotcom/sfdx-core/commit/853d1473ff681175b6f243b26f1bc62d0b293920))
+
+
+
 ## [8.0.4](https://github.com/forcedotcom/sfdx-core/compare/8.0.3...8.0.4) (2024-06-24)
 
 
