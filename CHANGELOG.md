@@ -1,3 +1,12 @@
+# [8.1.0](https://github.com/forcedotcom/sfdx-core/compare/8.0.5...8.1.0) (2024-06-27)
+
+
+### Features
+
+* methods for read/write sfProjectJson.plugins ([dd2c26a](https://github.com/forcedotcom/sfdx-core/commit/dd2c26ad768afa2ed36de438c6ccb621176fa672))
+
+
+
 ## [8.0.5](https://github.com/forcedotcom/sfdx-core/compare/8.0.4...8.0.5) (2024-06-25)
 
 
