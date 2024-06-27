@@ -44,14 +44,21 @@ export type ProjectJson = ConfigContents & ProjectJsonSchema;
  * The sfdx-project.json config object. This file determines if a folder is a valid sfdx project.
  *
  * *Note:* Any non-standard (not owned by Salesforce) properties stored in sfdx-project.json should
- * be in a top level property that represents your project or plugin.
+ * be in a top level property that represents your project.
+ * Plugins should store their configuration @see SfProject.getPluginConfiguration and @see SfProject.setPluginConfiguration
  *
+ * @example reading a standard property
  * ```
  * const project = await SfProject.resolve();
  * const projectJson = await project.resolveProjectConfig();
- * const myPluginProperties = projectJson.get('myplugin') || {};
- * myPluginProperties.myprop = 'someValue';
- * projectJson.set('myplugin', myPluginProperties);
+ * const namespace = projectJson.get('namespace');
+ * ```
+ *
+ * ```
+ * @example writing
+ * const project = await SfProject.resolve();
+ * const projectJson = await project.resolveProjectConfig();
+ * projectJson.set('namespace', 'new');
  * await projectJson.write();
  * ```
  *
@@ -711,6 +718,48 @@ export class SfProject {
     return Object.entries(this.getPackageAliases() ?? {})
       .filter(([, value]) => value?.startsWith(id))
       .map(([key]) => key);
+  }
+
+  /**
+   * retrieve the configuration for a named plugin from sfdx-project.json.plugins.pluginName
+   *
+   * @example
+   * ```
+   * const project = await SfProject.resolve();
+   * const pluginConfig = await project.getPluginConfiguration('myPlugin');
+   * ```
+   *
+   * optionally pass a type parameter for your plugin configuration's schema
+   * */
+  public async getPluginConfiguration<T extends Record<string, unknown>>(pluginName: string): Promise<Readonly<T>> {
+    await this.retrieveSfProjectJson();
+    const plugins = this.sfProjectJson.get('plugins');
+    if (!plugins) {
+      throw new SfError('No plugins defined in sfdx-project.json', 'NoPluginsDefined');
+    }
+    if (!plugins[pluginName]) {
+      throw new SfError(`No configuration defined in sfdx-project.json for plugin ${pluginName}`, 'PluginNotFound');
+    }
+    return plugins[pluginName] as T;
+  }
+
+  /**
+   * set the configuration for a named plugin from sfdx-project.json.plugins.pluginName, overwriting existing configuration
+   *
+   * @example
+   * ```
+   * const project = await SfProject.resolve();
+   * const pluginConfig = await project.setPluginConfiguration('myPlugin', {foo: 'bar', myLimit: 25});
+   * ```
+   *
+   * optionally pass a type parameter for your plugin configuration's schema
+   * */
+  public async setPluginConfiguration<T extends Record<string, unknown>>(pluginName: string, config: T): Promise<void> {
+    await this.retrieveSfProjectJson();
+    const plugins = this.getSfProjectJson().get('plugins') ?? {};
+    const modified = { ...plugins, [pluginName]: config };
+    this.sfProjectJson.set('plugins', modified);
+    this.sfProjectJson.writeSync();
   }
 }
 
