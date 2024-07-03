@@ -1,3 +1,12 @@
+## [8.1.1](https://github.com/forcedotcom/sfdx-core/compare/8.1.0...8.1.1) (2024-07-03)
+
+
+### Bug Fixes
+
+* allow for undefined uniqueListerners ([5c6779c](https://github.com/forcedotcom/sfdx-core/commit/5c6779c31ecead10ab68f6a3e3f9619e8706f7d2))
+
+
+
 # [8.1.0](https://github.com/forcedotcom/sfdx-core/compare/8.0.5...8.1.0) (2024-06-27)
 
 
