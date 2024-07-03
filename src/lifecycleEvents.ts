@@ -238,5 +238,6 @@ export class Lifecycle {
 }
 
 const cloneListeners: (listeners: ListenerMap) => ListenerMap = (listeners) => new Map(Array.from(listeners.entries()));
-export const cloneUniqueListeners = (uniqueListeners: UniqueListenerMap): UniqueListenerMap =>
-  new Map(Array.from(uniqueListeners.entries()).map(([key, value]) => [key, cloneListeners(value)]));
+export const cloneUniqueListeners = (uniqueListeners: UniqueListenerMap | undefined): UniqueListenerMap =>
+  // in case we're crossing major sfdx-core versions where uniqueListeners might be undefined
+  new Map(Array.from(uniqueListeners?.entries() ?? []).map(([key, value]) => [key, cloneListeners(value)]));
