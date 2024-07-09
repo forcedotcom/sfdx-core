@@ -588,8 +588,16 @@ export class Messages<T extends string> {
     }
     const messages = ensureArray(msg);
     return messages.map((message) => {
-      ensureString(message);
-      return util.format(message, ...tokens);
+      const msgStr = ensureString(message);
+      // If the message does not contain a specifier, util.format still appends the token to the end.
+      // The 'markdownLoader' automatically splits bulleted lists into arrays.
+      // This causes the token to be appended to each line regardless of the presence of a specifier.
+      // Here we check for the presence of a specifier and only format the message if one is present.
+      // https://nodejs.org/api/util.html#utilformatformat-args
+      // https://regex101.com/r/8Hf8Z6/1
+      const specifierRegex = new RegExp('%[sdifjoO]{1}', 'gm');
+
+      return specifierRegex.test(msgStr) ? util.format(msgStr, ...tokens) : msgStr;
     });
   }
 }
