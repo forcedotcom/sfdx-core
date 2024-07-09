@@ -12,6 +12,7 @@ import * as util from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { AnyJson, asString, ensureJsonMap, ensureString, isJsonMap, isObject } from '@salesforce/ts-types';
 import { ensureArray, upperFirst } from '@salesforce/kit';
+import { Lifecycle } from './lifecycleEvents';
 import { SfError } from './sfError';
 
 export type Tokens = Array<string | boolean | number | null | undefined>;
@@ -588,8 +589,31 @@ export class Messages<T extends string> {
     }
     const messages = ensureArray(msg);
     return messages.map((message) => {
-      ensureString(message);
-      return util.format(message, ...tokens);
+      const msgStr = ensureString(message);
+      // If the message does not contain a specifier, util.format still appends the token to the end.
+      // The 'markdownLoader' automatically splits bulleted lists into arrays.
+      // This causes the token to be appended to each line regardless of the presence of a specifier.
+      // Here we check for the presence of a specifier and only format the message if one is present.
+      // https://nodejs.org/api/util.html#utilformatformat-args
+      // https://regex101.com/r/8Hf8Z6/1
+      const specifierRegex = new RegExp('%[sdifjoO]{1}', 'gm');
+
+      // NOTE: This is a temporary telemetry event to track down missing specifiers in messages.
+      //       Once we have enough data and correct missing specifiers, we can remove this.
+      //       The followup work is outlined in: W-16197665
+      if (!specifierRegex.test(msgStr) && tokens.length > 0) {
+        void Lifecycle.getInstance().emitTelemetry({
+          eventName: 'missing_message_specifier',
+          library: 'sfdx-core',
+          function: 'getMessageWithMap',
+          messagesLength: messages.length,
+          message: msgStr,
+          tokensLength: tokens.length,
+        });
+      }
+
+      // return specifierRegex.test(msgStr) ? util.format(msgStr, ...tokens) : msgStr;
+      return util.format(msgStr, ...tokens);
     });
   }
 }
