@@ -67,14 +67,14 @@ describe('Messages', () => {
 
     it('should return single string from array of messages', () => {
       expect(messages.getMessage('manyMsgs', ['blah', 864])).to.equal(
-        `hello${EOL}world${EOL}test message 2 blah and 864`
+        `hello blah 864${EOL}world blah 864${EOL}test message 2 blah and 864`
       );
     });
 
     it('should return multiple string from array of messages', () => {
       expect(messages.getMessages('manyMsgs', ['blah', 864])).to.deep.equal([
-        'hello',
-        'world',
+        'hello blah 864',
+        'world blah 864',
         'test message 2 blah and 864',
       ]);
     });
