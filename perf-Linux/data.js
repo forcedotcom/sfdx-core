@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1720551313019,
+  "lastUpdate": 1720904939477,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -21378,6 +21378,72 @@ window.BENCHMARK_DATA = {
             "range": "±6.06%",
             "unit": "ops/sec",
             "extra": "57 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7c6f9d7afdde50c6195f0c5c8d89171013856a40",
+          "message": "fix(deps): bump ajv from 8.16.0 to 8.17.1\n\nBumps [ajv](https://github.com/ajv-validator/ajv) from 8.16.0 to 8.17.1.\n- [Release notes](https://github.com/ajv-validator/ajv/releases)\n- [Commits](https://github.com/ajv-validator/ajv/compare/v8.16.0...v8.17.1)\n\n---\nupdated-dependencies:\n- dependency-name: ajv\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-07-13T21:04:52Z",
+          "tree_id": "4618948e08a88ae94452cd143a15180aa2fae307",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/7c6f9d7afdde50c6195f0c5c8d89171013856a40"
+        },
+        "date": 1720904931689,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 484618,
+            "range": "±0.91%",
+            "unit": "ops/sec",
+            "extra": "91 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 847992,
+            "range": "±9.46%",
+            "unit": "ops/sec",
+            "extra": "62 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 43621,
+            "range": "±183.83%",
+            "unit": "ops/sec",
+            "extra": "42 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 446221,
+            "range": "±6.11%",
+            "unit": "ops/sec",
+            "extra": "75 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 530472,
+            "range": "±8.10%",
+            "unit": "ops/sec",
+            "extra": "62 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 14677,
+            "range": "±188.60%",
+            "unit": "ops/sec",
+            "extra": "35 samples"
           }
         ]
       }
