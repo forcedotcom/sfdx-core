@@ -27,6 +27,7 @@ const FEATURE_TYPES = {
     'EXPANDEDSOURCETRACKING',
     'LISTCUSTOMSETTINGCREATION',
     'AppNavCapabilities',
+    'CMTRecordManagedDeletion',
     'EditInSubtab',
     'OldNewRecordFlowConsole',
     'OldNewRecordFlowStd',
