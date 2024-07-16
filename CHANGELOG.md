@@ -1,3 +1,12 @@
+# [8.2.0](https://github.com/forcedotcom/sfdx-core/compare/8.1.3...8.2.0) (2024-07-16)
+
+
+### Features
+
+* deprecate CMTRecordManagedDeletion scratch org feature ([7716748](https://github.com/forcedotcom/sfdx-core/commit/7716748fc568cdbc14ec86257b1ba398b65717c0))
+
+
+
 ## [8.1.3](https://github.com/forcedotcom/sfdx-core/compare/8.1.2...8.1.3) (2024-07-16)
 
 
