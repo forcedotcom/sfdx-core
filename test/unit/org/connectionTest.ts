@@ -19,7 +19,7 @@ const TEST_IP = '1.1.1.1';
 
 describe('Connection', () => {
   const $$ = new TestContext();
-  const testConnectionOptions = { loginUrl: 'connectionTest/loginUrl' };
+  const testConnectionOptions = { loginUrl: 'https://connectionTest/loginUrl' };
   let requestMock: sinon.SinonStub;
   let myDomainResolverStub: sinon.SinonStub;
 
