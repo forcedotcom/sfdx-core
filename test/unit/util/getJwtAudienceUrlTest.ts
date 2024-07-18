@@ -25,6 +25,7 @@ describe('getJwtAudienceUrl', () => {
 
   afterEach(() => {
     env.unset('SFDX_AUDIENCE_URL');
+    env.unset('SF_AUDIENCE_URL');
   });
 
   it('return the correct jwt audience for undefined loginUrl', async () => {
@@ -53,9 +54,16 @@ describe('getJwtAudienceUrl', () => {
   });
 
   it('should use the correct audience URL for SFDX_AUDIENCE_URL env var', async () => {
-    env.setString('SFDX_AUDIENCE_URL', 'http://authInfoTest/audienceUrl/test');
+    env.setString('SFDX_AUDIENCE_URL', 'http://authInfoTest-sfdx/audienceUrl/test');
     const url = new SfdcUrl('https://login.salesforce.com');
     const response = await url.getJwtAudienceUrl();
     expect(response).to.be.equal(process.env.SFDX_AUDIENCE_URL);
+  });
+
+  it('should use the correct audience URL for SF_AUDIENCE_URL env var', async () => {
+    env.setString('SF_AUDIENCE_URL', 'http://authInfoTest-sf/audienceUrl/test');
+    const url = new SfdcUrl('https://login.salesforce.com');
+    const response = await url.getJwtAudienceUrl();
+    expect(response).to.be.equal(process.env.SF_AUDIENCE_URL);
   });
 });
