@@ -6,11 +6,12 @@
  */
 
 import { URL } from 'node:url';
-import { Env, Duration } from '@salesforce/kit';
+import { Duration } from '@salesforce/kit';
 import { ensureNumber, ensureArray } from '@salesforce/ts-types';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { Logger } from '../logger/logger';
 import { Lifecycle } from '../lifecycleEvents';
+import { EnvVars } from '../config/envVars';
 
 export function getLoginAudienceCombos(audienceUrl: string, loginUrl: string): Array<[string, string]> {
   const filtered = [
@@ -49,6 +50,7 @@ export class SfdcUrl extends URL {
   public static readonly PRODUCTION = 'https://login.salesforce.com';
   private static readonly cache: Set<string> = new Set();
   private logger!: Logger;
+  private envVars: EnvVars;
 
   public constructor(input: string | URL, base?: string | URL) {
     super(input.toString(), base);
@@ -56,6 +58,7 @@ export class SfdcUrl extends URL {
       SfdcUrl.cache.add(this.origin);
       void Lifecycle.getInstance().emitWarning(`Using insecure protocol: ${this.protocol} on url: ${this.origin}`);
     }
+    this.envVars = new EnvVars();
   }
 
   public static isValidUrl(input: string | URL): boolean {
@@ -69,7 +72,7 @@ export class SfdcUrl extends URL {
 
   /**
    * Returns the appropriate jwt audience url for this url
-   * Use SFDX_AUDIENCE_URL env var to override the audience url
+   * Use SF_AUDIENCE_URL env var to override the audience url
    *
    * @param createdOrgInstance The Salesforce instance the org was created on. e.g. `cs42`
    * @return {Promise<string>} The audience url
@@ -77,9 +80,9 @@ export class SfdcUrl extends URL {
   public async getJwtAudienceUrl(createdOrgInstance?: string): Promise<string> {
     this.logger = await Logger.child('SfdcUrl');
     // environment variable is used as an override
-    const envVarVal = new Env().getString('SFDX_AUDIENCE_URL', '');
+    const envVarVal = this.envVars.getString('SF_AUDIENCE_URL', '');
     if (envVarVal) {
-      this.logger.debug(`Audience URL overridden by env var SFDX_AUDIENCE_URL=${envVarVal}`);
+      this.logger.debug(`Audience URL overridden by env var SF_AUDIENCE_URL=${envVarVal}`);
       return envVarVal;
     }
 
@@ -176,13 +179,13 @@ export class SfdcUrl extends URL {
   /**
    * Tests whether this url has the lightning domain extension
    * This method that performs the dns lookup of the host. If the lookup fails the internal polling (1 second), client will try again until timeout
-   * If SFDX_DOMAIN_RETRY environment variable is set (number) it overrides the default timeout duration (240 seconds)
+   * If SF_DOMAIN_RETRY environment variable is set (number) it overrides the default timeout duration (240 seconds)
    *
    * @returns {Promise<true | never>} The resolved ip address or never
    * @throws {@link SfError} If can't resolve DNS.
    */
   public async checkLightningDomain(): Promise<true> {
-    const quantity = ensureNumber(new Env().getNumber('SFDX_DOMAIN_RETRY', 240));
+    const quantity = ensureNumber(this.envVars.getNumber('SF_DOMAIN_RETRY', 240));
     const timeout = new Duration(quantity, Duration.Unit.SECONDS);
 
     if (this.isInternalUrl() || timeout.seconds === 0) {
@@ -201,13 +204,13 @@ export class SfdcUrl extends URL {
 
   /**
    * Method that performs the dns lookup of the host. If the lookup fails the internal polling (1 second), client will try again until timeout
-   * If SFDX_DOMAIN_RETRY environment variable is set (number) it overrides the default timeout duration (240 seconds)
+   * If SF_DOMAIN_RETRY environment variable is set (number) it overrides the default timeout duration (240 seconds)
    *
    * @returns the resolved ip address.
    * @throws {@link SfError} If can't resolve DNS.
    */
   public async lookup(): Promise<string> {
-    const quantity = ensureNumber(new Env().getNumber('SFDX_DOMAIN_RETRY', 240));
+    const quantity = ensureNumber(this.envVars.getNumber('SF_DOMAIN_RETRY', 240));
     const timeout = new Duration(quantity, Duration.Unit.SECONDS);
     const resolver = await MyDomainResolver.create({
       url: new URL(this.origin),

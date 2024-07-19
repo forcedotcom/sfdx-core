@@ -261,6 +261,7 @@ describe('util/sfdcUrl', () => {
 
     afterEach(() => {
       env.unset('SFDX_AUDIENCE_URL');
+      env.unset('SF_AUDIENCE_URL');
     });
 
     it('should use the correct audience URL for createdOrgInstance beginning with "gs1"', async () => {
@@ -278,10 +279,25 @@ describe('util/sfdcUrl', () => {
     });
 
     it('should use the correct audience URL for SFDX_AUDIENCE_URL env var', async () => {
-      env.setString('SFDX_AUDIENCE_URL', 'http://authInfoTest/audienceUrl/test');
+      env.setString('SFDX_AUDIENCE_URL', 'http://authInfoTest-sfdx/audienceUrl/test');
       const url = new SfdcUrl('https://login.salesforce.com');
       const response = await url.getJwtAudienceUrl();
       expect(response).to.be.equal(process.env.SFDX_AUDIENCE_URL);
+    });
+
+    it('should use the correct audience URL for SF_AUDIENCE_URL env var', async () => {
+      env.setString('SF_AUDIENCE_URL', 'http://authInfoTest-sf/audienceUrl/test');
+      const url = new SfdcUrl('https://login.salesforce.com');
+      const response = await url.getJwtAudienceUrl();
+      expect(response).to.be.equal(process.env.SF_AUDIENCE_URL);
+    });
+
+    it('should use the correct audience URL for SF_AUDIENCE_URL and SFDX_AUDIENCE_URL env vars', async () => {
+      env.setString('SFDX_AUDIENCE_URL', 'http://authInfoTest-sfdx/audienceUrl/test');
+      env.setString('SF_AUDIENCE_URL', 'http://authInfoTest-sf/audienceUrl/test');
+      const url = new SfdcUrl('https://login.salesforce.com');
+      const response = await url.getJwtAudienceUrl();
+      expect(response).to.be.equal(process.env.SF_AUDIENCE_URL);
     });
   });
 
