@@ -1,3 +1,12 @@
+## [8.2.1](https://github.com/forcedotcom/sfdx-core/compare/8.2.0...8.2.1) (2024-07-19)
+
+
+### Bug Fixes
+
+* use EnvVar class for audience url and domain retry env vars ([#1104](https://github.com/forcedotcom/sfdx-core/issues/1104)) ([8ca1368](https://github.com/forcedotcom/sfdx-core/commit/8ca136885fbbc45a79c7ee92c0bb11779d1bbf8f))
+
+
+
 # [8.2.0](https://github.com/forcedotcom/sfdx-core/compare/8.1.3...8.2.0) (2024-07-16)
 
 
