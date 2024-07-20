@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1721343160471,
+  "lastUpdate": 1721511196692,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -21312,6 +21312,72 @@ window.BENCHMARK_DATA = {
             "range": "±5.39%",
             "unit": "ops/sec",
             "extra": "70 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "46cde13a2431e9e7c668dea7ccffa24e32a85865",
+          "message": "fix(deps): bump pino from 9.2.0 to 9.3.1\n\nBumps [pino](https://github.com/pinojs/pino) from 9.2.0 to 9.3.1.\n- [Release notes](https://github.com/pinojs/pino/releases)\n- [Commits](https://github.com/pinojs/pino/compare/v9.2.0...v9.3.1)\n\n---\nupdated-dependencies:\n- dependency-name: pino\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-07-20T21:27:00Z",
+          "tree_id": "9a6e130d40b828c9cc376d2480bc155c37f6e84b",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/46cde13a2431e9e7c668dea7ccffa24e32a85865"
+        },
+        "date": 1721511180914,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 324444,
+            "range": "±0.94%",
+            "unit": "ops/sec",
+            "extra": "90 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 749698,
+            "range": "±4.89%",
+            "unit": "ops/sec",
+            "extra": "63 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 563856,
+            "range": "±6.77%",
+            "unit": "ops/sec",
+            "extra": "70 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 7961,
+            "range": "±200.17%",
+            "unit": "ops/sec",
+            "extra": "29 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 417415,
+            "range": "±15.08%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 334465,
+            "range": "±5.21%",
+            "unit": "ops/sec",
+            "extra": "67 samples"
           }
         ]
       }
