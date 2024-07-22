@@ -205,6 +205,13 @@ describe('SfError', () => {
             assert(mySfError.cause instanceof Error);
             expect(mySfError.cause.cause).to.equal(wrapMe);
           });
+          it('empty object', () => {
+            const wrapMe = {};
+            const mySfError = SfError.wrap(wrapMe);
+            expect(mySfError).to.be.an.instanceOf(SfError);
+            assert(mySfError.cause instanceof Error);
+            expect(mySfError.cause.cause).to.equal(wrapMe);
+          });
           it('an object that has a code', () => {
             const wrapMe = { a: 2, code: 'foo' };
             const mySfError = SfError.wrap(wrapMe);
