@@ -162,21 +162,7 @@ describe('SfError', () => {
         assert(mySfError.cause instanceof Error);
         expect(mySfError.cause.cause).to.equal(wrapMe);
       });
-      it('an object', () => {
-        const wrapMe = { a: 2 };
-        const mySfError = SfError.wrap(wrapMe);
-        expect(mySfError).to.be.an.instanceOf(SfError);
-        assert(mySfError.cause instanceof Error);
-        expect(mySfError.cause.cause).to.equal(wrapMe);
-      });
-      it('an object that has a code', () => {
-        const wrapMe = { a: 2, code: 'foo' };
-        const mySfError = SfError.wrap(wrapMe);
-        expect(mySfError).to.be.an.instanceOf(SfError);
-        assert(mySfError.cause instanceof Error);
-        expect(mySfError.cause.cause).to.equal(wrapMe);
-        expect(mySfError.code).to.equal('foo');
-      });
+
       it('an array', () => {
         const wrapMe = [1, 5, 6];
         const mySfError = SfError.wrap(wrapMe);
@@ -190,6 +176,44 @@ describe('SfError', () => {
         expect(mySfError).to.be.an.instanceOf(SfError);
         assert(mySfError.cause instanceof Error);
         expect(mySfError.cause.cause).to.equal(wrapMe);
+      });
+      describe('objects', () => {
+        describe('error-like', () => {
+          it('an object with only a message', () => {
+            const wrapMe = { message: 'foo' };
+            const mySfError = SfError.wrap(wrapMe);
+            expect(mySfError).to.be.an.instanceOf(SfError);
+            expect(mySfError.message).to.equal('foo');
+            expect(mySfError.exitCode).to.equal(1);
+            expect(mySfError.name).to.equal('SfError');
+          });
+          it('an object with several props and code', () => {
+            const wrapMe = { message: 'foo', name: 'bar', code: 'baz', exitCode: 100 };
+            const mySfError = SfError.wrap(wrapMe);
+            expect(mySfError).to.be.an.instanceOf(SfError);
+            expect(mySfError.message).to.equal('foo');
+            expect(mySfError.exitCode).to.equal(100);
+            expect(mySfError.name).to.equal('bar');
+            expect(mySfError.code).to.equal('baz');
+          });
+        });
+        describe('not error-like', () => {
+          it('an object', () => {
+            const wrapMe = { a: 2 };
+            const mySfError = SfError.wrap(wrapMe);
+            expect(mySfError).to.be.an.instanceOf(SfError);
+            assert(mySfError.cause instanceof Error);
+            expect(mySfError.cause.cause).to.equal(wrapMe);
+          });
+          it('an object that has a code', () => {
+            const wrapMe = { a: 2, code: 'foo' };
+            const mySfError = SfError.wrap(wrapMe);
+            expect(mySfError).to.be.an.instanceOf(SfError);
+            assert(mySfError.cause instanceof Error);
+            expect(mySfError.cause.cause).to.equal(wrapMe);
+            expect(mySfError.code).to.equal('foo');
+          });
+        });
       });
     });
   });

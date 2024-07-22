@@ -191,6 +191,12 @@ const fromBasicError = <T extends ErrorDataProperties>(err: unknown): SfError<T>
 
 /* an object that is the result of spreading an Error or SfError  */
 const fromErrorLikeObject = <T extends ErrorDataProperties>(err: unknown): SfError<T> | undefined => {
+  if (!err || typeof err !== 'object') {
+    return undefined;
+  }
+  if (!('message' in err)) {
+    return undefined;
+  }
   try {
     return SfError.create<T>(err as Error);
   } catch {
