@@ -1,3 +1,12 @@
+## [8.2.3](https://github.com/forcedotcom/sfdx-core/compare/8.2.2...8.2.3) (2024-07-22)
+
+
+### Bug Fixes
+
+* wrap-error-like-objects ([#1108](https://github.com/forcedotcom/sfdx-core/issues/1108)) ([e0c5eca](https://github.com/forcedotcom/sfdx-core/commit/e0c5eca7e4f9e6ef05c1f0daaa8506ffe491256e))
+
+
+
 ## [8.2.2](https://github.com/forcedotcom/sfdx-core/compare/8.2.1...8.2.2) (2024-07-21)
 
 
