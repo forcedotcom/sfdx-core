@@ -136,17 +136,12 @@ export class SfError<T extends ErrorDataProperties = ErrorDataProperties> extend
     }
 
     const sfError =
-      err instanceof Error
-        ? // a basic error with message and name.  We make it the cause to preserve any other properties
-          SfError.create<T>({
-            message: err.message,
-            name: err.name,
-            cause: err,
-          })
-        : // ok, something was throws that wasn't error or string.  Convert it to an Error that preserves the information as the cause and wrap that.
-          SfError.wrap<T>(
-            new Error(`SfError.wrap received type ${typeof err} but expects type Error or string`, { cause: err })
-          );
+      fromBasicError<T>(err) ??
+      fromErrorLikeObject<T>(err) ??
+      // something was thrown that wasn't error, error-like object or string.  Convert it to an Error that preserves the information as the cause and wrap that.
+      SfError.wrap<T>(
+        new Error(`SfError.wrap received type ${typeof err} but expects type Error or string`, { cause: err })
+      );
 
     // If the original error has a code, use that instead of name.
     if (hasString(err, 'code')) {
@@ -190,3 +185,15 @@ export class SfError<T extends ErrorDataProperties = ErrorDataProperties> extend
     };
   }
 }
+
+const fromBasicError = <T extends ErrorDataProperties>(err: unknown): SfError<T> | undefined =>
+  err instanceof Error ? SfError.create<T>({ message: err.message, name: err.name, cause: err }) : undefined;
+
+/* an object that is the result of spreading an Error or SfError  */
+const fromErrorLikeObject = <T extends ErrorDataProperties>(err: unknown): SfError<T> | undefined => {
+  try {
+    return SfError.create<T>(err as Error);
+  } catch {
+    return undefined;
+  }
+};
