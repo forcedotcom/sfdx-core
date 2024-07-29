@@ -1,3 +1,12 @@
+## [8.2.7](https://github.com/forcedotcom/sfdx-core/compare/8.2.6...8.2.7) (2024-07-29)
+
+
+### Bug Fixes
+
+* override whatwg-url ([52aa626](https://github.com/forcedotcom/sfdx-core/commit/52aa6261531fe3e14d967b0a2273da61f1eaa4a9))
+
+
+
 ## [8.2.6](https://github.com/forcedotcom/sfdx-core/compare/8.2.5...8.2.6) (2024-07-28)
 
 
