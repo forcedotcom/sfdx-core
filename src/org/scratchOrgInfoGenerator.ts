@@ -322,6 +322,8 @@ const parseDefinitionFile = async (definitionFile: string): Promise<Record<strin
   try {
     const fileData = await fs.readFile(definitionFile, 'utf8');
     const defFileContents = parseJson(fileData) as Record<string, unknown>;
+    // remove key '$schema' from the definition file
+    delete defFileContents['$schema'];
     return defFileContents;
   } catch (err) {
     const error = err as Error;
