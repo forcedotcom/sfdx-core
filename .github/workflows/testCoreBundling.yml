@@ -30,7 +30,6 @@ jobs:
       matrix:
         os: ['ubuntu-latest', 'windows-latest']
         externalProjectGit:
-          - forcedotcom/salesforcedx-templates
           - forcedotcom/salesforcedx-apex
     with:
       externalProjectGit: ${{ matrix.externalProjectGit }}
