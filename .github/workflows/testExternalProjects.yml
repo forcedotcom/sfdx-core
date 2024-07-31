@@ -3,7 +3,7 @@ on:
   workflow_call:
     inputs:
       externalProjectGit:
-        description: 'The url that will be cloned.  This contains the tests you want to run.  Ex: https://github.com/forcedotcom/templates'
+        description: 'The url that will be cloned.  This contains the tests you want to run.  Ex: https://github.com/forcedotcom/salesforcedx-apex'
         type: string
         required: true
       nodeVersion:
@@ -29,7 +29,7 @@ on:
 jobs:
   external-test:
     name: run tests
-    if: ${{ inputs.externalProjectGit == 'forcedotcom/salesforcedx-apex' || (inputs.externalProjectGit == 'forcedotcom/salesforcedx-templates' && inputs.os == 'ubuntu-latest') }}
+    if: ${{ inputs.externalProjectGit == 'forcedotcom/salesforcedx-apex' }}
     runs-on: ${{ inputs.os }}
     steps:
       - name: Configure Git to handle long file paths on Windows
