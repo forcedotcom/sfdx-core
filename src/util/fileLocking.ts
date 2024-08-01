@@ -6,9 +6,12 @@
  */
 import * as fs from 'node:fs';
 import { dirname } from 'node:path';
-import { lock, lockSync } from 'proper-lockfile';
+import { lock, lockSync, check, checkSync } from 'proper-lockfile';
+import { Duration } from '@salesforce/kit';
 import { SfError } from '../sfError';
 import { Logger } from '../logger/logger';
+import { PollingClient } from '../status/pollingClient';
+import { StatusResult } from '../status/types';
 import { lockOptions, lockRetryOptions } from './lockRetryOptions';
 
 type LockInitResponse = { writeAndUnlock: (data: string) => Promise<void>; unlock: () => Promise<void> };
@@ -94,4 +97,56 @@ export const lockInitSync = (filePath: string): LockInitSyncResponse => {
     },
     unlock,
   };
+};
+
+/**
+ * Poll until the file is unlocked.
+ *
+ * @param filePath file path to check
+ */
+export const pollUntilUnlock = async (filePath: string): Promise<void> => {
+  const options: PollingClient.Options = {
+    async poll(): Promise<StatusResult> {
+      try {
+        const locked = await check(filePath, lockRetryOptions);
+        return { completed: !locked, payload: 'File unlocked' };
+      } catch (e) {
+        if (e instanceof SfError) {
+          return { completed: true, payload: e.toObject() };
+        }
+        if (e instanceof Error) {
+          return {
+            completed: true,
+            payload: {
+              name: e.name,
+              message: e.message,
+              stack: e.stack,
+            },
+          };
+        }
+
+        return { completed: true, payload: 'Error occurred' };
+      }
+    },
+    frequency: Duration.milliseconds(10),
+    timeout: Duration.minutes(1),
+  };
+
+  const client = await PollingClient.create(options);
+  await client.subscribe();
+};
+
+export const pollUntilUnlockSync = (filePath: string): void => {
+  // Set a counter to ensure that the while loop does not run indefinitely
+  let counter = 0;
+  let locked = true;
+  while (locked && counter < 100) {
+    try {
+      locked = checkSync(filePath, lockOptions);
+      counter++;
+    } catch {
+      // Likely a file not found error, which means the file is not locked
+      locked = false;
+    }
+  }
 };
