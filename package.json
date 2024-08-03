@@ -73,7 +73,7 @@
   },
   "devDependencies": {
     "@salesforce/dev-scripts": "^10.1.1",
-    "@salesforce/ts-sinon": "^1.4.22",
+    "@salesforce/ts-sinon": "^1.4.23",
     "@types/benchmark": "^2.1.5",
     "@types/fast-levenshtein": "^0.0.4",
     "@types/jsonwebtoken": "9.0.6",
