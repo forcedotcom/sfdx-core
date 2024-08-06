@@ -104,13 +104,17 @@ export const lockInitSync = (filePath: string): LockInitSyncResponse => {
  * @param filePath file path to check
  */
 export const pollUntilUnlock = async (filePath: string): Promise<void> => {
-  await retryDecorator(check, {
-    timeout: Duration.minutes(1).milliseconds,
-    delay: 10,
-    until: (locked) => locked === false,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    retryIf: () => false,
-  })(filePath, lockRetryOptions);
+  try {
+    await retryDecorator(check, {
+      timeout: Duration.minutes(1).milliseconds,
+      delay: 10,
+      until: (locked) => locked === false,
+      // don't retry errors (typically enoent or access on the lockfile, therefore not locked)
+      retryIf: () => false,
+    })(filePath, lockRetryOptions);
+  } catch (e) {
+    // intentionally swallow the error, same reason as above
+  }
 };
 
 export const pollUntilUnlockSync = (filePath: string): void => {
