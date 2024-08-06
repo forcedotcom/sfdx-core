@@ -8,10 +8,9 @@ import * as fs from 'node:fs';
 import { dirname } from 'node:path';
 import { lock, lockSync, check, checkSync } from 'proper-lockfile';
 import { Duration } from '@salesforce/kit';
+import { retryDecorator } from 'ts-retry-promise';
 import { SfError } from '../sfError';
 import { Logger } from '../logger/logger';
-import { PollingClient } from '../status/pollingClient';
-import { StatusResult } from '../status/types';
 import { lockOptions, lockRetryOptions } from './lockRetryOptions';
 
 type LockInitResponse = { writeAndUnlock: (data: string) => Promise<void>; unlock: () => Promise<void> };
@@ -105,35 +104,7 @@ export const lockInitSync = (filePath: string): LockInitSyncResponse => {
  * @param filePath file path to check
  */
 export const pollUntilUnlock = async (filePath: string): Promise<void> => {
-  const options: PollingClient.Options = {
-    async poll(): Promise<StatusResult> {
-      try {
-        const locked = await check(filePath, lockRetryOptions);
-        return { completed: !locked, payload: 'File unlocked' };
-      } catch (e) {
-        if (e instanceof SfError) {
-          return { completed: true, payload: e.toObject() };
-        }
-        if (e instanceof Error) {
-          return {
-            completed: true,
-            payload: {
-              name: e.name,
-              message: e.message,
-              stack: e.stack,
-            },
-          };
-        }
-
-        return { completed: true, payload: 'Error occurred' };
-      }
-    },
-    frequency: Duration.milliseconds(10),
-    timeout: Duration.minutes(1),
-  };
-
-  const client = await PollingClient.create(options);
-  await client.subscribe();
+  await retryDecorator(check, { timeout: Duration.minutes(1).milliseconds, delay: 10 })(filePath, lockRetryOptions);
 };
 
 export const pollUntilUnlockSync = (filePath: string): void => {
