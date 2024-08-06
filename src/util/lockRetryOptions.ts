@@ -10,5 +10,5 @@
 export const lockOptions = { stale: 10_000 };
 export const lockRetryOptions = {
   ...lockOptions,
-  retries: { retries: 10, maxTimeout: 1000, factor: 2 },
+  retries: { retries: 50, maxTimeout: 1000, factor: 2 },
 };
