@@ -1,3 +1,12 @@
+## [8.2.9](https://github.com/forcedotcom/sfdx-core/compare/8.2.8...8.2.9) (2024-08-07)
+
+
+### Bug Fixes
+
+* wait to read until file is unlocked ([#1116](https://github.com/forcedotcom/sfdx-core/issues/1116)) ([e4a703f](https://github.com/forcedotcom/sfdx-core/commit/e4a703f7bbd4bcf2e15da166fcf8d8b745fe146b))
+
+
+
 ## [8.2.8](https://github.com/forcedotcom/sfdx-core/compare/8.2.7...8.2.8) (2024-07-31)
 
 
