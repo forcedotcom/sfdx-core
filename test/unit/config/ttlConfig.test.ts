@@ -51,7 +51,7 @@ describe('TTLConfig', () => {
     it('should return the latest entry', async () => {
       const config = await TestConfig.create();
       config.set('1', { one: 'one' });
-      await sleep(1000);
+      await sleep(200);
       config.set('2', { two: 'two' });
       const latest = config.getLatestEntry();
       expect(latest).to.deep.equal(['2', config.get('2')]);
@@ -68,7 +68,7 @@ describe('TTLConfig', () => {
     it('should return the key of the latest entry', async () => {
       const config = await TestConfig.create();
       config.set('1', { one: 'one' });
-      await sleep(1000);
+      await sleep(200);
       config.set('2', { two: 'two' });
       const latest = config.getLatestKey();
       expect(latest).to.equal('2');
