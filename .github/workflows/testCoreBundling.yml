@@ -20,7 +20,7 @@ jobs:
     uses: ./.github/workflows/bundle.yml
     with:
       branch: ${{ github.ref_name || inputs.branch }}
-      nodeVersion: ${{ inputs.nodeVersion }}
+      nodeVersion: ${{ inputs.nodeVersion || 'lts/*' }}
   tests:
     needs: bundle
     uses: ./.github/workflows/testExternalProjects.yml
