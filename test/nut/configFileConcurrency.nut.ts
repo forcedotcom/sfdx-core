@@ -7,33 +7,15 @@
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { rm } from 'node:fs/promises';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
 import { expect } from 'chai';
 import { sleep } from '@salesforce/kit';
-import { ConfigFile } from '../../../src';
+import { TestConfig, FILENAME } from './concurrencyConfig';
 
-const FILENAME = 'concurrency.json';
+const execProm = promisify(exec);
+
 const sharedLocation = join('sfdx-core-ut', 'test', 'configFile');
-
-class TestConfig extends ConfigFile<ConfigFile.Options> {
-  public static getOptions(
-    filename: string,
-    isGlobal: boolean,
-    isState?: boolean,
-    filePath?: string
-  ): ConfigFile.Options {
-    return {
-      rootFolder: tmpdir(),
-      filename,
-      isGlobal,
-      isState,
-      filePath,
-    };
-  }
-
-  public static getFileName() {
-    return FILENAME;
-  }
-}
 
 /* file and node - clock timestamps aren't precise enough to run in a UT.
  *  the goal of this and the `sleep` is to put a bit of space between operations
@@ -189,5 +171,16 @@ describe('concurrency', () => {
     if (config4.has('x')) {
       expect(config4.get('x')).to.be.greaterThanOrEqual(7).and.lessThanOrEqual(9);
     }
+  });
+
+  it('safe reads on parallel writes', async () => {
+    const configOriginal = new TestConfig(TestConfig.getOptions('test', true, true, sharedLocation));
+    configOriginal.set('x', 0);
+    await configOriginal.write();
+    await sleep(SLEEP_FUDGE_MS);
+
+    await Promise.all(
+      Array.from({ length: 50 }).map((_, i) => execProm(`yarn ts-node test/nut/concurrencyReadWrite.ts ${i}`))
+    );
   });
 });

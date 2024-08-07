@@ -6,7 +6,9 @@
  */
 import * as fs from 'node:fs';
 import { dirname } from 'node:path';
-import { lock, lockSync } from 'proper-lockfile';
+import { lock, lockSync, check, checkSync } from 'proper-lockfile';
+import { Duration } from '@salesforce/kit';
+import { retryDecorator } from 'ts-retry-promise';
 import { SfError } from '../sfError';
 import { Logger } from '../logger/logger';
 import { lockOptions, lockRetryOptions } from './lockRetryOptions';
@@ -94,4 +96,38 @@ export const lockInitSync = (filePath: string): LockInitSyncResponse => {
     },
     unlock,
   };
+};
+
+/**
+ * Poll until the file is unlocked.
+ *
+ * @param filePath file path to check
+ */
+export const pollUntilUnlock = async (filePath: string): Promise<void> => {
+  try {
+    await retryDecorator(check, {
+      timeout: Duration.minutes(1).milliseconds,
+      delay: 10,
+      until: (locked) => locked === false,
+      // don't retry errors (typically enoent or access on the lockfile, therefore not locked)
+      retryIf: () => false,
+    })(filePath, lockRetryOptions);
+  } catch (e) {
+    // intentionally swallow the error, same reason as above
+  }
+};
+
+export const pollUntilUnlockSync = (filePath: string): void => {
+  // Set a counter to ensure that the while loop does not run indefinitely
+  let counter = 0;
+  let locked = true;
+  while (locked && counter < 100) {
+    try {
+      locked = checkSync(filePath, lockOptions);
+      counter++;
+    } catch {
+      // Likely a file not found error, which means the file is not locked
+      locked = false;
+    }
+  }
 };

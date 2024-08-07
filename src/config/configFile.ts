@@ -14,7 +14,7 @@ import { Global } from '../global';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 import { resolveProjectPath, resolveProjectPathSync } from '../util/internal';
-import { lockInit, lockInitSync } from '../util/fileLocking';
+import { lockInit, lockInitSync, pollUntilUnlock, pollUntilUnlockSync } from '../util/fileLocking';
 import { BaseConfigStore } from './configStore';
 import { ConfigContents } from './configStackTypes';
 import { stateFromContents } from './lwwMap';
@@ -167,7 +167,7 @@ export class ConfigFile<
             !this.hasRead ? 'hasRead is false' : 'force parameter is true'
           }`
         );
-
+        await pollUntilUnlock(this.getPath());
         const obj = parseJsonMap<P>(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath());
         this.setContentsFromFileContents(obj, (await fs.promises.stat(this.getPath(), { bigint: true })).mtimeNs);
       }
@@ -203,6 +203,7 @@ export class ConfigFile<
       // Only need to read config files once.  They are kept up to date
       // internally and updated persistently via write().
       if (!this.hasRead || force) {
+        pollUntilUnlockSync(this.getPath());
         this.logger.debug(`Reading config file: ${this.getPath()}`);
         const obj = parseJsonMap<P>(fs.readFileSync(this.getPath(), 'utf8'));
         this.setContentsFromFileContents(obj, fs.statSync(this.getPath(), { bigint: true }).mtimeNs);

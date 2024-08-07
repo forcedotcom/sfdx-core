@@ -35,6 +35,7 @@
     "prepack": "sf-prepack",
     "prepare": "sf-install",
     "test": "wireit",
+    "test:nuts": "mocha \"test/**/*.nut.ts\" --timeout 500000",
     "test:only": "wireit",
     "test:perf": "ts-node test/perf/logger/main.test.ts"
   },
@@ -146,7 +147,7 @@
       "output": []
     },
     "test:only": {
-      "command": "nyc mocha \"test/**/*Test.ts\"",
+      "command": "nyc mocha \"test/unit/**/*.test.ts\"",
       "env": {
         "FORCE_COLOR": "2"
       },

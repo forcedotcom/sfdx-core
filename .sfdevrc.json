@@ -1,6 +1,6 @@
 {
   "test": {
-    "testsPath": "test/**/*Test.ts"
+    "testsPath": "test/unit/**/*.test.ts"
   },
   "wireit": {
     "compile": {
