@@ -1,6 +1,6 @@
 {
   "extends": "@salesforce/dev-config/tsconfig-test-strict",
-  "include": ["nut/**/*.ts", "unit/**/*.ts", "perf/**/*.ts", "nut/configFileConcurrency.nut.ts"],
+  "include": ["nut/**/*.ts", "unit/**/*.ts", "perf/**/*.ts"],
   "compilerOptions": {
     "noEmit": true,
     "skipLibCheck": true,
