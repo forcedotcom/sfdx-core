@@ -1026,5 +1026,25 @@ describe('scratchOrgInfoGenerator', () => {
         expect(err).to.exist;
       }
     });
+    it('Remove $schema key if it exist', async () => {
+      sandbox.restore();
+      stubMethod(sandbox, fs.promises, 'readFile')
+        .withArgs('./my-file.json', 'utf8')
+        .resolves(
+          '{ "$schema": "https://forcedotcom.github.io/schemas/project-scratch-def.json/project-scratch-def.schema.json" }'
+        );
+      expect(
+        await getScratchOrgInfoPayload({
+          durationDays: 1,
+          definitionfile: './my-file.json',
+        })
+      ).to.deep.equal({
+        scratchOrgInfoPayload: {
+          durationDays: 1,
+        },
+        ignoreAncestorIds: false,
+        warnings: [],
+      });
+    });
   });
 });
