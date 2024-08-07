@@ -79,7 +79,7 @@ describe('SfError', () => {
     it('returned `name:message` when no cause', () => {
       const err = new SfError('test');
       expect(inspect(err)).to.include('SfError: test');
-      expect(inspect(err)).to.include('sfErrorTest.ts');
+      expect(inspect(err)).to.include('sfError.test.ts');
       // there's always 1 cause from the `cause:` property, even if undefined
       expect(inspect(err)?.match(causeRegex)).to.have.lengthOf(1);
     });
@@ -87,7 +87,7 @@ describe('SfError', () => {
       const nestedError = new Error('nested');
       const err = new SfError('test', undefined, undefined, nestedError);
       expect(inspect(err)).to.include('SfError: test');
-      expect(inspect(err)).to.include('sfErrorTest.ts');
+      expect(inspect(err)).to.include('sfError.test.ts');
       expect(inspect(err)).to.include('nested');
       expect(inspect(err)?.match(causeRegex)).to.have.lengthOf(1);
       expect(inspect(err)?.match(nestedCauseRegex)).to.be.null;
@@ -97,7 +97,7 @@ describe('SfError', () => {
       const nestedError2 = new Error('nested2', { cause: nestedError });
       const err = new SfError('test', undefined, undefined, nestedError2);
       expect(inspect(err)).to.include('SfError: test');
-      expect(inspect(err)).to.include('sfErrorTest.ts');
+      expect(inspect(err)).to.include('sfError.test.ts');
       expect(inspect(err)).to.include('nested');
       expect(inspect(err)).to.include('nested2');
       expect(inspect(err)?.match(causeRegex)).to.have.lengthOf(1);
