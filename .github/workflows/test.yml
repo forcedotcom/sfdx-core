@@ -44,6 +44,8 @@ jobs:
       command: 'yarn test:nuts'
       os: ${{ matrix.os }}
       useCache: false
+      # remove the test folder for sfdx-core
+      preBuildCommands: 'shx rm -rf test'
       preSwapCommands: 'yarn upgrade @jsforce/jsforce-node@latest; npx yarn-deduplicate; yarn install'
       preExternalBuildCommands: 'shx rm -rf node_modules/@salesforce/core/node_modules/@jsforce/jsforce-node shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core node_modules/@salesforce/cli-plugins-testkit/node_modules/@salesforce/core node_modules/@salesforce/source-tracking/node_modules/@salesforce/core node_modules/@salesforce/source-deploy-retrieve/node_modules/@salesforce/core node_modules/@salesforce/apex-node/node_modules/@salesforce/core'
     secrets: inherit

@@ -147,7 +147,7 @@
       "output": []
     },
     "test:only": {
-      "command": "nyc mocha \"test/**/*Test.ts\"",
+      "command": "nyc mocha \"test/unit/**/*.test.ts\"",
       "env": {
         "FORCE_COLOR": "2"
       },

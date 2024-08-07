@@ -10,8 +10,8 @@
 
 import { expect, config as chaiConfig } from 'chai';
 import { isString } from '@salesforce/ts-types';
-import { Logger, LoggerLevel, computeLevel } from '../../src/logger/logger';
-import { shouldThrowSync, TestContext } from '../../src/testSetup';
+import { Logger, LoggerLevel, computeLevel } from '../../../src/logger/logger';
+import { shouldThrowSync, TestContext } from '../../../src/testSetup';
 
 // NOTE: These tests still use 'await' which is how it use to work and were left to make
 // sure we didn't regress the way they were used.
