@@ -1,3 +1,12 @@
+# [8.3.0](https://github.com/forcedotcom/sfdx-core/compare/8.2.9...8.3.0) (2024-08-08)
+
+
+### Features
+
+* allow $schema prop on scratch org def ([#1124](https://github.com/forcedotcom/sfdx-core/issues/1124)) ([bbf56f0](https://github.com/forcedotcom/sfdx-core/commit/bbf56f0a1b9c841c82575b1180a4667d4db7f025))
+
+
+
 ## [8.2.9](https://github.com/forcedotcom/sfdx-core/compare/8.2.8...8.2.9) (2024-08-07)
 
 
