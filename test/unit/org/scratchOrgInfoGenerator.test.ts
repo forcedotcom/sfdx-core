@@ -810,240 +810,243 @@ describe('scratchOrgInfoGenerator', () => {
 
   describe('getScratchOrgInfoPayload', () => {
     const sandbox = sinon.createSandbox();
-    beforeEach(() => {
-      stubMethod(sandbox, fs.promises, 'readFile')
-        .withArgs('./my-file.json', 'utf8')
-        .resolves('{ "features": "my-feature" }');
-    });
 
     afterEach(() => {
       sandbox.restore();
     });
 
-    after(() => {
-      sandbox.restore();
+    describe('shared basic file', () => {
+      beforeEach(() => {
+        stubMethod(sandbox, fs.promises, 'readFile')
+          .withArgs('./my-file.json', 'utf8')
+          .resolves('{ "features": "my-feature" }');
+      });
+
+      it('generates scratch org info payload with durationDays', async () => {
+        expect(
+          await getScratchOrgInfoPayload({
+            durationDays: 1,
+          })
+        ).to.deep.equal({
+          scratchOrgInfoPayload: {
+            durationDays: 1,
+          },
+          ignoreAncestorIds: false,
+          warnings: [],
+        });
+      });
+      it('generates scratch org info payload with definitionjson', async () => {
+        expect(
+          await getScratchOrgInfoPayload({
+            durationDays: 1,
+            definitionjson: '{ "features": "my-feature" }',
+          })
+        ).to.deep.equal({
+          scratchOrgInfoPayload: {
+            durationDays: 1,
+            features: 'my-feature',
+          },
+          ignoreAncestorIds: false,
+          warnings: [],
+        });
+      });
+      it('generates scratch org info payload with definitionfile', async () => {
+        expect(
+          await getScratchOrgInfoPayload({
+            durationDays: 1,
+            definitionfile: './my-file.json',
+          })
+        ).to.deep.equal({
+          scratchOrgInfoPayload: {
+            durationDays: 1,
+            features: 'my-feature',
+          },
+          ignoreAncestorIds: false,
+          warnings: [],
+        });
+      });
+      it('generates scratch org info payload with durationDays and connectedAppConsumerKey', async () => {
+        const connectedAppConsumerKey = '12345';
+        expect(
+          await getScratchOrgInfoPayload({
+            durationDays: 1,
+            connectedAppConsumerKey,
+          })
+        ).to.deep.equal({
+          scratchOrgInfoPayload: {
+            connectedAppConsumerKey,
+            durationDays: 1,
+          },
+          ignoreAncestorIds: false,
+          warnings: [],
+        });
+      });
+      it('generates scratch org info payload with features', async () => {
+        expect(
+          await getScratchOrgInfoPayload({
+            durationDays: 1,
+            orgConfig: {
+              features: 'my-feature1;my-feature-2',
+            },
+          })
+        ).to.deep.equal({
+          scratchOrgInfoPayload: {
+            features: 'my-feature1;my-feature-2',
+            durationDays: 1,
+          },
+          ignoreAncestorIds: false,
+          warnings: [],
+        });
+      });
+      it('generates scratch org info payload with features with comma', async () => {
+        expect(
+          await getScratchOrgInfoPayload({
+            durationDays: 1,
+            orgConfig: {
+              features: 'my-feature1,my-feature-2',
+            },
+          })
+        ).to.deep.equal({
+          scratchOrgInfoPayload: {
+            features: 'my-feature1;my-feature-2',
+            durationDays: 1,
+          },
+          ignoreAncestorIds: false,
+          warnings: [],
+        });
+      });
+      it('generates scratch org info payload with features is an array', async () => {
+        expect(
+          await getScratchOrgInfoPayload({
+            durationDays: 1,
+            orgConfig: {
+              features: ['my-feature1', 'my-feature-2'],
+            },
+          })
+        ).to.deep.equal({
+          scratchOrgInfoPayload: {
+            features: 'my-feature1;my-feature-2',
+            durationDays: 1,
+          },
+          ignoreAncestorIds: false,
+          warnings: [],
+        });
+      });
+      it('passes option verification snapshot', async () => {
+        expect(
+          await getScratchOrgInfoPayload({
+            durationDays: 1,
+            orgConfig: {
+              snapshot: 1,
+            },
+          })
+        ).to.deep.equal({
+          scratchOrgInfoPayload: {
+            snapshot: 1,
+            durationDays: 1,
+          },
+          ignoreAncestorIds: false,
+          warnings: [],
+        });
+      });
+      it('fails to read definitionfile', async () => {
+        sandbox.restore();
+        stubMethod(sandbox, fs.promises, 'readFile').withArgs('./my-file.json', 'utf8').rejects();
+        try {
+          await getScratchOrgInfoPayload({
+            durationDays: 1,
+            definitionfile: './my-file.json',
+          });
+        } catch (err) {
+          expect(err).to.exist;
+        }
+      });
+      describe('failures', () => {
+        it('fails on option verification durationdays', async () => {
+          try {
+            await getScratchOrgInfoPayload({
+              durationDays: 1,
+              orgConfig: {
+                durationdays: 1,
+              },
+            });
+          } catch (err) {
+            expect(err).to.exist;
+          }
+        });
+        it('fails on option verification snapshot', async () => {
+          try {
+            await getScratchOrgInfoPayload({
+              durationDays: 1,
+              orgConfig: {
+                snapshot: 1,
+                orgPreferences: {
+                  pref: 1,
+                },
+              },
+            });
+          } catch (err) {
+            expect(err).to.exist;
+          }
+        });
+        it('fails on deprecated orgConfig orgPreferences', async () => {
+          try {
+            await getScratchOrgInfoPayload({
+              durationDays: 1,
+              orgConfig: {
+                orgPreferences: {},
+              },
+            });
+          } catch (err) {
+            expect(err).to.exist;
+          }
+        });
+        it('fails on orgConfig uppercase props', async () => {
+          try {
+            await getScratchOrgInfoPayload({
+              durationDays: 1,
+              orgConfig: {
+                MyProp: {},
+              },
+            });
+          } catch (err) {
+            expect(err).to.exist;
+          }
+        });
+      });
     });
 
-    it('generates scratch org info payload with durationDays', async () => {
-      expect(
-        await getScratchOrgInfoPayload({
-          durationDays: 1,
-        })
-      ).to.deep.equal({
-        scratchOrgInfoPayload: {
-          durationDays: 1,
-        },
-        ignoreAncestorIds: false,
-        warnings: [],
+    describe('stub with other file contents', () => {
+      it('fails to parsing definitionfile', async () => {
+        sandbox.restore();
+        stubMethod(sandbox, fs.promises, 'readFile').withArgs('./my-file.json', 'utf8').resolves('not-json');
+        try {
+          await getScratchOrgInfoPayload({
+            durationDays: 1,
+            definitionfile: './my-file.json',
+          });
+        } catch (err) {
+          expect(err).to.exist;
+        }
       });
-    });
-    it('generates scratch org info payload with definitionjson', async () => {
-      expect(
-        await getScratchOrgInfoPayload({
-          durationDays: 1,
-          definitionjson: '{ "features": "my-feature" }',
-        })
-      ).to.deep.equal({
-        scratchOrgInfoPayload: {
-          durationDays: 1,
-          features: 'my-feature',
-        },
-        ignoreAncestorIds: false,
-        warnings: [],
-      });
-    });
-    it('generates scratch org info payload with definitionfile', async () => {
-      expect(
-        await getScratchOrgInfoPayload({
-          durationDays: 1,
-          definitionfile: './my-file.json',
-        })
-      ).to.deep.equal({
-        scratchOrgInfoPayload: {
-          durationDays: 1,
-          features: 'my-feature',
-        },
-        ignoreAncestorIds: false,
-        warnings: [],
-      });
-    });
-    it('generates scratch org info payload with durationDays and connectedAppConsumerKey', async () => {
-      const connectedAppConsumerKey = '12345';
-      expect(
-        await getScratchOrgInfoPayload({
-          durationDays: 1,
-          connectedAppConsumerKey,
-        })
-      ).to.deep.equal({
-        scratchOrgInfoPayload: {
-          connectedAppConsumerKey,
-          durationDays: 1,
-        },
-        ignoreAncestorIds: false,
-        warnings: [],
-      });
-    });
-    it('generates scratch org info payload with features', async () => {
-      expect(
-        await getScratchOrgInfoPayload({
-          durationDays: 1,
-          orgConfig: {
-            features: 'my-feature1;my-feature-2',
+      it('Remove $schema key if it exist', async () => {
+        stubMethod(sandbox, fs.promises, 'readFile')
+          .withArgs('./my-file.json', 'utf8')
+          .resolves(
+            '{ "$schema": "https://forcedotcom.github.io/schemas/project-scratch-def.json/project-scratch-def.schema.json" }'
+          );
+        expect(
+          await getScratchOrgInfoPayload({
+            durationDays: 1,
+            definitionfile: './my-file.json',
+          })
+        ).to.deep.equal({
+          scratchOrgInfoPayload: {
+            durationDays: 1,
           },
-        })
-      ).to.deep.equal({
-        scratchOrgInfoPayload: {
-          features: 'my-feature1;my-feature-2',
-          durationDays: 1,
-        },
-        ignoreAncestorIds: false,
-        warnings: [],
-      });
-    });
-    it('generates scratch org info payload with features with comma', async () => {
-      expect(
-        await getScratchOrgInfoPayload({
-          durationDays: 1,
-          orgConfig: {
-            features: 'my-feature1,my-feature-2',
-          },
-        })
-      ).to.deep.equal({
-        scratchOrgInfoPayload: {
-          features: 'my-feature1;my-feature-2',
-          durationDays: 1,
-        },
-        ignoreAncestorIds: false,
-        warnings: [],
-      });
-    });
-    it('generates scratch org info payload with features is an array', async () => {
-      expect(
-        await getScratchOrgInfoPayload({
-          durationDays: 1,
-          orgConfig: {
-            features: ['my-feature1', 'my-feature-2'],
-          },
-        })
-      ).to.deep.equal({
-        scratchOrgInfoPayload: {
-          features: 'my-feature1;my-feature-2',
-          durationDays: 1,
-        },
-        ignoreAncestorIds: false,
-        warnings: [],
-      });
-    });
-    it('passes option verification snapshot', async () => {
-      expect(
-        await getScratchOrgInfoPayload({
-          durationDays: 1,
-          orgConfig: {
-            snapshot: 1,
-          },
-        })
-      ).to.deep.equal({
-        scratchOrgInfoPayload: {
-          snapshot: 1,
-          durationDays: 1,
-        },
-        ignoreAncestorIds: false,
-        warnings: [],
-      });
-    });
-    it('fails to read definitionfile', async () => {
-      sandbox.restore();
-      stubMethod(sandbox, fs.promises, 'readFile').withArgs('./my-file.json', 'utf8').rejects();
-      try {
-        await getScratchOrgInfoPayload({
-          durationDays: 1,
-          definitionfile: './my-file.json',
+          ignoreAncestorIds: false,
+          warnings: [],
         });
-      } catch (err) {
-        expect(err).to.exist;
-      }
-    });
-    it('fails to parsing definitionfile', async () => {
-      sandbox.restore();
-      stubMethod(sandbox, fs.promises, 'readFile').withArgs('./my-file.json', 'utf8').resolves('not-json');
-      try {
-        await getScratchOrgInfoPayload({
-          durationDays: 1,
-          definitionfile: './my-file.json',
-        });
-      } catch (err) {
-        expect(err).to.exist;
-      }
-    });
-    it('fails on option verification durationdays', async () => {
-      try {
-        await getScratchOrgInfoPayload({
-          durationDays: 1,
-          orgConfig: {
-            durationdays: 1,
-          },
-        });
-      } catch (err) {
-        expect(err).to.exist;
-      }
-    });
-    it('fails on option verification snapshot', async () => {
-      try {
-        await getScratchOrgInfoPayload({
-          durationDays: 1,
-          orgConfig: {
-            snapshot: 1,
-            orgPreferences: {
-              pref: 1,
-            },
-          },
-        });
-      } catch (err) {
-        expect(err).to.exist;
-      }
-    });
-    it('fails on deprecated orgConfig orgPreferences', async () => {
-      try {
-        await getScratchOrgInfoPayload({
-          durationDays: 1,
-          orgConfig: {
-            orgPreferences: {},
-          },
-        });
-      } catch (err) {
-        expect(err).to.exist;
-      }
-    });
-    it('fails on orgConfig uppercase props', async () => {
-      try {
-        await getScratchOrgInfoPayload({
-          durationDays: 1,
-          orgConfig: {
-            MyProp: {},
-          },
-        });
-      } catch (err) {
-        expect(err).to.exist;
-      }
-    });
-    it('Remove $schema key if it exist', async () => {
-      sandbox.restore();
-      stubMethod(sandbox, fs.promises, 'readFile')
-        .withArgs('./my-file.json', 'utf8')
-        .resolves(
-          '{ "$schema": "https://forcedotcom.github.io/schemas/project-scratch-def.json/project-scratch-def.schema.json" }'
-        );
-      expect(
-        await getScratchOrgInfoPayload({
-          durationDays: 1,
-          definitionfile: './my-file.json',
-        })
-      ).to.deep.equal({
-        scratchOrgInfoPayload: {
-          durationDays: 1,
-        },
-        ignoreAncestorIds: false,
-        warnings: [],
       });
     });
   });
