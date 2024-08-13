@@ -1,3 +1,12 @@
+# [8.4.0](https://github.com/forcedotcom/sfdx-core/compare/8.3.0...8.4.0) (2024-08-13)
+
+
+### Features
+
+* refresh a project ([#1128](https://github.com/forcedotcom/sfdx-core/issues/1128)) ([56a93bb](https://github.com/forcedotcom/sfdx-core/commit/56a93bb2946bd7fb3ea63e34e9088fd3c83e3599))
+
+
+
 # [8.3.0](https://github.com/forcedotcom/sfdx-core/compare/8.2.9...8.3.0) (2024-08-08)
 
 
