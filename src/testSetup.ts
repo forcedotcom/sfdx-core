@@ -666,8 +666,7 @@ export const restoreContext = (testContext: TestContext): void => {
   testContext.configStubs = {};
   // Give each test run a clean StateAggregator
   StateAggregator.clearInstance();
-  // @ts-expect-error accessing a private property
-  SfProject.instances.clear();
+  SfProject.clearInstances();
   // Allow each test to have their own config aggregator
   // @ts-ignore clear for testing.
   delete ConfigAggregator.instance;
