@@ -84,6 +84,12 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
     return contents;
   }
 
+  /** force a reread of the project contents if you know they may have been modified */
+  public refreshSync(): SfProjectJson {
+    super.readSync(false, true);
+    return this;
+  }
+
   public readSync(): ProjectJson {
     const contents = super.readSync();
     this.validateKeys();
@@ -369,6 +375,14 @@ export class SfProject {
    */
   protected constructor(private path: string) {}
 
+  /**
+   * Clear the cache to force reading from disk.
+   *
+   * *NOTE: Only call this method if you must and you know what you are doing.*
+   */
+  public static clearInstances(): void {
+    SfProject.instances.clear();
+  }
   /**
    * Get a Project from a given path or from the working directory.
    *
