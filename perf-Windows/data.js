@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724878096840,
+  "lastUpdate": 1724945384560,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -22830,6 +22830,72 @@ window.BENCHMARK_DATA = {
             "range": "±4.62%",
             "unit": "ops/sec",
             "extra": "67 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8b75440b8047cd8aa0c34bcaf345544837e2b67a",
+          "message": "fix(deps): bump micromatch from 4.0.7 to 4.0.8\n\nBumps [micromatch](https://github.com/micromatch/micromatch) from 4.0.7 to 4.0.8.\n- [Release notes](https://github.com/micromatch/micromatch/releases)\n- [Changelog](https://github.com/micromatch/micromatch/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/micromatch/micromatch/compare/4.0.7...4.0.8)\n\n---\nupdated-dependencies:\n- dependency-name: micromatch\n  dependency-type: indirect\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-08-29T15:23:42Z",
+          "tree_id": "1bf330e96531d1a3d5d76aff480dadeccc4d468c",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/8b75440b8047cd8aa0c34bcaf345544837e2b67a"
+        },
+        "date": 1724945367784,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 328660,
+            "range": "±0.96%",
+            "unit": "ops/sec",
+            "extra": "91 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 758669,
+            "range": "±6.01%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 600622,
+            "range": "±7.48%",
+            "unit": "ops/sec",
+            "extra": "68 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 7014,
+            "range": "±203.21%",
+            "unit": "ops/sec",
+            "extra": "23 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 497145,
+            "range": "±7.40%",
+            "unit": "ops/sec",
+            "extra": "63 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 342448,
+            "range": "±4.22%",
+            "unit": "ops/sec",
+            "extra": "77 samples"
           }
         ]
       }
