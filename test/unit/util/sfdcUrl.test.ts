@@ -179,6 +179,11 @@ describe('util/sfdcUrl', () => {
       expect(url.isInternalUrl()).to.equal(true);
       expect(url.isLocalUrl()).to.equal(true);
     });
+    it('workspaces with port is internal but not local', () => {
+      const url = new SfdcUrl('https://dev.salesforce-com.shane-mclaughlin-0lrfx7zp3l121.wc.crm.dev:6101/');
+      expect(url.isInternalUrl()).to.equal(true);
+      expect(url.isLocalUrl()).to.equal(false);
+    });
   });
 
   describe('checkLightningDomain', () => {
