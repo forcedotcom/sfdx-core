@@ -1,3 +1,12 @@
+# [8.5.0](https://github.com/forcedotcom/sfdx-core/compare/8.4.0...8.5.0) (2024-08-29)
+
+
+### Features
+
+* workspaces support for myDomain checks ([81dcfb3](https://github.com/forcedotcom/sfdx-core/commit/81dcfb3228bb39b511fbc0eb821592d2fbde2f39))
+
+
+
 # [8.4.0](https://github.com/forcedotcom/sfdx-core/compare/8.3.0...8.4.0) (2024-08-13)
 
 
