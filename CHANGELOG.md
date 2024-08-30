@@ -1,3 +1,12 @@
+## [8.5.1](https://github.com/forcedotcom/sfdx-core/compare/8.5.0...8.5.1) (2024-08-30)
+
+
+### Bug Fixes
+
+* **deps:** bump micromatch from 4.0.7 to 4.0.8 ([8b75440](https://github.com/forcedotcom/sfdx-core/commit/8b75440b8047cd8aa0c34bcaf345544837e2b67a))
+
+
+
 # [8.5.0](https://github.com/forcedotcom/sfdx-core/compare/8.4.0...8.5.0) (2024-08-29)
 
 
