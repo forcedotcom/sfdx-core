@@ -66,6 +66,10 @@ Set to true to disable the auto-update feature of Salesforce CLI. Default value 
 
 Set to true to disable polling of your org’s SourceMember object when you run the force:source:push|pull commands. Default value is false.
 
+# sfdxSourceTrackingBatchSize
+
+Set to the number of seconds you want the `project deploy start` command to keep polling the SourceMember object before it times out.
+
 # sfdxDisableTelemetry
 
 Set to true to disable Salesforce CLI from collecting usage information, user environment information, and crash reports. Default value is false. Overrides the disableTelemetry configration variable.
