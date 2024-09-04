@@ -1,3 +1,21 @@
+## [8.5.4](https://github.com/forcedotcom/sfdx-core/compare/8.5.3...8.5.4) (2024-09-04)
+
+
+### Bug Fixes
+
+* correct message ([ab29957](https://github.com/forcedotcom/sfdx-core/commit/ab2995758aecc1e5723c8dcc8e75abee6916fed8))
+
+
+
+## [8.5.2-dev.0](https://github.com/forcedotcom/sfdx-core/compare/8.5.1...8.5.2-dev.0) (2024-08-30)
+
+
+### Bug Fixes
+
+* **env:** support more `SF_` source-tracking vars ([e9bff6b](https://github.com/forcedotcom/sfdx-core/commit/e9bff6be88da830634c7c8adaccd00e26bfe2323))
+
+
+
 ## [8.5.3](https://github.com/forcedotcom/sfdx-core/compare/8.5.2...8.5.3) (2024-09-01)
 
 
@@ -7,12 +25,21 @@
 
 
 
-## [8.5.2](https://github.com/forcedotcom/sfdx-core/compare/8.5.1...8.5.2) (2024-09-01)
+## [8.5.2](https://github.com/forcedotcom/sfdx-core/compare/8.5.2-dev.0...8.5.2) (2024-09-01)
 
 
 ### Bug Fixes
 
 * **deps:** bump @salesforce/kit from 3.1.6 to 3.2.2 ([665258c](https://github.com/forcedotcom/sfdx-core/commit/665258c9a310da6bc96219c877adf3983b44bd6e))
+
+
+
+## [8.5.2-dev.0](https://github.com/forcedotcom/sfdx-core/compare/8.5.1...8.5.2-dev.0) (2024-08-30)
+
+
+### Bug Fixes
+
+* **env:** support more `SF_` source-tracking vars ([e9bff6b](https://github.com/forcedotcom/sfdx-core/commit/e9bff6be88da830634c7c8adaccd00e26bfe2323))
 
 
 
