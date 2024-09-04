@@ -68,7 +68,7 @@ Set to true to disable polling of your org’s SourceMember object when you run 
 
 # sfdxSourceTrackingBatchSize
 
-Set to the number of seconds you want the `project deploy start` command to keep polling the SourceMember object before it times out.
+Number of source-tracked file updates to batch after a deploy or retrieve. The default value is 8,000 (Windows) or 15,000 (Linux/macOS).
 
 # sfdxDisableTelemetry
 

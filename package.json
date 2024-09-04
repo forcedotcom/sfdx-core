@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "8.5.2-dev.0",
+  "version": "8.5.3",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/index",
   "types": "lib/index.d.ts",
