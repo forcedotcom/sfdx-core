@@ -65,7 +65,7 @@
     "js2xmlparser": "^4.0.1",
     "jsonwebtoken": "9.0.2",
     "jszip": "3.10.1",
-    "pino": "^9.3.2",
+    "pino": "^9.4.0",
     "pino-abstract-transport": "^1.2.0",
     "pino-pretty": "^11.2.2",
     "proper-lockfile": "^4.1.2",
