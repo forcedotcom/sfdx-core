@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726082350398,
+  "lastUpdate": 1726085477755,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -23754,6 +23754,72 @@ window.BENCHMARK_DATA = {
             "range": "±7.68%",
             "unit": "ops/sec",
             "extra": "55 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "dfe817d363433533a8791dd426b254162e2a24cf",
+          "message": "chore(deps): bump path-to-regexp from 1.8.0 to 1.9.0 in /examples\n\nBumps [path-to-regexp](https://github.com/pillarjs/path-to-regexp) from 1.8.0 to 1.9.0.\n- [Release notes](https://github.com/pillarjs/path-to-regexp/releases)\n- [Changelog](https://github.com/pillarjs/path-to-regexp/blob/master/History.md)\n- [Commits](https://github.com/pillarjs/path-to-regexp/compare/v1.8.0...v1.9.0)\n\n---\nupdated-dependencies:\n- dependency-name: path-to-regexp\n  dependency-type: indirect\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-09-11T20:07:19Z",
+          "tree_id": "e45121ac45cd0f865895cecb756a04face0b6714",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/dfe817d363433533a8791dd426b254162e2a24cf"
+        },
+        "date": 1726085470329,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 470224,
+            "range": "±1.09%",
+            "unit": "ops/sec",
+            "extra": "95 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 836111,
+            "range": "±8.74%",
+            "unit": "ops/sec",
+            "extra": "62 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 660803,
+            "range": "±7.81%",
+            "unit": "ops/sec",
+            "extra": "65 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 21116,
+            "range": "±185.45%",
+            "unit": "ops/sec",
+            "extra": "74 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 475414,
+            "range": "±8.13%",
+            "unit": "ops/sec",
+            "extra": "54 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 21983,
+            "range": "±184.79%",
+            "unit": "ops/sec",
+            "extra": "43 samples"
           }
         ]
       }
