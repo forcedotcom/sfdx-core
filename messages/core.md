@@ -36,7 +36,7 @@ Error authenticating with the refresh token due to: %s
 
 # invalidSfdxAuthUrlError
 
-Invalid SFDX auth URL. Must be in the format "force://<clientId>:<clientSecret>:<refreshToken>@<instanceUrl>". Note that the "instanceUrl" inside the SFDX auth URL doesn\'t include a protocol ("https://").
+Invalid SFDX authorization URL. Must be in the format "force://<clientId>:<clientSecret>:<refreshToken>@<instanceUrl>". Note that the "instanceUrl" inside the SFDX authorization URL doesn\'t include the protocol ("https://"). Run "org display --target-org" on an org to see an example of an SFDX authorization URL. 
 
 # orgDataNotAvailableError
 
