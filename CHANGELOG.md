@@ -1,3 +1,12 @@
+## [8.5.6](https://github.com/forcedotcom/sfdx-core/compare/8.5.5...8.5.6) (2024-09-11)
+
+
+### Bug Fixes
+
+* update error message for sfdx auth url ([96f1dd4](https://github.com/forcedotcom/sfdx-core/commit/96f1dd4745074262ee763e5ef4c2a1be7bd0944b))
+
+
+
 ## [8.5.5](https://github.com/forcedotcom/sfdx-core/compare/8.5.4...8.5.5) (2024-09-08)
 
 
