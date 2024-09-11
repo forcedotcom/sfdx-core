@@ -34,6 +34,10 @@ Errors encountered:
 
 Error authenticating with the refresh token due to: %s
 
+# invalidSfdxAuthUrlError
+
+Invalid SFDX authorization URL. Must be in the format "force://<clientId>:<clientSecret>:<refreshToken>@<instanceUrl>". Note that the "instanceUrl" inside the SFDX authorization URL doesn\'t include the protocol ("https://"). Run "org display --target-org" on an org to see an example of an SFDX authorization URL. 
+
 # orgDataNotAvailableError
 
 An attempt to refresh the authentication token failed with a 'Data Not Found Error'. The org identified by username %s does not appear to exist. Likely cause is that the org was deleted by another user or has expired.
