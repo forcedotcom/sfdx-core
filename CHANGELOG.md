@@ -1,3 +1,12 @@
+## [8.5.7](https://github.com/forcedotcom/sfdx-core/compare/8.5.6...8.5.7) (2024-09-12)
+
+
+### Bug Fixes
+
+* **deps:** bump path-to-regexp from 1.8.0 to 1.9.0 ([7aacd1f](https://github.com/forcedotcom/sfdx-core/commit/7aacd1f99f1a15079f3da509ec9a516ac21fa1cd))
+
+
+
 ## [8.5.6](https://github.com/forcedotcom/sfdx-core/compare/8.5.5...8.5.6) (2024-09-11)
 
 
