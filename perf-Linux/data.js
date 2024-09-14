@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726085477755,
+  "lastUpdate": 1726349653404,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -23820,6 +23820,72 @@ window.BENCHMARK_DATA = {
             "range": "±184.79%",
             "unit": "ops/sec",
             "extra": "43 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "df973a01a348d47687687099677b155ed3e21dd3",
+          "message": "chore(dev-deps): bump typescript from 5.5.4 to 5.6.2\n\nBumps [typescript](https://github.com/microsoft/TypeScript) from 5.5.4 to 5.6.2.\n- [Release notes](https://github.com/microsoft/TypeScript/releases)\n- [Changelog](https://github.com/microsoft/TypeScript/blob/main/azure-pipelines.release.yml)\n- [Commits](https://github.com/microsoft/TypeScript/compare/v5.5.4...v5.6.2)\n\n---\nupdated-dependencies:\n- dependency-name: typescript\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-09-14T21:30:37Z",
+          "tree_id": "608c4dabc2c5798cff1ef8d8e423b8f9a856d2ae",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/df973a01a348d47687687099677b155ed3e21dd3"
+        },
+        "date": 1726349645840,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 460346,
+            "range": "±2.00%",
+            "unit": "ops/sec",
+            "extra": "95 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 836196,
+            "range": "±9.74%",
+            "unit": "ops/sec",
+            "extra": "42 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 549786,
+            "range": "±7.17%",
+            "unit": "ops/sec",
+            "extra": "63 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 4751,
+            "range": "±215.33%",
+            "unit": "ops/sec",
+            "extra": "13 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 426650,
+            "range": "±12.67%",
+            "unit": "ops/sec",
+            "extra": "71 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 373663,
+            "range": "±7.33%",
+            "unit": "ops/sec",
+            "extra": "55 samples"
           }
         ]
       }
