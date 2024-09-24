@@ -1,3 +1,12 @@
+# [8.6.0](https://github.com/forcedotcom/sfdx-core/compare/8.5.7...8.6.0) (2024-09-24)
+
+
+### Features
+
+* add fields in sandboxinfo ([4e15a13](https://github.com/forcedotcom/sfdx-core/commit/4e15a13c3d11aa6f9a84d61802f9792ccecdff0b))
+
+
+
 ## [8.5.7](https://github.com/forcedotcom/sfdx-core/compare/8.5.6...8.5.7) (2024-09-12)
 
 
