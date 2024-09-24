@@ -56,7 +56,7 @@ The service and account specified in %s do not match the version of the toolbelt
 
 # genericKeychainInvalidPermsError
 
-Invalid file permissions for secret file %s
+Invalid file permissions for secret file: %s
 
 # genericKeychainInvalidPermsError.actions
 
