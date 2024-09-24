@@ -1,3 +1,12 @@
+## [8.6.1](https://github.com/forcedotcom/sfdx-core/compare/8.6.0...8.6.1) (2024-09-24)
+
+
+### Bug Fixes
+
+* remove the name fields ([99eca8b](https://github.com/forcedotcom/sfdx-core/commit/99eca8bba5090f589822932f07daac8178b31b28))
+
+
+
 # [8.6.0](https://github.com/forcedotcom/sfdx-core/compare/8.5.7...8.6.0) (2024-09-24)
 
 
