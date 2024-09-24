@@ -132,9 +132,7 @@ export type SandboxRequest = {
   SourceId?: string;
   Description?: string;
   ApexClassId?: string;
-  ApexClassName?: string;
   ActivationUserGroupId?: string;
-  ActivationUserGroupName?: string;
 };
 export type ResumeSandboxRequest = {
   SandboxName?: string;
