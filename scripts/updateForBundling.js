@@ -46,6 +46,8 @@ function updatePackageJson() {
 // Function to update logger.ts
 function updateLoggerTs() {
   const loggerPath = './src/logger/logger.ts';
+  const targetString = "target: path.join('..', '..', 'lib', 'logger', 'transformStream')";
+  const replacementString = "target: './transformStream'";
 
   fs.readFile(loggerPath, 'utf8', (err, data) => {
     if (err) {
@@ -53,10 +55,13 @@ function updateLoggerTs() {
       return;
     }
 
-    let updatedData = data.replace(
-      "target: path.join('..', '..', 'lib', 'logger', 'transformStream')",
-      "target: './transformStream'"
-    );
+    // Check if the target string exists in the file
+    if (!data.includes(targetString)) {
+      console.error(`Error: The target string "${targetString}" was not found in logger.ts.`);
+      return;
+    }
+
+    let updatedData = data.replace(targetString, replacementString);
 
     fs.writeFile(loggerPath, updatedData, 'utf8', (writeErr) => {
       if (writeErr) {

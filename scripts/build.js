@@ -34,6 +34,12 @@ const sharedConfig = {
     ...sharedConfig,
     // external: ['src/logger/transformStream.ts'],
     platform: 'node', // for CJS
+    supported: {
+      'dynamic-import': false,
+    },
+    logOverride: {
+      'unsupported-dynamic-import': 'error',
+    },
     outdir: tmpOutputFolder,
   });
   const filePath = `${tmpOutputFolder}/index.js`;
