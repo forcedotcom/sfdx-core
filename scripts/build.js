@@ -45,9 +45,14 @@ const sharedConfig = {
   const filePath = `${tmpOutputFolder}/index.js`;
   let bundledEntryPoint = fs.readFileSync(filePath, 'utf8');
 
+  // There is a wrong reference after bundling due to a bug from esbuild. We will replace it with the correct one.
   const searchString = /\$\{process\.cwd\(\)\}\$\{require\("path"\)\.sep\}tmp-lib/g;
   const replacementString = `\${__dirname}\${require("path").sep}`;
 
+  if (!bundledEntryPoint.includes(searchString)) {
+    console.error('Error: the reference to be modified is not detected - Please reach out to IDEx Foundations team.');
+    process.exit(1); // Exit with an error code
+  }
   bundledEntryPoint = bundledEntryPoint.replace(searchString, replacementString);
   fs.writeFileSync(filePath, bundledEntryPoint, 'utf8');
 

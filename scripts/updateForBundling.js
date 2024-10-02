@@ -43,8 +43,8 @@ function updatePackageJson() {
   });
 }
 
-// Function to update logger.ts
-function updateLoggerTs() {
+// Function to check the path to transformStream
+function checkTransformStreamPath() {
   const loggerPath = './src/logger/logger.ts';
   const targetString = "target: path.join('..', '..', 'lib', 'logger', 'transformStream')";
   const replacementString = "target: './transformStream'";
@@ -57,10 +57,25 @@ function updateLoggerTs() {
 
     // Check if the target string exists in the file
     if (!data.includes(targetString)) {
-      console.error(`Error: The target string "${targetString}" was not found in logger.ts.`);
+      console.error(
+        `Error: The target string "${targetString}" was not found in logger.ts.\n Please make sure to bundle transformStream by referencing the new path or reach out to IDEx Foundations Team.`
+      );
       return;
     }
+  });
+}
 
+// Function to update logger.ts
+function updateLoggerTs() {
+  const loggerPath = './src/logger/logger.ts';
+  const targetString = "target: path.join('..', '..', 'lib', 'logger', 'transformStream')";
+  const replacementString = "target: './transformStream'";
+
+  fs.readFile(loggerPath, 'utf8', (err, data) => {
+    if (err) {
+      console.error(`Error reading logger.ts: ${err}`);
+      return;
+    }
     let updatedData = data.replace(targetString, replacementString);
 
     fs.writeFile(loggerPath, updatedData, 'utf8', (writeErr) => {
@@ -114,6 +129,8 @@ function addTestSetupToIndex() {
 
 // Run the update functions
 updatePackageJson();
+checkTransformStreamPath();
 updateLoggerTs();
 updateLoadMessagesParam();
 addTestSetupToIndex();
+exports.checkTransformStreamPath = checkTransformStreamPath;
