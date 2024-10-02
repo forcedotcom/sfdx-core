@@ -28,10 +28,9 @@ jobs:
       - name: Update for Bundling
         run: |
           node scripts/updateForBundling.js
-      - name: Generate Bundle
+      - name: Generate Bundle and Check if there is any dependency that needs to be externalized and is not in the whitelist.
         run: |
-          yarn build
-          node scripts/build.js
+          node scripts/bundleWithCheck.js
       - name: Post Bundling Update
         run: |
           node scripts/postBundlingUpdate.js
