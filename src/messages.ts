@@ -12,7 +12,7 @@ import * as util from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { AnyJson, asString, ensureJsonMap, ensureString, isJsonMap, isObject } from '@salesforce/ts-types';
 import { ensureArray, upperFirst } from '@salesforce/kit';
-import { Lifecycle } from './lifecycleEvents';
+import { Logger } from './logger/logger';
 import { SfError } from './sfError';
 
 export type Tokens = Array<string | boolean | number | null | undefined>;
@@ -436,6 +436,7 @@ export class Messages<T extends string> {
    * @param tokens The values to substitute in the message.
    *
    * **See** https://nodejs.org/api/util.html#util_util_format_format_args
+   * **Note** Unlike util.format(), specifiers are required for a token to be rendered.
    */
   public getMessage(key: T, tokens: Tokens = []): string {
     return this.getMessageWithMap(key, tokens, this.messages).join(os.EOL);
@@ -462,6 +463,7 @@ export class Messages<T extends string> {
    * @param tokens The values to substitute in the message.
    *
    * **See** https://nodejs.org/api/util.html#util_util_format_format_args
+   * **Note** Unlike util.format(), specifiers are required for a token to be rendered.
    */
   public getMessages(key: T, tokens: Tokens = []): string[] {
     return this.getMessageWithMap(key, tokens, this.messages);
@@ -597,23 +599,16 @@ export class Messages<T extends string> {
       // https://nodejs.org/api/util.html#utilformatformat-args
       // https://regex101.com/r/8Hf8Z6/1
       const specifierRegex = new RegExp('%[sdifjoO]{1}', 'gm');
+      const specifierFound = specifierRegex.test(msgStr);
 
-      // NOTE: This is a temporary telemetry event to track down missing specifiers in messages.
-      //       Once we have enough data and correct missing specifiers, we can remove this.
-      //       The followup work is outlined in: W-16197665
-      if (!specifierRegex.test(msgStr) && tokens.length > 0) {
-        void Lifecycle.getInstance().emitTelemetry({
-          eventName: 'missing_message_specifier',
-          library: 'sfdx-core',
-          function: 'getMessageWithMap',
-          messagesLength: messages.length,
-          message: msgStr,
-          tokensLength: tokens.length,
-        });
+      if (!specifierFound && tokens.length > 0) {
+        const logger = Logger.childFromRoot('core:messages');
+        logger.warn(
+          `Unable to render tokens in message. Ensure a specifier (e.g. %s) exists in the message:\n${msgStr}`
+        );
       }
 
-      // return specifierRegex.test(msgStr) ? util.format(msgStr, ...tokens) : msgStr;
-      return util.format(msgStr, ...tokens);
+      return specifierFound ? util.format(msgStr, ...tokens) : msgStr;
     });
   }
 }

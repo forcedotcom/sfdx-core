@@ -367,10 +367,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     );
 
     if (!match) {
-      throw new SfError(
-        'Invalid SFDX auth URL. Must be in the format "force://<clientId>:<clientSecret>:<refreshToken>@<instanceUrl>".  Note that the SFDX auth URL uses the "force" protocol, and not "http" or "https".  Also note that the "instanceUrl" inside the SFDX auth URL doesn\'t include the protocol ("https://").',
-        'INVALID_SFDX_AUTH_URL'
-      );
+      throw new SfError(messages.getMessage('invalidSfdxAuthUrlError'), 'INVALID_SFDX_AUTH_URL');
     }
     const [, clientId, clientSecret, refreshToken, loginUrl] = match;
     return {
@@ -1073,8 +1070,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     let authFieldsBuilder: TokenResponse;
     try {
       authFieldsBuilder = await oauth2.refreshToken(ensure(fullOptions.refreshToken));
-    } catch (err) {
-      throw messages.createError('refreshTokenAuthError', [(err as Error).message]);
+    } catch (err: unknown) {
+      const cause = err instanceof Error ? err : SfError.wrap(err);
+      throw messages.createError('refreshTokenAuthError', [cause.message], undefined, cause);
     }
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment

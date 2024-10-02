@@ -131,6 +131,8 @@ export type SandboxRequest = {
   /** Should match a SandboxInfoId, not a SandboxProcessId */
   SourceId?: string;
   Description?: string;
+  ApexClassId?: string;
+  ActivationUserGroupId?: string;
 };
 export type ResumeSandboxRequest = {
   SandboxName?: string;
@@ -154,7 +156,7 @@ export type SandboxInfo = {
   ApexClassId?: string; // apex class ID. Only editable on create.
   Description?: string;
   SourceId?: string; // SandboxInfoId as the source org used for a clone
-  // 'ActivationUserGroupId', // Support might be added back in API v61.0 (Summer '24)
+  ActivationUserGroupId?: string; // Support might be added back in API v61.0 (Summer '24)
   CopyArchivedActivities?: boolean; // only for full sandboxes; depends if a license was purchased
 };
 

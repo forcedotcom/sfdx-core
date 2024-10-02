@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "8.4.0",
+  "version": "8.6.1",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/index",
   "types": "lib/index.d.ts",
@@ -53,8 +53,8 @@
     "messageTransformer/messageTransformer.ts"
   ],
   "dependencies": {
-    "@jsforce/jsforce-node": "^3.4.0",
-    "@salesforce/kit": "^3.1.6",
+    "@jsforce/jsforce-node": "^3.4.1",
+    "@salesforce/kit": "^3.2.2",
     "@salesforce/schemas": "^1.9.0",
     "@salesforce/ts-types": "^2.0.10",
     "ajv": "^8.17.1",
@@ -65,7 +65,7 @@
     "js2xmlparser": "^4.0.1",
     "jsonwebtoken": "9.0.2",
     "jszip": "3.10.1",
-    "pino": "^9.3.2",
+    "pino": "^9.4.0",
     "pino-abstract-transport": "^1.2.0",
     "pino-pretty": "^11.2.2",
     "proper-lockfile": "^4.1.2",
@@ -74,10 +74,10 @@
   },
   "devDependencies": {
     "@salesforce/dev-scripts": "^10.1.1",
-    "@salesforce/ts-sinon": "^1.4.22",
+    "@salesforce/ts-sinon": "^1.4.27",
     "@types/benchmark": "^2.1.5",
     "@types/fast-levenshtein": "^0.0.4",
-    "@types/jsonwebtoken": "9.0.6",
+    "@types/jsonwebtoken": "9.0.7",
     "@types/proper-lockfile": "^4.1.4",
     "@types/semver": "^7.5.8",
     "benchmark": "^2.1.4",

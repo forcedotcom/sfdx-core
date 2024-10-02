@@ -1,11 +1,18 @@
 name: esbuild Compilation & npm Publish Workflow
 
 on:
-  workflow_run:
-    workflows:
-      - create-github-release
-    types:
-      - completed
+  workflow_call:
+    inputs:
+      branch:
+        description: 'Set the branch to use for automation tests'
+        type: string
+        required: false
+        default: 'main'
+      nodeVersion:
+        description: version of node to use. It's better to specify latest, lts/* or lts/-1 than to hardode numbers
+        type: string
+        default: lts/*
+        required: false
   workflow_dispatch:
     inputs:
       branch:
@@ -14,7 +21,7 @@ on:
         required: false
         default: 'main'
       nodeVersion:
-        description: version of node to use.  It's better to specify latest, lts/* or lts/-1 than to hardode numbers
+        description: version of node to use. It's better to specify latest, lts/* or lts/-1 than to hardode numbers
         type: string
         default: lts/*
         required: false
@@ -22,14 +29,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ inputs.branch || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')}}
+    if: ${{ inputs.branch }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch }}
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ inputs.nodeVersion || 'lts/*' }}
+          node-version: ${{ inputs.nodeVersion }}
           registry-url: 'https://registry.npmjs.org'
           cache: yarn
       - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
