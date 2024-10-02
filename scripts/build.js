@@ -45,7 +45,7 @@ const sharedConfig = {
   const filePath = `${tmpOutputFolder}/index.js`;
   let bundledEntryPoint = fs.readFileSync(filePath, 'utf8');
 
-  // There is a wrong reference after bundling due to a bug from esbuild. We will replace it with the correct one.
+  // There is a wrong reference after bundling due to a bug from esbuild-plugin-pino. We will replace it with the correct one.
   const searchString = /\$\{process\.cwd\(\)\}\$\{require\("path"\)\.sep\}tmp-lib/g;
   const replacementString = `\${__dirname}\${require("path").sep}`;
 
