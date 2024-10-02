@@ -46,7 +46,7 @@ if (detected) {
   console.log('Consider using import instead or reach out to IDEx Foundations team');
 }
 
-const { checkTransformStreamPath } = require('./updateForBundling');
+const { checkTransformStreamPath } = require('./bundlingUtils');
 checkTransformStreamPath();
 
 console.log('Scan complete');
