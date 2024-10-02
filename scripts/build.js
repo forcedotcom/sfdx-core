@@ -49,7 +49,7 @@ const sharedConfig = {
   const searchString = /\$\{process\.cwd\(\)\}\$\{require\("path"\)\.sep\}tmp-lib/g;
   const replacementString = `\${__dirname}\${require("path").sep}`;
 
-  if (!bundledEntryPoint.includes(searchString)) {
+  if (!searchString.test(bundledEntryPoint)) {
     console.error('Error: the reference to be modified is not detected - Please reach out to IDEx Foundations team.');
     process.exit(1); // Exit with an error code
   }
