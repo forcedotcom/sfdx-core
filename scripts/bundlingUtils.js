@@ -15,17 +15,17 @@ function updatePackageJson() {
       const packageJson = JSON.parse(data);
 
       // Update package name if necessary
-      if (packageJson.name && packageJson.name === '@salesforce/core') {
+      if (packageJson?.name === '@salesforce/core') {
         packageJson.name = '@salesforce/core-bundle';
       }
 
-      // Remove 'prepack' and 'prepare' scripts
+      // Remove 'prepack' and 'prepare' scripts because publishing bundle does not need the actions
       if (packageJson.scripts) {
         delete packageJson.scripts.prepack;
         delete packageJson.scripts.prepare;
       }
 
-      // Remove 'exports'
+      // Remove 'exports' because there is only one entry file in the bundle. Redirecting the paths for core-bundle will cause mess.
       if (packageJson.exports) {
         delete packageJson.exports;
       }
@@ -43,8 +43,8 @@ function updatePackageJson() {
   });
 }
 
-// Function to check the path to transformStream
-function checkTransformStreamPath() {
+// make sure the path to transformStream is not changed, and update the logger path by input
+function resolvePinoLogger(updateLoggerPath) {
   const loggerPath = './src/logger/logger.ts';
   const targetString = "target: path.join('..', '..', 'lib', 'logger', 'transformStream')";
   const replacementString = "target: './transformStream'";
@@ -54,7 +54,6 @@ function checkTransformStreamPath() {
       console.error(`Error reading logger.ts: ${err}`);
       return;
     }
-
     // Check if the target string exists in the file
     if (!data.includes(targetString)) {
       console.error(
@@ -62,29 +61,16 @@ function checkTransformStreamPath() {
       );
       return;
     }
-  });
-}
-
-// Function to update logger.ts
-function updateLoggerTs() {
-  const loggerPath = './src/logger/logger.ts';
-  const targetString = "target: path.join('..', '..', 'lib', 'logger', 'transformStream')";
-  const replacementString = "target: './transformStream'";
-
-  fs.readFile(loggerPath, 'utf8', (err, data) => {
-    if (err) {
-      console.error(`Error reading logger.ts: ${err}`);
-      return;
+    if (updateLoggerPath) {
+      let updatedData = data.replace(targetString, replacementString);
+      fs.writeFile(loggerPath, updatedData, 'utf8', (writeErr) => {
+        if (writeErr) {
+          console.error(`Error writing to logger.ts: ${writeErr}`);
+        } else {
+          console.log('Logger.ts updated successfully.');
+        }
+      });
     }
-    let updatedData = data.replace(targetString, replacementString);
-
-    fs.writeFile(loggerPath, updatedData, 'utf8', (writeErr) => {
-      if (writeErr) {
-        console.error(`Error writing to logger.ts: ${writeErr}`);
-      } else {
-        console.log('Logger.ts updated successfully.');
-      }
-    });
   });
 }
 
@@ -127,9 +113,7 @@ function addTestSetupToIndex() {
   });
 }
 
-// Run the update functions
 exports.updatePackageJson = updatePackageJson;
-exports.checkTransformStreamPath = checkTransformStreamPath;
-exports.updateLoggerTs = updateLoggerTs;
+exports.resolvePinoLogger = resolvePinoLogger;
 exports.updateLoadMessagesParam = updateLoadMessagesParam;
 exports.addTestSetupToIndex = addTestSetupToIndex;

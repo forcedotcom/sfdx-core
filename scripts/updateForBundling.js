@@ -1,13 +1,11 @@
 const {
   updatePackageJson,
-  checkTransformStreamPath,
-  updateLoggerTs,
+  resolvePinoLogger,
   updateLoadMessagesParam,
   addTestSetupToIndex,
 } = require('./bundlingUtils');
 
 updatePackageJson();
-checkTransformStreamPath();
-updateLoggerTs();
+resolvePinoLogger(true);
 updateLoadMessagesParam();
 addTestSetupToIndex();
