@@ -25,17 +25,12 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: yarn
       - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
-      - name: Install esbuild Dependencies
-        run: |
-          yarn add -D esbuild@^0.19.5 esbuild-plugin-pino@^2.1.0 npm-dts@^1.3.12 esbuild-plugin-tsc@^0.4.0
-      - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
       - name: Update for Bundling
         run: |
           node scripts/updateForBundling.js
-      - name: Generate Bundle
+      - name: Generate Bundle and Check if there is any dependency that needs to be externalized and is not in the whitelist.
         run: |
-          yarn build
-          node scripts/build.js
+          node scripts/bundleWithCheck.js
       - name: Post Bundling Update
         run: |
           node scripts/postBundlingUpdate.js
