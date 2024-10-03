@@ -11,6 +11,7 @@ import { Duration, sleep } from '@salesforce/kit';
 import { TTLConfig } from '../../../src/config/ttlConfig';
 import { TestContext } from '../../../src/testSetup';
 import { Global } from '../../../src/global';
+import { ScratchOrgCache } from '../../../src/org/scratchOrgCache';
 
 describe('TTLConfig', () => {
   const $$ = new TestContext();
@@ -37,6 +38,37 @@ describe('TTLConfig', () => {
       return 'testFileName';
     }
   }
+
+  class TestScratchOrgCache extends ScratchOrgCache {
+    public hasCryptoInitialized(): boolean {
+      return !!this.crypto;
+    }
+    public shouldEncryptKey(key: string): boolean {
+      return !!this.isCryptoKey(key);
+    }
+  }
+
+  describe('ScratchOrgCache', () => {
+    describe('set', () => {
+      it('should timestamp every entry', async () => {
+        const config = await TestScratchOrgCache.create();
+        config.set('123', { hubUsername: 'foo' });
+        const entry = config.get('123');
+        expect(entry).to.have.property('timestamp');
+        expect(config.hasCryptoInitialized()).to.be.true;
+      });
+      it('should encrypt clientSecret', async () => {
+        const clientSecret = '4947FFFDE29D89CFC3F';
+        const config = await TestScratchOrgCache.create();
+        config.set('123', { clientSecret });
+        expect(config.shouldEncryptKey('clientSecret')).to.be.true;
+        const nonDecryptedEntry = config.get('123');
+        expect(nonDecryptedEntry).to.have.property('clientSecret').and.not.equal(clientSecret);
+        const decryptedEntry = config.get('123', true);
+        expect(decryptedEntry).to.have.property('clientSecret', clientSecret);
+      });
+    });
+  });
 
   describe('set', () => {
     it('should timestamp every entry', async () => {

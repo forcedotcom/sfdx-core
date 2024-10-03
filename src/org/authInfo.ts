@@ -1115,7 +1115,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // Exchange the auth code for an access token and refresh token.
     let authFields: TokenResponse;
     try {
-      this.logger.info(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
+      this.logger.debug(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
       authFields = await oauth2.requestToken(ensure(options.authCode));
     } catch (err) {
       const msg = err instanceof Error ? `${err.name}::${err.message}` : typeof err === 'string' ? err : 'UNKNOWN';

@@ -35,14 +35,14 @@ const errorCodesMessages = Messages.loadMessages('@salesforce/core', 'scratchOrg
 
 const scratchOrgInfoId = '2SRK0000001QZxF';
 const TEMPLATE_SCRATCH_ORG_INFO: ScratchOrgInfo = {
-  LoginUrl: 'https://login.salesforce.com',
+  LoginUrl: 'https://scratch-org-info-login-url.salesforce.com',
   Snapshot: '1234',
   AuthCode: '1234',
   Status: 'New',
   SignupEmail: 'sfdx-cli@salesforce.com',
   SignupUsername: 'sfdx-cli',
   Username: 'sfdx-cli',
-  SignupInstance: 'http://salesforce.com',
+  SignupInstance: 'CS51',
 };
 
 describe('requestScratchOrgCreation', () => {
@@ -466,7 +466,7 @@ describe('authorizeScratchOrg', () => {
     sandbox.restore();
   });
 
-  it('authorizeScratchOrg', async () => {
+  it('authorizeScratchOrg basic', async () => {
     hubOrgStub.isDevHubOrg.returns(true);
     const result = await authorizeScratchOrg({
       scratchOrgInfoComplete: TEMPLATE_SCRATCH_ORG_INFO,
@@ -474,21 +474,40 @@ describe('authorizeScratchOrg', () => {
     });
 
     expect(result).to.be.equal(authInfo);
+    expect(authInfoStub.firstCall.args[0]).to.deep.equal({
+      username: TEMPLATE_SCRATCH_ORG_INFO.SignupUsername,
+      parentUsername: username,
+      oauth2Options: {
+        loginUrl: `https://${TEMPLATE_SCRATCH_ORG_INFO.SignupInstance}.salesforce.com`,
+        privateKeyFile: privateKey,
+      },
+    });
   });
 
-  it('authorizeScratchOrg with signupTargetLoginUrlConfig', async () => {
+  it('authorizeScratchOrg with signupTargetLoginUrl', async () => {
+    const signupTargetLoginUrl = 'http://signup-target-login-url.salesforce.com';
     hubOrgStub.isDevHubOrg.returns(true);
     const result = await authorizeScratchOrg({
       scratchOrgInfoComplete: TEMPLATE_SCRATCH_ORG_INFO,
       hubOrg: hubOrgStub,
-      signupTargetLoginUrlConfig: 'http://salesforce.com',
+      signupTargetLoginUrl,
     });
 
     expect(result).to.be.equal(authInfo);
+    expect(authInfoStub.firstCall.args[0]).to.deep.equal({
+      username: TEMPLATE_SCRATCH_ORG_INFO.SignupUsername,
+      parentUsername: username,
+      oauth2Options: {
+        loginUrl: signupTargetLoginUrl,
+        privateKeyFile: privateKey,
+      },
+    });
   });
 
-  it('authorizeScratchOrg with SignupInstance', async () => {
+  it('authorizeScratchOrg with SignupInstance = utf8', async () => {
+    const hubOrgLoginUrl = 'https://hub-org-login-url.salesforce.com';
     hubOrgStub.isDevHubOrg.returns(true);
+    hubOrgStub.getField.withArgs(Org.Fields.LOGIN_URL).returns(hubOrgLoginUrl);
     const scratchOrgInfoComplete = Object.assign({}, TEMPLATE_SCRATCH_ORG_INFO, {
       SignupInstance: 'utf8',
     });
@@ -498,12 +517,20 @@ describe('authorizeScratchOrg', () => {
     });
 
     expect(result).to.be.equal(authInfo);
+    expect(authInfoStub.firstCall.args[0]).to.deep.equal({
+      username: TEMPLATE_SCRATCH_ORG_INFO.SignupUsername,
+      parentUsername: username,
+      oauth2Options: {
+        loginUrl: hubOrgLoginUrl,
+        privateKeyFile: privateKey,
+      },
+    });
   });
 
   it('authorizeScratchOrg with SignupInstance ends with s', async () => {
     hubOrgStub.isDevHubOrg.returns(true);
     const scratchOrgInfoComplete = Object.assign({}, TEMPLATE_SCRATCH_ORG_INFO, {
-      SignupInstance: 's',
+      SignupInstance: 'BEES',
     });
     const result = await authorizeScratchOrg({
       scratchOrgInfoComplete,
@@ -511,11 +538,20 @@ describe('authorizeScratchOrg', () => {
     });
 
     expect(result).to.be.equal(authInfo);
+    expect(authInfoStub.firstCall.args[0]).to.deep.equal({
+      username: TEMPLATE_SCRATCH_ORG_INFO.SignupUsername,
+      parentUsername: username,
+      oauth2Options: {
+        loginUrl: TEMPLATE_SCRATCH_ORG_INFO.LoginUrl,
+        privateKeyFile: privateKey,
+      },
+    });
   });
 
   it('authorizeScratchOrg isJwtFlow with SFDX_CLIENT_SECRET', async () => {
     hubOrgStub.isDevHubOrg.returns(true);
-    env.setString('SFDX_CLIENT_SECRET', '1234');
+    const clientSecret = '1234-client-secret';
+    env.setString('SFDX_CLIENT_SECRET', clientSecret);
 
     const result = await authorizeScratchOrg({
       scratchOrgInfoComplete: TEMPLATE_SCRATCH_ORG_INFO,
@@ -523,10 +559,21 @@ describe('authorizeScratchOrg', () => {
     });
 
     expect(result).to.be.equal(authInfo);
+    expect(authInfoStub.firstCall.args[0]).to.deep.equal({
+      username: TEMPLATE_SCRATCH_ORG_INFO.SignupUsername,
+      parentUsername: username,
+      oauth2Options: {
+        loginUrl: `https://${TEMPLATE_SCRATCH_ORG_INFO.SignupInstance}.salesforce.com`,
+        clientSecret,
+        redirectUri: undefined,
+        authCode: TEMPLATE_SCRATCH_ORG_INFO.AuthCode,
+      },
+    });
   });
 
   it('authorizeScratchOrg not isJwtFlow and clientSecret', async () => {
     hubOrgStub.isDevHubOrg.returns(true);
+    const clientSecret = '1234';
     connectionStub.getAuthInfoFields.returns({
       privateKey: undefined,
     });
@@ -534,10 +581,20 @@ describe('authorizeScratchOrg', () => {
     const result = await authorizeScratchOrg({
       scratchOrgInfoComplete: TEMPLATE_SCRATCH_ORG_INFO,
       hubOrg: hubOrgStub,
-      clientSecret: '1234',
+      clientSecret,
     });
 
     expect(result).to.be.equal(authInfo);
+    expect(authInfoStub.firstCall.args[0]).to.deep.equal({
+      username: TEMPLATE_SCRATCH_ORG_INFO.SignupUsername,
+      parentUsername: username,
+      oauth2Options: {
+        loginUrl: `https://${TEMPLATE_SCRATCH_ORG_INFO.SignupInstance}.salesforce.com`,
+        clientSecret,
+        redirectUri: undefined,
+        authCode: TEMPLATE_SCRATCH_ORG_INFO.AuthCode,
+      },
+    });
   });
 
   it('authorizeScratchOrg not isJwtFlow no clientSecret', async () => {
@@ -552,6 +609,15 @@ describe('authorizeScratchOrg', () => {
     });
 
     expect(result).to.be.equal(authInfo);
+    expect(authInfoStub.firstCall.args[0]).to.deep.equal({
+      username: TEMPLATE_SCRATCH_ORG_INFO.SignupUsername,
+      parentUsername: username,
+      oauth2Options: {
+        loginUrl: `https://${TEMPLATE_SCRATCH_ORG_INFO.SignupInstance}.salesforce.com`,
+        redirectUri: undefined,
+        authCode: TEMPLATE_SCRATCH_ORG_INFO.AuthCode,
+      },
+    });
   });
 
   it('authorizeScratchOrg not DevHub with retry', async () => {
@@ -565,6 +631,45 @@ describe('authorizeScratchOrg', () => {
     });
 
     expect(result).to.be.equal(authInfo);
+    expect(authInfoStub.firstCall.args[0]).to.deep.equal({
+      username: TEMPLATE_SCRATCH_ORG_INFO.SignupUsername,
+      parentUsername: username,
+      oauth2Options: {
+        loginUrl: `https://${TEMPLATE_SCRATCH_ORG_INFO.SignupInstance}.salesforce.com`,
+        privateKeyFile: privateKey,
+      },
+    });
+  });
+
+  it('authorizeScratchOrg retrying with ScratchOrgInfo.LoginUrl', async () => {
+    hubOrgStub.isDevHubOrg.returns(true);
+    authInfoStub.restore();
+    authInfoStub = stubMethod(sandbox, AuthInfo, 'create');
+    authInfoStub.onFirstCall().throws(Error('failed oauth using SignupInstance LoginUrl'));
+    authInfoStub.onSecondCall().resolves(authInfo);
+    const result = await authorizeScratchOrg({
+      scratchOrgInfoComplete: TEMPLATE_SCRATCH_ORG_INFO,
+      hubOrg: hubOrgStub,
+    });
+
+    expect(result).to.be.equal(authInfo);
+    expect(authInfoStub.callCount).to.equal(2, 'AuthInfo.create() should have been called twice');
+    expect(authInfoStub.firstCall.args[0]).to.deep.equal({
+      username: TEMPLATE_SCRATCH_ORG_INFO.SignupUsername,
+      parentUsername: username,
+      oauth2Options: {
+        loginUrl: `https://${TEMPLATE_SCRATCH_ORG_INFO.SignupInstance}.salesforce.com`,
+        privateKeyFile: privateKey,
+      },
+    });
+    expect(authInfoStub.secondCall.args[0]).to.deep.equal({
+      username: TEMPLATE_SCRATCH_ORG_INFO.SignupUsername,
+      parentUsername: username,
+      oauth2Options: {
+        loginUrl: TEMPLATE_SCRATCH_ORG_INFO.LoginUrl,
+        privateKeyFile: privateKey,
+      },
+    });
   });
 
   it('authorizeScratchOrg retry fails and timeouts', async () => {

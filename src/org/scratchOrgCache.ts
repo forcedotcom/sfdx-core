@@ -24,6 +24,7 @@ export type CachedOptions = {
 };
 
 export class ScratchOrgCache extends TTLConfig<TTLConfig.Options, CachedOptions> {
+  protected static readonly encryptedKeys = ['clientSecret'];
   public static getFileName(): string {
     return 'scratch-create-cache.json';
   }
@@ -34,6 +35,7 @@ export class ScratchOrgCache extends TTLConfig<TTLConfig.Options, CachedOptions>
       isState: true,
       filename: ScratchOrgCache.getFileName(),
       stateFolder: Global.SF_STATE_FOLDER,
+      encryptedKeys: ScratchOrgCache.encryptedKeys,
       ttl: Duration.days(1),
     };
   }
