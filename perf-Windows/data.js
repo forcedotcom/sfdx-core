@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1727995684136,
+  "lastUpdate": 1728165200117,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -24282,6 +24282,72 @@ window.BENCHMARK_DATA = {
             "range": "±6.16%",
             "unit": "ops/sec",
             "extra": "61 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "212250f2332d82159fb3fd491ad1cb2d978ffdb2",
+          "message": "fix(deps): bump @jsforce/jsforce-node from 3.4.1 to 3.5.1\n\nBumps [@jsforce/jsforce-node](https://github.com/jsforce/jsforce) from 3.4.1 to 3.5.1.\n- [Release notes](https://github.com/jsforce/jsforce/releases)\n- [Changelog](https://github.com/jsforce/jsforce/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/jsforce/jsforce/compare/3.4.1...3.5.1)\n\n---\nupdated-dependencies:\n- dependency-name: \"@jsforce/jsforce-node\"\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2024-10-05T21:48:40Z",
+          "tree_id": "1c5d52ca8af099b39b5e7535451bc77203f10588",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/212250f2332d82159fb3fd491ad1cb2d978ffdb2"
+        },
+        "date": 1728165187206,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 348756,
+            "range": "±0.33%",
+            "unit": "ops/sec",
+            "extra": "95 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 849675,
+            "range": "±8.98%",
+            "unit": "ops/sec",
+            "extra": "60 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 621318,
+            "range": "±9.54%",
+            "unit": "ops/sec",
+            "extra": "65 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 1953,
+            "range": "±255.93%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 393409,
+            "range": "±27.13%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 318182,
+            "range": "±5.59%",
+            "unit": "ops/sec",
+            "extra": "65 samples"
           }
         ]
       }
