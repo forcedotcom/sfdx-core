@@ -44,6 +44,11 @@ export class TTLConfig<T extends TTLConfig.Options, P extends JsonMap> extends C
   }
 
   protected async init(): Promise<void> {
+    // Normally, this is done in super.init() but we don't call it to prevent
+    // redundant read() calls.
+    if (this.hasEncryption()) {
+      await this.initCrypto();
+    }
     const contents = await this.read(this.options.throwOnNotFound);
     const date = new Date().getTime();
 

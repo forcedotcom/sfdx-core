@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { inspect } from 'node:util';
 import { env, Duration, upperFirst, omit } from '@salesforce/kit';
-
 import { AnyJson } from '@salesforce/ts-types';
 import { OAuth2Config, SaveResult } from '@jsforce/jsforce-node';
 import { retryDecorator, RetryError } from 'ts-retry-promise';
@@ -43,13 +43,13 @@ const errorCodes = Messages.loadMessages('@salesforce/core', 'scratchOrgErrorCod
  *
  * @param scratchOrgInfoComplete The completed ScratchOrgInfo
  * @param hubOrgLoginUrl the hun org login url
- * @param signupTargetLoginUrlConfig the login url
+ * @param signupTargetLoginUrl the login url
  * @returns {string}
  */
 const getOrgInstanceAuthority = function (
   scratchOrgInfoComplete: ScratchOrgInfo,
   hubOrgLoginUrl: string,
-  signupTargetLoginUrlConfig?: string
+  signupTargetLoginUrl?: string
 ): string {
   const createdOrgInstance = scratchOrgInfoComplete.SignupInstance;
 
@@ -65,7 +65,7 @@ const getOrgInstanceAuthority = function (
     altUrl = scratchOrgInfoComplete.LoginUrl;
   }
 
-  return signupTargetLoginUrlConfig ?? altUrl;
+  return signupTargetLoginUrl ?? altUrl;
 };
 
 /**
@@ -79,7 +79,7 @@ const buildOAuth2Options = async (options: {
   scratchOrgInfoComplete: ScratchOrgInfo;
   clientSecret?: string;
   retry?: number;
-  signupTargetLoginUrlConfig?: string;
+  signupTargetLoginUrl?: string;
 }): Promise<{
   options: OAuth2Config;
   retries: number;
@@ -92,11 +92,12 @@ const buildOAuth2Options = async (options: {
     loginUrl: getOrgInstanceAuthority(
       options.scratchOrgInfoComplete,
       options.hubOrg.getField(Org.Fields.LOGIN_URL),
-      options.signupTargetLoginUrlConfig
+      options.signupTargetLoginUrl
     ),
   };
 
   logger.debug(`isJwtFlow: ${isJwtFlow}`);
+  logger.debug(`using resolved loginUrl: ${oauth2Options.loginUrl}`);
 
   if (isJwtFlow && !process.env.SFDX_CLIENT_SECRET) {
     oauth2Options.privateKeyFile = options.hubOrg.getConnection().getAuthInfoFields().privateKey;
@@ -190,7 +191,7 @@ export const queryScratchOrgInfo = async (hubOrg: Org, id: string): Promise<Scra
  * scratchOrgInfoComplete - The completed ScratchOrgInfo which should contain an access token.
  * hubOrg - the environment hub org
  * clientSecret - The OAuth client secret. May be null for JWT OAuth flow.
- * signupTargetLoginUrlConfig - Login url
+ * signupTargetLoginUrl - Login url override
  * retry - auth retry attempts
  *
  * @returns {Promise<AuthInfo>}
@@ -199,10 +200,10 @@ export const authorizeScratchOrg = async (options: {
   scratchOrgInfoComplete: ScratchOrgInfo;
   hubOrg: Org;
   clientSecret?: string;
-  signupTargetLoginUrlConfig?: string;
+  signupTargetLoginUrl?: string;
   retry?: number;
 }): Promise<AuthInfo> => {
-  const { scratchOrgInfoComplete, hubOrg, clientSecret, signupTargetLoginUrlConfig, retry } = options;
+  const { scratchOrgInfoComplete, hubOrg, clientSecret, signupTargetLoginUrl, retry } = options;
   await emit({ stage: 'authenticate', scratchOrgInfo: scratchOrgInfoComplete });
   const logger = await Logger.child('authorizeScratchOrg');
   logger.debug(`scratchOrgInfoComplete: ${JSON.stringify(scratchOrgInfoComplete, null, 4)}`);
@@ -217,17 +218,47 @@ export const authorizeScratchOrg = async (options: {
     clientSecret,
     scratchOrgInfoComplete,
     retry,
-    signupTargetLoginUrlConfig,
+    signupTargetLoginUrl,
   });
 
-  const authInfo = await getAuthInfo({
-    hubOrg,
-    username: scratchOrgInfoComplete.SignupUsername,
-    oauth2Options: oAuth2Options.options,
-    retries: oAuth2Options.retries,
-    timeout: oAuth2Options.timeout,
-    delay: oAuth2Options.delay,
-  });
+  let authInfo: AuthInfo;
+
+  try {
+    // This will use the authCode from the scratch org signup to exchange for an auth token via OAuth.
+    authInfo = await getAuthInfo({
+      hubOrg,
+      username: scratchOrgInfoComplete.SignupUsername,
+      oauth2Options: oAuth2Options.options,
+      retries: oAuth2Options.retries,
+      timeout: oAuth2Options.timeout,
+      delay: oAuth2Options.delay,
+    });
+  } catch (err1) {
+    // If we didn't already try authenticating with the LoginUrl from ScratchOrgInfo object,
+    // try the oauth flow again using it now.
+    if (scratchOrgInfoComplete.LoginUrl && oAuth2Options.options.loginUrl !== scratchOrgInfoComplete.LoginUrl) {
+      logger.debug(
+        `Auth failed with loginUrl ${oAuth2Options.options.loginUrl} so trying with ${scratchOrgInfoComplete.LoginUrl}`
+      );
+      oAuth2Options.options = { ...oAuth2Options.options, ...{ loginUrl: scratchOrgInfoComplete.LoginUrl } };
+      try {
+        authInfo = await getAuthInfo({
+          hubOrg,
+          username: scratchOrgInfoComplete.SignupUsername,
+          oauth2Options: oAuth2Options.options,
+          retries: oAuth2Options.retries,
+          timeout: oAuth2Options.timeout,
+          delay: oAuth2Options.delay,
+        });
+      } catch (err2) {
+        // Log this error but throw the original error
+        logger.debug(`Auth failed with ScratchOrgInfo.LoginUrl ${scratchOrgInfoComplete.LoginUrl}\n${inspect(err2)}`);
+        throw err1;
+      }
+    } else {
+      throw err1;
+    }
+  }
 
   await authInfo.save({
     devHubUsername: hubOrg.getUsername(),

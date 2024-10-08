@@ -111,7 +111,7 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
     emit({ stage: 'send request' }),
   ]);
   logger.debug(`resuming scratch org creation for jobId: ${jobId}`);
-  const cached = cache.get(jobId);
+  const cached = cache.get(jobId, true);
 
   if (!cached) {
     throw messages.createError('CacheMissError', [jobId]);
@@ -127,6 +127,11 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
     setDefault,
     tracksSource,
   } = cached;
+
+  const signupTargetLoginUrl = signupTargetLoginUrlConfig ?? (await getSignupTargetLoginUrl());
+  if (signupTargetLoginUrl) {
+    logger.debug(`resuming org create with LoginUrl override= ${signupTargetLoginUrl}`);
+  }
 
   const hubOrg = await Org.create({ aliasOrUsername: hubUsername });
   const soi = await queryScratchOrgInfo(hubOrg, jobId);
@@ -145,7 +150,7 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
         scratchOrgInfoComplete: soi,
         hubOrg,
         clientSecret,
-        signupTargetLoginUrlConfig,
+        signupTargetLoginUrl,
         retry: 0,
       });
 
@@ -202,7 +207,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   /** epoch milliseconds */
   const startTimestamp = Date.now();
 
-  logger.debug('scratchOrgCreate');
+  logger.debug('preparing scratch org signup request...');
   await emit({ stage: 'prepare request' });
   const {
     hubOrg,
@@ -252,7 +257,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   const settings = await settingsGenerator.extract(scratchOrgInfo);
   logger.debug(`the scratch org def file has settings: ${settingsGenerator.hasSettings()}`);
 
-  const [scratchOrgInfoRequestResult, signupTargetLoginUrlConfig] = await Promise.all([
+  const [scratchOrgInfoRequestResult, signupTargetLoginUrl] = await Promise.all([
     // creates the scratch org info in the devhub
     requestScratchOrgCreation(hubOrg, scratchOrgInfo, settingsGenerator),
     getSignupTargetLoginUrl(),
@@ -289,7 +294,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
     scratchOrgInfoComplete: soi,
     hubOrg,
     clientSecret,
-    signupTargetLoginUrlConfig,
+    signupTargetLoginUrl,
     retry: retry || 0,
   });
 
@@ -343,7 +348,13 @@ const getSignupTargetLoginUrl = async (): Promise<string | undefined> => {
   try {
     const project = await SfProject.resolve();
     const projectJson = await project.resolveProjectConfig();
-    return projectJson.signupTargetLoginUrl as string;
+    const signupTargetLoginUrl = projectJson.signupTargetLoginUrl;
+    if (signupTargetLoginUrl) {
+      Logger.childFromRoot('getSignupTargetLoginUrl').debug(
+        `Found signupTargetLoginUrl in project file: ${signupTargetLoginUrl as string}`
+      );
+      return signupTargetLoginUrl as string;
+    }
   } catch {
     // a project isn't required for org:create
   }

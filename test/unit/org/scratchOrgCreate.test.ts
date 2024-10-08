@@ -24,12 +24,16 @@ describe('scratchOrgCreate', () => {
   const authInfoStub = sinon.createStubInstance(AuthInfo);
   const sfProjectJsonStub = sinon.createStubInstance(SfProjectJson);
   const cacheStub = sinon.createStubInstance(ScratchOrgCache);
+  let authInfoCreateStub: sinon.SinonStub;
+  let sfProjectResolveStub: sinon.SinonStub;
+  const signupTargetLoginUrl = 'https://signup-target-login-url.salesforce.com';
   const scratchOrgInfoId = '2SR3u0000008gBEGAY';
   const username = 'PlatformCLI';
-  const retrieve = {
+  const scratchOrgInfo = {
     Status: 'Active',
     SignupUsername: username,
     Id: scratchOrgInfoId,
+    SignupInstance: 'CS51',
   };
   const authFields = {
     instanceUrl: 'https://salesforce.com',
@@ -38,14 +42,14 @@ describe('scratchOrgCreate', () => {
   beforeEach(() => {
     sandbox.stub(ScratchOrgCache, 'create').resolves(cacheStub);
     sandbox.stub(Org, 'create').resolves(hubOrgStub);
-    sandbox.stub(AuthInfo, 'create').resolves(authInfoStub);
+    authInfoCreateStub = sandbox.stub(AuthInfo, 'create');
+    authInfoCreateStub.resolves(authInfoStub);
     sfProjectJsonStub.getPackageDirectories.resolves([
       { path: 'foo', package: 'fooPkgName', versionNumber: '4.7.0.NEXT', ancestorId: packageId },
     ]);
-    sandbox.stub(SfProject, 'resolve').resolves({
-      resolveProjectConfig: sandbox.stub().resolves({
-        signupTargetLoginUrl: 'https://salesforce.com',
-      }),
+    sfProjectResolveStub = sandbox.stub(SfProject, 'resolve');
+    sfProjectResolveStub.resolves({
+      resolveProjectConfig: sandbox.stub().resolves({ signupTargetLoginUrl }),
     } as unknown as SfProject);
     hubOrgStub.isDevHubOrg.returns(true);
     hubOrgStub.determineIfDevHubOrg.withArgs(true).resolves();
@@ -77,7 +81,7 @@ describe('scratchOrgCreate', () => {
           create: sinon.stub().resolves({
             id: scratchOrgInfoId,
           }),
-          retrieve: sinon.stub().withArgs(scratchOrgInfoId).resolves(retrieve),
+          retrieve: sinon.stub().withArgs(scratchOrgInfoId).resolves(scratchOrgInfo),
         }),
       singleRecordQuery: sandbox
         .stub()
@@ -106,26 +110,21 @@ describe('scratchOrgCreate', () => {
     } as ScratchOrgCreateOptions;
     const scratchOrgCreateResult = await scratchOrgCreate(scratchOrgCreateOptions);
     expect(scratchOrgCreateResult).to.deep.equal({
-      authFields: {
-        instanceUrl: 'https://salesforce.com',
-        orgId: '00D0R000000eJDy',
-      },
+      authFields,
       authInfo: {},
-      scratchOrgInfo: retrieve,
+      scratchOrgInfo,
       username,
       warnings: [],
     });
     expect(scratchOrgCreateResult).to.deep.equal({
       username,
-      scratchOrgInfo: {
-        Id: scratchOrgInfoId,
-        SignupUsername: 'PlatformCLI',
-        Status: 'Active',
-      },
+      scratchOrgInfo,
       authInfo: {},
       authFields,
       warnings: [],
     });
+    const authInfoOptions = authInfoCreateStub.firstCall.args[0] as AuthInfo.Options;
+    expect(authInfoOptions.oauth2Options).to.have.property('loginUrl', signupTargetLoginUrl);
   });
 
   it('exits early for wait 0', async () => {
@@ -136,13 +135,13 @@ describe('scratchOrgCreate', () => {
     const scratchOrgCreateResult = await scratchOrgCreate(scratchOrgCreateOptions);
     // early return does not have the optional auth stuff
     expect(scratchOrgCreateResult).to.deep.equal({
-      scratchOrgInfo: retrieve,
+      scratchOrgInfo,
       username,
       warnings: [],
     });
   });
 
-  it('resumes', async () => {
+  it('resumes with signupTargetLoginUrl override', async () => {
     cacheStub.get.withArgs(scratchOrgInfoId).returns({
       hubUsername: 'PlatformCLI',
     });
@@ -151,14 +150,37 @@ describe('scratchOrgCreate', () => {
     // resume has all the data it originally would have
     expect(scratchOrgCreateResult).to.deep.equal({
       username,
-      scratchOrgInfo: {
-        Id: scratchOrgInfoId,
-        SignupUsername: 'PlatformCLI',
-        Status: 'Active',
-      },
+      scratchOrgInfo,
       authInfo: {},
       authFields,
       warnings: [],
     });
+    const authInfoOptions = authInfoCreateStub.firstCall.args[0] as AuthInfo.Options;
+    expect(authInfoOptions.oauth2Options).to.have.property('loginUrl', signupTargetLoginUrl);
+  });
+
+  it('resumes without signupTargetLoginUrl override', async () => {
+    cacheStub.get.withArgs(scratchOrgInfoId).returns({
+      hubUsername: 'PlatformCLI',
+    });
+    cacheStub.has.withArgs(scratchOrgInfoId).returns(true);
+    sfProjectResolveStub.restore();
+    sandbox.stub(SfProject, 'resolve').resolves({
+      resolveProjectConfig: sandbox.stub().resolves({}),
+    } as unknown as SfProject);
+    const scratchOrgCreateResult = await scratchOrgResume(scratchOrgInfoId);
+    // resume has all the data it originally would have
+    expect(scratchOrgCreateResult).to.deep.equal({
+      username,
+      scratchOrgInfo,
+      authInfo: {},
+      authFields,
+      warnings: [],
+    });
+    const authInfoOptions = authInfoCreateStub.firstCall.args[0] as AuthInfo.Options;
+    expect(authInfoOptions.oauth2Options).to.have.property(
+      'loginUrl',
+      `https://${scratchOrgInfo.SignupInstance}.salesforce.com`
+    );
   });
 });
