@@ -18,5 +18,6 @@ updates:
       prefix-development: chore(dev-deps)
     ignore:
       - dependency-name: '@salesforce/dev-scripts'
+      - dependency-name: 'npm-dts' # the latest version not compatible with node v18
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
