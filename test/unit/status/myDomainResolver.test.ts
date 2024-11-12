@@ -20,7 +20,8 @@ describe('myDomainResolver', () => {
   const TEST_IP = '1.1.1.1';
   const CALL_COUNT = 3;
 
-  let lookupAsyncSpy: { callCount: number };
+  let lookupAsyncSpy: sinon.SinonStub;
+
   beforeEach(() => {
     lookupAsyncSpy = $$.SANDBOX.stub(dns, 'lookup').callsFake((host: string, callback: AnyFunction) => {
       const isDefaultHost = host === MyDomainResolver.DEFAULT_DOMAIN.host;
@@ -43,6 +44,17 @@ describe('myDomainResolver', () => {
     const ip = await resolver.resolve();
     expect(ip).to.be.equal(TEST_IP);
     expect(lookupAsyncSpy.callCount).to.be.equal(CALL_COUNT);
+  });
+
+  it('should do lookup without port', async () => {
+    const options: MyDomainResolver.Options = {
+      url: new URL(`https://${POSITIVE_HOST}:6101`),
+    };
+    const resolver: MyDomainResolver = await MyDomainResolver.create(options);
+    const ip = await resolver.resolve();
+    expect(ip).to.be.equal(TEST_IP);
+    // verify that it uses hostname (without port) not host
+    expect(lookupAsyncSpy.args[0][0]).to.be.equal(POSITIVE_HOST);
   });
 
   describe('disable dns check', () => {
