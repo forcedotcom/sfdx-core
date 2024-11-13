@@ -1,3 +1,12 @@
+# [8.8.0](https://github.com/forcedotcom/sfdx-core/compare/8.7.0...8.8.0) (2024-11-13)
+
+
+### Features
+
+* sfdxAuthUrl support port in instanceUrl ([b82e1da](https://github.com/forcedotcom/sfdx-core/commit/b82e1dafa535a9b20afd9424b87ff92aa7c7536c))
+
+
+
 # [8.7.0](https://github.com/forcedotcom/sfdx-core/compare/8.6.4...8.7.0) (2024-11-13)
 
 
