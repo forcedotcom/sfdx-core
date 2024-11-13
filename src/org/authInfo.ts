@@ -363,7 +363,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     sfdxAuthUrl: string
   ): Pick<AuthFields, 'clientId' | 'clientSecret' | 'refreshToken' | 'loginUrl'> {
     const match = sfdxAuthUrl.match(
-      /^force:\/\/([a-zA-Z0-9._-]+={0,2}):([a-zA-Z0-9._-]*={0,2}):([a-zA-Z0-9._-]+={0,2})@([a-zA-Z0-9._-]+)/
+      /^force:\/\/([a-zA-Z0-9._-]+={0,2}):([a-zA-Z0-9._-]*={0,2}):([a-zA-Z0-9._-]+={0,2})@([a-zA-Z0-9:._-]+)/
     );
 
     if (!match) {
@@ -687,16 +687,12 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * **See** [SFDX Authorization](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_force_auth.htm#cli_reference_force_auth)
    */
   public getSfdxAuthUrl(): string {
-    const decryptedFields = this.getFields(true);
-    const instanceUrl = ensure(decryptedFields.instanceUrl, 'undefined instanceUrl').replace(/^https?:\/\//, '');
-    let sfdxAuthUrl = 'force://';
-
-    if (decryptedFields.clientId) {
-      sfdxAuthUrl += `${decryptedFields.clientId}:${decryptedFields.clientSecret ?? ''}:`;
-    }
-
-    sfdxAuthUrl += `${ensure(decryptedFields.refreshToken, 'undefined refreshToken')}@${instanceUrl}`;
-    return sfdxAuthUrl;
+    const { clientId, clientSecret, refreshToken, instanceUrl } = this.getFields(true);
+    // host includes an optional port on the instanceUrl
+    const url = new URL(ensure(instanceUrl, 'undefined instanceUrl')).host;
+    const clientIdAndSecret = clientId ? `${clientId}:${clientSecret ?? ''}` : '';
+    const token = ensure(refreshToken, 'undefined refreshToken');
+    return `force://${clientIdAndSecret}:${token}@${url}`;
   }
 
   /**
