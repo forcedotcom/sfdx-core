@@ -15,7 +15,7 @@ import jwt from 'jsonwebtoken';
 import { env, includes } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, getJsonMap, JsonMap, toJsonMap } from '@salesforce/ts-types';
-import { expect } from 'chai';
+import { expect, config as chaiConfig } from 'chai';
 import { Transport } from '@jsforce/jsforce-node/lib/transport';
 
 import { OAuth2 } from '@jsforce/jsforce-node';
@@ -34,6 +34,7 @@ import { SfdcUrl } from '../../../src/util/sfdcUrl';
 import * as suggestion from '../../../src/util/findSuggestion';
 import { SfError } from '../../../src';
 
+chaiConfig.truncateThreshold = 0;
 class AuthInfoMockOrg extends MockTestOrgData {
   public privateKey = 'authInfoTest/jwt/server.key';
   public expirationDate = '12-02-20';
@@ -1273,6 +1274,36 @@ describe('AuthInfo', () => {
       );
     });
 
+    it('should handle instance url with a port on it', async () => {
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
+
+      const url = new URL(`${testOrg.instanceUrl}:6101`);
+
+      const authResponse = {
+        access_token: testOrg.accessToken,
+        instance_url: url.toString(),
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      };
+
+      // Stub the http request (OAuth2.refreshToken())
+      postParamsStub.resolves(authResponse);
+
+      // Create the refresh token AuthInfo instance
+      const authInfo = await AuthInfo.create({
+        username: testOrg.username,
+        oauth2Options: {
+          refreshToken: testOrg.refreshToken,
+          loginUrl: url.toString(),
+        },
+      });
+
+      // host will include the port
+      const result = authInfo.getSfdxAuthUrl();
+      expect(result).to.contain(url.port);
+      expect(result).to.contain(url.host);
+    });
+
     it('should handle undefined client secret', async () => {
       stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
       stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
@@ -1301,59 +1332,61 @@ describe('AuthInfo', () => {
       expect(authInfo.getSfdxAuthUrl()).to.contain(`force://PlatformCLI::${testOrg.refreshToken}@${instanceUrl}`);
     });
 
-    it('should handle undefined refresh token', async () => {
-      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
-      stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
+    describe('error conditions', () => {
+      it('should handle undefined refresh token', async () => {
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
 
-      const authResponse = {
-        access_token: testOrg.accessToken,
-        instance_url: testOrg.instanceUrl,
-        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
-      };
+        const authResponse = {
+          access_token: testOrg.accessToken,
+          instance_url: testOrg.instanceUrl,
+          id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        };
 
-      // Stub the http request (OAuth2.refreshToken())
-      postParamsStub.resolves(authResponse);
+        // Stub the http request (OAuth2.refreshToken())
+        postParamsStub.resolves(authResponse);
 
-      // Create the refresh token AuthInfo instance
-      const authInfo = await AuthInfo.create({
-        username: testOrg.username,
-        oauth2Options: {
-          refreshToken: testOrg.refreshToken,
-          loginUrl: testOrg.loginUrl,
-        },
+        // Create the refresh token AuthInfo instance
+        const authInfo = await AuthInfo.create({
+          username: testOrg.username,
+          oauth2Options: {
+            refreshToken: testOrg.refreshToken,
+            loginUrl: testOrg.loginUrl,
+          },
+        });
+
+        // delete the refresh token
+        authInfo.update({ ...authInfo.getFields(), refreshToken: undefined });
+        expect(() => authInfo.getSfdxAuthUrl()).to.throw('undefined refreshToken');
       });
 
-      // delete the refresh token
-      authInfo.update({ ...authInfo.getFields(), refreshToken: undefined });
-      expect(() => authInfo.getSfdxAuthUrl()).to.throw('undefined refreshToken');
-    });
+      it('should handle undefined instance url', async () => {
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
 
-    it('should handle undefined instance url', async () => {
-      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
-      stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
+        const authResponse = {
+          access_token: testOrg.accessToken,
+          instance_url: testOrg.instanceUrl,
+          id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        };
 
-      const authResponse = {
-        access_token: testOrg.accessToken,
-        instance_url: testOrg.instanceUrl,
-        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
-      };
+        // Stub the http request (OAuth2.refreshToken())
+        postParamsStub.resolves(authResponse);
 
-      // Stub the http request (OAuth2.refreshToken())
-      postParamsStub.resolves(authResponse);
+        // Create the refresh token AuthInfo instance
+        const authInfo = await AuthInfo.create({
+          username: testOrg.username,
+          oauth2Options: {
+            refreshToken: testOrg.refreshToken,
+            loginUrl: testOrg.loginUrl,
+          },
+        });
 
-      // Create the refresh token AuthInfo instance
-      const authInfo = await AuthInfo.create({
-        username: testOrg.username,
-        oauth2Options: {
-          refreshToken: testOrg.refreshToken,
-          loginUrl: testOrg.loginUrl,
-        },
+        // delete the instance url
+        authInfo.update({ ...authInfo.getFields(), instanceUrl: undefined });
+
+        expect(() => authInfo.getSfdxAuthUrl()).to.throw('undefined instanceUrl');
       });
-
-      // delete the instance url
-      authInfo.update({ ...authInfo.getFields(), instanceUrl: undefined });
-
-      expect(() => authInfo.getSfdxAuthUrl()).to.throw('undefined instanceUrl');
     });
   });
 
@@ -1703,6 +1736,19 @@ describe('AuthInfo', () => {
       expect(options.loginUrl).to.equal('https://test.my.salesforce.com');
     });
 
+    it('should parse the correct url with a port on the end', () => {
+      const options = AuthInfo.parseSfdxAuthUrl(
+        'force://PlatformCLI::5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.@test.my.salesforce.com:6101'
+      );
+
+      expect(options.refreshToken).to.equal(
+        '5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYUB.'
+      );
+      expect(options.clientId).to.equal('PlatformCLI');
+      expect(options.clientSecret).to.equal('');
+      expect(options.loginUrl).to.equal('https://test.my.salesforce.com:6101');
+    });
+
     it('should parse an id, secret, and token that include = for padding', () => {
       const options = AuthInfo.parseSfdxAuthUrl(
         'force://3MVG9SemV5D80oBfPBCgboxuJ9cOMLWNM1DDOZ8zgvJGsz13H3J66coUBCFF3N0zEgLYijlkqeWk4ot_Q2.4o=:438437816653243682==:5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYU==@test.my.salesforce.com'
@@ -1716,6 +1762,21 @@ describe('AuthInfo', () => {
       );
       expect(options.clientSecret).to.equal('438437816653243682==');
       expect(options.loginUrl).to.equal('https://test.my.salesforce.com');
+    });
+
+    it('should parse an id, secret, and token that include = for padding and a port', () => {
+      const options = AuthInfo.parseSfdxAuthUrl(
+        'force://3MVG9SemV5D80oBfPBCgboxuJ9cOMLWNM1DDOZ8zgvJGsz13H3J66coUBCFF3N0zEgLYijlkqeWk4ot_Q2.4o=:438437816653243682==:5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYU==@test.my.salesforce.com:6101'
+      );
+
+      expect(options.refreshToken).to.equal(
+        '5Aep861_OKMvio5gy8xCNsXxybPdupY9fVEZyeVOvb4kpOZx5Z1QLB7k7n5flEqEWKcwUQEX1I.O5DCFwjlYU=='
+      );
+      expect(options.clientId).to.equal(
+        '3MVG9SemV5D80oBfPBCgboxuJ9cOMLWNM1DDOZ8zgvJGsz13H3J66coUBCFF3N0zEgLYijlkqeWk4ot_Q2.4o='
+      );
+      expect(options.clientSecret).to.equal('438437816653243682==');
+      expect(options.loginUrl).to.equal('https://test.my.salesforce.com:6101');
     });
 
     it('should parse the correct url with client secret', () => {
