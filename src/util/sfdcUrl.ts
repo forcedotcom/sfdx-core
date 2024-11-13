@@ -135,7 +135,7 @@ export class SfdcUrl extends URL {
       '.stm.salesforce.ms',
       '.pc-rnd.force.com',
       '.pc-rnd.salesforce.com',
-      '.wc.crm.dev', // workspaces container
+      '.crm.dev', // workspaces container
     ];
     return (
       this.origin.startsWith('https://gs1.') ||

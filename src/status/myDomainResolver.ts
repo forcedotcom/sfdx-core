@@ -83,24 +83,24 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
     const self: MyDomainResolver = this;
     const pollingOptions: PollingClient.Options = {
       async poll(): Promise<StatusResult> {
-        const { host } = self.options.url;
+        const { hostname } = self.options.url;
         let dnsResult: { address: string };
         try {
-          self.logger.debug(`Attempting to resolve url: ${host}`);
+          self.logger.debug(`Attempting to resolve url: ${hostname}`);
           if (new SfdcUrl(self.options.url).isLocalUrl()) {
             return {
               completed: true,
               payload: '127.0.0.1',
             };
           }
-          dnsResult = await promisify(lookup)(host);
-          self.logger.debug(`Successfully resolved host: ${host} result: ${JSON.stringify(dnsResult)}`);
+          dnsResult = await promisify(lookup)(hostname);
+          self.logger.debug(`Successfully resolved host: ${hostname} result: ${JSON.stringify(dnsResult)}`);
           return {
             completed: true,
             payload: dnsResult.address,
           };
         } catch (e) {
-          self.logger.debug(`An error occurred trying to resolve: ${host}`);
+          self.logger.debug(`An error occurred trying to resolve: ${hostname}`);
           self.logger.debug(`Error: ${(e as Error).message}`);
           self.logger.debug('Re-trying dns lookup again....');
           return {
