@@ -1,3 +1,12 @@
+# [8.7.0](https://github.com/forcedotcom/sfdx-core/compare/8.6.4...8.7.0) (2024-11-13)
+
+
+### Features
+
+* dns lookup doesn't include port ([1afcc89](https://github.com/forcedotcom/sfdx-core/commit/1afcc899275b7e15b3662e6cc81fd6d902424ede))
+
+
+
 ## [8.6.4](https://github.com/forcedotcom/sfdx-core/compare/8.6.2...8.6.4) (2024-10-29)
 
 
