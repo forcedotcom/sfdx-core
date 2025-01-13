@@ -79,3 +79,32 @@ https://forcedotcom.github.io/sfdx-core/perf-Windows
 You can add more test cases in test/perf/logger/main.js
 
 If you add tests for new parts of sfdx-core outside of Logger, add new test Suites and create new jobs in the GHA `perf.yml`
+
+## RPC Interface
+
+The @salesforce/core library now includes a lightweight RPC interface that can connect with Python's AnyIO for JSON-based access to all commands.
+
+### Usage
+
+1. Start the RPC server:
+
+```javascript
+const { RpcServer } = require('@salesforce/core');
+const rpcServer = new RpcServer();
+rpcServer.start();
+```
+
+2. Connect to the RPC server using Python's AnyIO:
+
+```python
+import anyio
+import json
+
+async def main():
+    async with await anyio.connect_tcp('localhost', 4000) as client:
+        await client.send(json.dumps({'command': 'authInfo', 'username': 'test@example.com'}).encode())
+        response = await client.receive()
+        print(json.loads(response.decode()))
+
+anyio.run(main)
+```
