@@ -81,3 +81,36 @@ jobs:
       preExternalBuildCommands: 'shx rm -rf node_modules/@salesforce/core/node_modules/@jsforce/jsforce-node shx rm -rf node_modules/@salesforce/sf-plugins-core/node_modules/@salesforce/core node_modules/@salesforce/cli-plugins-testkit/node_modules/@salesforce/core node_modules/@salesforce/source-tracking/node_modules/@salesforce/core node_modules/@salesforce/source-deploy-retrieve/node_modules/@salesforce/core'
     secrets:
       TESTKIT_AUTH_URL: ${{ secrets.TESTKIT_AUTH_URL }}
+
+  generate-schemas:
+    needs: linux-unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Generate JSON schema
+        run: node scripts/generateJsonSchema.ts
+
+      - name: Generate OpenAPI schema
+        run: node scripts/generateOpenApiSchema.ts
+
+      - name: Upload JSON schema artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: json-schema
+          path: rpcSchema.json
+
+      - name: Upload OpenAPI schema artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: openapi-schema
+          path: openApiSchema.json
