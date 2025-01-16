@@ -940,16 +940,23 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   // A callback function for a connection to refresh an access token.  This is used
   // both for a JWT connection and an OAuth connection.
   private async refreshFn(
-    conn: Connection,
+    _conn: Connection,
     callback: (err: Nullable<Error | SfError>, accessToken?: string, res?: Record<string, unknown>) => Promise<void>
   ): Promise<void> {
     this.logger.info('Access token has expired. Updating...');
 
     try {
       const fields = this.getFields(true);
+
+      // This method will request the new access token and save to the current AuthInfo instance (but don't persist them!).
       await this.initAuthOptions(fields);
+      // Persist fields with refreshed access token to auth file.
       await this.save();
-      return await callback(null, fields.accessToken);
+
+      // Pass new access token to the jsforce's session-refresh callback for proper propagation:
+      // https://jsforce.github.io/jsforce/types/session_refresh_delegate.SessionRefreshFunc.html
+      const { accessToken } = this.getFields(true);
+      return await callback(null, accessToken);
     } catch (err) {
       const error = err as Error;
       if (error?.message?.includes('Data Not Available')) {
