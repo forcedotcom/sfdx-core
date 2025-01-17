@@ -14,7 +14,6 @@ import { asString, ensure, isString, JsonMap, Optional } from '@salesforce/ts-ty
 import {
   Connection as JSForceConnection,
   ConnectionConfig,
-  HttpMethods,
   HttpRequest,
   QueryOptions,
   QueryResult,
@@ -414,14 +413,19 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   }
 
   /**
-   * Executes a get request on the baseUrl to force an auth refresh
-   * Useful for the raw methods (request, requestRaw) that use the accessToken directly and don't handle refreshes
+   * Executes a HEAD request on the baseUrl to force an auth refresh.
+   * This is useful for the raw methods (request, requestRaw) that use the accessToken directly and don't handle refreshes.
+   *
+   * This method issues a request using the current access token to check if it is still valid.
+   * If the request returns 200, no refresh happens, and we keep the token.
+   * If it returns 401, jsforce will request a new token and set it in the connection instance.
    */
+
   public async refreshAuth(): Promise<void> {
     this.logger.debug('Refreshing auth for org.');
-    const requestInfo = {
+    const requestInfo: HttpRequest = {
       url: this.baseUrl(),
-      method: 'GET' as HttpMethods,
+      method: 'HEAD',
     };
     await this.request(requestInfo);
   }

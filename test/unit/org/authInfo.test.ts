@@ -1096,14 +1096,25 @@ describe('AuthInfo', () => {
 
   describe('refreshFn', () => {
     it('should call init() and save()', async () => {
+      const refreshedToken = '123456789abc';
+
       const context = {
         getUsername: () => '',
-        getFields: (decrypt = false) => ({
-          loginUrl: testOrg.loginUrl,
-          clientId: testOrg.clientId,
-          privateKey: 'authInfoTest/jwt/server.key',
-          accessToken: decrypt ? testOrg.accessToken : testOrg.encryptedAccessToken,
-        }),
+        getFields: $$.SANDBOX.stub()
+          .onFirstCall()
+          .callsFake((decrypt = false) => ({
+            loginUrl: testOrg.loginUrl,
+            clientId: testOrg.clientId,
+            privateKey: 'authInfoTest/jwt/server.key',
+            accessToken: decrypt ? testOrg.accessToken : testOrg.encryptedAccessToken,
+          }))
+          .onSecondCall()
+          .callsFake((decrypt = false) => ({
+            loginUrl: testOrg.loginUrl,
+            clientId: testOrg.clientId,
+            privateKey: 'authInfoTest/jwt/server.key',
+            accessToken: decrypt ? refreshedToken : testOrg.encryptedAccessToken,
+          })),
         initAuthOptions: $$.SANDBOX.stub(),
         save: $$.SANDBOX.stub(),
         logger: $$.TEST_LOGGER,
@@ -1119,15 +1130,18 @@ describe('AuthInfo', () => {
       expect(context.initAuthOptions.called, 'Should have called AuthInfo.initAuthOptions() during refreshFn()').to.be
         .true;
       const expectedInitArgs = {
-        loginUrl: context.getFields().loginUrl,
-        clientId: context.getFields().clientId,
-        privateKey: context.getFields().privateKey,
+        loginUrl: testOrg.loginUrl,
+        clientId: testOrg.clientId,
+        privateKey: testOrg.privateKey,
         accessToken: testOrg.accessToken,
       };
       expect(context.initAuthOptions.firstCall.args[0]).to.deep.equal(expectedInitArgs);
       expect(context.save.called, 'Should have called AuthInfo.save() during refreshFn()').to.be.true;
       expect(testCallback.called, 'Should have called the callback passed to refreshFn()').to.be.true;
-      expect(testCallback.firstCall.args[1]).to.equal(testOrg.accessToken);
+      expect(
+        testCallback.firstCall.args[1],
+        'Should have passed the new access token to the refreshFn callback'
+      ).to.equal(refreshedToken);
     });
 
     it('should path.resolve jwtkeyfilepath', async () => {
