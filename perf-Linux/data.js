@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1737042585556,
+  "lastUpdate": 1737144875662,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -25536,6 +25536,72 @@ window.BENCHMARK_DATA = {
             "range": "±5.37%",
             "unit": "ops/sec",
             "extra": "78 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7d5497e0e95ef0c0d9d5c7ff80d320a624927026",
+          "message": "fix(deps): bump cross-spawn from 7.0.3 to 7.0.6\n\nBumps [cross-spawn](https://github.com/moxystudio/node-cross-spawn) from 7.0.3 to 7.0.6.\n- [Changelog](https://github.com/moxystudio/node-cross-spawn/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/moxystudio/node-cross-spawn/compare/v7.0.3...v7.0.6)\n\n---\nupdated-dependencies:\n- dependency-name: cross-spawn\n  dependency-type: indirect\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-01-17T20:10:28Z",
+          "tree_id": "1c0c4d22b99ddc55c97b6960b6c19f2c1f2cafe6",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/7d5497e0e95ef0c0d9d5c7ff80d320a624927026"
+        },
+        "date": 1737144866678,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 471379,
+            "range": "±0.77%",
+            "unit": "ops/sec",
+            "extra": "96 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1056353,
+            "range": "±7.57%",
+            "unit": "ops/sec",
+            "extra": "68 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 32490,
+            "range": "±188.86%",
+            "unit": "ops/sec",
+            "extra": "37 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 592471,
+            "range": "±7.78%",
+            "unit": "ops/sec",
+            "extra": "80 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 53406,
+            "range": "±180.50%",
+            "unit": "ops/sec",
+            "extra": "62 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 549752,
+            "range": "±11.57%",
+            "unit": "ops/sec",
+            "extra": "69 samples"
           }
         ]
       }
