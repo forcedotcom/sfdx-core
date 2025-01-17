@@ -1,3 +1,12 @@
+## [8.8.1](https://github.com/forcedotcom/sfdx-core/compare/8.8.0...8.8.1) (2025-01-17)
+
+
+### Bug Fixes
+
+* **oauth:** bubble up new token when refreshing it ([b6bdd36](https://github.com/forcedotcom/sfdx-core/commit/b6bdd36c9dffbdd3d234bc66e8b867e339159901))
+
+
+
 # [8.8.0](https://github.com/forcedotcom/sfdx-core/compare/8.7.0...8.8.0) (2024-11-13)
 
 
