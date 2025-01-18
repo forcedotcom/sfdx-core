@@ -1,3 +1,12 @@
+## [8.8.2](https://github.com/forcedotcom/sfdx-core/compare/8.8.1...8.8.2) (2025-01-18)
+
+
+### Bug Fixes
+
+* **deps:** bump cross-spawn from 7.0.3 to 7.0.6 ([7d5497e](https://github.com/forcedotcom/sfdx-core/commit/7d5497e0e95ef0c0d9d5c7ff80d320a624927026))
+
+
+
 ## [8.8.1](https://github.com/forcedotcom/sfdx-core/compare/8.8.0...8.8.1) (2025-01-17)
 
 
