@@ -990,6 +990,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         // sequentially, in probabilistic order
         // eslint-disable-next-line no-await-in-loop
         authFieldsBuilder = await this.tryJwtAuth(options.clientId, login, audience, privateKeyContents);
+        this.logger.debug(
+          `authFieldsBuilder response for ${login} | ${audience}: ${JSON.stringify(authFieldsBuilder, null, 2)}`
+        );
         break;
       } catch (err) {
         const error = err as Error;
@@ -1046,6 +1049,20 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         algorithm: 'RS256',
       }
     );
+
+    this.logger.debug(
+      `JWT payload: ${JSON.stringify(
+        {
+          iss: clientId,
+          sub: this.getUsername(),
+          aud: audienceUrl,
+        },
+        null,
+        2
+      )}`
+    );
+    this.logger.debug(`JWT token: ${os.EOL + jwtToken + os.EOL}`);
+    this.logger.debug(`loginUrl: ${loginUrl}`);
 
     const oauth2 = new OAuth2({ loginUrl });
     return ensureJsonMap(
