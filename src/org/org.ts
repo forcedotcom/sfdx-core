@@ -346,17 +346,26 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public async resumeSandbox(
     resumeSandboxRequest: ResumeSandboxRequest,
-    options: { wait?: Duration; interval?: Duration; async?: boolean } = {
+    options: { wait?: Duration; interval?: Duration; async?: boolean; refresh?: boolean } = {
       wait: Duration.minutes(0),
       async: false,
       interval: Duration.seconds(30),
+      refresh: false,
     }
   ): Promise<SandboxProcessObject> {
     this.logger.debug(resumeSandboxRequest, 'ResumeSandbox called with ResumeSandboxRequest');
     let sandboxCreationProgress: SandboxProcessObject;
     // seed the sandboxCreationProgress via the resumeSandboxRequest options
     if (resumeSandboxRequest.SandboxProcessObjId) {
-      sandboxCreationProgress = await this.querySandboxProcessById(resumeSandboxRequest.SandboxProcessObjId);
+      if (options.refresh) {
+        const sbxProcess = await this.querySandboxProcessById(resumeSandboxRequest.SandboxProcessObjId);
+        sandboxCreationProgress = await this.querySandboxProcess(
+          `SandboxInfoId='${sbxProcess.SandboxInfoId}'`,
+          options.refresh
+        );
+      } else {
+        sandboxCreationProgress = await this.querySandboxProcessById(resumeSandboxRequest.SandboxProcessObjId);
+      }
     } else if (resumeSandboxRequest.SandboxName) {
       try {
         // There can be multiple sandbox processes returned when querying by name. Use the most recent
@@ -401,6 +410,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
             await this.writeSandboxAuthFile(sandboxCreationProgress, sandboxInfo);
             return sandboxCreationProgress;
           } catch (err) {
+            // TODO: log failure
             // eat the error, we don't want to throw an error if we can't write the file
           }
         }
@@ -1506,13 +1516,17 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * @param where clause to query for
    * @private
    */
-  private async querySandboxProcess(where: string): Promise<SandboxProcessObject> {
+  private async querySandboxProcess(where: string, refresh = false): Promise<SandboxProcessObject> {
     const soql = `SELECT ${sandboxProcessFields.join(
       ','
     )} FROM SandboxProcess WHERE ${where} ORDER BY CreatedDate DESC`;
-    const result = (await this.connection.tooling.query<SandboxProcessObject>(soql)).records.filter(
-      (item) => !item.Status.startsWith('Del')
-    );
+    const result = (await this.connection.tooling.query<SandboxProcessObject>(soql)).records.filter((item) => {
+      if (refresh) {
+        return !item.Status.startsWith('Completed');
+      } else {
+        return !item.Status.startsWith('Del');
+      }
+    });
     if (result.length === 0) {
       throw new SfError(`No record found for ${soql}`, SingleRecordQueryErrors.NoRecords);
     }
