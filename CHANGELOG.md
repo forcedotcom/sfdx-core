@@ -1,3 +1,12 @@
+## [8.8.3](https://github.com/forcedotcom/sfdx-core/compare/8.8.2...8.8.3) (2025-02-21)
+
+
+### Bug Fixes
+
+* bump jsforce ([#1167](https://github.com/forcedotcom/sfdx-core/issues/1167)) ([d9cef22](https://github.com/forcedotcom/sfdx-core/commit/d9cef22c188f036564cc5d350e14e520321523a3))
+
+
+
 ## [8.8.2](https://github.com/forcedotcom/sfdx-core/compare/8.8.1...8.8.2) (2025-01-18)
 
 
