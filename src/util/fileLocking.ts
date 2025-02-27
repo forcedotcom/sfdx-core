@@ -33,21 +33,7 @@ export const lockInit = async (filePath: string): Promise<LockInitResponse> => {
     throw SfError.wrap(err as Error);
   }
 
-  const [unlock] = await Promise.all(
-    fs.existsSync(filePath)
-      ? // if the file exists, wait for it to be unlocked
-        [lock(filePath, lockRetryOptions)]
-      : // lock the entire directory to keep others from trying to create the file while we are
-        [
-          lock(dirname(filePath), lockRetryOptions),
-          (
-            await Logger.child('fileLocking.lockInit')
-          ).debug(
-            `No file found at ${filePath}.  Write will create it.  Locking the entire directory until file is written.`
-          ),
-        ]
-  );
-
+  const unlock = await lock(filePath, { ...lockRetryOptions, realpath: false });
   return {
     writeAndUnlock: async (data: string): Promise<void> => {
       const logger = await Logger.child('fileLocking.writeAndUnlock');
@@ -74,16 +60,7 @@ export const lockInitSync = (filePath: string): LockInitSyncResponse => {
     throw SfError.wrap(err as Error);
   }
 
-  const [unlock] = fs.existsSync(filePath)
-    ? // if the file exists, wait for it to be unlocked
-      [lockSync(filePath, lockOptions)]
-    : // lock the entire directory to keep others from trying to create the file while we are
-      [
-        lockSync(dirname(filePath), lockOptions),
-        Logger.childFromRoot('fileLocking.lockInit').debug(
-          `No file found at ${filePath}.  Write will create it.  Locking the entire directory until file is written.`
-        ),
-      ];
+  const unlock = lockSync(filePath, { ...lockOptions, realpath: false });
   return {
     writeAndUnlock: (data: string): void => {
       const logger = Logger.childFromRoot('fileLocking.writeAndUnlock');
