@@ -1,3 +1,12 @@
+## [8.8.4](https://github.com/forcedotcom/sfdx-core/compare/8.8.3...8.8.4) (2025-02-27)
+
+
+### Bug Fixes
+
+* don't lock directory ([#1169](https://github.com/forcedotcom/sfdx-core/issues/1169)) ([c569237](https://github.com/forcedotcom/sfdx-core/commit/c569237e3e63b95d137e56c7f2bb9ea241dd07c8))
+
+
+
 ## [8.8.3](https://github.com/forcedotcom/sfdx-core/compare/8.8.2...8.8.3) (2025-02-21)
 
 
