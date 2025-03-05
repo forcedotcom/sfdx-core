@@ -1,3 +1,12 @@
+## [8.8.5](https://github.com/forcedotcom/sfdx-core/compare/8.8.4...8.8.5) (2025-03-05)
+
+
+### Bug Fixes
+
+* create .sfdx if necessary for alias file ([f50f491](https://github.com/forcedotcom/sfdx-core/commit/f50f491019cfe683fb76a4d60f71b1549eb597ba))
+
+
+
 ## [8.8.4](https://github.com/forcedotcom/sfdx-core/compare/8.8.3...8.8.4) (2025-02-27)
 
 
