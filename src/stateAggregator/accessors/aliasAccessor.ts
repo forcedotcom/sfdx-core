@@ -169,7 +169,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
     try {
       this.aliasStore = fileContentsRawToAliasStore(await readFile(this.fileLocation, 'utf-8'));
     } catch (e) {
-      if (e instanceof Error && 'code' in e && e.code === 'ENOENT') {
+      if (e instanceof Error && 'code' in e && typeof e.code === 'string' && ['ENOENT', 'ENOTDIR'].includes(e.code)) {
         this.aliasStore = new Map<string, string>();
         await mkdir(dirname(this.fileLocation), { recursive: true });
         await this.saveAliasStoreToFile();
