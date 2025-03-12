@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1741725612567,
+  "lastUpdate": 1741748832315,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -25800,6 +25800,72 @@ window.BENCHMARK_DATA = {
             "range": "±7.43%",
             "unit": "ops/sec",
             "extra": "57 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7519a4a9cf7ca1f785bac5010e9d11aa00fefbab",
+          "message": "chore(deps): bump @babel/runtime from 7.18.3 to 7.26.10 in /examples\n\nBumps [@babel/runtime](https://github.com/babel/babel/tree/HEAD/packages/babel-runtime) from 7.18.3 to 7.26.10.\n- [Release notes](https://github.com/babel/babel/releases)\n- [Changelog](https://github.com/babel/babel/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/babel/babel/commits/v7.26.10/packages/babel-runtime)\n\n---\nupdated-dependencies:\n- dependency-name: \"@babel/runtime\"\n  dependency-type: indirect\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-03-12T03:01:01Z",
+          "tree_id": "888eaf65ec7f6835dc1dffeb10624c07ae1d41d5",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/7519a4a9cf7ca1f785bac5010e9d11aa00fefbab"
+        },
+        "date": 1741748814100,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 289034,
+            "range": "±1.91%",
+            "unit": "ops/sec",
+            "extra": "85 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 656273,
+            "range": "±8.07%",
+            "unit": "ops/sec",
+            "extra": "62 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 456710,
+            "range": "±12.69%",
+            "unit": "ops/sec",
+            "extra": "54 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 311293,
+            "range": "±10.95%",
+            "unit": "ops/sec",
+            "extra": "60 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 5318,
+            "range": "±219.41%",
+            "unit": "ops/sec",
+            "extra": "11 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 321534,
+            "range": "±10.32%",
+            "unit": "ops/sec",
+            "extra": "66 samples"
           }
         ]
       }
