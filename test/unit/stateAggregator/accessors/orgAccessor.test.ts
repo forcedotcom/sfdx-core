@@ -7,6 +7,7 @@
 import { expect } from 'chai';
 import { StateAggregator } from '../../../../src/stateAggregator/stateAggregator';
 import { AuthFields } from '../../../../src/org/authInfo';
+import { Lifecycle } from '../../../../src';
 import { MockTestOrgData, shouldThrowSync, TestContext } from '../../../../src/testSetup';
 import { uniqid } from '../../../../src/util/uniqid';
 import { expectPartialDeepMatch } from '../../helpers';
@@ -28,6 +29,21 @@ describe('OrgAccessor', () => {
       expect(orgs.length).to.equal(1);
       expectPartialDeepMatch(orgs[0], await org.getConfig());
     });
+
+    it('should emit warnings when errors are thrown', async () => {
+      const stateAggregator = await StateAggregator.getInstance();
+      const errMsg = 'invalid keychain file perms';
+      const genericKeychainInvalidPermsError = new Error(errMsg);
+      genericKeychainInvalidPermsError.name = 'GenericKeychainInvalidPermsError';
+      // @ts-expect-error private method
+      $$.SANDBOX.stub(stateAggregator.orgs, 'initAuthFile').throws(genericKeychainInvalidPermsError);
+      const emitWarningStub = $$.SANDBOX.stub(Lifecycle.prototype, 'emitWarning');
+      const orgs = await stateAggregator.orgs.readAll();
+      expect(orgs.length).to.equal(0);
+      expect(emitWarningStub.calledOnce).to.be.true;
+      const warningMsg = `The auth file for ${username} is invalid. Due to: ${errMsg}`;
+      expect(emitWarningStub.firstCall.firstArg).to.equal(warningMsg);
+    });
   });
 
   describe('getAll', () => {
@@ -48,6 +64,34 @@ describe('OrgAccessor', () => {
         expectPartialDeepMatch(result, await org.getConfig());
       } else {
         throw new Error('No org returned');
+      }
+    });
+
+    it('should throw if JsonParseError', async () => {
+      const stateAggregator = await StateAggregator.getInstance();
+      const jsonParseError = new Error();
+      jsonParseError.name = 'JsonParseError';
+      $$.SANDBOX.stub(stateAggregator.orgs, 'get').throws(jsonParseError);
+      try {
+        await stateAggregator.orgs.read(username);
+        expect(true, 'Expected JsonParseError to be thrown').to.be.false;
+      } catch (e) {
+        expect(e).instanceOf(Error);
+        expect((e as Error).name).to.equal('JsonParseError');
+      }
+    });
+
+    it('should throw if GenericKeychainInvalidPermsError', async () => {
+      const stateAggregator = await StateAggregator.getInstance();
+      const genericKeychainInvalidPermsError = new Error();
+      genericKeychainInvalidPermsError.name = 'GenericKeychainInvalidPermsError';
+      $$.SANDBOX.stub(stateAggregator.orgs, 'get').throws(genericKeychainInvalidPermsError);
+      try {
+        await stateAggregator.orgs.read(username);
+        expect(true, 'Expected GenericKeychainInvalidPermsError to be thrown').to.be.false;
+      } catch (e) {
+        expect(e).instanceOf(Error);
+        expect((e as Error).name).to.equal('GenericKeychainInvalidPermsError');
       }
     });
   });

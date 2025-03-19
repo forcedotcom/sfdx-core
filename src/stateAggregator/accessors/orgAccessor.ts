@@ -17,6 +17,7 @@ import { ConfigContents } from '../../config/configStackTypes';
 import { Logger } from '../../logger/logger';
 import { Messages } from '../../messages';
 import { Lifecycle } from '../../lifecycleEvents';
+import { SfError } from '../../sfError';
 
 function chunk<T>(array: T[], chunkSize: number): T[][] {
   const final = [];
@@ -43,9 +44,11 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
       this.configs.set(username, config);
       return this.get(username, decrypt);
     } catch (err) {
-      if (err instanceof Error && err.name === 'JsonParseError') {
+      const error = SfError.wrap(err);
+      if (['JsonParseError', 'GenericKeychainInvalidPermsError'].includes(error.name)) {
         throw err;
       }
+      this.logger.debug(`Error when reading auth file for user: ${username} due to: ${error.name}:${error.message}`);
       return null;
     }
   }
@@ -64,7 +67,15 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
           const config = await this.initAuthFile(username);
           this.configs.set(username, config);
         } catch (e) {
-          await Lifecycle.getInstance().emitWarning(`The auth file for ${username} is invalid.`);
+          const error = SfError.wrap(e);
+          let warningMsg = `The auth file for ${username} is invalid.`;
+          if (error.message) {
+            warningMsg += ` Due to: ${error.message}`;
+          }
+          await Lifecycle.getInstance().emitWarning(warningMsg);
+          this.logger.debug(
+            `Error when reading auth file for user: ${username} due to: ${error.name}:${error.message}`
+          );
         }
       });
       // eslint-disable-next-line no-await-in-loop
@@ -212,10 +223,13 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
     } else {
       const contents = this.contents.get(username) ?? {};
       await this.read(username, false, false);
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const readConfig = this.configs.get(username)!;
-      readConfig.setContentsFromObject(contents);
-      return (await readConfig.write()) as P;
+      const readConfig = this.configs.get(username);
+      if (readConfig) {
+        readConfig.setContentsFromObject(contents);
+        return (await readConfig.write()) as P;
+      } else {
+        this.logger.debug(`Failed to write auth file for ${username}. readConfig not found.`);
+      }
     }
   }
 
