@@ -21,32 +21,36 @@ const messages = Messages.loadMessages('@salesforce/core', 'encryption');
  */
 export const retrieveKeychain = async (platform: string): Promise<KeyChain> => {
   const logger: Logger = await Logger.child('keyChain');
-  logger.debug(`platform: ${platform}`);
 
   const useGenericUnixKeychainVar = env.getBoolean('SF_USE_GENERIC_UNIX_KEYCHAIN');
-  const shouldUseGenericUnixKeychain = useGenericUnixKeychainVar && useGenericUnixKeychainVar;
 
   if (platform.startsWith('win')) {
+    logger.debug(`platform: ${platform}. Using generic Windows keychain.`);
     return keyChainImpl.generic_windows;
   } else if (platform.includes('darwin')) {
     // OSX can use the generic keychain. This is useful when running under an
     // automation user.
-    if (shouldUseGenericUnixKeychain) {
+    if (useGenericUnixKeychainVar) {
+      logger.debug(`platform: ${platform}. Using generic Unix keychain.`);
       return keyChainImpl.generic_unix;
     } else {
+      logger.debug(`platform: ${platform}. Using Darwin native keychain.`);
       return keyChainImpl.darwin;
     }
   } else if (platform.includes('linux')) {
     // Use the generic keychain if specified
-    if (shouldUseGenericUnixKeychain) {
+    if (useGenericUnixKeychainVar) {
+      logger.debug(`platform: ${platform}. Using generic Unix keychain.`);
       return keyChainImpl.generic_unix;
     } else {
       // otherwise try and use the builtin keychain
       try {
+        logger.debug(`platform: ${platform}. Using Linux keychain.`);
         await keyChainImpl.linux.validateProgram();
         return keyChainImpl.linux;
       } catch (e) {
         // If the builtin keychain is not available use generic
+        logger.debug(`platform: ${platform}. Using generic Unix keychain.`);
         return keyChainImpl.generic_unix;
       }
     }
