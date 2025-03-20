@@ -1,3 +1,12 @@
+## [8.8.6](https://github.com/forcedotcom/sfdx-core/compare/8.8.5...8.8.6) (2025-03-20)
+
+
+### Bug Fixes
+
+* better error handling when reading auth files ([621bd53](https://github.com/forcedotcom/sfdx-core/commit/621bd53c4d74cab8f4271539a92bb17742feda33))
+
+
+
 ## [8.8.5](https://github.com/forcedotcom/sfdx-core/compare/8.8.4...8.8.5) (2025-03-05)
 
 
