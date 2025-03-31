@@ -54,9 +54,11 @@ export const validateScratchOrgInfoForResume = async ({
       ? namedMessages.createError('ScratchOrgDeletedError')
       : namedMessages.createError('NoScratchOrgInfoError');
   }
+
   if (['New', 'Creating'].includes(scratchOrgInfo.Status)) {
     // 2. scratchOrgInfo exists, still isn't finished.  Stays in cache for future attempts
-    throw namedMessages.createError('StillInProgressError', [scratchOrgInfo.Status], ['action.StillInProgress']);
+    await Logger.child('scratchOrgResume');
+    return scratchOrgInfo;
   }
   return checkScratchOrgInfoForErrors(scratchOrgInfo, hubUsername);
 };
