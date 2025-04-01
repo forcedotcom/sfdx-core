@@ -5,10 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Optional } from '@salesforce/ts-types';
+import { AnyJson, Optional } from '@salesforce/ts-types';
+import { Duration } from '@salesforce/kit';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
 import { Logger } from '../logger/logger';
+import { StatusResult } from '../status/types';
+import { PollingClient } from '../status/pollingClient';
 import { ScratchOrgInfo } from './scratchOrgTypes';
 import { ScratchOrgCache } from './scratchOrgCache';
 import { emit } from './scratchOrgLifecycleEvents';
@@ -40,11 +43,13 @@ export const validateScratchOrgInfoForResume = async ({
   scratchOrgInfo,
   cache,
   hubUsername,
+  timeout,
 }: {
   jobId: string;
   scratchOrgInfo: ScratchOrgInfo;
   cache: ScratchOrgCache;
   hubUsername: string;
+  timeout: Duration;
 }): Promise<ScratchOrgInfo> => {
   if (!scratchOrgInfo?.Id || scratchOrgInfo.Status === 'Deleted') {
     // 1. scratch org info does not exist in that dev hub or has been deleted
@@ -57,8 +62,40 @@ export const validateScratchOrgInfoForResume = async ({
 
   if (['New', 'Creating'].includes(scratchOrgInfo.Status)) {
     // 2. scratchOrgInfo exists, still isn't finished.  Stays in cache for future attempts
-    await Logger.child('scratchOrgResume');
-    return scratchOrgInfo;
+    const logger = await Logger.child('scratchOrgResume');
+    logger.debug(`PollingTimeout in minutes: ${timeout.minutes}`);
+
+    const options: PollingClient.Options = {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      async poll(): Promise<StatusResult> {
+        try {
+          if (scratchOrgInfo.Status === 'Active' || scratchOrgInfo.Status === 'Error') {
+            return {
+              completed: true,
+              payload: scratchOrgInfo as unknown as AnyJson,
+            };
+          }
+          await emit({ stage: 'wait for org', scratchOrgInfo });
+
+          logger.debug(`Scratch org status is ${scratchOrgInfo.Status}`);
+          return {
+            completed: false,
+          };
+        } catch (error) {
+          logger.debug(`Error: ${(error as Error).message}`);
+          logger.debug('Re-trying deploy check again....');
+          return {
+            completed: false,
+          };
+        }
+      },
+      frequency: Duration.seconds(1),
+      timeoutErrorName: 'ScratchOrgInfoTimeOutError',
+      timeout,
+    };
+    const client = await PollingClient.create(options);
+    const result = await client.subscribe<ScratchOrgInfo>();
+    return checkScratchOrgInfoForErrors(result, hubUsername);
   }
   return checkScratchOrgInfoForErrors(scratchOrgInfo, hubUsername);
 };

@@ -146,7 +146,8 @@ describe('scratchOrgCreate', () => {
       hubUsername: 'PlatformCLI',
     });
     cacheStub.has.withArgs(scratchOrgInfoId).returns(true);
-    const scratchOrgCreateResult = await scratchOrgResume(scratchOrgInfoId);
+    const timeout = Duration.milliseconds(3000);
+    const scratchOrgCreateResult = await scratchOrgResume(scratchOrgInfoId, timeout);
     // resume has all the data it originally would have
     expect(scratchOrgCreateResult).to.deep.equal({
       username,
@@ -168,7 +169,8 @@ describe('scratchOrgCreate', () => {
     sandbox.stub(SfProject, 'resolve').resolves({
       resolveProjectConfig: sandbox.stub().resolves({}),
     } as unknown as SfProject);
-    const scratchOrgCreateResult = await scratchOrgResume(scratchOrgInfoId);
+    const timeout = Duration.milliseconds(3000);
+    const scratchOrgCreateResult = await scratchOrgResume(scratchOrgInfoId, timeout);
     // resume has all the data it originally would have
     expect(scratchOrgCreateResult).to.deep.equal({
       username,
