@@ -66,7 +66,6 @@ export const validateScratchOrgInfoForResume = async ({
     logger.debug(`PollingTimeout in minutes: ${timeout.minutes}`);
 
     const options: PollingClient.Options = {
-      // eslint-disable-next-line @typescript-eslint/require-await
       async poll(): Promise<StatusResult> {
         try {
           if (scratchOrgInfo.Status === 'Active' || scratchOrgInfo.Status === 'Error') {
@@ -90,7 +89,7 @@ export const validateScratchOrgInfoForResume = async ({
         }
       },
       frequency: Duration.seconds(1),
-      timeoutErrorName: 'ScratchOrgInfoTimeOutError',
+      timeoutErrorName: 'ScratchOrgResumeTimeOutError',
       timeout,
     };
     const client = await PollingClient.create(options);

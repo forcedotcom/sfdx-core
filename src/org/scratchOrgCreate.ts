@@ -104,7 +104,10 @@ const validateRetry = (retry: number): void => {
   }
 };
 
-export const scratchOrgResume = async (jobId: string, timeout: Duration): Promise<ScratchOrgCreateResult> => {
+export const scratchOrgResume = async (
+  jobId: string,
+  timeout: Duration = Duration.minutes(15)
+): Promise<ScratchOrgCreateResult> => {
   const [logger, cache] = await Promise.all([
     Logger.child('scratchOrgResume'),
     ScratchOrgCache.create(),
