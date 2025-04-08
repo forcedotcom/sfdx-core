@@ -15,6 +15,8 @@ import { PollingClient } from '../status/pollingClient';
 import { ScratchOrgInfo } from './scratchOrgTypes';
 import { ScratchOrgCache } from './scratchOrgCache';
 import { emit } from './scratchOrgLifecycleEvents';
+import { queryScratchOrgInfo } from './scratchOrgInfoApi';
+import { Org } from './org';
 
 const WORKSPACE_CONFIG_FILENAME = 'sfdx-project.json';
 
@@ -68,15 +70,20 @@ export const validateScratchOrgInfoForResume = async ({
     const options: PollingClient.Options = {
       async poll(): Promise<StatusResult> {
         try {
-          if (scratchOrgInfo.Status === 'Active' || scratchOrgInfo.Status === 'Error') {
+          const hubOrg = await Org.create({ aliasOrUsername: hubUsername });
+
+          const resultInProgress = await queryScratchOrgInfo(hubOrg, jobId);
+          logger.debug(`polling client result: ${JSON.stringify(resultInProgress, null, 4)}`);
+
+          if (resultInProgress.Status === 'Active' || resultInProgress.Status === 'Error') {
             return {
               completed: true,
-              payload: scratchOrgInfo as unknown as AnyJson,
+              payload: resultInProgress as unknown as AnyJson,
             };
           }
-          await emit({ stage: 'wait for org', scratchOrgInfo });
+          await emit({ stage: 'wait for org', scratchOrgInfo: resultInProgress });
 
-          logger.debug(`Scratch org status is ${scratchOrgInfo.Status}`);
+          logger.debug(`Scratch org status is ${resultInProgress.Status}`);
           return {
             completed: false,
           };
