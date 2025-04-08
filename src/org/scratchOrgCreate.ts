@@ -137,9 +137,7 @@ export const scratchOrgResume = async (
   }
 
   const hubOrg = await Org.create({ aliasOrUsername: hubUsername });
-  const soi = await queryScratchOrgInfo(hubOrg, jobId);
-
-  await validateScratchOrgInfoForResume({ jobId, scratchOrgInfo: soi, cache, hubUsername, timeout });
+  const soi = await validateScratchOrgInfoForResume({ jobId, hubOrg, cache, hubUsername, timeout });
   // At this point, the scratch org is "good".
 
   // Some hubs have all the usernames set to `null`

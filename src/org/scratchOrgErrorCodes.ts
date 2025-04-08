@@ -42,17 +42,18 @@ const optionalErrorCodeMessage = (errorCode: string, args: string[]): string | u
 
 export const validateScratchOrgInfoForResume = async ({
   jobId,
-  scratchOrgInfo,
+  hubOrg,
   cache,
   hubUsername,
   timeout,
 }: {
   jobId: string;
-  scratchOrgInfo: ScratchOrgInfo;
+  hubOrg: Org;
   cache: ScratchOrgCache;
   hubUsername: string;
   timeout: Duration;
 }): Promise<ScratchOrgInfo> => {
+  const scratchOrgInfo = await queryScratchOrgInfo(hubOrg, jobId);
   if (!scratchOrgInfo?.Id || scratchOrgInfo.Status === 'Deleted') {
     // 1. scratch org info does not exist in that dev hub or has been deleted
     cache.unset(jobId);
@@ -70,8 +71,6 @@ export const validateScratchOrgInfoForResume = async ({
     const options: PollingClient.Options = {
       async poll(): Promise<StatusResult> {
         try {
-          const hubOrg = await Org.create({ aliasOrUsername: hubUsername });
-
           const resultInProgress = await queryScratchOrgInfo(hubOrg, jobId);
           logger.debug(`polling client result: ${JSON.stringify(resultInProgress, null, 4)}`);
 
