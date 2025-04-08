@@ -1,3 +1,12 @@
+# [8.9.0](https://github.com/forcedotcom/sfdx-core/compare/8.8.7...8.9.0) (2025-04-08)
+
+
+### Features
+
+* add polling for `scratchOrgResume`  ([#1177](https://github.com/forcedotcom/sfdx-core/issues/1177)) ([c3c0b80](https://github.com/forcedotcom/sfdx-core/commit/c3c0b80337e3a65c9d82cc729be38211893ed699))
+
+
+
 ## [8.8.7](https://github.com/forcedotcom/sfdx-core/compare/8.8.6...8.8.7) (2025-03-25)
 
 
