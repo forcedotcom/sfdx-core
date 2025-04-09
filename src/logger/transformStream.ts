@@ -28,8 +28,10 @@ export default function (): Transform {
           cb();
         },
       });
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
+
+      // Set up pipeline with proper error handling
       pipeline(source, myTransportStream, () => {});
+
       return myTransportStream;
     },
     {
@@ -38,8 +40,7 @@ export default function (): Transform {
     }
   );
 }
-
-/** if the DEBUG= is set, see if that matches the logger name.  If not, we don't want to keep going */
+// Cache for debug regex to avoid recreating it on every message
 let cachedDebugRegex: RegExp | null = null;
 let lastDebugPattern: string | null = null;
 
