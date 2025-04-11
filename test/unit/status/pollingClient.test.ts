@@ -6,9 +6,7 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-
 import { ensureJsonMap } from '@salesforce/ts-types';
-
 import { Duration, sleep } from '@salesforce/kit';
 import { StatusResult } from '../../../src/status/streamingClient';
 import { PollingClient } from '../../../src/status/pollingClient';
@@ -127,7 +125,7 @@ describe('clientTest', () => {
     }
   });
 
-  it('should toletare network errors', async () => {
+  it('should tolerate network errors', async () => {
     const emitWarning = sandbox.spy();
     sandbox.stub(Lifecycle, 'getInstance').returns({ emitWarning } as unknown as Lifecycle);
     const TEST_VALUE = 'foo';
@@ -156,7 +154,7 @@ describe('clientTest', () => {
     expect(callCount).to.be.equal(9 /* errors */ + 1 /* initial poll */ + 11 /* iterations */);
   });
 
-  it('should keep trying when network errors untill timeout', async () => {
+  it('should keep trying when network errors until timeout', async () => {
     const emitWarning = sandbox.spy();
     sandbox.stub(Lifecycle, 'getInstance').returns({ emitWarning } as unknown as Lifecycle);
     let callCount = 0;
@@ -176,6 +174,28 @@ describe('clientTest', () => {
       const expectedCallCount = 1000 /* timeout */ / 100; /* frequency */
       expect(emitWarning.callCount).to.be.greaterThanOrEqual(expectedCallCount);
       expect(callCount).to.be.greaterThanOrEqual(expectedCallCount);
+    }
+  });
+
+  it('should respect retryLimit option', async () => {
+    let callCount = 0;
+    const options: PollingClient.Options = {
+      async poll() {
+        callCount++;
+        return Promise.resolve({ completed: false });
+      },
+      frequency: Duration.milliseconds(100),
+      timeout: Duration.milliseconds(1000),
+      // should be 10 attempts, limit to 3
+      retryLimit: 3,
+    };
+    const client = await PollingClient.create(options);
+
+    try {
+      await shouldThrow(client.subscribe());
+    } catch (e) {
+      // 1 initial attempt + 3 retries
+      expect(callCount).to.equal(4);
     }
   });
 });

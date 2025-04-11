@@ -81,13 +81,13 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
       }
       throw new Error('Operation did not complete.  Retrying...'); // triggers a retry
     };
-    const finalResult = retryDecorator(doPoll, {
-      timeout: this.options.timeout.milliseconds,
-      delay: this.options.frequency.milliseconds,
-      retries: 'INFINITELY',
-    });
+
     try {
-      return await finalResult();
+      return await retryDecorator(doPoll, {
+        timeout: this.options.timeout.milliseconds,
+        delay: this.options.frequency.milliseconds,
+        retries: this.options.retryLimit ?? 'INFINITELY',
+      })();
     } catch (error) {
       if (errorInPollingFunction) {
         throw errorInPollingFunction;
@@ -124,6 +124,11 @@ export namespace PollingClient {
      * ```
      */
     timeoutErrorName?: string;
+    /**
+     * Maximum number of retries. Use 'INFINITELY' for unlimited retries until timeout is reached.
+     * If not specified, defaults to 'INFINITELY'.
+     */
+    retryLimit?: number | 'INFINITELY';
   };
 
   /**
