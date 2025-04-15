@@ -1,3 +1,12 @@
+## [8.9.1](https://github.com/forcedotcom/sfdx-core/compare/8.9.0...8.9.1) (2025-04-15)
+
+
+### Bug Fixes
+
+* cache regex per debug level ([13c20a7](https://github.com/forcedotcom/sfdx-core/commit/13c20a7f82589c156af436dbd30e39a11b99bcb8))
+
+
+
 # [8.9.0](https://github.com/forcedotcom/sfdx-core/compare/8.8.7...8.9.0) (2025-04-08)
 
 
