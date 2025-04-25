@@ -1,3 +1,12 @@
+# [8.10.0](https://github.com/forcedotcom/sfdx-core/compare/8.9.1...8.10.0) (2025-04-25)
+
+
+### Features
+
+* add retry limit option to polling client ([#1181](https://github.com/forcedotcom/sfdx-core/issues/1181)) ([de51190](https://github.com/forcedotcom/sfdx-core/commit/de51190da6f884faecda7212e454088a84674677))
+
+
+
 ## [8.9.1](https://github.com/forcedotcom/sfdx-core/compare/8.9.0...8.9.1) (2025-04-15)
 
 
