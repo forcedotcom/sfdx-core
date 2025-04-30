@@ -54,6 +54,8 @@ export { SfdcUrl } from './util/sfdcUrl';
 
 export { getJwtAudienceUrl } from './util/getJwtAudienceUrl';
 
+export { generateApiName } from './util/generateApiName';
+
 export { Fields, FieldValue, LoggerLevel, LoggerLevelValue, LogLine, LoggerOptions, Logger } from './logger/logger';
 
 export { Messages, StructuredMessage } from './messages';
