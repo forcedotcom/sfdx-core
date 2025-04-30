@@ -1,3 +1,12 @@
+## [8.10.1](https://github.com/forcedotcom/sfdx-core/compare/8.10.0...8.10.1) (2025-04-30)
+
+
+### Bug Fixes
+
+* add generateApiName method to utils ([d409f4c](https://github.com/forcedotcom/sfdx-core/commit/d409f4c179b529c95bc79afe0345d0465ee21488))
+
+
+
 # [8.10.0](https://github.com/forcedotcom/sfdx-core/compare/8.9.1...8.10.0) (2025-04-25)
 
 
