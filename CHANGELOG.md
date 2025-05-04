@@ -1,3 +1,12 @@
+## [8.10.2](https://github.com/forcedotcom/sfdx-core/compare/8.10.1...8.10.2) (2025-05-04)
+
+
+### Bug Fixes
+
+* **deps:** bump @jsforce/jsforce-node from 3.7.0 to 3.8.1 ([8c0aa9a](https://github.com/forcedotcom/sfdx-core/commit/8c0aa9a1bb409e7792f8d8fb6c989047db3cc675))
+
+
+
 ## [8.10.1](https://github.com/forcedotcom/sfdx-core/compare/8.10.0...8.10.1) (2025-04-30)
 
 
