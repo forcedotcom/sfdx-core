@@ -15,7 +15,7 @@
     "Salesforce CLI"
   ],
   "dependencies": {
-    "@salesforce/core": "^6",
+    "@salesforce/core": "^7.0.0",
     "chalk": "^4",
     "inquirer": "^8",
     "lodash": "^4.17.21",
