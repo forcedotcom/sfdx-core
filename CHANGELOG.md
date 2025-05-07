@@ -1,3 +1,12 @@
+## [8.10.3](https://github.com/forcedotcom/sfdx-core/compare/8.10.2...8.10.3) (2025-05-07)
+
+
+### Bug Fixes
+
+* examples/package.json & examples/yarn.lock to reduce vulnerabilities ([584b91a](https://github.com/forcedotcom/sfdx-core/commit/584b91a74216975e6a11d08151262ae596c17d3a))
+
+
+
 ## [8.10.2](https://github.com/forcedotcom/sfdx-core/compare/8.10.1...8.10.2) (2025-05-04)
 
 
