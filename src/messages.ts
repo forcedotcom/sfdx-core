@@ -494,6 +494,7 @@ export class Messages<T extends string> {
       tokens,
       actionTokens,
     });
+
     return new SfError(message, name, actions, exitCodeOrCause, cause);
   }
 
@@ -590,6 +591,8 @@ export class Messages<T extends string> {
       );
     }
     const messages = ensureArray(msg);
+    let tokenCur = 0; // Keep track of which tokens we've used
+
     return messages.map((message) => {
       const msgStr = ensureString(message);
       // If the message does not contain a specifier, util.format still appends the token to the end.
@@ -599,16 +602,20 @@ export class Messages<T extends string> {
       // https://nodejs.org/api/util.html#utilformatformat-args
       // https://regex101.com/r/8Hf8Z6/1
       const specifierRegex = new RegExp('%[sdifjoO]{1}', 'gm');
-      const specifierFound = specifierRegex.test(msgStr);
+      const specifierFound = msgStr.match(specifierRegex) ?? [];
+      const tokenCount = specifierFound.length;
 
-      if (!specifierFound && tokens.length > 0) {
+      if (tokenCount > 0) {
+        const relevantTokens = tokens.slice(tokenCur, tokenCur + tokenCount);
+        tokenCur += tokenCount;
+        return util.format(msgStr, ...relevantTokens);
+      } else {
         const logger = Logger.childFromRoot('core:messages');
         logger.warn(
           `Unable to render tokens in message. Ensure a specifier (e.g. %s) exists in the message:\n${msgStr}`
         );
       }
-
-      return specifierFound ? util.format(msgStr, ...tokens) : msgStr;
+      return msgStr;
     });
   }
 }
