@@ -11,11 +11,14 @@ import { Duration } from '@salesforce/kit';
 import { retryDecorator } from 'ts-retry-promise';
 import { SfError } from '../sfError';
 import { Logger } from '../logger/logger';
+import { Global } from '../global';
 import { lockOptions, lockRetryOptions } from './lockRetryOptions';
 
 type LockInitResponse = { writeAndUnlock: (data: string) => Promise<void>; unlock: () => Promise<void> };
 type LockInitSyncResponse = { writeAndUnlock: (data: string) => void; unlock: () => void };
 
+export const noop = (): void => {};
+export const asyncNoop = async (): Promise<void> => {};
 /**
  *
  *This method exists as a separate function so it can be used by ConfigFile OR outside of ConfigFile.
@@ -33,7 +36,7 @@ export const lockInit = async (filePath: string): Promise<LockInitResponse> => {
     throw SfError.wrap(err as Error);
   }
 
-  const unlock = await lock(filePath, { ...lockRetryOptions, realpath: false });
+  const unlock = Global.isWeb ? asyncNoop : await lock(filePath, { ...lockRetryOptions, realpath: false });
   return {
     writeAndUnlock: async (data: string): Promise<void> => {
       const logger = await Logger.child('fileLocking.writeAndUnlock');
@@ -60,7 +63,7 @@ export const lockInitSync = (filePath: string): LockInitSyncResponse => {
     throw SfError.wrap(err as Error);
   }
 
-  const unlock = lockSync(filePath, { ...lockOptions, realpath: false });
+  const unlock = Global.isWeb ? noop : lockSync(filePath, { ...lockOptions, realpath: false });
   return {
     writeAndUnlock: (data: string): void => {
       const logger = Logger.childFromRoot('fileLocking.writeAndUnlock');
@@ -82,6 +85,9 @@ export const lockInitSync = (filePath: string): LockInitSyncResponse => {
  */
 export const pollUntilUnlock = async (filePath: string): Promise<void> => {
   try {
+    if (Global.isWeb) {
+      return;
+    }
     await retryDecorator(check, {
       timeout: Duration.minutes(1).milliseconds,
       delay: 10,
@@ -95,6 +101,9 @@ export const pollUntilUnlock = async (filePath: string): Promise<void> => {
 };
 
 export const pollUntilUnlockSync = (filePath: string): void => {
+  if (Global.isWeb) {
+    return;
+  }
   // Set a counter to ensure that the while loop does not run indefinitely
   let counter = 0;
   let locked = true;
