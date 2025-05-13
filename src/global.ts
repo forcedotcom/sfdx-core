@@ -51,6 +51,13 @@ export class Global {
   public static readonly STATE_FOLDER = Global.SFDX_STATE_FOLDER;
 
   /**
+   * Whether the code is running in a web browser.
+   */
+  public static get isWeb(): boolean {
+    // @ts-expect-error - window is not defined in node, that's the point
+    return typeof window !== 'undefined';
+  }
+  /**
    * The full system path to the global sfdx state folder.
    *
    * **See** {@link Global.SFDX_STATE_FOLDER}

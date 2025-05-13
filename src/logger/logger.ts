@@ -7,7 +7,7 @@
 import * as os from 'node:os';
 import * as path from 'node:path';
 
-import { Logger as PinoLogger, pino } from 'pino';
+import { type Logger as PinoLogger, pino } from 'pino';
 import { Env } from '@salesforce/kit';
 import { isKeyOf, isString } from '@salesforce/ts-types';
 import { Global, Mode } from '../global';
@@ -168,8 +168,9 @@ export class Logger {
       const commonOptions = {
         name: options.name ?? Logger.ROOT_NAME,
         base: options.fields ?? {},
-        level,
+        level: Global.isWeb ? 'trace' : level,
         enabled,
+        ...(Global.isWeb ? { browser: { asObject: true } } : {}),
       };
       if (Boolean(options.useMemoryLogger) || Global.getEnvironmentMode() === Mode.TEST || !enabled) {
         this.memoryLogger = new MemoryLogger();
@@ -278,7 +279,7 @@ export class Logger {
    * Gets the name of this logger.
    */
   public getName(): string {
-    return (this.pinoLogger.bindings().name as string) ?? '';
+    return (this.pinoLogger?.bindings ? (this.pinoLogger.bindings().name as string) : '') ?? '';
   }
 
   /**

@@ -7,9 +7,6 @@
 
 import { AnyJson, Dictionary } from '@salesforce/ts-types';
 import { compare } from 'semver';
-// needed for TS to not put everything inside /lib/src
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 import * as pjson from '../package.json';
 import { Logger } from './logger/logger';
 
