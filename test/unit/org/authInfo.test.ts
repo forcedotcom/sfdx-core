@@ -187,6 +187,48 @@ describe('AuthInfo', () => {
         // double check the stringified objects don't have secrets.
         expect(strObj).does.not.include(decryptedRefreshToken);
       });
+
+      it('should return app-specific connection options when app parameter is provided', () => {
+        const app = 'agent-jwt-app';
+        const appConfig = {
+          accessToken: 'app-access-token',
+          clientId: 'app-client-id',
+          clientSecret: 'app-client-secret',
+          refreshToken: 'app-refresh-token',
+          oauthFlow: 'web' as const
+        };
+        
+        // Set up the apps field in auth info
+        authInfo.update({
+          apps: {
+            [app]: appConfig
+          }
+        });
+
+        const fields = authInfo.getConnectionOptions(app);
+        
+        // Verify app-specific connection options
+        expect(fields.oauth2).to.have.property('clientId', 'app-client-id');
+        expect(fields.oauth2).to.have.property('redirectUri');
+        expect(fields.accessToken).to.equal('app-access-token');
+        expect(fields).to.have.property('instanceUrl');
+        expect(fields).to.have.property('refreshFn').and.is.a('function');
+      });
+
+      it('should throw error when app does not exist', () => {
+        const app = 'NonExistentApp';
+        authInfo.update({
+          apps: {
+            'SomeOtherApp': {
+              accessToken: 'token',
+              clientId: 'client',
+              refreshToken: 'refresh',
+              oauthFlow: 'web' as const
+            }
+          }
+        });
+        expect(() => authInfo.getConnectionOptions(app)).to.throw(`${authInfo.getUsername()} does not have a "${app}" app linked yet.`);
+      });
     });
 
     describe('AuthInfo', () => {

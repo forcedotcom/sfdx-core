@@ -14,7 +14,7 @@ import { Socket } from 'node:net';
 import { EventEmitter } from 'node:events';
 import { OAuth2 } from '@jsforce/jsforce-node';
 import { AsyncCreatable, Env, set, toNumber } from '@salesforce/kit';
-import { asString, get, Nullable } from '@salesforce/ts-types';
+import { asString, ensureString, get, Nullable } from '@salesforce/ts-types';
 import { Logger } from './logger/logger';
 import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org/authInfo';
 import { SfError } from './sfError';
@@ -52,10 +52,16 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   private oauth2!: OAuth2;
   private oauthConfig: JwtOAuth2Config;
   private oauthError = new Error('Oauth Error');
+  private app?: string;
+  private username?: string;
 
   public constructor(options: WebOAuthServer.Options) {
     super(options);
     this.oauthConfig = options.oauthConfig;
+    if ('app' in options) {
+      this.app = options.app;
+      this.username = options.username;
+    }
   }
 
   /**
@@ -95,14 +101,45 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
         this.executeOauthRequest()
           .then(async (response) => {
             try {
-              const authInfo = await AuthInfo.create({
-                oauth2Options: this.oauthConfig,
-                oauth2: this.oauth2,
-              });
-              await authInfo.save();
-              await this.webServer.handleSuccess(response);
-              response.end();
-              resolve(authInfo);
+              // Link app to an existing auth file.
+              if (this.app) {
+                const authInfo = await AuthInfo.create({
+                  oauth2Options: this.oauthConfig,
+                  oauth2: this.oauth2,
+                });
+                const authFields = authInfo.getFields(true);
+
+                // get user authInfo and save app creds in `apps`
+                const userAuthInfo = await AuthInfo.create({
+                  username: this.username,
+                });
+
+                userAuthInfo.save({
+                  apps: {
+                    [this.app]: {
+                      clientId: ensureString(authFields.clientId),
+                      clientSecret: authFields.clientSecret,
+                      accessToken: ensureString(authFields.accessToken),
+                      refreshToken: ensureString(authFields.refreshToken),
+                      oauthFlow: 'web',
+                    },
+                  },
+                });
+
+                await this.webServer.handleSuccess(response);
+                response.end();
+                resolve(authInfo);
+              } else {
+                // new auth, create new file.
+                const authInfo = await AuthInfo.create({
+                  oauth2Options: this.oauthConfig,
+                  oauth2: this.oauth2,
+                });
+                await authInfo.save();
+                await this.webServer.handleSuccess(response);
+                response.end();
+                resolve(authInfo);
+              }
             } catch (err) {
               this.oauthError = err as Error;
               await this.webServer.handleError(response);
@@ -276,9 +313,35 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
 }
 
 export namespace WebOAuthServer {
-  export type Options = {
-    oauthConfig: JwtOAuth2Config;
-  };
+  export type Options =
+    | {
+        oauthConfig: JwtOAuth2Config & {
+          /**
+           * OAuth scopes to be requested for the access token.
+           *
+           * This should be a string with each scope separated by spaces:
+           * "refresh_token sfap_api chatbot_api web api"
+           *
+           * If not specified, all scopes assigned to the connected app are requested.
+           */
+          scope?: string
+        };
+      }
+    | {
+        oauthConfig: JwtOAuth2Config & {
+           /**
+           * OAuth scopes to be requested for the access token.
+           *
+           * This should be a string with each scope separated by spaces:
+           * "refresh_token sfap_api chatbot_api web api"
+           *
+           * If not specified, all scopes assigned to the connected app are requested.
+           */
+          scope?: string
+        };
+        app: string;
+        username: string;
+      };
 
   export type Request = http.IncomingMessage & {
     query: { code: string; state: string; error?: string; error_description?: string };

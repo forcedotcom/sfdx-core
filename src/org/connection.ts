@@ -118,7 +118,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       callOptions: {
         client: clientId,
       },
-      ...options.authInfo.getConnectionOptions(),
+      ...options.authInfo.getConnectionOptions(options.app),
       // this assertion is questionable, but has existed before core7
     } as ConnectionConfig<S>;
 
@@ -495,6 +495,10 @@ export namespace Connection {
      * Additional connection parameters.
      */
     connectionOptions?: ConnectionConfig<S>;
+    /**
+     * App to use for auth info credentials.
+     */
+    app?: string;
   };
 }
 
