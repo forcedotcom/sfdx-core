@@ -1,3 +1,17 @@
+# [8.11.0](https://github.com/forcedotcom/sfdx-core/compare/8.10.3...8.11.0) (2025-05-15)
+
+
+### Bug Fixes
+
+* actionTokens print twice ([d3db445](https://github.com/forcedotcom/sfdx-core/commit/d3db445402ea7fd1aaced5589deed1c889c33b9c))
+
+
+### Features
+
+* add test for multiple tokens ([dfa31fa](https://github.com/forcedotcom/sfdx-core/commit/dfa31fad697865ed9abbd82f714fa3e4a276cde3))
+
+
+
 ## [8.10.3](https://github.com/forcedotcom/sfdx-core/compare/8.10.2...8.10.3) (2025-05-07)
 
 
