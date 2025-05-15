@@ -1,37 +1,34 @@
 const fs = require('fs');
-const path = require('path');
 
 // Path to the directories
-const CONSTANTS = require('./constants.json');
-const outputDir = `./${CONSTANTS.outputFilesFolder}`;
-const tmpOutputDir = `./${CONSTANTS.outputFilesTmpFolder}`;
+const { outputFilesFolder, outputFilesTmpFolder, webOutputFilesTmpFolder } = require('./constants.json');
 
 // Function to rename a directory
 function renameBundledFolder() {
-  if (fs.existsSync(tmpOutputDir)) {
-    fs.rename(tmpOutputDir, outputDir, (err) => {
+  if (fs.existsSync(outputFilesTmpFolder)) {
+    fs.rename(outputFilesTmpFolder, outputFilesFolder, (err) => {
       if (err) {
         return console.error(`Error renaming folder: ${err}`);
       }
-      console.log(`Folder renamed from ${tmpOutputDir} to ${outputDir}`);
+      console.log(`Folder renamed from ${outputFilesTmpFolder} to ${outputFilesFolder}`);
     });
   } else {
-    console.error(`${tmpOutputDir} does not exist, cannot rename.`);
+    console.error(`${outputFilesTmpFolder} does not exist, cannot rename.`);
   }
 }
+
+// web was bundled into a temp dir.  copy it to the new lib
+const copyWebBundle = () => {
+  if (!fs.existsSync(webBundleDir)) {
+    throw new Error(`${webBundleDir} does not exist, cannot copy.`);
+  }
+  const browserDir = `${webOutputFilesTmpFolder}/browser`;
+  fs.mkdirSync(browserDir, { recursive: true });
+  fs.cpSync(`${webBundleDir}`, browserDir, { filter: (source) => !source.includes('html') });
+};
 
 // delete the original compiled files
-function deleteOriginalLib() {
-  if (fs.existsSync(outputDir)) {
-    fs.rm(outputDir, { recursive: true, force: true }, (err) => {
-      if (err) {
-        return console.error(`Error deleting folder: ${err}`);
-      }
-      console.log(`${outputDir} is deleted.`);
-      renameBundledFolder();
-    });
-  }
-}
-
-// Start the process
-deleteOriginalLib();
+fs.rmSync(outputFilesFolder, { recursive: true, force: true });
+console.log(`${outputFilesFolder} is deleted.`);
+renameBundledFolder();
+copyWebBundle();

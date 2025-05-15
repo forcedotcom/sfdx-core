@@ -40,16 +40,16 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: yarn
       - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
+      - name: bundle for web
+        run: yarn bundle:web
       - name: Update for Bundling
-        run: |
-          node scripts/updateForBundling.js
+        run: node scripts/updateForBundling.js
       - name: Generate Bundle
         run: |
           yarn build
           node scripts/build.js
       - name: Post Bundling Update
-        run: |
-          node scripts/postBundlingUpdate.js
+        run: node scripts/postBundlingUpdate.js
       - name: Publish a Package
         run: |
           npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN

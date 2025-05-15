@@ -1,4 +1,5 @@
 {
   "outputFilesTmpFolder": "tmp-lib",
-  "outputFilesFolder": "lib"
+  "outputFilesFolder": "lib",
+  "webOutputFilesTmpFolder": "tmp-lib-web"
 }

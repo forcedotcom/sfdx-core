@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<!-- This is a playground/test page.  It's only meant for dev time validation and experiments -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+    <h1>Test browser bundle</h1>
+    <script type="module">
+      const h1 = document.querySelector('h1');
+      h1 && h1.append(` ${new Date().toISOString()}`);
+    </script>
+    <script type="module">
+      import * as lib from 'http://localhost:8080/index.js';
+      console.log('lib:', lib);
+      // check to see if sfError is created properly
+      if (lib.default?.SfError) {
+        const err = new lib.default.SfError('hello from browser');
+        console.log(err);
+      } else {
+        console.log('no sfError found');
+      }
+      if (lib.default?.Logger) {
+        const logger = lib.default.Logger.getRoot();
+        logger.warn('pino running in browser with warning');
+      } else {
+        console.log('no logger found');
+      }
+      if (lib.default?.Global) {
+        console.log('GlobalDir exists:', lib.default.Global.DIR);
+      } else {
+        console.error('no Global found');
+      }
+      if (lib.default?.envVars) {
+        console.log('envVars exists:', lib.default.envVars);
+      } else {
+        console.error('no envVars found');
+      }
+      if (lib.default?.Lifecycle) {
+        const lifecycle = lib.default.Lifecycle.getInstance();
+        lifecycle.on('warning', (message) => {
+          console.log('warning from the lifecycle on:', message);
+        });
+        lifecycle.on('foo', (message) => {
+          console.log('foo from the lifecycle on:', message);
+        });
+        lifecycle.emitWarning('Lifecycle warning');
+        lifecycle.emit('warning', 'Lifecycle warning');
+        lifecycle.emit('foo', 'Lifecycle foo');
+      } else {
+        console.error('no Lifecycle found');
+      }
+      if (lib.default?.ConfigAggregator) {
+        const configAggregator = await lib.default.ConfigAggregator.create();
+        console.log('configAggregator:', configAggregator);
+        console.log('config', configAggregator.getConfigInfo());
+      } else {
+        console.error('no ConfigAggregator found');
+      }
+      if (lib.default?.Connection && lib.default.AuthInfo) {
+        console.log('creating authInfo');
+        const authInfo = await lib.default.AuthInfo.create({
+          accessTokenOptions: {
+            accessToken:
+              '00DRL00000BRXqY!AQEAQCa4W2r_Unzh7WRmbcMLFhLUG1XvwZnVqwKMCXQoY7ZN1DcTVFV5XBo9Sdcp6bnS4mZ20QpHpiBs._zxQZlaRgqwBaFB',
+            instanceUrl: 'https://momentum-enterprise-9913-dev-ed.scratch.my.salesforce.com',
+            loginUrl: 'https://momentum-enterprise-9913-dev-ed.scratch.my.salesforce.com',
+          },
+        });
+        await authInfo.save();
+        console.log('authInfo:', authInfo);
+        const conn = await lib.default.Connection.create({
+          authInfo,
+        });
+        console.log('conn:', await conn.query('SELECT Id,Name FROM user LIMIT 1'));
+      } else {
+        console.error('no Connection or AuthInfo found');
+      }
+      if (lib.default?.StateAggregator) {
+        const stateAggregator = await lib.default.StateAggregator.getInstance();
+        console.log('stateAggregator:', stateAggregator.orgs);
+      } else {
+        console.error('no StateAggregator found');
+      }
+    </script>
+  </body>
+</html>

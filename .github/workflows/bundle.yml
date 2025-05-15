@@ -25,12 +25,11 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: yarn
       - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
+      - name: bundle for web
+        run: yarn bundle:web
       - name: Update for Bundling
-        run: |
-          node scripts/updateForBundling.js
+        run: node scripts/updateForBundling.js
       - name: Generate Bundle and Check if there is any dependency that needs to be externalized and is not in the whitelist.
-        run: |
-          node scripts/bundleWithCheck.js
+        run: node scripts/bundleWithCheck.js
       - name: Post Bundling Update
-        run: |
-          node scripts/postBundlingUpdate.js
+        run: node scripts/postBundlingUpdate.js
