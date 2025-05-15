@@ -19,7 +19,6 @@ import { AuthFields } from '../../org/authInfo';
 import { ConfigContents } from '../../config/configStackTypes';
 import { SfError } from '../../sfError';
 import { lockRetryOptions } from '../../util/lockRetryOptions';
-import { Logger } from '../../logger/logger';
 
 export type Aliasable = string | Partial<AuthFields>;
 export const DEFAULT_GROUP = 'orgs';
@@ -165,20 +164,14 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    * if the file doesn't exist, create it empty
    */
   private async readFileToAliasStore(useLock = false): Promise<void> {
-    const logger = Logger.childFromRoot('AliasAccessor.readFileToAliasStore');
-    logger.debug(`Creating a lock for ${this.fileLocation}`);
-
     await mkdir(dirname(this.fileLocation), { recursive: true });
-    logger.debug(`Directory exists: ${fs.existsSync(dirname(this.fileLocation))}`);
     if (useLock) {
       await lock(this.fileLocation, lockRetryOptions);
     }
     try {
       this.aliasStore = fileContentsRawToAliasStore(await readFile(this.fileLocation, 'utf-8'));
     } catch (e) {
-      logger.error(e);
       if (e instanceof Error && 'code' in e && typeof e.code === 'string' && ['ENOENT', 'ENOTDIR'].includes(e.code)) {
-        logger.debug('File does not exist, creating it');
         this.aliasStore = new Map<string, string>();
         return this.saveAliasStoreToFile();
       }
