@@ -23,6 +23,7 @@ describe('Messages', () => {
     msg1: 'test message 1',
     msg2: 'test message 2 %s and %s',
     manyMsgs: ['hello', 'world', 'test message 2 %s and %s'],
+    action1: ['test action1 %s and %s', 'test action2 %s and %s'],
   };
 
   const msgMap = new Map();
@@ -32,6 +33,7 @@ describe('Messages', () => {
   msgMap.set('msg3', structuredClone(testMessages));
   msgMap.get('msg3').msg3 = structuredClone(testMessages);
   msgMap.set('manyMsgs', testMessages.manyMsgs);
+  msgMap.set('action1', testMessages.action1);
 
   describe('getMessage', () => {
     const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
@@ -344,6 +346,24 @@ describe('Messages', () => {
       } else {
         throw new Error('error.actions should not be undefined');
       }
+    });
+
+    it('should handle error messages with multiple tokens in actions', () => {
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+
+      expect(messages.getMessages('action1', ['token1', 'token2', 'token3', 'token4'])).to.deep.equal([
+        'test action1 token1 and token2',
+        'test action2 token3 and token4',
+      ]);
+    });
+
+    it('should not repeat tokens in error messages', () => {
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+      const error = messages.createError('msg2', ['token1', 'token2']);
+
+      expect(error.message).to.equal('test message 2 token1 and token2');
+      expect(error.message).to.not.include('token1 token1');
+      expect(error.message).to.not.include('token2 token2');
     });
 
     it('creates error with removed error prefix', () => {
