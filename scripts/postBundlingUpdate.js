@@ -6,12 +6,8 @@ const { outputFilesFolder, outputFilesTmpFolder, webOutputFilesTmpFolder } = req
 // Function to rename a directory
 function renameBundledFolder() {
   if (fs.existsSync(outputFilesTmpFolder)) {
-    fs.rename(outputFilesTmpFolder, outputFilesFolder, (err) => {
-      if (err) {
-        return console.error(`Error renaming folder: ${err}`);
-      }
-      console.log(`Folder renamed from ${outputFilesTmpFolder} to ${outputFilesFolder}`);
-    });
+    fs.renameSync(outputFilesTmpFolder, outputFilesFolder);
+    console.log(`Folder renamed from ${outputFilesTmpFolder} to ${outputFilesFolder}`);
   } else {
     console.error(`${outputFilesTmpFolder} does not exist, cannot rename.`);
   }
@@ -22,10 +18,13 @@ const copyWebBundle = () => {
   if (!fs.existsSync(webOutputFilesTmpFolder)) {
     throw new Error(`${webOutputFilesTmpFolder} does not exist, cannot copy.`);
   }
-  const browserDir = `${outputFilesFolder}/browser`;
+  const browserDir = `${outputFilesTmpFolder}/browser`;
 
   fs.mkdirSync(browserDir, { recursive: true });
-  fs.cpSync(`${webOutputFilesTmpFolder}`, browserDir, { filter: (source) => !source.includes('html') });
+  fs.cpSync(`${webOutputFilesTmpFolder}`, browserDir, {
+    filter: (source) => !source.includes('html'),
+    recursive: true,
+  });
 };
 
 // delete the original compiled files
