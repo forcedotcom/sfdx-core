@@ -14,7 +14,7 @@ import { Logger } from '../logger/logger';
 import { Global } from '../global';
 import { lockOptions, lockRetryOptions } from './lockRetryOptions';
 
-type LockInitResponse = { writeAndUnlock: (data: string) => Promise<void>; unlock: () => Promise<void> };
+export type LockInitResponse = { writeAndUnlock: (data: string) => Promise<void>; unlock: () => Promise<void> };
 type LockInitSyncResponse = { writeAndUnlock: (data: string) => void; unlock: () => void };
 
 export const noop = (): void => {};
@@ -36,7 +36,7 @@ export const lockInit = async (filePath: string): Promise<LockInitResponse> => {
     throw SfError.wrap(err as Error);
   }
 
-  const unlock = Global.isWeb ? asyncNoop : await lock(filePath, { ...lockRetryOptions, realpath: false });
+  const unlock = Global.isWeb ? asyncNoop : await lock(filePath, { ...lockRetryOptions, realpath: false, fs });
   return {
     writeAndUnlock: async (data: string): Promise<void> => {
       const logger = await Logger.child('fileLocking.writeAndUnlock');
@@ -63,7 +63,7 @@ export const lockInitSync = (filePath: string): LockInitSyncResponse => {
     throw SfError.wrap(err as Error);
   }
 
-  const unlock = Global.isWeb ? noop : lockSync(filePath, { ...lockOptions, realpath: false });
+  const unlock = Global.isWeb ? noop : lockSync(filePath, { ...lockOptions, realpath: false, fs });
   return {
     writeAndUnlock: (data: string): void => {
       const logger = Logger.childFromRoot('fileLocking.writeAndUnlock');
@@ -84,10 +84,10 @@ export const lockInitSync = (filePath: string): LockInitSyncResponse => {
  * @param filePath file path to check
  */
 export const pollUntilUnlock = async (filePath: string): Promise<void> => {
+  if (Global.isWeb) {
+    return;
+  }
   try {
-    if (Global.isWeb) {
-      return;
-    }
     await retryDecorator(check, {
       timeout: Duration.minutes(1).milliseconds,
       delay: 10,
