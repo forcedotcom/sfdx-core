@@ -49,33 +49,31 @@ jobs:
           yarn remove @salesforce/core
           yarn add forcedotcom/sfdx-core#${{ inputs.bundledBranch }}
       - name: Add dependencies to bundle node_modules
-        run: |
-          yarn install  --network-timeout 600000
+        run: yarn install  --network-timeout 600000
+        working-directory: node_modules/@salesforce/core
+      - name: build
+        run: yarn build
+        working-directory: node_modules/@salesforce/core
+      - name: bundle for web
+        run: yarn bundle:web
         working-directory: node_modules/@salesforce/core
       - name: Update for bundling
         run: node scripts/updateForBundling.js
         working-directory: node_modules/@salesforce/core
       - name: Generate Bundle
-        run: |
-          yarn build
-          node scripts/build.js
+        run: node scripts/build.js
         working-directory: node_modules/@salesforce/core
       - name: Post Bundling Update
-        run: |
-          node scripts/postBundlingUpdate.js
+        run: node scripts/postBundlingUpdate.js
         working-directory: node_modules/@salesforce/core
       - name: Yarn deduplicate
-        run: |
-          npx yarn-deduplicate
+        run: npx yarn-deduplicate
       - name: Retrieve Scripts
-        run: |
-          git clone https://github.com/forcedotcom/bundle-publish-scripts.git
+        run: git clone https://github.com/forcedotcom/bundle-publish-scripts.git
       - name: Update references for core bundle
-        run: |
-          node bundle-publish-scripts/scripts/updateForCoreBundle.js
+        run: node bundle-publish-scripts/scripts/updateForCoreBundle.js
       - name: Update folder name
-        run: |
-          mv core core-bundle
+        run: mv core core-bundle
         working-directory: node_modules/@salesforce
       - name: Build the external project (where the tests are)
         run: yarn build
