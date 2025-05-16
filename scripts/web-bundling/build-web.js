@@ -9,7 +9,7 @@ const { build } = require('esbuild');
 const esbuildPluginTsc = require('esbuild-plugin-tsc');
 const { Generator } = require('npm-dts');
 const fs = require('fs');
-const { outputFilesFolder, webOutputFilesTmpFolder } = require('../constants.json');
+const { outputFilesFolder, webOutputFilesTmpFolder } = require('../constants');
 
 fs.mkdirSync(webOutputFilesTmpFolder, { recursive: true });
 new Generator({

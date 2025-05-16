@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 // Path to the directories
-const { outputFilesFolder, outputFilesTmpFolder, webOutputFilesTmpFolder } = require('./constants.json');
+const { outputFilesFolder, outputFilesTmpFolder, webOutputFilesTmpFolder } = require('./constants');
 
 // Function to rename a directory
 function renameBundledFolder() {
