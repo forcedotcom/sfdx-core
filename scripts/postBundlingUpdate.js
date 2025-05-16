@@ -19,12 +19,13 @@ function renameBundledFolder() {
 
 // web was bundled into a temp dir.  copy it to the new lib
 const copyWebBundle = () => {
-  if (!fs.existsSync(webBundleDir)) {
-    throw new Error(`${webBundleDir} does not exist, cannot copy.`);
+  if (!fs.existsSync(webOutputFilesTmpFolder)) {
+    throw new Error(`${webOutputFilesTmpFolder} does not exist, cannot copy.`);
   }
-  const browserDir = `${webOutputFilesTmpFolder}/browser`;
+  const browserDir = `${outputFilesFolder}/browser`;
+
   fs.mkdirSync(browserDir, { recursive: true });
-  fs.cpSync(`${webBundleDir}`, browserDir, { filter: (source) => !source.includes('html') });
+  fs.cpSync(`${webOutputFilesTmpFolder}`, browserDir, { filter: (source) => !source.includes('html') });
 };
 
 // delete the original compiled files
