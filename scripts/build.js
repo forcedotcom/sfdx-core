@@ -9,9 +9,9 @@ const esbuildPluginPino = require('esbuild-plugin-pino');
 const esbuildPluginTsc = require('esbuild-plugin-tsc');
 const { Generator } = require('npm-dts');
 const fs = require('fs');
-const CONSTANTS = require('./constants.json');
-const outputFolder = CONSTANTS.outputFilesFolder;
-const tmpOutputFolder = CONSTANTS.outputFilesTmpFolder;
+const { outputFilesFolder, outputFilesTmpFolder } = require('./constants');
+const outputFolder = outputFilesFolder;
+const tmpOutputFolder = outputFilesTmpFolder;
 
 new Generator({
   output: `${tmpOutputFolder}/index.d.ts`,

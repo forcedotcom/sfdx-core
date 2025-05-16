@@ -19,6 +19,9 @@ function updatePackageJson() {
         packageJson.name = '@salesforce/core-bundle';
       }
 
+      packageJson.browser = 'lib/browser';
+      packageJson.main = 'lib/index.js';
+
       // Remove 'prepack' and 'prepare' scripts because publishing bundle does not need the actions
       if (packageJson.scripts) {
         delete packageJson.scripts.prepack;

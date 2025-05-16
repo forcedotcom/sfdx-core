@@ -41,3 +41,7 @@ node_modules
 /Library
 
 .vscode/settings.json
+
+# bundling outputs
+tmp-lib
+tmp-lib-web

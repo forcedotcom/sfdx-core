@@ -267,9 +267,7 @@ describe('util/sfdcUrl', () => {
 
   describe('getJwtAudienceUrl', () => {
     const env = new Env();
-    before(() => {
-      // $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves(TEST_CNAMES);
-    });
+    before(() => {});
 
     afterEach(() => {
       env.unset('SFDX_AUDIENCE_URL');
@@ -277,14 +275,12 @@ describe('util/sfdcUrl', () => {
     });
 
     it('should use the correct audience URL for createdOrgInstance beginning with "gs1"', async () => {
-      $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves([]);
       const url = new SfdcUrl('https://foo.bar.baz');
       const response = await url.getJwtAudienceUrl('gs1');
       expect(response).to.be.equal('https://gs1.salesforce.com');
     });
 
     it('should return production URL if domain cannot be resolved', async () => {
-      $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves([]);
       const url = new SfdcUrl('https://foo.bar.baz');
       const response = await url.getJwtAudienceUrl();
       expect(response).to.be.equal('https://login.salesforce.com');
