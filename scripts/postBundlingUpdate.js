@@ -30,5 +30,5 @@ const copyWebBundle = () => {
 // delete the original compiled files
 fs.rmSync(outputFilesFolder, { recursive: true, force: true });
 console.log(`${outputFilesFolder} is deleted.`);
-renameBundledFolder();
 copyWebBundle();
+renameBundledFolder();
