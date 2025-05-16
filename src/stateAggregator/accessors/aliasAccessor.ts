@@ -174,7 +174,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
         await mkdir(dirname(this.fileLocation), { recursive: true });
         this.aliasStore = new Map<string, string>();
         await writeFile(this.fileLocation, aliasStoreToRawFileContents(this.aliasStore));
-        if (lockResponse) return await lockResponse.unlock();
+        return lockResponse ? await lockResponse.unlock() : undefined;
       }
       if (lockResponse) {
         await lockResponse.unlock();
