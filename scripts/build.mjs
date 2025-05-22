@@ -8,62 +8,52 @@ import { build } from 'esbuild';
 import esbuildPluginPino from 'esbuild-plugin-pino';
 import textReplace from 'esbuild-plugin-text-replace';
 import fs from 'node:fs';
+import path from 'node:path';
 
 const distDir = 'dist/node';
 
 // backup the original package.json because it will be modified
 fs.copyFileSync('./package.json', `./package.json.BAK`);
 
-(async () => {
-  const result = await build({
-    entryPoints: [`lib/index.js`],
-    bundle: true,
-    // minify: true,
-    plugins: [
-      esbuildPluginPino({ transports: ['pino-pretty'] }),
-      textReplace(
-        {
-          include: /lib\/logger\/logger/,
-          pattern: [["path.join('..', '..', 'lib', 'logger', 'transformStream')", "'./transformStream'"]],
-        },
-        {
-          include: /lib\/*/,
-          pattern: [["Messages('@salesforce/core')", "Messages('@salesforce/core-bundle')"]],
-        }
-      ),
-    ],
-    platform: 'node',
-    supported: {
-      'dynamic-import': false,
-    },
-    logOverride: {
-      'unsupported-dynamic-import': 'error',
-    },
-    outdir: distDir,
-  });
-  // const filePath = `${distDir}/index.js`;
-  // let bundledEntryPoint = fs.readFileSync(filePath, 'utf8');
+const projectRoot = path.resolve(import.meta.dirname, '../..');
+const entryFile = path.join(projectRoot, 'lib/index.js');
+const transformStreamFile = path.join(projectRoot, 'lib/logger/transformStream.js');
 
-  // // There is a wrong reference after bundling due to a bug from esbuild-plugin-pino. We will replace it with the correct one.
-  // const searchString = /\$\{process\.cwd\(\)\}\$\{require\("path"\)\.sep\}distDir/g;
-  // const replacementString = `\${__dirname}\${require("path").sep}`;
+const result = await build({
+  entryPoints: [entryFile],
+  bundle: true,
+  // minify: true,
+  plugins: [
+    esbuildPluginPino({ transports: ['pino-pretty'] }),
+    textReplace(
+      {
+        include: /lib\/logger\/logger/,
+        pattern: [["path.join('..', '..', 'lib', 'logger', 'transformStream')", "'./transformStream'"]],
+      },
+      {
+        include: /lib\/*/,
+        pattern: [["Messages('@salesforce/core')", "Messages('@salesforce/core-bundle')"]],
+      }
+    ),
+  ],
+  platform: 'node',
+  supported: {
+    'dynamic-import': false,
+  },
+  logOverride: {
+    'unsupported-dynamic-import': 'error',
+  },
+  outdir: distDir,
+});
 
-  // if (!searchString.test(bundledEntryPoint)) {
-  //   console.error('Error: the reference to be modified is not detected - Please reach out to IDEx Foundations team.');
-  //   process.exit(1); // Exit with an error code
-  // }
-  // bundledEntryPoint = bundledEntryPoint.replace(searchString, replacementString);
-  // fs.writeFileSync(filePath, bundledEntryPoint, 'utf8');
-
-  await build({
-    entryPoints: [`lib/logger/transformStream.js`],
-    bundle: true,
-    minify: true,
-    outdir: distDir,
-    platform: 'node',
-    plugins: [],
-  });
-})();
+await build({
+  entryPoints: [transformStreamFile],
+  bundle: true,
+  minify: true,
+  outdir: distDir,
+  platform: 'node',
+  plugins: [],
+});
 
 if (fs.existsSync('./package.json.BAK')) {
   // restore the pjs
