@@ -31,7 +31,6 @@
     "clean": "sf-clean",
     "clean-all": "sf-clean all",
     "compile": "wireit",
-    "copy:html": "wireit",
     "docs": "sf-docs",
     "format": "wireit",
     "link-check": "wireit",
@@ -111,7 +110,7 @@
   },
   "wireit": {
     "serve:web": {
-      "command": "npx serve tmp-lib-web -l 8080",
+      "command": "npx serve ./dist/browser -l 8080",
       "service": {
         "readyWhen": {
           "lineMatches": "Accepting connections"
@@ -123,12 +122,12 @@
       ]
     },
     "copy:html": {
-      "command": "cp scripts/web-bundling/web.html tmp-lib-web/index.html",
+      "command": "cp scripts/web-bundling/web.html dist/browser/index.html",
       "files": [
         "scripts/web-bundling/web.html"
       ],
       "output": [
-        "tmp-lib-web/index.html"
+        "dist/browser/index.html"
       ],
       "dependsOn": [
         "bundle:web"
