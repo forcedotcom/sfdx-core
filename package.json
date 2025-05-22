@@ -167,12 +167,12 @@
     "bundle:web": {
       "command": "node scripts/web-bundling/build-web.mjs",
       "files": [
-        "scripts/web-bundling/**",
+        "scripts/**",
         "lib/**",
         "package.json"
       ],
       "output": [
-        "dist/node/index.js"
+        "dist/browser/index.js"
       ],
       "dependsOn": [
         "compile"
