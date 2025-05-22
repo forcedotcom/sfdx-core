@@ -4,19 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-const { polyfillNode } = require('esbuild-plugin-polyfill-node');
-const { build } = require('esbuild');
-const textReplace = require('esbuild-plugin-text-replace');
-
-const { Generator } = require('npm-dts');
-const fs = require('fs');
+import { polyfillNode } from 'esbuild-plugin-polyfill-node';
+import { build } from 'esbuild';
+import textReplace from 'esbuild-plugin-text-replace';
+import fs from 'node:fs';
 
 const distDir = 'dist/browser';
 fs.mkdirSync(distDir, { recursive: true });
-new Generator({
-  entry: 'lib/index-web.js',
-  output: `${distDir}/index.d.ts`,
-}).generate();
+
+// backup the original package.json because it will be modified
+fs.cpSync('./package.json', `./package.json.BAK`);
 
 (async () => {
   const result = await build(
@@ -94,3 +91,7 @@ new Generator({
   );
   console.log(result);
 })();
+
+// restore the pjs
+fs.copyFileSync('./package.json.BAK', './package.json');
+fs.unlinkSync('./package.json.BAK');

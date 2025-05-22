@@ -91,13 +91,10 @@
     "esbuild-plugin-pino": "^2.2.0",
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "esbuild-plugin-text-replace": "^1.3.0",
-    "esbuild-plugin-tsc": "^0.4.0",
     "jsforce": "^3.8.1",
     "jsonwebtoken-esm": "^2.0.1",
     "memfs": "^4.17.1",
-    "npm-dts": "1.3.12",
     "stream-browserify": "^3.0.0",
-    "ts-morph": "^23.0.0",
     "ts-node": "^10.9.2",
     "ts-patch": "^3.2.1",
     "typescript": "^5.5.4"
@@ -144,7 +141,7 @@
       ]
     },
     "bundle:node": {
-      "command": "node scripts/build2.js",
+      "command": "node scripts/build.mjs",
       "files": [
         "scripts/**",
         "lib/**",
@@ -157,8 +154,18 @@
         "compile"
       ]
     },
+    "bundle:types": {
+      "command": "npx dts-bundle-generator -o dist/node/index.d.ts src/index.ts",
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json"
+      ],
+      "output": [
+        "dist/node/index.d.ts"
+      ]
+    },
     "bundle:web": {
-      "command": "node scripts/web-bundling/build-web.js",
+      "command": "node scripts/web-bundling/build-web.mjs",
       "files": [
         "scripts/web-bundling/**",
         "lib/**",
@@ -168,7 +175,8 @@
         "dist/node/index.js"
       ],
       "dependsOn": [
-        "compile"
+        "compile",
+        "bundle:node"
       ]
     },
     "build": {

@@ -4,17 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-const { build } = require('esbuild');
-const esbuildPluginPino = require('esbuild-plugin-pino');
-const textReplace = require('esbuild-plugin-text-replace');
-const { Generator } = require('npm-dts');
+import { build } from 'esbuild';
+import esbuildPluginPino from 'esbuild-plugin-pino';
+import textReplace from 'esbuild-plugin-text-replace';
+import fs from 'node:fs';
 
 const distDir = 'dist/node';
 
-new Generator({
-  entry: 'lib/index.js',
-  output: `${distDir}/index.d.ts`,
-}).generate();
+// backup the original package.json because it will be modified
+fs.copyFileSync('./package.json', `./package.json.BAK`);
 
 (async () => {
   const result = await build({
@@ -66,3 +64,7 @@ new Generator({
     plugins: [],
   });
 })();
+
+// restore the pjs
+fs.copyFileSync('./package.json.BAK', './package.json');
+fs.unlinkSync('./package.json.BAK');

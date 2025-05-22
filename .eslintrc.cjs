@@ -11,4 +11,5 @@
 module.exports = {
   extends: ['eslint-config-salesforce-typescript', 'eslint-config-salesforce-license'],
   root: true,
+  ignorePatterns: ['dist/**/*', 'scripts/**/*'],
 };
