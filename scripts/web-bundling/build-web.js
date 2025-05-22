@@ -6,19 +6,18 @@
  */
 const { polyfillNode } = require('esbuild-plugin-polyfill-node');
 const { build } = require('esbuild');
-const esbuildPluginTsc = require('esbuild-plugin-tsc');
 const { Generator } = require('npm-dts');
 const fs = require('fs');
-const { outputFilesFolder, webOutputFilesTmpFolder } = require('../constants');
 
-fs.mkdirSync(webOutputFilesTmpFolder, { recursive: true });
+const distDir = 'dist/browser';
+fs.mkdirSync(distDir, { recursive: true });
 new Generator({
-  output: `${webOutputFilesTmpFolder}/index.d.ts`,
+  output: `${distDir}/index.d.ts`,
 }).generate();
 
 (async () => {
   const result = await build({
-    entryPoints: [`${outputFilesFolder}/index-web.js`],
+    entryPoints: [`lib/index-web.js`],
     bundle: true,
     // minify: true,
     alias: {
@@ -30,9 +29,6 @@ new Generator({
     },
 
     plugins: [
-      esbuildPluginTsc({
-        tsconfigPath: './tsconfig.json',
-      }),
       polyfillNode({
         globals: {
           global: true,
@@ -78,7 +74,7 @@ new Generator({
     logOverride: {
       'unsupported-dynamic-import': 'error',
     },
-    outfile: `${webOutputFilesTmpFolder}/index.js`,
+    outfile: `${distDir}/index.js`,
     target: 'es2022',
   });
   console.log(result);

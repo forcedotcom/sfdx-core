@@ -1821,7 +1821,7 @@ core-js-pure@^3.30.2:
   resolved "https://registry.yarnpkg.com/core-js-pure/-/core-js-pure-3.42.0.tgz#e86c45a7f3bdcb608823e872f73d1ad9ddf0531d"
   integrity sha512-007bM04u91fF4kMgwom2I5cQxAFIy8jVulgr9eozILl/SZE53QOqnW/+vviC+wQWLv+AunBG+8Q0TLoeSsSxRQ==
 
-core-js@^3.33.0:
+core-js@^3.33.0, core-js@^3.4.1:
   version "3.42.0"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.42.0.tgz#edbe91f78ac8cfb6df8d997e74d368a68082fe37"
   integrity sha512-Sz4PP4ZA+Rq4II21qkNqOEDTDrCvcANId3xpIgB34NDkWc3UduWj2dqEtN9yZIq8Dk3HyPI33x9sqqU5C8sr0g==
@@ -2245,6 +2245,13 @@ esbuild-plugin-polyfill-node@^0.3.0:
   dependencies:
     "@jspm/core" "^2.0.1"
     import-meta-resolve "^3.0.0"
+
+esbuild-plugin-text-replace@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/esbuild-plugin-text-replace/-/esbuild-plugin-text-replace-1.3.0.tgz#708ac7374a2cfd09bc8b21017705f0070a530802"
+  integrity sha512-RWB/bbdP0xDHBOtA0st4CAE6UZtky76aCB7Shw5r350JY403lfvrj2UMkInUB346tMtFWXKWXNf4gqNM+WbXag==
+  dependencies:
+    ts-replace-all "^1.0.0"
 
 esbuild-plugin-tsc@^0.4.0:
   version "0.4.0"
@@ -5695,6 +5702,13 @@ ts-patch@^3.2.1:
     resolve "^1.22.2"
     semver "^7.5.4"
     strip-ansi "^6.0.1"
+
+ts-replace-all@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/ts-replace-all/-/ts-replace-all-1.0.0.tgz#ef28283ccdb4da7d69fb03cf543e09e51711659b"
+  integrity sha512-6uBtdkw3jHXkPtx/e9xB/5vcngMm17CyJYsS2YZeQ+9FdRnt6Ev5g931Sg2p+dxbtMGoCm13m3ax/obicTZIkQ==
+  dependencies:
+    core-js "^3.4.1"
 
 ts-retry-promise@^0.8.1:
   version "0.8.1"

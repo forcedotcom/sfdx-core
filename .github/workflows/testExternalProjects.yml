@@ -51,17 +51,9 @@ jobs:
       - name: Add dependencies to bundle node_modules
         run: yarn install  --network-timeout 600000
         working-directory: node_modules/@salesforce/core
-      - name: build
-        run: yarn build
-        working-directory: node_modules/@salesforce/core
-      - name: bundle for web
-        run: yarn bundle:web
-        working-directory: node_modules/@salesforce/core
-      - name: Update for bundling
-        run: node scripts/updateForBundling.js
-        working-directory: node_modules/@salesforce/core
-      - name: Generate Bundle
-        run: node scripts/build.js
+
+      - name: bundle
+        run: yarn bundle
         working-directory: node_modules/@salesforce/core
       - name: Post Bundling Update
         run: node scripts/postBundlingUpdate.js
