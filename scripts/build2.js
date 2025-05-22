@@ -12,6 +12,7 @@ const { Generator } = require('npm-dts');
 const distDir = 'dist/node';
 
 new Generator({
+  entry: 'lib/index.js',
   output: `${distDir}/index.d.ts`,
 }).generate();
 
@@ -22,10 +23,16 @@ new Generator({
     // minify: true,
     plugins: [
       esbuildPluginPino({ transports: ['pino-pretty'] }),
-      textReplace({
-        include: /lib\/logger\/logger/,
-        pattern: [["path.join('..', '..', 'lib', 'logger', 'transformStream')", "'./transformStream'"]],
-      }),
+      textReplace(
+        {
+          include: /lib\/logger\/logger/,
+          pattern: [["path.join('..', '..', 'lib', 'logger', 'transformStream')", "'./transformStream'"]],
+        },
+        {
+          include: /lib\/*/,
+          pattern: [["Messages('@salesforce/core')", "Messages('@salesforce/core-bundle')"]],
+        }
+      ),
     ],
     platform: 'node',
     supported: {

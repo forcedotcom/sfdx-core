@@ -52,11 +52,11 @@ jobs:
         run: yarn install  --network-timeout 600000
         working-directory: node_modules/@salesforce/core
 
+      - name: Post Bundling Update
+        run: node scripts/updatePackageJson.js
+        working-directory: node_modules/@salesforce/core
       - name: bundle
         run: yarn bundle
-        working-directory: node_modules/@salesforce/core
-      - name: Post Bundling Update
-        run: node scripts/postBundlingUpdate.js
         working-directory: node_modules/@salesforce/core
       - name: Yarn deduplicate
         run: npx yarn-deduplicate
