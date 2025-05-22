@@ -20,6 +20,8 @@ function updatePackageJson() {
 
       packageJson.browser = 'dist/browser/index.js';
       packageJson.main = 'dist/index.js';
+      packageJson.types = 'dist/node/index.d.ts';
+      packageJson.files = ['dist'];
 
       // Remove 'prepack' and 'prepare' scripts because publishing bundle does not need the actions
       if (packageJson.scripts) {
