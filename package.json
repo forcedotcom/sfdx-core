@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "8.11.0",
+  "version": "8.11.1",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/index",
   "types": "lib/index.d.ts",
@@ -58,7 +58,7 @@
     "messageTransformer/messageTransformer.ts"
   ],
   "dependencies": {
-    "@jsforce/jsforce-node": "^3.8.1",
+    "@jsforce/jsforce-node": "^3.8.2",
     "@salesforce/kit": "^3.2.2",
     "@salesforce/schemas": "^1.9.0",
     "@salesforce/ts-types": "^2.0.10",
