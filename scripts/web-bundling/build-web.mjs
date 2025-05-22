@@ -92,6 +92,8 @@ fs.cpSync('./package.json', `./package.json.BAK`);
   console.log(result);
 })();
 
-// restore the pjs
-fs.copyFileSync('./package.json.BAK', './package.json');
-fs.unlinkSync('./package.json.BAK');
+if (fs.existsSync('./package.json.BAK')) {
+  // restore the pjs
+  fs.copyFileSync('./package.json.BAK', './package.json');
+  fs.unlinkSync('./package.json.BAK');
+}

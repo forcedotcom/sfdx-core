@@ -137,7 +137,8 @@
     "bundle": {
       "dependencies": [
         "bundle:node",
-        "bundle:web"
+        "bundle:web",
+        "bundle:types"
       ]
     },
     "bundle:node": {
@@ -175,8 +176,7 @@
         "dist/node/index.js"
       ],
       "dependsOn": [
-        "compile",
-        "bundle:node"
+        "compile"
       ]
     },
     "build": {
