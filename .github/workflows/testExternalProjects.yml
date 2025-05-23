@@ -53,7 +53,9 @@ jobs:
         working-directory: node_modules/@salesforce/core
 
       - name: bundle
-        run: yarn bundle
+        run: |
+          yarn build
+          yarn bundle
         working-directory: node_modules/@salesforce/core
       - name: Yarn deduplicate
         run: npx yarn-deduplicate
