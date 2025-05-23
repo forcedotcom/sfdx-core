@@ -330,7 +330,9 @@ export default class SettingsGenerator {
         .map((failure) => `[${failure.problemType}] ${failure.fullName} : ${failure.problem} `)
         .join('\n');
       throw SfError.create({
-        message: `A scratch org was created with username ${username}, but the settings failed to deploy due to: \n${failures}`,
+        message: `A scratch org was created with username ${
+          username ?? '<undefined>'
+        }, but the settings failed to deploy due to: \n${failures}`,
         name: 'ProblemDeployingSettings',
         data: { ...result, username },
       });

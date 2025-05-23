@@ -183,7 +183,7 @@ export const getAncestorIds = async (
       if (packageDir.ancestorId && packageAliases?.[packageDir.ancestorId]) {
         return packageAliases[packageDir.ancestorId];
       }
-      throw new SfError(`Invalid ancestorId ${packageDir.ancestorId}`, 'InvalidAncestorId');
+      throw new SfError(`Invalid ancestorId ${packageDir.ancestorId ?? '<undefined>'}`, 'InvalidAncestorId');
     })
   );
 

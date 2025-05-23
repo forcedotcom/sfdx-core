@@ -7,7 +7,7 @@
 
 import { URL } from 'node:url';
 import { Duration } from '@salesforce/kit';
-import { ensureNumber, ensureArray } from '@salesforce/ts-types';
+import { ensureNumber, ensureArray, ensureString } from '@salesforce/ts-types';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { Logger } from '../logger/logger';
 import { Lifecycle } from '../lifecycleEvents';
@@ -173,9 +173,12 @@ export class SfdcUrl extends URL {
     }
 
     // all non-mil domains
-    return `https://${ensureArray<string>(/https?:\/\/([^.]*)/.exec(this.origin))
-      .slice(1, 2)
-      .pop()}.lightning.force.com`;
+    const domain = ensureString(
+      ensureArray<string>(/https?:\/\/([^.]*)/.exec(this.origin))
+        .slice(1, 2)
+        .at(-1)
+    );
+    return `https://${domain}.lightning.force.com`;
   }
   /**
    * Tests whether this url has the lightning domain extension

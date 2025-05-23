@@ -9,7 +9,7 @@ import * as path from 'node:path';
 
 import { type Logger as PinoLogger, pino } from 'pino';
 import { Env } from '@salesforce/kit';
-import { isKeyOf, isString } from '@salesforce/ts-types';
+import { ensureString, isKeyOf, isString } from '@salesforce/ts-types';
 import { Global, Mode } from '../global';
 import { SfError } from '../sfError';
 import { unwrapArray } from '../util/unwrapArray';
@@ -472,7 +472,10 @@ const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
     // write to a rotating file
     target: 'pino/file',
     options: {
-      destination: path.join(Global.SF_DIR, `sf-${rotator.get(logRotationPeriod) ?? rotator.get('1d')}.log`),
+      destination: path.join(
+        Global.SF_DIR,
+        `sf-${ensureString(rotator.get(logRotationPeriod)) ?? rotator.get('1d')}.log`
+      ),
       mkdir: true,
       level,
     },

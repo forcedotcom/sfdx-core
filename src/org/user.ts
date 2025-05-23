@@ -278,7 +278,9 @@ export class User extends AsyncCreatable<User.Options> {
     password: SecureBuffer<void> = User.generatePasswordUtf8()
   ): Promise<void> {
     this.logger.debug(
-      `Attempting to set password for userId: ${info.getFields().userId} username: ${info.getFields().username}`
+      `Attempting to set password for userId: ${info.getFields().userId ?? '<undefined>'} username: ${
+        info.getFields().username ?? '<undefined>'
+      }`
     );
 
     const userConnection = await Connection.create({ authInfo: info });
@@ -289,8 +291,9 @@ export class User extends AsyncCreatable<User.Options> {
       password.value(async (buffer: Buffer) => {
         try {
           const soap = userConnection.soap;
-          await soap.setPassword(ensureString(info.getFields().userId), buffer.toString('utf8'));
-          this.logger.debug(`Set password for userId: ${info.getFields().userId}`);
+          const userId = ensureString(info.getFields().userId);
+          await soap.setPassword(userId, buffer.toString('utf8'));
+          this.logger.debug(`Set password for userId: ${userId}`);
           resolve();
         } catch (e) {
           reject(e);

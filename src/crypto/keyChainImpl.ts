@@ -329,7 +329,7 @@ const linuxImpl: OsImpl = {
   setCommandFunc(opts, fn) {
     const secretTool = fn(linuxImpl.getProgram(), linuxImpl.setProgramOptions(opts));
     if (secretTool.stdin) {
-      secretTool.stdin.write(`${opts.password}\n`);
+      secretTool.stdin.write(`${opts.password ?? ''}\n`);
     }
     return secretTool;
   },

@@ -4,7 +4,7 @@
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/index",
   "types": "lib/index.d.ts",
-  "license": "BSD-3-Clause",
+  "license": "Apache-2.0",
   "browser": "./dist/browser",
   "engines": {
     "node": ">=18.0.0"
@@ -24,14 +24,15 @@
     "./testSetup": "./lib/testSetup.js"
   },
   "scripts": {
-    "bundle": "wireit",
-    "bundle:web": "wireit",
-    "bundle:node": "wireit",
     "build": "wireit",
+    "bundle": "wireit",
+    "bundle:node": "wireit",
+    "bundle:web": "wireit",
     "clean": "sf-clean",
     "clean-all": "sf-clean all",
     "compile": "wireit",
     "docs": "sf-docs",
+    "fix-license": "eslint src test --fix --rule \"header/header: [2]\"",
     "format": "wireit",
     "link-check": "wireit",
     "lint": "wireit",
@@ -61,7 +62,7 @@
     "@jsforce/jsforce-node": "^3.8.2",
     "@salesforce/kit": "^3.2.2",
     "@salesforce/schemas": "^1.9.0",
-    "@salesforce/ts-types": "^2.0.10",
+    "@salesforce/ts-types": "^2.0.11",
     "ajv": "^8.17.1",
     "change-case": "^4.1.2",
     "fast-levenshtein": "^3.0.0",
@@ -78,7 +79,7 @@
     "ts-retry-promise": "^0.8.1"
   },
   "devDependencies": {
-    "@salesforce/dev-scripts": "^10.1.1",
+    "@salesforce/dev-scripts": "^11.0.2",
     "@salesforce/ts-sinon": "^1.4.30",
     "@types/benchmark": "^2.1.5",
     "@types/fast-levenshtein": "^0.0.4",
@@ -169,6 +170,7 @@
       "files": [
         "scripts/**",
         "lib/**",
+        "lib/index-web.js",
         "package.json"
       ],
       "output": [

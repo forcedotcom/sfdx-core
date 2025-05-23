@@ -122,24 +122,21 @@ export class PermissionSetAssignment {
    */
   private parsePermissionSetString(permSetString: string): {
     nsPrefix: Optional<string>;
-    permSetName: Optional<string>;
+    permSetName: string;
   } {
     const nsPrefixMatch = RegExp(/(\w+(?=__))(__)(.*)/).exec(permSetString);
 
-    let nsPrefix: Optional<string>;
-    let permSetName: Optional<string>;
     if (nsPrefixMatch) {
       try {
-        nsPrefix = nsPrefixMatch[1];
-        permSetName = nsPrefixMatch[3];
+        const nsPrefix = nsPrefixMatch[1];
+        const permSetName = nsPrefixMatch[3];
         this.logger.debug(`Using namespacePrefix ${nsPrefix} for permission set ${permSetName}`);
+        return { nsPrefix, permSetName };
       } catch (e) {
         // Don't fail if we parse wrong.
         this.logger.debug(e);
       }
-    } else {
-      permSetName = permSetString;
     }
-    return { nsPrefix, permSetName };
+    return { nsPrefix: undefined, permSetName: permSetString };
   }
 }
