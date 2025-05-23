@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       branch:
-        description: 'Set the branch to use for automation tests'
+        description: 'Set the branch to bundle'
         type: string
         required: false
         default: 'main'
@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: 'Set the branch to use for automation tests'
+        description: 'Set the branch to bundle'
         type: string
         required: false
         default: 'main'
