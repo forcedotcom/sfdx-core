@@ -28,6 +28,12 @@ const result = await build({
       {
         include: /lib\/*/,
         pattern: [["Messages('@salesforce/core')", "Messages('@salesforce/core-bundle')"]],
+      },
+      {
+        include: /lib\/index\.js/,
+        pattern: [
+          ['"use strict";', '"use strict";\nimport * as testSetup from "./testSetup.js";\nexport { testSetup };'],
+        ],
       }
     ),
   ],
