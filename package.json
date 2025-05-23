@@ -87,6 +87,7 @@
     "@types/proper-lockfile": "^4.1.4",
     "@types/semver": "^7.5.8",
     "benchmark": "^2.1.4",
+    "dts-bundle-generator": "^9.5.1",
     "esbuild": "^0.25.3",
     "esbuild-plugin-pino": "^2.2.0",
     "esbuild-plugin-polyfill-node": "^0.3.0",
