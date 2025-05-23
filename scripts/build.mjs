@@ -15,7 +15,7 @@ const distDir = 'dist/node';
 fs.copyFileSync('./package.json', `./package.json.BAK`);
 
 const result = await build({
-  entryPoints: ['lib/index.js'],
+  entryPoints: ['lib/index.js', 'lib/testSetup.js'],
   bundle: true,
   // minify: true,
   plugins: [
