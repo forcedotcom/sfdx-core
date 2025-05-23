@@ -43,7 +43,8 @@
     "test": "wireit",
     "test:nuts": "mocha \"test/**/*.nut.ts\" --timeout 500000",
     "test:only": "wireit",
-    "test:perf": "ts-node test/perf/logger/main.test.ts"
+    "test:perf": "ts-node test/perf/logger/main.test.ts",
+    "api-extractor": "api-extractor run --local"
   },
   "keywords": [
     "force",
@@ -79,6 +80,7 @@
     "ts-retry-promise": "^0.8.1"
   },
   "devDependencies": {
+    "@microsoft/api-extractor": "^7.38.3",
     "@salesforce/dev-scripts": "^11.0.2",
     "@salesforce/ts-sinon": "^1.4.30",
     "@types/benchmark": "^2.1.5",
@@ -87,7 +89,6 @@
     "@types/proper-lockfile": "^4.1.4",
     "@types/semver": "^7.5.8",
     "benchmark": "^2.1.4",
-    "dts-bundle-generator": "^9.5.1",
     "esbuild": "^0.25.3",
     "esbuild-plugin-pino": "^2.2.0",
     "esbuild-plugin-polyfill-node": "^0.3.0",
@@ -157,7 +158,7 @@
       ]
     },
     "bundle:types": {
-      "command": "npx dts-bundle-generator -o dist/node/index.d.ts src/index.ts --export-referenced-types",
+      "command": "api-extractor run --local",
       "files": [
         "src/**/*.ts",
         "tsconfig.json"
