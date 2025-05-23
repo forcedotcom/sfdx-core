@@ -8,7 +8,6 @@ import { polyfillNode } from 'esbuild-plugin-polyfill-node';
 import { build } from 'esbuild';
 import textReplace from 'esbuild-plugin-text-replace';
 import fs from 'node:fs';
-import path from 'node:path';
 
 const distDir = 'dist/browser';
 fs.mkdirSync(distDir, { recursive: true });
@@ -16,20 +15,9 @@ fs.mkdirSync(distDir, { recursive: true });
 // backup the original package.json because it will be modified
 fs.cpSync('./package.json', `./package.json.BAK`);
 
-// Use import.meta.dirname for absolute path resolution (Node.js 22+)
-const projectRoot = path.resolve(import.meta.dirname, '../..');
-const entryFile = path.join(projectRoot, 'lib/index-web.js');
-const outFile = path.join(projectRoot, distDir, 'index.js');
-
-if (!fs.existsSync(entryFile)) {
-  console.error(`Error: Entry file ${entryFile} does not exist!`);
-  console.error('Make sure the compile step has completed successfully.');
-  process.exit(1);
-}
-
 const result = await build(
   {
-    entryPoints: [entryFile],
+    entryPoints: ['lib/index-web.js'],
     bundle: true,
     // minify: true,
     alias: {
@@ -86,7 +74,7 @@ const result = await build(
     logOverride: {
       'unsupported-dynamic-import': 'error',
     },
-    outfile: outFile,
+    outfile: `${distDir}/index.js`,
     target: 'es2022',
   },
   textReplace(

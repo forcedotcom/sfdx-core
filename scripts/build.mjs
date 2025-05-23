@@ -8,19 +8,14 @@ import { build } from 'esbuild';
 import esbuildPluginPino from 'esbuild-plugin-pino';
 import textReplace from 'esbuild-plugin-text-replace';
 import fs from 'node:fs';
-import path from 'node:path';
 
 const distDir = 'dist/node';
 
 // backup the original package.json because it will be modified
 fs.copyFileSync('./package.json', `./package.json.BAK`);
 
-const projectRoot = path.resolve(import.meta.dirname, '../..');
-const entryFile = path.join(projectRoot, 'lib/index.js');
-const transformStreamFile = path.join(projectRoot, 'lib/logger/transformStream.js');
-
 const result = await build({
-  entryPoints: [entryFile],
+  entryPoints: ['lib/index.js'],
   bundle: true,
   // minify: true,
   plugins: [
@@ -47,7 +42,7 @@ const result = await build({
 });
 
 await build({
-  entryPoints: [transformStreamFile],
+  entryPoints: ['lib/logger/transformStream.js'],
   bundle: true,
   minify: true,
   outdir: distDir,

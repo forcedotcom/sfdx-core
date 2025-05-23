@@ -25,7 +25,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: yarn
       - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
-      - name: build
-        run: yarn build
+      - name: compile
+        run: yarn compile
       - name: bundle
         run: yarn bundle
