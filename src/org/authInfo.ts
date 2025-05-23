@@ -417,7 +417,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         try {
           const soi = await AuthInfo.queryScratchOrg(hubAuthInfo.username, fields.orgId as string);
           // if any return a result
-          logger.debug(`found orgId ${fields.orgId} in devhub ${hubAuthInfo.username}`);
+          logger.debug(`found orgId ${fields.orgId ?? '<undefined>'} in devhub ${hubAuthInfo.username}`);
           try {
             await orgAuthInfo.save({
               ...fields,
@@ -528,7 +528,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     if (result) return result;
 
     throw new SfError(
-      `DevHub ${devHubUsername} has no active scratch orgs that match ${trimmedId}`,
+      `DevHub ${devHubUsername ?? '<undefined>'} has no active scratch orgs that match ${trimmedId}`,
       'NoActiveScratchOrgFound'
     );
   }
@@ -1118,7 +1118,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // Exchange the auth code for an access token and refresh token.
     let authFields: TokenResponse;
     try {
-      this.logger.debug(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
+      this.logger.debug(`Exchanging auth code for access token using loginUrl: ${options.loginUrl ?? '<undefined>'}`);
       authFields = await oauth2.requestToken(ensure(options.authCode));
     } catch (err) {
       const msg = err instanceof Error ? `${err.name}::${err.message}` : typeof err === 'string' ? err : 'UNKNOWN';

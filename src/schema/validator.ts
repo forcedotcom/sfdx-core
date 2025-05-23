@@ -170,7 +170,7 @@ export class SchemaValidator {
   private getErrorsText(errors: DefinedError[]): string {
     return errors
       .map((error) => {
-        const msg = `${error.schemaPath}: ${error.message}`;
+        const msg = `${error.schemaPath}: ${error.message ?? '<no error message>'}`;
 
         switch (error.keyword) {
           case 'additionalProperties':

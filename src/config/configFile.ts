@@ -239,7 +239,7 @@ export class ConfigFile<
 
     // lock the file.  Returns an unlock function to call when done.
     try {
-      const fileTimestamp = (await fs.promises.stat(this.getPath(), { bigint: true })).mtimeNs;
+      const fileTimestamp = await getNsTimeStamp(this.getPath());
       const fileContents = parseJsonMap<P>(await fs.promises.readFile(this.getPath(), 'utf8'), this.getPath());
       this.logAndMergeContents(fileTimestamp, fileContents);
     } catch (err) {
@@ -261,7 +261,7 @@ export class ConfigFile<
     const lockResponse = lockInitSync(this.getPath());
     try {
       // get the file modstamp.  Do this after the lock acquisition in case the file is being written to.
-      const fileTimestamp = fs.statSync(this.getPath(), { bigint: true }).mtimeNs;
+      const fileTimestamp = getNsTimeStampSync(this.getPath());
       const fileContents = parseJsonMap<P>(fs.readFileSync(this.getPath(), 'utf8'), this.getPath());
       this.logAndMergeContents(fileTimestamp, fileContents);
     } catch (err) {
@@ -438,3 +438,13 @@ export namespace ConfigFile {
     throwOnNotFound?: boolean;
   } & BaseConfigStore.Options;
 }
+
+const getNsTimeStamp = async (filePath: string): Promise<bigint> =>
+  getNsTimeStampFromStatus(await fs.promises.stat(filePath, { bigint: true }));
+
+const getNsTimeStampSync = (filePath: string): bigint =>
+  getNsTimeStampFromStatus(fs.statSync(filePath, { bigint: true }));
+
+/** in browser environment, memfs is missing the bigInt ns timestamp, so we generate it from the ms */
+const getNsTimeStampFromStatus = (stats: fs.BigIntStats): bigint =>
+  stats.mtimeNs ?? BigInt(stats.mtimeMs) * BigInt(1_000_000);

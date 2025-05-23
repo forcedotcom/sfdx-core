@@ -143,8 +143,8 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
 
   protected async init(): Promise<void> {
     this.logger = await Logger.child(this.constructor.name);
-    this.logger.debug(`this.options.clientId: ${this.options.clientId}`);
-    this.logger.debug(`this.options.loginUrl: ${this.options.loginUrl}`);
+    this.logger.debug(`this.options.clientId: ${this.options.clientId ?? '<undefined>'}`);
+    this.logger.debug(`this.options.loginUrl: ${this.options.loginUrl ?? '<undefined>'}`);
   }
 
   private getLoginOptions(url: string): HttpRequest {

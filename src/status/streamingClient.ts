@@ -8,8 +8,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
 import { resolve as resolveUrl } from 'node:url';
-import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit/lib';
-import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types/lib';
+import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit';
+import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types';
 import Faye from 'faye';
 import { Logger } from '../logger/logger';
 import { Org } from '../org/org';

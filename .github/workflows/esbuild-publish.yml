@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       branch:
-        description: 'Set the branch to use for automation tests'
+        description: 'Set the branch to bundle'
         type: string
         required: false
         default: 'main'
@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: 'Set the branch to use for automation tests'
+        description: 'Set the branch to bundle'
         type: string
         required: false
         default: 'main'
@@ -40,16 +40,12 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: yarn
       - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
-      - name: Update for Bundling
-        run: |
-          node scripts/updateForBundling.js
-      - name: Generate Bundle
-        run: |
-          yarn build
-          node scripts/build.js
-      - name: Post Bundling Update
-        run: |
-          node scripts/postBundlingUpdate.js
+
+      - name: compile
+        run: yarn compile
+      - name: bundle
+        run: yarn bundle
+
       - name: Publish a Package
         run: |
           npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN

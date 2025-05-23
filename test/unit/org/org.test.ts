@@ -32,7 +32,7 @@ import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { Messages } from '../../../src/messages';
 import { SfError } from '../../../src/sfError';
 import { Lifecycle } from '../../../src/lifecycleEvents';
-
+import * as fileLocking from '../../../src/util/fileLocking';
 /* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
@@ -439,6 +439,10 @@ describe('Org Tests', () => {
     });
 
     it('should remove all assets associated with the org', async () => {
+      $$.SANDBOX.stub(fileLocking, 'lockInit').resolves({
+        writeAndUnlock: fileLocking.asyncNoop,
+        unlock: fileLocking.asyncNoop,
+      });
       const org = await createOrgViaAuthInfo();
 
       const deletedPaths: string[] = [];
@@ -458,6 +462,10 @@ describe('Org Tests', () => {
     });
 
     it('should not fail when no scratch org has been written', async () => {
+      $$.SANDBOX.stub(fileLocking, 'lockInit').resolves({
+        writeAndUnlock: fileLocking.asyncNoop,
+        unlock: fileLocking.asyncNoop,
+      });
       const org = await createOrgViaAuthInfo();
 
       const error: Error = new Error();
@@ -530,6 +538,10 @@ describe('Org Tests', () => {
     });
 
     it('should not fail when no sandboxOrgConfig', async () => {
+      $$.SANDBOX.stub(fileLocking, 'lockInit').resolves({
+        writeAndUnlock: fileLocking.asyncNoop,
+        unlock: fileLocking.asyncNoop,
+      });
       const org = await createOrgViaAuthInfo();
 
       const deletedPaths: string[] = [];

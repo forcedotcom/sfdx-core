@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { OAuth2Config } from '@jsforce/jsforce-node';
 import { Messages } from './messages';
 
 Messages.importMessagesDirectory(__dirname);
 
-export { OAuth2Config } from '@jsforce/jsforce-node';
+export { OAuth2Config };
 export { ConfigFile } from './config/configFile';
 
 export { TTLConfig } from './config/ttlConfig';
