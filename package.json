@@ -157,7 +157,7 @@
       ]
     },
     "bundle:types": {
-      "command": "npx dts-bundle-generator -o dist/node/index.d.ts src/index.ts",
+      "command": "npx dts-bundle-generator -o dist/node/index.d.ts src/index.ts --export-referenced-types",
       "files": [
         "src/**/*.ts",
         "tsconfig.json"
