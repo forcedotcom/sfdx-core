@@ -18,6 +18,7 @@ import { ZipWriter } from '../util/zipWriter';
 import { DirectoryWriter } from '../util/directoryWriter';
 import { Lifecycle } from '../lifecycleEvents';
 import { Messages } from '../messages';
+import { ConfigAggregator } from '../config/configAggregator';
 import { ScratchOrgInfo, ObjectSetting } from './scratchOrgTypes';
 import { Org } from './org';
 
@@ -280,11 +281,16 @@ export default class SettingsGenerator {
     const connection = scratchOrg.getConnection();
     logger.debug(`deploying to apiVersion: ${apiVersion}`);
     connection.setApiVersion(apiVersion);
-    const { id } = await connection.deploy(this.writer.buffer, {});
 
-    logger.debug(`deploying settings id ${id}`);
+    // Get org-metadata-rest-deploy from config aggregator
+    const restDeploy = (await ConfigAggregator.create()).getPropertyValue<boolean>('org-metadata-rest-deploy');
+    logger.debug(`Deploying settings to scratch org using ${restDeploy ? 'REST' : 'SOAP'} API`);
 
-    let result = await connection.metadata.checkDeployStatus(id);
+    const { id } = await connection.deploy(this.writer.buffer, { rest: restDeploy });
+
+    logger.debug(`Settings deploy id: ${id}`);
+
+    let result = await connection.metadata.checkDeployStatus(id, undefined, restDeploy);
 
     const pollingOptions: PollingClient.Options = {
       async poll(): Promise<StatusResult> {

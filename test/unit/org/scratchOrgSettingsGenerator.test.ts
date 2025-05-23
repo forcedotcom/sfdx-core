@@ -9,7 +9,7 @@ import * as path from 'node:path';
 import * as sinon from 'sinon';
 import { expect } from 'chai';
 import { Org } from '../../../src/org/org';
-import { Connection } from '../../../src/org/connection';
+import { Connection, DeployOptionsWithRest } from '../../../src/org/connection';
 import { validateApiVersion } from '../../../src/util/sfdc';
 import { ZipWriter } from '../../../src/util/zipWriter';
 import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
@@ -18,6 +18,7 @@ import SettingsGenerator, {
   createRecordTypeAndBusinessProcessFileContent,
 } from '../../../src/org/scratchOrgSettingsGenerator';
 import { MockTestOrgData, shouldThrow } from '../../../src/testSetup';
+import { ConfigAggregator } from '../../../src/config/configAggregator';
 
 const TEMPLATE_SCRATCH_ORG_INFO: ScratchOrgInfo = {
   LoginUrl: 'https://login.salesforce.com',
@@ -34,7 +35,8 @@ const fakeConnection = (
   sandbox: sinon.SinonSandbox,
   scratchOrg: Org,
   deployId = '12345',
-  deployStatus: string | Array<string | Error> | Error = 'Succeeded'
+  deployStatus: string | Array<string | Error> | Error = 'Succeeded',
+  restDeploy = false
 ): sinon.SinonStub => {
   const fakeConnectionMock = (status: string | Array<string | Error> | Error) => {
     const checkDeployStatusStub = (statusResult: string | Array<string | Error> | Error): sinon.SinonStub => {
@@ -73,8 +75,15 @@ const fakeConnection = (
           expect(apiVersion).to.be.a('string').and.length.to.be.greaterThan(0);
           expect(validateApiVersion(apiVersion)).to.not.be.undefined;
         },
-        deploy: (zipInput: Buffer) => {
+        deploy: (zipInput: Buffer, options: DeployOptionsWithRest) => {
           expect(zipInput).to.have.property('length').and.to.be.greaterThan(0);
+          if (restDeploy) {
+            expect(options, 'expected org settings to be deployed using REST').to.have.property('rest').and.to.be.true;
+          } else {
+            expect(options, 'expected org settings to be deployed using SOAP').to.have.property('rest').and.to.be
+              .undefined;
+          }
+
           return {
             id: deployId,
           };
@@ -206,16 +215,54 @@ describe('scratchOrgSettingsGenerator', () => {
   });
 
   describe('deploySettingsViaFolder', () => {
-    beforeEach(async () => {
-      createStubs();
-      getConnectionStub = fakeConnection(sandbox, scratchOrg);
-    });
-
     afterEach(() => {
       sandbox.restore();
     });
 
-    it('deploys the settings to the org', async () => {
+    it('deploys the settings to the org using SOAP', async () => {
+      createStubs();
+      getConnectionStub = fakeConnection(sandbox, scratchOrg);
+
+      const scratchDef = {
+        ...TEMPLATE_SCRATCH_ORG_INFO,
+        settings: {
+          lightningExperienceSettings: {
+            enableS1DesktopEnabled: true,
+          },
+          mobileSettings: {
+            enableS1EncryptedStoragePref2: false,
+          },
+        },
+      };
+      const settings = new SettingsGenerator();
+      await settings.extract(scratchDef);
+      await settings.createDeploy();
+      await settings.deploySettingsViaFolder(scratchOrg, '53.0');
+      expect(getUsernameStub.callCount).to.equal(1);
+      expect(getConnectionStub.callCount).to.equal(1);
+      expect(addToZipStub.callCount).to.equal(3);
+      expect(addToZipStub.firstCall.firstArg)
+        .to.be.a('string')
+        .and.length.to.be.greaterThan(0)
+        .and.to.include('<LightningExperienceSettings>')
+        .and.to.include('<enableS1DesktopEnabled>true</enableS1DesktopEnabled>');
+      expect(addToZipStub.firstCall.args[1]).to.include(path.join('settings', 'LightningExperience.settings'));
+      expect(addToZipStub.secondCall.firstArg)
+        .to.be.a('string')
+        .and.length.to.be.greaterThan(0)
+        .and.to.include('<MobileSettings>')
+        .and.to.include('<enableS1EncryptedStoragePref2>false</enableS1EncryptedStoragePref2>');
+      expect(finalizeStub.callCount).to.equal(1);
+      expect(addToZipStub.secondCall.args[1]).to.include(path.join('settings', 'Mobile.settings'));
+    });
+
+    it('deploys the settings to the org using REST', async () => {
+      // stub config aggregator to return true for REST deploy
+      sandbox.stub(ConfigAggregator.prototype, 'getPropertyValue').withArgs('org-metadata-rest-deploy').returns(true);
+
+      createStubs();
+      getConnectionStub = fakeConnection(sandbox, scratchOrg, undefined, undefined, true);
+
       const scratchDef = {
         ...TEMPLATE_SCRATCH_ORG_INFO,
         settings: {
