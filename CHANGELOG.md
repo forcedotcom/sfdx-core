@@ -1,3 +1,12 @@
+## [8.11.3](https://github.com/forcedotcom/sfdx-core/compare/8.11.2...8.11.3) (2025-05-25)
+
+
+### Bug Fixes
+
+* **deps:** bump pino-pretty from 11.2.2 to 11.3.0 ([18ef1a4](https://github.com/forcedotcom/sfdx-core/commit/18ef1a4467eb968283c80b729281145cd3abea35))
+
+
+
 ## [8.11.2](https://github.com/forcedotcom/sfdx-core/compare/8.11.1...8.11.2) (2025-05-25)
 
 
