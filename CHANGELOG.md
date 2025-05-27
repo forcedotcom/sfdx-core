@@ -1,3 +1,12 @@
+## [8.11.4](https://github.com/forcedotcom/sfdx-core/compare/8.11.3...8.11.4) (2025-05-27)
+
+
+### Bug Fixes
+
+* deploy org settings with REST API if set in config ([b1a089f](https://github.com/forcedotcom/sfdx-core/commit/b1a089febfaf050e1b65d1f4751e7b42fc087136))
+
+
+
 ## [8.11.3](https://github.com/forcedotcom/sfdx-core/compare/8.11.2...8.11.3) (2025-05-25)
 
 
