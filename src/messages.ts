@@ -609,7 +609,7 @@ export class Messages<T extends string> {
         const relevantTokens = tokens.slice(tokenCur, tokenCur + tokenCount);
         tokenCur += tokenCount;
         return util.format(msgStr, ...relevantTokens);
-      } else {
+      } else if (tokens.length > 0) {
         const logger = Logger.childFromRoot('core:messages');
         logger.warn(
           `Unable to render tokens in message. Ensure a specifier (e.g. %s) exists in the message:\n${msgStr}`
