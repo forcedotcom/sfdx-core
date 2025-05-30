@@ -33,11 +33,10 @@ export const lockInit = async (filePath: string): Promise<LockInitResponse> => {
     throw SfError.wrap(err as Error);
   }
 
-  const unlock = await lock(filePath, { ...lockRetryOptions, realpath: false });
+  const unlock = await lock(filePath, { ...lockRetryOptions, realpath: false, fs });
   return {
     writeAndUnlock: async (data: string): Promise<void> => {
-      const logger = await Logger.child('fileLocking.writeAndUnlock');
-      logger.debug(`Writing to file: ${filePath}`);
+      (await Logger.child('fileLocking.writeAndUnlock')).debug(`Writing to file: ${filePath}`);
       try {
         await fs.promises.writeFile(filePath, data);
       } finally {
@@ -60,7 +59,7 @@ export const lockInitSync = (filePath: string): LockInitSyncResponse => {
     throw SfError.wrap(err as Error);
   }
 
-  const unlock = lockSync(filePath, { ...lockOptions, realpath: false });
+  const unlock = lockSync(filePath, { ...lockOptions, realpath: false, fs });
   return {
     writeAndUnlock: (data: string): void => {
       const logger = Logger.childFromRoot('fileLocking.writeAndUnlock');

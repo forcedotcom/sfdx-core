@@ -6,9 +6,11 @@
  */
 
 // docs: https://github.com/moxystudio/node-proper-lockfile
+import fs from 'node:fs';
 
 export const lockOptions = { stale: 10_000 };
 export const lockRetryOptions = {
   ...lockOptions,
   retries: { retries: 10, maxTimeout: 1000, factor: 2 },
+  fs, // lockfile supports injectable fs, which is needed for browser use
 };
