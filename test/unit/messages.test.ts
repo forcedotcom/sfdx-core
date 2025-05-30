@@ -15,6 +15,7 @@ import { SinonStub } from 'sinon';
 import { Messages } from '../../src/messages';
 import { SfError } from '../../src/sfError';
 import { shouldThrowSync, TestContext } from '../../src/testSetup';
+import { Logger } from '../../src/logger/logger';
 
 describe('Messages', () => {
   const $$ = new TestContext();
@@ -335,6 +336,7 @@ describe('Messages', () => {
 
   describe('createError', () => {
     it('creates error with actions', () => {
+      const loggerWarnStub = $$.SANDBOX.stub(Logger.prototype, 'warn');
       const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
       const error = messages.createError('msg1');
 
@@ -346,6 +348,17 @@ describe('Messages', () => {
       } else {
         throw new Error('error.actions should not be undefined');
       }
+      expect(loggerWarnStub.callCount, 'expected no warnings to be logged').to.equal(0);
+    });
+
+    it('should log a warning if no tokens are found in the message', () => {
+      const loggerWarnStub = $$.SANDBOX.stub(Logger.prototype, 'warn');
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+      messages.createError('msg1', ['token1', 'token2']);
+      expect(loggerWarnStub.callCount, 'expected a warning to be logged').to.equal(1);
+      expect(loggerWarnStub.firstCall.args[0]).to.equal(
+        `Unable to render tokens in message. Ensure a specifier (e.g. %s) exists in the message:\n${testMessages.msg1}`
+      );
     });
 
     it('should handle error messages with multiple tokens in actions', () => {

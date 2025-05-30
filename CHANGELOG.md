@@ -1,3 +1,21 @@
+## [8.11.4](https://github.com/forcedotcom/sfdx-core/compare/8.11.3...8.11.4) (2025-05-27)
+
+### Bug Fixes
+
+- deploy org settings with REST API if set in config ([b1a089f](https://github.com/forcedotcom/sfdx-core/commit/b1a089febfaf050e1b65d1f4751e7b42fc087136))
+
+## [8.11.3](https://github.com/forcedotcom/sfdx-core/compare/8.11.2...8.11.3) (2025-05-25)
+
+### Bug Fixes
+
+- **deps:** bump pino-pretty from 11.2.2 to 11.3.0 ([18ef1a4](https://github.com/forcedotcom/sfdx-core/commit/18ef1a4467eb968283c80b729281145cd3abea35))
+
+## [8.11.2](https://github.com/forcedotcom/sfdx-core/compare/8.11.1...8.11.2) (2025-05-25)
+
+### Bug Fixes
+
+- **deps:** bump pino from 9.4.0 to 9.7.0 ([4aa4887](https://github.com/forcedotcom/sfdx-core/commit/4aa48876ec94a1ecedeefa7eeb388b467548dda0))
+
 ## [8.11.1](https://github.com/forcedotcom/sfdx-core/compare/8.11.0...8.11.1) (2025-05-22)
 
 ### Bug Fixes

@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "8.11.1",
+  "version": "8.11.4",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/index",
   "types": "lib/index.d.ts",
@@ -72,9 +72,9 @@
     "js2xmlparser": "^4.0.1",
     "jsonwebtoken": "9.0.2",
     "jszip": "3.10.1",
-    "pino": "^9.4.0",
+    "pino": "^9.7.0",
     "pino-abstract-transport": "^1.2.0",
-    "pino-pretty": "^11.2.2",
+    "pino-pretty": "^11.3.0",
     "proper-lockfile": "^4.1.2",
     "semver": "^7.6.3",
     "ts-retry-promise": "^0.8.1"
