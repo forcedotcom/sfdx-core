@@ -6,4 +6,5 @@
  */
 
 /** using globalThis.performance instead importing from node:perf_hooks so it works in browser */
-export const nowBigInt = (): bigint => BigInt((globalThis.performance.now() + performance.timeOrigin) * 1_000_000);
+export const nowBigInt = (): bigint =>
+  BigInt((globalThis.performance.now() + globalThis.performance.timeOrigin) * 1_000_000);
