@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1748631292000,
+  "lastUpdate": 1748728766970,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -28572,6 +28572,72 @@ window.BENCHMARK_DATA = {
             "range": "±186.85%",
             "unit": "ops/sec",
             "extra": "40 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9d1f83a970417b2bce6ffe0695e73ca968beaf68",
+          "message": "chore(dev-deps): bump ts-patch from 3.2.1 to 3.3.0\n\nBumps [ts-patch](https://github.com/nonara/ts-patch) from 3.2.1 to 3.3.0.\n- [Release notes](https://github.com/nonara/ts-patch/releases)\n- [Changelog](https://github.com/nonara/ts-patch/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/nonara/ts-patch/compare/v3.2.1...v3.3.0)\n\n---\nupdated-dependencies:\n- dependency-name: ts-patch\n  dependency-version: 3.3.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-05-31T21:53:13Z",
+          "tree_id": "d5e9cb006dd6b85ee7b6b3f2015062664c16389b",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/9d1f83a970417b2bce6ffe0695e73ca968beaf68"
+        },
+        "date": 1748728747943,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 321180,
+            "range": "±1.36%",
+            "unit": "ops/sec",
+            "extra": "91 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 822634,
+            "range": "±5.90%",
+            "unit": "ops/sec",
+            "extra": "62 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 605218,
+            "range": "±12.64%",
+            "unit": "ops/sec",
+            "extra": "69 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 4307,
+            "range": "±217.80%",
+            "unit": "ops/sec",
+            "extra": "12 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 529709,
+            "range": "±12.90%",
+            "unit": "ops/sec",
+            "extra": "69 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 485624,
+            "range": "±7.67%",
+            "unit": "ops/sec",
+            "extra": "73 samples"
           }
         ]
       }
