@@ -2130,10 +2130,10 @@ es6-error@^4.0.1:
   resolved "https://registry.yarnpkg.com/es6-error/-/es6-error-4.1.1.tgz#9e3af407459deed47e9a91f9b885a84eb05c561d"
   integrity sha512-Um/+FxMr9CISWh0bi5Zv0iOD+4cFh5qLeks1qhAopKVAJw3drgKbKySikp7wGhDL0HPeaja0P5ULZrxLkniUVg==
 
-esbuild-plugin-pino@^2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/esbuild-plugin-pino/-/esbuild-plugin-pino-2.2.0.tgz#990bd380e263935afb352c0cb1bc8571feeb6ced"
-  integrity sha512-6T92eXmkHwad/PGeXb/DyJhwxsVUsASQyEP84QTPBuzhDp1eGRXr9CK2y/VCKiEbO2TX2v4zZ6M40W46eZZPQg==
+esbuild-plugin-pino@^2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/esbuild-plugin-pino/-/esbuild-plugin-pino-2.2.2.tgz#b49f3738bd6a01590bbfa0b7727a680fa4b48de2"
+  integrity sha512-VABhtEBkjmv60Lz50Z44OH2NR1OA2HpKns86zR6FQQx5ctBl96p7Y28sv0/tBi+Ca5qMg0Y4k/OORgaSIarkhQ==
 
 esbuild-plugin-tsc@^0.4.0:
   version "0.4.0"
