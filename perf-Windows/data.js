@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1748728766970,
+  "lastUpdate": 1748748386316,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -28638,6 +28638,72 @@ window.BENCHMARK_DATA = {
             "range": "±7.67%",
             "unit": "ops/sec",
             "extra": "73 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "001b98a073ed7f97c36cc875611bcfe5d7eed849",
+          "message": "fix(deps): bump semver and @types/semver\n\nBumps [semver](https://github.com/npm/node-semver) and [@types/semver](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/semver). These dependencies needed to be updated together.\n\nUpdates `semver` from 7.6.3 to 7.7.2\n- [Release notes](https://github.com/npm/node-semver/releases)\n- [Changelog](https://github.com/npm/node-semver/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/npm/node-semver/compare/v7.6.3...v7.7.2)\n\nUpdates `@types/semver` from 7.5.8 to 7.7.0\n- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)\n- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/semver)\n\n---\nupdated-dependencies:\n- dependency-name: semver\n  dependency-version: 7.7.2\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n- dependency-name: \"@types/semver\"\n  dependency-version: 7.7.0\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-06-01T03:21:18Z",
+          "tree_id": "9edee0495e3710552635194850c7a661aa5b9e3d",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/001b98a073ed7f97c36cc875611bcfe5d7eed849"
+        },
+        "date": 1748748369827,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 354184,
+            "range": "±0.27%",
+            "unit": "ops/sec",
+            "extra": "93 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 959070,
+            "range": "±8.61%",
+            "unit": "ops/sec",
+            "extra": "69 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 33849,
+            "range": "±186.57%",
+            "unit": "ops/sec",
+            "extra": "56 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 449947,
+            "range": "±5.95%",
+            "unit": "ops/sec",
+            "extra": "75 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 555302,
+            "range": "±8.37%",
+            "unit": "ops/sec",
+            "extra": "69 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 15820,
+            "range": "±189.14%",
+            "unit": "ops/sec",
+            "extra": "37 samples"
           }
         ]
       }
