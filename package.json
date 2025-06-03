@@ -61,7 +61,7 @@
     "change-case": "^4.1.2",
     "fast-levenshtein": "^3.0.0",
     "faye": "^1.4.0",
-    "form-data": "^4.0.0",
+    "form-data": "^4.0.2",
     "js2xmlparser": "^4.0.1",
     "jsonwebtoken": "9.0.2",
     "jszip": "3.10.1",
