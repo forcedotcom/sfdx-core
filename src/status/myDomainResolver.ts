@@ -14,6 +14,7 @@ import { ensureString } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, Duration, Env } from '@salesforce/kit';
 import { Logger } from '../logger/logger';
 import { SfdcUrl } from '../util/sfdcUrl';
+import { Global } from '../global';
 import { StatusResult } from './types';
 import { PollingClient } from './pollingClient';
 
@@ -79,6 +80,11 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
       return this.options.url.host;
     }
 
+    if (Global.isWeb) {
+      this.logger.debug('Web browser detected. Skipping DNS check...');
+      return this.options.url.host;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self: MyDomainResolver = this;
     const pollingOptions: PollingClient.Options = {
@@ -116,6 +122,7 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
     return ensureString(await client.subscribe());
   }
 
+  /** @deprecated there is nothing using this in forcedotcom, salesforcecli, or public github search */
   public async getCnames(): Promise<string[]> {
     try {
       await this.resolve();
