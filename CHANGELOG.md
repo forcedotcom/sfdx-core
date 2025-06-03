@@ -1,3 +1,14 @@
+# [8.12.0](https://github.com/forcedotcom/sfdx-core/compare/8.11.4...8.12.0) (2025-06-03)
+
+
+### Features
+
+* browser uses generic keychain ([19a4c04](https://github.com/forcedotcom/sfdx-core/commit/19a4c048227ac3d7fce14ee331af5edcf37a6e08))
+* config locking and domain works for web ([0f03f71](https://github.com/forcedotcom/sfdx-core/commit/0f03f71e66badc3a35cc11650eab1852c0b26c0b))
+* detect browsers ([f60917e](https://github.com/forcedotcom/sfdx-core/commit/f60917e8eefa1244ea291b4fcfb4e0c10032ca61))
+
+
+
 ## [8.11.4](https://github.com/forcedotcom/sfdx-core/compare/8.11.3...8.11.4) (2025-05-27)
 
 
