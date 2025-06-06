@@ -195,18 +195,18 @@ describe('AuthInfo', () => {
           clientId: 'app-client-id',
           clientSecret: 'app-client-secret',
           refreshToken: 'app-refresh-token',
-          oauthFlow: 'web' as const
+          oauthFlow: 'web' as const,
         };
-        
+
         // Set up the apps field in auth info
         authInfo.update({
           apps: {
-            [app]: appConfig
-          }
+            [app]: appConfig,
+          },
         });
 
         const fields = authInfo.getConnectionOptions(app);
-        
+
         // Verify app-specific connection options
         expect(fields.oauth2).to.have.property('clientId', 'app-client-id');
         expect(fields.oauth2).to.have.property('redirectUri');
@@ -219,15 +219,17 @@ describe('AuthInfo', () => {
         const app = 'NonExistentApp';
         authInfo.update({
           apps: {
-            'SomeOtherApp': {
+            SomeOtherApp: {
               accessToken: 'token',
               clientId: 'client',
               refreshToken: 'refresh',
-              oauthFlow: 'web' as const
-            }
-          }
+              oauthFlow: 'web' as const,
+            },
+          },
         });
-        expect(() => authInfo.getConnectionOptions(app)).to.throw(`${authInfo.getUsername()} does not have a "${app}" app linked yet.`);
+        expect(() => authInfo.getConnectionOptions(app)).to.throw(
+          `${authInfo.getUsername()} does not have a "${app}" app linked yet.`
+        );
       });
     });
 

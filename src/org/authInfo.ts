@@ -680,7 +680,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       //
       // Each app stores the oauth flow used for its initial auth, here we ensure each refresh returns
       // a token, update the auth file with it and send it back to jsforce's through the callback.
-      refreshFn: async (_conn, callback) => {
+      refreshFn: async (_conn, callback): Promise<void> => {
         // This only handles refresh for web flow.
         // When more flows are supported for apps, check the `app.oauthFlow` field to set the appropiate refresh helper.
         const authFields = await this.buildRefreshTokenConfig({
@@ -690,7 +690,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           loginUrl: instanceUrl,
         });
 
-        this.save({
+        await this.save({
           apps: {
             [app]: {
               accessToken: ensureString(authFields.accessToken),
@@ -1338,14 +1338,14 @@ export namespace AuthInfo {
      * OAuth options.
      */
     oauth2Options?: JwtOAuth2Config;
-    apps?: {
+    apps?: Array<{
       name: string;
       accessToken: string;
       refreshToken: string;
       clientId: string;
       clientSecret?: string;
       // privateKey: string;
-    }[];
+    }>;
     /**
      * Options for the access token auth.
      */

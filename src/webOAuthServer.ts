@@ -114,7 +114,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
                   username: this.username,
                 });
 
-                userAuthInfo.save({
+                await userAuthInfo.save({
                   apps: {
                     [this.app]: {
                       clientId: ensureString(authFields.clientId),
@@ -324,12 +324,12 @@ export namespace WebOAuthServer {
            *
            * If not specified, all scopes assigned to the connected app are requested.
            */
-          scope?: string
+          scope?: string;
         };
       }
     | {
         oauthConfig: JwtOAuth2Config & {
-           /**
+          /**
            * OAuth scopes to be requested for the access token.
            *
            * This should be a string with each scope separated by spaces:
@@ -337,7 +337,7 @@ export namespace WebOAuthServer {
            *
            * If not specified, all scopes assigned to the connected app are requested.
            */
-          scope?: string
+          scope?: string;
         };
         app: string;
         username: string;
