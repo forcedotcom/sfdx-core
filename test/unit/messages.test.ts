@@ -15,6 +15,7 @@ import { SinonStub } from 'sinon';
 import { Messages } from '../../src/messages';
 import { SfError } from '../../src/sfError';
 import { shouldThrowSync, TestContext } from '../../src/testSetup';
+import { Logger } from '../../src/logger/logger';
 
 describe('Messages', () => {
   const $$ = new TestContext();
@@ -23,6 +24,7 @@ describe('Messages', () => {
     msg1: 'test message 1',
     msg2: 'test message 2 %s and %s',
     manyMsgs: ['hello', 'world', 'test message 2 %s and %s'],
+    action1: ['test action1 %s and %s', 'test action2 %s and %s'],
   };
 
   const msgMap = new Map();
@@ -32,6 +34,7 @@ describe('Messages', () => {
   msgMap.set('msg3', structuredClone(testMessages));
   msgMap.get('msg3').msg3 = structuredClone(testMessages);
   msgMap.set('manyMsgs', testMessages.manyMsgs);
+  msgMap.set('action1', testMessages.action1);
 
   describe('getMessage', () => {
     const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
@@ -333,6 +336,7 @@ describe('Messages', () => {
 
   describe('createError', () => {
     it('creates error with actions', () => {
+      const loggerWarnStub = $$.SANDBOX.stub(Logger.prototype, 'warn');
       const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
       const error = messages.createError('msg1');
 
@@ -344,6 +348,35 @@ describe('Messages', () => {
       } else {
         throw new Error('error.actions should not be undefined');
       }
+      expect(loggerWarnStub.callCount, 'expected no warnings to be logged').to.equal(0);
+    });
+
+    it('should log a warning if no tokens are found in the message', () => {
+      const loggerWarnStub = $$.SANDBOX.stub(Logger.prototype, 'warn');
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+      messages.createError('msg1', ['token1', 'token2']);
+      expect(loggerWarnStub.callCount, 'expected a warning to be logged').to.equal(1);
+      expect(loggerWarnStub.firstCall.args[0]).to.equal(
+        `Unable to render tokens in message. Ensure a specifier (e.g. %s) exists in the message:\n${testMessages.msg1}`
+      );
+    });
+
+    it('should handle error messages with multiple tokens in actions', () => {
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+
+      expect(messages.getMessages('action1', ['token1', 'token2', 'token3', 'token4'])).to.deep.equal([
+        'test action1 token1 and token2',
+        'test action2 token3 and token4',
+      ]);
+    });
+
+    it('should not repeat tokens in error messages', () => {
+      const messages = new Messages('myBundle', Messages.getLocale(), msgMap);
+      const error = messages.createError('msg2', ['token1', 'token2']);
+
+      expect(error.message).to.equal('test message 2 token1 and token2');
+      expect(error.message).to.not.include('token1 token1');
+      expect(error.message).to.not.include('token2 token2');
     });
 
     it('creates error with removed error prefix', () => {

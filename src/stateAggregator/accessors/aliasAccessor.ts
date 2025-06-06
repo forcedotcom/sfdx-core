@@ -8,16 +8,15 @@
 import { join, dirname } from 'node:path';
 import { homedir } from 'node:os';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { lock, unlock } from 'proper-lockfile';
 
 import { AsyncOptionalCreatable, ensureArray } from '@salesforce/kit';
-
 import { Nullable } from '@salesforce/ts-types';
+
 import { Global } from '../../global';
 import { AuthFields } from '../../org/authInfo';
 import { ConfigContents } from '../../config/configStackTypes';
 import { SfError } from '../../sfError';
-import { lockRetryOptions } from '../../util/lockRetryOptions';
+import { lockInit } from '../../util/fileLocking';
 
 export type Aliasable = string | Partial<AuthFields>;
 export const DEFAULT_GROUP = 'orgs';
@@ -116,9 +115,10 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    */
   public async setAndSave(alias: string, entity: Aliasable): Promise<void> {
     // get a very fresh copy to merge with to avoid conflicts, then lock
-    await this.readFileToAliasStore(true);
+    const lockResponse = await lockInit(this.fileLocation);
+    await this.readFileToAliasStore();
     this.aliasStore.set(alias, getNameOf(entity));
-    return this.saveAliasStoreToFile();
+    return lockResponse.writeAndUnlock(aliasStoreToRawFileContents(this.aliasStore));
   }
 
   /**
@@ -126,9 +126,10 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    *
    */
   public async unsetAndSave(alias: string): Promise<void> {
-    await this.readFileToAliasStore(true);
+    const lockResponse = await lockInit(this.fileLocation);
+    await this.readFileToAliasStore();
     this.aliasStore.delete(alias);
-    return this.saveAliasStoreToFile();
+    return lockResponse.writeAndUnlock(aliasStoreToRawFileContents(this.aliasStore));
   }
 
   /**
@@ -137,11 +138,12 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    * @param entity the aliasable entity for which you want to unset all aliases
    */
   public async unsetValuesAndSave(aliasees: Aliasable[]): Promise<void> {
-    await this.readFileToAliasStore(true);
+    const lockResponse = await lockInit(this.fileLocation);
+    await this.readFileToAliasStore();
     ensureArray(aliasees)
       .flatMap((a) => this.getAll(a))
       .map((a) => this.aliasStore.delete(a));
-    return this.saveAliasStoreToFile();
+    return lockResponse.writeAndUnlock(aliasStoreToRawFileContents(this.aliasStore));
   }
 
   /**
@@ -162,27 +164,17 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    * go to the fileSystem and read the file, storing a copy in the class's store
    * if the file doesn't exist, create it empty
    */
-  private async readFileToAliasStore(useLock = false): Promise<void> {
-    if (useLock) {
-      await lock(this.fileLocation, lockRetryOptions);
-    }
+  private async readFileToAliasStore(): Promise<void> {
     try {
       this.aliasStore = fileContentsRawToAliasStore(await readFile(this.fileLocation, 'utf-8'));
     } catch (e) {
       if (e instanceof Error && 'code' in e && typeof e.code === 'string' && ['ENOENT', 'ENOTDIR'].includes(e.code)) {
-        this.aliasStore = new Map<string, string>();
         await mkdir(dirname(this.fileLocation), { recursive: true });
-        await this.saveAliasStoreToFile();
-        return;
+        this.aliasStore = new Map<string, string>();
+        return writeFile(this.fileLocation, aliasStoreToRawFileContents(this.aliasStore));
       }
-      if (useLock) return unlockIfLocked(this.fileLocation);
       throw e;
     }
-  }
-
-  private async saveAliasStoreToFile(): Promise<void> {
-    await writeFile(this.fileLocation, aliasStoreToRawFileContents(this.aliasStore));
-    return unlockIfLocked(this.fileLocation);
   }
 }
 
@@ -191,11 +183,11 @@ export class AliasAccessor extends AsyncOptionalCreatable {
  */
 const getNameOf = (entity: Aliasable): string => {
   if (typeof entity === 'string') return entity;
-  const aliaseeName = entity.username;
-  if (!aliaseeName) {
+  const { username } = entity;
+  if (!username) {
     throw new SfError(`Invalid aliasee, it must contain a user or username property: ${JSON.stringify(entity)}`);
   }
-  return aliaseeName;
+  return username;
 };
 
 const fileContentsRawToAliasStore = (contents: string): Map<string, string> => {
@@ -213,15 +205,3 @@ const aliasStoreToRawFileContents = (aliasStore: Map<string, string>): string =>
 
 // exported for testSetup mocking
 export const getFileLocation = (): string => join(homedir(), Global.SFDX_STATE_FOLDER, FILENAME);
-
-const unlockIfLocked = async (fileLocation: string): Promise<void> => {
-  try {
-    await unlock(fileLocation);
-  } catch (e) {
-    // ignore the error.  If it wasn't locked, that's what we wanted
-    if (errorIsNotAcquired(e)) return;
-    throw e;
-  }
-};
-
-const errorIsNotAcquired = (e: unknown): boolean => e instanceof Error && 'code' in e && e.code === 'ENOTACQUIRED';

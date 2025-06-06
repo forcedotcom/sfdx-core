@@ -5,13 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Optional } from '@salesforce/ts-types';
+import { AnyJson, Optional } from '@salesforce/ts-types';
+import { Duration } from '@salesforce/kit';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
 import { Logger } from '../logger/logger';
+import { StatusResult } from '../status/types';
+import { PollingClient } from '../status/pollingClient';
 import { ScratchOrgInfo } from './scratchOrgTypes';
 import { ScratchOrgCache } from './scratchOrgCache';
 import { emit } from './scratchOrgLifecycleEvents';
+import { queryScratchOrgInfo } from './scratchOrgInfoApi';
+import { Org } from './org';
 
 const WORKSPACE_CONFIG_FILENAME = 'sfdx-project.json';
 
@@ -37,15 +42,18 @@ const optionalErrorCodeMessage = (errorCode: string, args: string[]): string | u
 
 export const validateScratchOrgInfoForResume = async ({
   jobId,
-  scratchOrgInfo,
+  hubOrg,
   cache,
   hubUsername,
+  timeout,
 }: {
   jobId: string;
-  scratchOrgInfo: ScratchOrgInfo;
+  hubOrg: Org;
   cache: ScratchOrgCache;
   hubUsername: string;
+  timeout: Duration;
 }): Promise<ScratchOrgInfo> => {
+  const scratchOrgInfo = await queryScratchOrgInfo(hubOrg, jobId);
   if (!scratchOrgInfo?.Id || scratchOrgInfo.Status === 'Deleted') {
     // 1. scratch org info does not exist in that dev hub or has been deleted
     cache.unset(jobId);
@@ -54,9 +62,45 @@ export const validateScratchOrgInfoForResume = async ({
       ? namedMessages.createError('ScratchOrgDeletedError')
       : namedMessages.createError('NoScratchOrgInfoError');
   }
+
   if (['New', 'Creating'].includes(scratchOrgInfo.Status)) {
     // 2. scratchOrgInfo exists, still isn't finished.  Stays in cache for future attempts
-    throw namedMessages.createError('StillInProgressError', [scratchOrgInfo.Status], ['action.StillInProgress']);
+    const logger = await Logger.child('scratchOrgResume');
+    logger.debug(`PollingTimeout in minutes: ${timeout.minutes}`);
+
+    const options: PollingClient.Options = {
+      async poll(): Promise<StatusResult> {
+        try {
+          const resultInProgress = await queryScratchOrgInfo(hubOrg, jobId);
+          logger.debug(`polling client result: ${JSON.stringify(resultInProgress, null, 4)}`);
+
+          if (resultInProgress.Status === 'Active' || resultInProgress.Status === 'Error') {
+            return {
+              completed: true,
+              payload: resultInProgress as unknown as AnyJson,
+            };
+          }
+          await emit({ stage: 'wait for org', scratchOrgInfo: resultInProgress });
+
+          logger.debug(`Scratch org status is ${resultInProgress.Status}`);
+          return {
+            completed: false,
+          };
+        } catch (error) {
+          logger.debug(`Error: ${(error as Error).message}`);
+          logger.debug('Re-trying deploy check again....');
+          return {
+            completed: false,
+          };
+        }
+      },
+      frequency: Duration.seconds(1),
+      timeoutErrorName: 'ScratchOrgResumeTimeOutError',
+      timeout,
+    };
+    const client = await PollingClient.create(options);
+    const result = await client.subscribe<ScratchOrgInfo>();
+    return checkScratchOrgInfoForErrors(result, hubUsername);
   }
   return checkScratchOrgInfoForErrors(scratchOrgInfo, hubUsername);
 };

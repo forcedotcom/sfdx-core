@@ -1,3 +1,118 @@
+# [8.12.0](https://github.com/forcedotcom/sfdx-core/compare/8.11.4...8.12.0) (2025-06-03)
+
+
+### Features
+
+* browser uses generic keychain ([19a4c04](https://github.com/forcedotcom/sfdx-core/commit/19a4c048227ac3d7fce14ee331af5edcf37a6e08))
+* config locking and domain works for web ([0f03f71](https://github.com/forcedotcom/sfdx-core/commit/0f03f71e66badc3a35cc11650eab1852c0b26c0b))
+* detect browsers ([f60917e](https://github.com/forcedotcom/sfdx-core/commit/f60917e8eefa1244ea291b4fcfb4e0c10032ca61))
+
+
+
+## [8.11.4](https://github.com/forcedotcom/sfdx-core/compare/8.11.3...8.11.4) (2025-05-27)
+
+
+### Bug Fixes
+
+* deploy org settings with REST API if set in config ([b1a089f](https://github.com/forcedotcom/sfdx-core/commit/b1a089febfaf050e1b65d1f4751e7b42fc087136))
+
+
+
+## [8.11.3](https://github.com/forcedotcom/sfdx-core/compare/8.11.2...8.11.3) (2025-05-25)
+
+
+### Bug Fixes
+
+* **deps:** bump pino-pretty from 11.2.2 to 11.3.0 ([18ef1a4](https://github.com/forcedotcom/sfdx-core/commit/18ef1a4467eb968283c80b729281145cd3abea35))
+
+
+
+## [8.11.2](https://github.com/forcedotcom/sfdx-core/compare/8.11.1...8.11.2) (2025-05-25)
+
+
+### Bug Fixes
+
+* **deps:** bump pino from 9.4.0 to 9.7.0 ([4aa4887](https://github.com/forcedotcom/sfdx-core/commit/4aa48876ec94a1ecedeefa7eeb388b467548dda0))
+
+
+
+## [8.11.1](https://github.com/forcedotcom/sfdx-core/compare/8.11.0...8.11.1) (2025-05-22)
+
+
+### Bug Fixes
+
+* bump jsforce ([#1191](https://github.com/forcedotcom/sfdx-core/issues/1191)) ([1cbf553](https://github.com/forcedotcom/sfdx-core/commit/1cbf5535406f5d60df89a4fb42c2d7921d86f530))
+
+
+
+# [8.11.0](https://github.com/forcedotcom/sfdx-core/compare/8.10.3...8.11.0) (2025-05-15)
+
+
+### Bug Fixes
+
+* actionTokens print twice ([d3db445](https://github.com/forcedotcom/sfdx-core/commit/d3db445402ea7fd1aaced5589deed1c889c33b9c))
+
+
+### Features
+
+* add test for multiple tokens ([dfa31fa](https://github.com/forcedotcom/sfdx-core/commit/dfa31fad697865ed9abbd82f714fa3e4a276cde3))
+
+
+
+## [8.10.3](https://github.com/forcedotcom/sfdx-core/compare/8.10.2...8.10.3) (2025-05-07)
+
+
+### Bug Fixes
+
+* examples/package.json & examples/yarn.lock to reduce vulnerabilities ([584b91a](https://github.com/forcedotcom/sfdx-core/commit/584b91a74216975e6a11d08151262ae596c17d3a))
+
+
+
+## [8.10.2](https://github.com/forcedotcom/sfdx-core/compare/8.10.1...8.10.2) (2025-05-04)
+
+
+### Bug Fixes
+
+* **deps:** bump @jsforce/jsforce-node from 3.7.0 to 3.8.1 ([8c0aa9a](https://github.com/forcedotcom/sfdx-core/commit/8c0aa9a1bb409e7792f8d8fb6c989047db3cc675))
+
+
+
+## [8.10.1](https://github.com/forcedotcom/sfdx-core/compare/8.10.0...8.10.1) (2025-04-30)
+
+
+### Bug Fixes
+
+* add generateApiName method to utils ([d409f4c](https://github.com/forcedotcom/sfdx-core/commit/d409f4c179b529c95bc79afe0345d0465ee21488))
+
+
+
+# [8.10.0](https://github.com/forcedotcom/sfdx-core/compare/8.9.1...8.10.0) (2025-04-25)
+
+
+### Features
+
+* add retry limit option to polling client ([#1181](https://github.com/forcedotcom/sfdx-core/issues/1181)) ([de51190](https://github.com/forcedotcom/sfdx-core/commit/de51190da6f884faecda7212e454088a84674677))
+
+
+
+## [8.9.1](https://github.com/forcedotcom/sfdx-core/compare/8.9.0...8.9.1) (2025-04-15)
+
+
+### Bug Fixes
+
+* cache regex per debug level ([13c20a7](https://github.com/forcedotcom/sfdx-core/commit/13c20a7f82589c156af436dbd30e39a11b99bcb8))
+
+
+
+# [8.9.0](https://github.com/forcedotcom/sfdx-core/compare/8.8.7...8.9.0) (2025-04-08)
+
+
+### Features
+
+* add polling for `scratchOrgResume`  ([#1177](https://github.com/forcedotcom/sfdx-core/issues/1177)) ([c3c0b80](https://github.com/forcedotcom/sfdx-core/commit/c3c0b80337e3a65c9d82cc729be38211893ed699))
+
+
+
 ## [8.8.7](https://github.com/forcedotcom/sfdx-core/compare/8.8.6...8.8.7) (2025-03-25)
 
 

@@ -54,6 +54,9 @@ export const retrieveKeychain = async (platform: string): Promise<KeyChain> => {
         return keyChainImpl.generic_unix;
       }
     }
+  } else if (platform === 'browser') {
+    logger.debug(`platform: ${platform}. Using generic keychain.`);
+    return keyChainImpl.generic_unix;
   } else {
     throw messages.createError('unsupportedOperatingSystemError', [platform]);
   }

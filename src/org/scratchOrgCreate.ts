@@ -104,7 +104,10 @@ const validateRetry = (retry: number): void => {
   }
 };
 
-export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateResult> => {
+export const scratchOrgResume = async (
+  jobId: string,
+  timeout: Duration = Duration.minutes(15)
+): Promise<ScratchOrgCreateResult> => {
   const [logger, cache] = await Promise.all([
     Logger.child('scratchOrgResume'),
     ScratchOrgCache.create(),
@@ -134,9 +137,7 @@ export const scratchOrgResume = async (jobId: string): Promise<ScratchOrgCreateR
   }
 
   const hubOrg = await Org.create({ aliasOrUsername: hubUsername });
-  const soi = await queryScratchOrgInfo(hubOrg, jobId);
-
-  await validateScratchOrgInfoForResume({ jobId, scratchOrgInfo: soi, cache, hubUsername });
+  const soi = await validateScratchOrgInfoForResume({ jobId, hubOrg, cache, hubUsername, timeout });
   // At this point, the scratch org is "good".
 
   // Some hubs have all the usernames set to `null`

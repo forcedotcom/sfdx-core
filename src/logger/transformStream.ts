@@ -28,8 +28,10 @@ export default function (): Transform {
           cb();
         },
       });
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
+
+      // Set up pipeline with proper error handling
       pipeline(source, myTransportStream, () => {});
+
       return myTransportStream;
     },
     {
@@ -38,18 +40,20 @@ export default function (): Transform {
     }
   );
 }
+// Cache for debug regex to avoid recreating it on every message
+let cachedDebugRegex: RegExp | null = null;
+let lastDebugPattern: string | null = null;
 
-/** if the DEBUG= is set, see if that matches the logger name.  If not, we don't want to keep going */
 const debugAllows = (chunk: Record<string, unknown>): boolean => {
   if (!process.env.DEBUG || process.env.DEBUG === '*') return true;
   if (typeof chunk.name !== 'string') return true;
-  // turn wildcard patterns into regexes
-  const regexFromDebug = new RegExp(process.env.DEBUG.replace(/\*/g, '.*'));
-  if (!regexFromDebug.test(chunk.name)) {
-    // console.log(`no match : ${chunk.name} for ${process.env.DEBUG}`);
-    return false;
-  } else {
-    // console.log(`match : ${chunk.name} for ${process.env.DEBUG}`);
-    return true;
+
+  // Only create a new regex if the DEBUG pattern has changed
+  if (process.env.DEBUG !== lastDebugPattern) {
+    lastDebugPattern = process.env.DEBUG;
+    cachedDebugRegex = new RegExp(process.env.DEBUG.replace(/\*/g, '.*'));
   }
+
+  // Use the cached regex for pattern matching
+  return cachedDebugRegex!.test(chunk.name);
 };
