@@ -58,6 +58,14 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   public constructor(options: WebOAuthServer.Options) {
     super(options);
     this.oauthConfig = options.oauthConfig;
+
+    // runtime check due to TS's loose type validation when using union types.
+    if ('username' in options && options.app === undefined) {
+      throw messages.createError('error.missingWebOauthServer.options');
+    }
+    if ('app' in options && options.username === undefined) {
+      throw messages.createError('error.missingWebOauthServer.options');
+    }
     if ('app' in options) {
       this.app = options.app;
       this.username = options.username;
