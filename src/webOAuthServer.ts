@@ -60,10 +60,10 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
     this.oauthConfig = options.oauthConfig;
 
     // runtime check due to TS's loose type validation when using union types.
-    if ('username' in options && options.app === undefined) {
+    if (Object.hasOwn(options, 'username') && !Object.hasOwn(options, 'app')) {
       throw messages.createError('error.missingWebOauthServer.options');
     }
-    if ('app' in options && options.username === undefined) {
+    if (Object.hasOwn(options, 'app') && !Object.hasOwn(options, 'username')) {
       throw messages.createError('error.missingWebOauthServer.options');
     }
     if ('app' in options) {
@@ -125,7 +125,9 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
                 const decryptedCopy = userAuthInfo.getFields(true);
 
                 if (decryptedCopy.apps && this.app in decryptedCopy.apps) {
-                  throw new SfError(`There is already an existing "${this.app}" app linked to "${this.username}", try with a different app name.`);
+                  throw new SfError(
+                    `There is already an existing "${this.app}" app linked to "${this.username}", try with a different app name.`
+                  );
                 }
 
                 await userAuthInfo.save({
