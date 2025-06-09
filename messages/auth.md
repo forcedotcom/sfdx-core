@@ -32,6 +32,10 @@ HTTP response contains html content. Check that the org exists and can be reache
 
 The device authorization request timed out. After executing force:auth:device:login, you must approve access to the device within 10 minutes. This can happen if the URL wasn’t copied into the browser, login was not attempted, or the 2FA process was not completed within 10 minutes. Request authorization again.
 
+# error.missingWebOauthServer.options
+
+You must specify both an `app` and `username` if you intend the server to link a connected app to a user.
+
 # serverErrorHTMLResponse
 
 <html><head><style>body {background-color:#F4F6F9; font-family: Arial, sans-serif; font-size: 0.8125rem; line-height: 1.5rem; color: #16325c;} #center {margin: auto; width: 370px; padding: 100px 0px 20px;} #logo-container {margin-left: auto; margin-right: auto; text-align: center;} #logo {max-width: 180px; max-height: 113px; margin-bottom: 2rem; border: 0;} #header {font-size: 1.5rem; text-align: center; margin-bottom: 1rem;} #message {background-color: #FFFFFF; margin: 0px auto; padding: 1.25rem; border-radius: 0.25rem; border: 1px solid #D8DDE6;} #footer {height: 24px; width: 370px; text-align: center; font-size: .75rem; position: absolute; bottom: 10;}</style></head><body><div id="center"><div id="logo-container"><img id="logo" aria-hidden="true" name="logo" alt="Salesforce" src="data:image/svg+xml;base64,%s"></div><div id="header">%s</div><div id="message">%s<br/><br/>This is most likely <b>not</b> an error with the Salesforce CLI. Please ensure all information is accurate and try again.</div><div id="footer">&copy; %s Salesforce, Inc. All rights reserved.</div></div></body></html>

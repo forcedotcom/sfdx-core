@@ -1344,7 +1344,6 @@ export namespace AuthInfo {
       refreshToken: string;
       clientId: string;
       clientSecret?: string;
-      // privateKey: string;
     }>;
     /**
      * Options for the access token auth.
