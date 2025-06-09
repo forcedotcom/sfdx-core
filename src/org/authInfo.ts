@@ -691,6 +691,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         });
 
         await this.save({
+          ...decryptedCopy.apps,
           apps: {
             [app]: {
               accessToken: ensureString(authFields.accessToken),

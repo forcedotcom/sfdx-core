@@ -122,8 +122,15 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
                   username: this.username,
                 });
 
+                const decryptedCopy = userAuthInfo.getFields(true);
+
+                if (decryptedCopy.apps && this.app in decryptedCopy.apps) {
+                  throw new SfError(`There is already an existing "${this.app}" app linked to "${this.username}", try with a different app name.`);
+                }
+
                 await userAuthInfo.save({
                   apps: {
+                    ...userAuthInfo.getFields(true).apps,
                     [this.app]: {
                       clientId: ensureString(authFields.clientId),
                       clientSecret: authFields.clientSecret,
