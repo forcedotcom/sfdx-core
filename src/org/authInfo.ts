@@ -659,7 +659,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
 
     if (!decryptedCopy.clientApps) {
-      throw new SfError(`${this.username} does not have any client app linked yet.`);
+      throw new SfError(`${this.username} does not have any client app linked.`);
     }
 
     if (!(clientApp in decryptedCopy.clientApps)) {
@@ -691,8 +691,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         });
 
         await this.save({
-          ...decryptedCopy.clientApps,
           clientApps: {
+            ...decryptedCopy.clientApps,
             [clientApp]: {
               accessToken: ensureString(authFields.accessToken),
               clientId: decryptedApp.clientId,

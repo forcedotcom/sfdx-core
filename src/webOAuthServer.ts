@@ -60,7 +60,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
     this.oauthConfig = options.oauthConfig;
 
     // runtime check due to TS's loose type validation when using union types.
-    if (Object.hasOwn(options, 'username') && !Object.hasOwn(options, 'app')) {
+    if (Object.hasOwn(options, 'username') && !Object.hasOwn(options, 'clientApp')) {
       throw messages.createError('error.missingWebOauthServer.options');
     }
     if (Object.hasOwn(options, 'clientApp') && !Object.hasOwn(options, 'username')) {

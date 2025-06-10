@@ -34,7 +34,7 @@ The device authorization request timed out. After executing force:auth:device:lo
 
 # error.missingWebOauthServer.options
 
-You must specify both an `app` and `username` if you intend the server to link a connected app to a user.
+You must specify both an `clientApp` and `username` if you intend the server to link a connected app to a user.
 
 # serverErrorHTMLResponse
 
