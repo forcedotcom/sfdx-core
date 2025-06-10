@@ -418,7 +418,7 @@ describe('WebOauthServer', () => {
   describe('runtime checks', () => {
     it('should fail if missing required params', async () => {
       try {
-        await WebOAuthServer.create({ oauthConfig: {}, app: 'agents' });
+        await WebOAuthServer.create({ oauthConfig: {}, clientApp: 'agents' });
         expect.fail();
       } catch (err) {
         const e = err as Error;

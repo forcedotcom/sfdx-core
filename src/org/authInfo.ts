@@ -50,7 +50,7 @@ const messages = Messages.loadMessages('@salesforce/core', 'core');
  * Fields for authorization, org, and local information.
  */
 export type AuthFields = {
-  apps?: {
+  clientApps?: {
     [key: string]: {
       clientId: string;
       clientSecret?: string;
@@ -617,14 +617,14 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   /**
    * Get the auth fields (decrypted) needed to make a connection.
    *
-   * @param app Name of the CA/ECA associated with the user.
+   * @param clientApp Name of the CA/ECA associated with the user.
    */
-  public getConnectionOptions(app?: string): ConnectionOptions {
+  public getConnectionOptions(clientApp?: string): ConnectionOptions {
     const decryptedCopy = this.getFields(true);
     const { accessToken, instanceUrl, loginUrl } = decryptedCopy;
 
     // return main app auth fields
-    if (!app) {
+    if (!clientApp) {
       if (this.isAccessTokenFlow()) {
         this.logger.info('Returning fields for a connection using access token.');
 
@@ -658,15 +658,15 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       };
     }
 
-    if (!decryptedCopy.apps) {
-      throw new SfError(`${this.username} does not have any apps linked yet.`);
+    if (!decryptedCopy.clientApps) {
+      throw new SfError(`${this.username} does not have any client app linked yet.`);
     }
 
-    if (!(app in decryptedCopy.apps)) {
-      throw new SfError(`${this.username} does not have a "${app}" app linked yet.`);
+    if (!(clientApp in decryptedCopy.clientApps)) {
+      throw new SfError(`${this.username} does not have a "${clientApp}" client app linked.`);
     }
 
-    const decryptedApp = decryptedCopy.apps[app];
+    const decryptedApp = decryptedCopy.clientApps[clientApp];
 
     return {
       oauth2: {
@@ -676,13 +676,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       },
       accessToken: decryptedApp.accessToken,
       instanceUrl,
-      // Specific refreshFn for AuthInfo's apps.
+      // Specific refreshFn for AuthInfo's clientApps.
       //
-      // Each app stores the oauth flow used for its initial auth, here we ensure each refresh returns
+      // Each client app stores the oauth flow used for its initial auth, here we ensure each refresh returns
       // a token, update the auth file with it and send it back to jsforce's through the callback.
       refreshFn: async (_conn, callback): Promise<void> => {
         // This only handles refresh for web flow.
-        // When more flows are supported for apps, check the `app.oauthFlow` field to set the appropiate refresh helper.
+        // When more flows are supported for client apps, check the `app.oauthFlow` field to set the appropiate refresh helper.
         const authFields = await this.buildRefreshTokenConfig({
           clientId: decryptedApp.clientId,
           clientSecret: decryptedApp.clientSecret,
@@ -691,9 +691,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         });
 
         await this.save({
-          ...decryptedCopy.apps,
-          apps: {
-            [app]: {
+          ...decryptedCopy.clientApps,
+          clientApps: {
+            [clientApp]: {
               accessToken: ensureString(authFields.accessToken),
               clientId: decryptedApp.clientId,
               clientSecret: decryptedApp.clientSecret,
@@ -1339,7 +1339,7 @@ export namespace AuthInfo {
      * OAuth options.
      */
     oauth2Options?: JwtOAuth2Config;
-    apps?: Array<{
+    clientApps?: Array<{
       name: string;
       accessToken: string;
       refreshToken: string;

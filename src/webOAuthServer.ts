@@ -52,7 +52,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   private oauth2!: OAuth2;
   private oauthConfig: JwtOAuth2Config;
   private oauthError = new Error('Oauth Error');
-  private app?: string;
+  private clientApp?: string;
   private username?: string;
 
   public constructor(options: WebOAuthServer.Options) {
@@ -63,11 +63,11 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
     if (Object.hasOwn(options, 'username') && !Object.hasOwn(options, 'app')) {
       throw messages.createError('error.missingWebOauthServer.options');
     }
-    if (Object.hasOwn(options, 'app') && !Object.hasOwn(options, 'username')) {
+    if (Object.hasOwn(options, 'clientApp') && !Object.hasOwn(options, 'username')) {
       throw messages.createError('error.missingWebOauthServer.options');
     }
-    if ('app' in options) {
-      this.app = options.app;
+    if ('clientApp' in options) {
+      this.clientApp = options.clientApp;
       this.username = options.username;
     }
   }
@@ -109,31 +109,31 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
         this.executeOauthRequest()
           .then(async (response) => {
             try {
-              // Link app to an existing auth file.
-              if (this.app) {
+              // Link client app to an existing auth file.
+              if (this.clientApp) {
                 const authInfo = await AuthInfo.create({
                   oauth2Options: this.oauthConfig,
                   oauth2: this.oauth2,
                 });
                 const authFields = authInfo.getFields(true);
 
-                // get user authInfo and save app creds in `apps`
+                // get user authInfo and save client app creds in `clientApps`
                 const userAuthInfo = await AuthInfo.create({
                   username: this.username,
                 });
 
                 const decryptedCopy = userAuthInfo.getFields(true);
 
-                if (decryptedCopy.apps && this.app in decryptedCopy.apps) {
+                if (decryptedCopy.clientApps && this.clientApp in decryptedCopy.clientApps) {
                   throw new SfError(
-                    `There is already an existing "${this.app}" app linked to "${this.username}", try with a different app name.`
+                    `The username ${this.username} is already linked to a client app named "${this.clientApp}". Please authenticate again with a different client app name.`
                   );
                 }
 
                 await userAuthInfo.save({
-                  apps: {
-                    ...userAuthInfo.getFields(true).apps,
-                    [this.app]: {
+                  clientApps: {
+                    ...userAuthInfo.getFields(true).clientApps,
+                    [this.clientApp]: {
                       clientId: ensureString(authFields.clientId),
                       clientSecret: authFields.clientSecret,
                       accessToken: ensureString(authFields.accessToken),
@@ -356,7 +356,7 @@ export namespace WebOAuthServer {
            */
           scope?: string;
         };
-        app: string;
+        clientApp: string;
         username: string;
       };
 

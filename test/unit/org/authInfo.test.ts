@@ -189,8 +189,8 @@ describe('AuthInfo', () => {
       });
 
       it('should return app-specific connection options when app parameter is provided', () => {
-        const app = 'agent-jwt-app';
-        const appConfig = {
+        const clientApp = 'agent-jwt-app';
+        const clientAppConfig = {
           accessToken: 'app-access-token',
           clientId: 'app-client-id',
           clientSecret: 'app-client-secret',
@@ -200,12 +200,12 @@ describe('AuthInfo', () => {
 
         // Set up the apps field in auth info
         authInfo.update({
-          apps: {
-            [app]: appConfig,
+          clientApps: {
+            [clientApp]: clientAppConfig,
           },
         });
 
-        const fields = authInfo.getConnectionOptions(app);
+        const fields = authInfo.getConnectionOptions(clientApp);
 
         // Verify app-specific connection options
         expect(fields.oauth2).to.have.property('clientId', 'app-client-id');
@@ -216,9 +216,9 @@ describe('AuthInfo', () => {
       });
 
       it('should throw error when app does not exist', () => {
-        const app = 'NonExistentApp';
+        const clientApp = 'NonExistentApp';
         authInfo.update({
-          apps: {
+          clientApps: {
             SomeOtherApp: {
               accessToken: 'token',
               clientId: 'client',
@@ -227,8 +227,8 @@ describe('AuthInfo', () => {
             },
           },
         });
-        expect(() => authInfo.getConnectionOptions(app)).to.throw(
-          `${authInfo.getUsername()} does not have a "${app}" app linked yet.`
+        expect(() => authInfo.getConnectionOptions(clientApp)).to.throw(
+          `${authInfo.getUsername()} does not have a "${clientApp}" client app linked.`
         );
       });
     });
