@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -277,7 +277,7 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
   }
 
   /**
-   * Has multiple package directories (MPD) defined in the project.
+   * Has multiple package bundles defined in the project.
    */
   public hasMultiplePackageBundles(): boolean {
     return (this.getContents()?.packageBundles?.length ?? 0) > 1;
@@ -355,8 +355,7 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
    * @param bundleEntry
    */
   public addPackageBundle(bundleEntry: BundleEntry): void {
-    const contents = this.getContents();
-    const bundles: BundleEntry[] = Array.isArray(contents.packageBundles) ? contents.packageBundles : [];
+    const bundles: BundleEntry[] = this.getPackageBundles();
 
     const bundleIndex = bundles.findIndex((b: BundleEntry) => b.name === bundleEntry.name);
 
