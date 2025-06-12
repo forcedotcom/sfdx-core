@@ -1,3 +1,12 @@
+# [8.13.0](https://github.com/forcedotcom/sfdx-core/compare/8.12.0...8.13.0) (2025-06-12)
+
+
+### Features
+
+* **auth:** link connected apps to a user W-18394868 ([#1188](https://github.com/forcedotcom/sfdx-core/issues/1188)) ([9c369a4](https://github.com/forcedotcom/sfdx-core/commit/9c369a481d586b397f1e76ca467cc688586b2cc7))
+
+
+
 # [8.12.0](https://github.com/forcedotcom/sfdx-core/compare/8.11.4...8.12.0) (2025-06-03)
 
 
