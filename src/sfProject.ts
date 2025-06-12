@@ -8,7 +8,7 @@ import { basename, dirname, isAbsolute, normalize, resolve, sep } from 'node:pat
 import * as fs from 'node:fs';
 import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
-import { PackageDir, ProjectJson as ProjectJsonSchema, PackagePackageDir } from '@salesforce/schemas';
+import { PackageDir, ProjectJson as ProjectJsonSchema, PackagePackageDir, BundleEntry } from '@salesforce/schemas';
 import { SfdcUrl } from './util/sfdcUrl';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
@@ -37,6 +37,7 @@ type NameAndFullPath = {
 
 export type NamedPackagingDir = PackagePackageDir & NameAndFullPath;
 export type NamedPackageDir = PackageDir & NameAndFullPath;
+export type { BundleEntry };
 
 export type ProjectJson = ConfigContents & ProjectJsonSchema;
 
@@ -66,7 +67,7 @@ export type ProjectJson = ConfigContents & ProjectJsonSchema;
  */
 export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
   /** json properties that are uppercase, or allow uppercase keys inside them */
-  public static BLOCKLIST = ['packageAliases', 'plugins'];
+  public static BLOCKLIST = ['packageAliases', 'plugins', 'packageBundleAliases'];
 
   public static getFileName(): string {
     return SFDX_PROJECT_JSON;
@@ -276,6 +277,13 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
   }
 
   /**
+   * Has multiple package bundles defined in the project.
+   */
+  public hasMultiplePackageBundles(): boolean {
+    return (this.getContents()?.packageBundles?.length ?? 0) > 1;
+  }
+
+  /**
    * Has at least one package alias defined in the project.
    */
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/require-await
@@ -333,6 +341,64 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
     this.set('packageDirectories', modifiedPackagesDirs);
   }
 
+  /**
+   * Get package bundles defined in the project.
+   */
+  public getPackageBundles(): BundleEntry[] {
+    return this.get('packageBundles') ?? [];
+  }
+  /**
+   * Add a bundle entry to the project.
+   * If the bundle entry already exists, the new entry
+   * properties will be merged with the existing properties.
+   *
+   * @param bundleEntry
+   */
+  public addPackageBundle(bundleEntry: BundleEntry): void {
+    const bundles: BundleEntry[] = this.getPackageBundles();
+
+    const bundleIndex = bundles.findIndex((b: BundleEntry) => b.name === bundleEntry.name);
+
+    const bundleEntryJson: BundleEntry = {
+      ...(bundleIndex > -1 ? bundles[bundleIndex] : bundleEntry),
+      ...bundleEntry,
+    };
+
+    const modifiedBundles =
+      bundleIndex > -1
+        ? bundles.map((b: BundleEntry) => (b.name === bundleEntry.name ? bundleEntryJson : b))
+        : [...bundles, bundleEntryJson];
+
+    this.set('packageBundles', modifiedBundles);
+  }
+
+  /**
+   * Has at least one package bundle alias defined in the project.
+   */
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/require-await
+  public async hasPackageBundleAliases() {
+    return Object.keys(this.getContents().packagBundleAliases ?? {}).length > 0;
+  }
+
+  /**
+   * Get package bundle aliases defined in the project.
+   */
+  public getPackageBundleAliases(): Nullable<Dictionary<string>> {
+    return this.get('packageBundleAliases') as Nullable<Dictionary<string>>;
+  }
+
+  /**
+   * Add a bundle alias to the project.
+   * If the bundle alias already exists, it will be overwritten.
+   *
+   * @param alias The alias name
+   * @param id The bundle ID
+   */
+  public addPackageBundleAlias(alias: string, id: string): void {
+    const newAliases = { ...(this.get('packageBundleAliases') ?? {}), [alias]: id };
+    this.set('packageBundleAliases', newAliases);
+  }
+
   // keep it because testSetup stubs it!
   // eslint-disable-next-line class-methods-use-this
   private doesPackageExist(packagePath: string): boolean {
@@ -367,6 +433,7 @@ export class SfProject {
   private packageDirectories?: NamedPackageDir[];
   private activePackage: Nullable<NamedPackageDir>;
   private packageAliases: Nullable<Dictionary<string>>;
+  private packageBundleAliases: Nullable<Dictionary<string>>;
 
   /**
    * Do not directly construct instances of this class -- use {@link SfProject.resolve} instead.
@@ -620,6 +687,13 @@ export class SfProject {
   }
 
   /**
+   * Has multiple package bundles defined in the project.
+   */
+  public hasMultiplePackageBundles(): boolean {
+    return this.getSfProjectJson().hasMultiplePackageBundles();
+  }
+
+  /**
    * Get the currently activated package on the project. This has no implication on sfdx-project.json
    * but is useful for keeping track of package and source specific options in a process.
    */
@@ -730,6 +804,27 @@ export class SfProject {
       throw messages.createError('invalidId', [id]);
     }
     return Object.entries(this.getPackageAliases() ?? {})
+      .filter(([, value]) => value?.startsWith(id))
+      .map(([key]) => key);
+  }
+
+  public getPackageBundleAliases(): Nullable<Dictionary<string>> {
+    if (!this.packageBundleAliases) {
+      this.packageBundleAliases = this.getSfProjectJson().getPackageBundleAliases();
+    }
+    return this.packageBundleAliases;
+  }
+
+  public getPackageBundleIdFromAlias(alias: string): Optional<string> {
+    const packageBundleAliases = this.getPackageBundleAliases();
+    return packageBundleAliases ? packageBundleAliases[alias] : undefined;
+  }
+
+  public getAliasesFromPackageBundleId(id: string): string[] {
+    if (!/^.{15,18}$/.test(id)) {
+      throw messages.createError('invalidId', [id]);
+    }
+    return Object.entries(this.getPackageBundleAliases() ?? {})
       .filter(([, value]) => value?.startsWith(id))
       .map(([key]) => key);
   }
