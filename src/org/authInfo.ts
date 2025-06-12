@@ -50,6 +50,15 @@ const messages = Messages.loadMessages('@salesforce/core', 'core');
  * Fields for authorization, org, and local information.
  */
 export type AuthFields = {
+  clientApps?: {
+    [key: string]: {
+      clientId: string;
+      clientSecret?: string;
+      accessToken: string;
+      refreshToken: string;
+      oauthFlow: 'web';
+    };
+  };
   accessToken?: string;
   alias?: string;
   authCode?: string;
@@ -607,41 +616,94 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   /**
    * Get the auth fields (decrypted) needed to make a connection.
+   *
+   * @param clientApp Name of the CA/ECA associated with the user.
    */
-  public getConnectionOptions(): ConnectionOptions {
+  public getConnectionOptions(clientApp?: string): ConnectionOptions {
     const decryptedCopy = this.getFields(true);
     const { accessToken, instanceUrl, loginUrl } = decryptedCopy;
 
-    if (this.isAccessTokenFlow()) {
-      this.logger.info('Returning fields for a connection using access token.');
+    // return main app auth fields
+    if (!clientApp) {
+      if (this.isAccessTokenFlow()) {
+        this.logger.info('Returning fields for a connection using access token.');
 
-      // Just auth with the accessToken
-      return { accessToken, instanceUrl, loginUrl };
-    }
-    if (this.isJwt()) {
-      this.logger.info('Returning fields for a connection using JWT config.');
+        // Just auth with the accessToken
+        return { accessToken, instanceUrl, loginUrl };
+      }
+      if (this.isJwt()) {
+        this.logger.info('Returning fields for a connection using JWT config.');
+        return {
+          accessToken,
+          instanceUrl,
+          refreshFn: this.refreshFn.bind(this),
+        };
+      }
+      // @TODO: figure out loginUrl and redirectUri (probably get from config class)
+      //
+      // redirectUri: org.config.getOauthCallbackUrl()
+      // loginUrl: this.fields.instanceUrl || this.config.getAppConfig().sfdcLoginUrl
+      this.logger.info('Returning fields for a connection using OAuth config.');
+
+      // Decrypt a user provided client secret or use the default.
       return {
+        oauth2: {
+          loginUrl: instanceUrl ?? SfdcUrl.PRODUCTION,
+          clientId: this.getClientId(),
+          redirectUri: this.getRedirectUri(),
+        },
         accessToken,
         instanceUrl,
         refreshFn: this.refreshFn.bind(this),
       };
     }
-    // @TODO: figure out loginUrl and redirectUri (probably get from config class)
-    //
-    // redirectUri: org.config.getOauthCallbackUrl()
-    // loginUrl: this.fields.instanceUrl || this.config.getAppConfig().sfdcLoginUrl
-    this.logger.info('Returning fields for a connection using OAuth config.');
 
-    // Decrypt a user provided client secret or use the default.
+    if (!decryptedCopy.clientApps) {
+      throw new SfError(`${this.username} does not have any client app linked.`);
+    }
+
+    if (!(clientApp in decryptedCopy.clientApps)) {
+      throw new SfError(`${this.username} does not have a "${clientApp}" client app linked.`);
+    }
+
+    const decryptedApp = decryptedCopy.clientApps[clientApp];
+
     return {
       oauth2: {
         loginUrl: instanceUrl ?? SfdcUrl.PRODUCTION,
-        clientId: this.getClientId(),
+        clientId: decryptedApp.clientId,
         redirectUri: this.getRedirectUri(),
       },
-      accessToken,
+      accessToken: decryptedApp.accessToken,
       instanceUrl,
-      refreshFn: this.refreshFn.bind(this),
+      // Specific refreshFn for AuthInfo's clientApps.
+      //
+      // Each client app stores the oauth flow used for its initial auth, here we ensure each refresh returns
+      // a token, update the auth file with it and send it back to jsforce's through the callback.
+      refreshFn: async (_conn, callback): Promise<void> => {
+        // This only handles refresh for web flow.
+        // When more flows are supported for client apps, check the `app.oauthFlow` field to set the appropiate refresh helper.
+        const authFields = await this.buildRefreshTokenConfig({
+          clientId: decryptedApp.clientId,
+          clientSecret: decryptedApp.clientSecret,
+          refreshToken: decryptedApp.refreshToken,
+          loginUrl: instanceUrl,
+        });
+
+        await this.save({
+          clientApps: {
+            ...decryptedCopy.clientApps,
+            [clientApp]: {
+              accessToken: ensureString(authFields.accessToken),
+              clientId: decryptedApp.clientId,
+              clientSecret: decryptedApp.clientSecret,
+              refreshToken: decryptedApp.refreshToken,
+              oauthFlow: 'web',
+            },
+          },
+        });
+        await callback(null, authFields.accessToken);
+      },
     };
   }
 
@@ -1277,6 +1339,13 @@ export namespace AuthInfo {
      * OAuth options.
      */
     oauth2Options?: JwtOAuth2Config;
+    clientApps?: Array<{
+      name: string;
+      accessToken: string;
+      refreshToken: string;
+      clientId: string;
+      clientSecret?: string;
+    }>;
     /**
      * Options for the access token auth.
      */

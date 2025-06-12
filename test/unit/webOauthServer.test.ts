@@ -414,6 +414,26 @@ describe('WebOauthServer', () => {
       expect(actual).to.equal(true);
     });
   });
+
+  describe('runtime checks', () => {
+    it('should fail if missing required params', async () => {
+      try {
+        await WebOAuthServer.create({ oauthConfig: {}, clientApp: 'agents' });
+        expect.fail();
+      } catch (err) {
+        const e = err as Error;
+        expect(e.name).to.equal('OptionsError');
+      }
+
+      try {
+        await WebOAuthServer.create({ oauthConfig: {}, username: 'johndoe@acme.com' });
+        expect.fail();
+      } catch (err) {
+        const e = err as Error;
+        expect(e.name).to.equal('OptionsError');
+      }
+    });
+  });
 });
 
 describe('WebServer', () => {
