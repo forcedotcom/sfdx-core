@@ -452,11 +452,15 @@ export class Logger {
 
 /** return various streams that the logger could send data to, depending on the options and env  */
 const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
+  const env = new Env();
   // used when debug mode, writes to stdout (colorized)
   if (process.env.DEBUG) {
     return {
       target: 'pino-pretty',
-      options: { colorize: true },
+      options: {
+        colorize: env.getBoolean('SF_LOG_COLORIZE') ?? true,
+        destination: env.getBoolean('SF_LOG_STDERR') ? 2 : 1,
+      },
     };
   }
 
@@ -466,7 +470,7 @@ const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
     ['1h', new Date().toISOString().split(':').slice(0, 1).join('-')],
     ['1d', new Date().toISOString().split('T')[0]],
   ]);
-  const logRotationPeriod = new Env().getString('SF_LOG_ROTATION_PERIOD') ?? '1d';
+  const logRotationPeriod = env.getString('SF_LOG_ROTATION_PERIOD') ?? '1d';
 
   return {
     // write to a rotating file
