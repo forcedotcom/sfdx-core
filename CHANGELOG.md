@@ -1,3 +1,12 @@
+# [8.14.0](https://github.com/forcedotcom/sfdx-core/compare/8.13.0...8.14.0) (2025-06-13)
+
+
+### Features
+
+* add env vars for debug logger ([#1204](https://github.com/forcedotcom/sfdx-core/issues/1204)) ([9788ca4](https://github.com/forcedotcom/sfdx-core/commit/9788ca47a9ca9ee32391dbe2c5aa5b73117c2b9b))
+
+
+
 # [8.13.0](https://github.com/forcedotcom/sfdx-core/compare/8.12.0...8.13.0) (2025-06-12)
 
 
