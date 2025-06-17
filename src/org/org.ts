@@ -110,6 +110,7 @@ export type SandboxProcessObject = {
   Description?: string;
   ApexClassId?: string;
   EndDate?: string;
+  Features?: string;
 };
 const sandboxProcessFields = [
   'Id',
@@ -123,6 +124,7 @@ const sandboxProcessFields = [
   'SourceId',
   'Description',
   'EndDate',
+  'Features',
 ];
 
 export type SandboxRequest = {
@@ -133,6 +135,7 @@ export type SandboxRequest = {
   Description?: string;
   ApexClassId?: string;
   ActivationUserGroupId?: string;
+  Features?: string;
 };
 export type ResumeSandboxRequest = {
   SandboxName?: string;
@@ -158,6 +161,7 @@ export type SandboxInfo = {
   SourceId?: string; // SandboxInfoId as the source org used for a clone
   ActivationUserGroupId?: string; // Support might be added back in API v61.0 (Summer '24)
   CopyArchivedActivities?: boolean; // only for full sandboxes; depends if a license was purchased
+  Features?: string;
 };
 
 export type ScratchOrgRequest = Omit<ScratchOrgCreateOptions, 'hubOrg'>;
@@ -753,6 +757,65 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     return this.getConnection().singleRecordQuery<OrganizationInformation>(
       'SELECT Name, InstanceName, IsSandbox, TrialExpirationDate, NamespacePrefix FROM Organization'
     );
+  }
+
+  /**
+   * Query SandboxInfo Features by sandbox name
+   *
+   * @param sandboxName The sandbox name to query for
+   */
+  public async querySandboxInfoFeaturesBySandboxName(name: string): Promise<string | undefined> {
+    return (
+      await this.connection.singleRecordQuery<{ Features: string }>(
+        `SELECT Features FROM SandboxInfo WHERE SandboxName = '${name}'`,
+        { tooling: true }
+      )
+    ).Features;
+  }
+
+  /**
+   * Query SandboxInfo Features by ID
+   *
+   * @param id The SandboxInfo ID to query for
+   */
+  public async querySandboxInfoFeaturesById(id: string): Promise<string | undefined> {
+    return (
+      await this.connection.singleRecordQuery<{ Features: string }>(
+        `SELECT Features FROM SandboxInfo WHERE Id = '${id}'`,
+        { tooling: true }
+      )
+    ).Features;
+  }
+
+  /**
+   * Get Features for a sandbox by name or ID, checking both SandboxProcess and SandboxInfo
+   *
+   * @param sandboxName The sandbox name or ID to query for
+   */
+  public async getSandboxFeatures(sandboxName: string): Promise<string | undefined> {
+    if (sandboxName.startsWith('0GR')) {
+      const sandboxProcess = await this.querySandboxProcessById(sandboxName);
+      return sandboxProcess.Features;
+    }
+
+    if (sandboxName.startsWith('0GQ')) {
+      return this.querySandboxInfoFeaturesById(sandboxName);
+    }
+
+    try {
+      const sandboxProcess = await this.querySandboxProcessBySandboxName(sandboxName);
+      if (sandboxProcess.Features) {
+        return sandboxProcess.Features;
+      }
+
+      return await this.querySandboxInfoFeaturesBySandboxName(sandboxName);
+    } catch (err) {
+      // If not found in SandboxProcess, try SandboxInfo
+      if (err instanceof Error && err.name === SingleRecordQueryErrors.NoRecords) {
+        return this.querySandboxInfoFeaturesBySandboxName(sandboxName);
+      }
+      throw err;
+    }
   }
 
   /**
