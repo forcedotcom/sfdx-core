@@ -919,6 +919,7 @@ describe('Org Tests', () => {
       'SourceId',
       'Description',
       'EndDate',
+      'Features',
     ];
 
     let prodTestData: MockTestOrgData;
