@@ -176,6 +176,11 @@ export type SandboxFields = {
   timestamp?: string;
 };
 
+export type SandboxInfoQueryFields = {
+  name: string;
+  id: string;
+};
+
 /**
  * Provides a way to manage a locally authenticated Org.
  *
@@ -787,6 +792,26 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     ).Features;
   }
 
+  public async querySandboxInfo(by: SandboxInfoQueryFields): Promise<SandboxProcessObject> {
+    const whereClause = by.id ? `SandboxInfoId='${by.id}'` : `SandboxName='${by.name}'`;
+    const soql = `SELECT ${sandboxProcessFields.join(
+      ','
+    )} FROM SandboxProcess WHERE ${whereClause} ORDER BY CreatedDate DESC`;
+    const result = (await this.connection.tooling.query<SandboxProcessObject>(soql)).records.filter(
+      (item) => !item.Status.startsWith('Del')
+    );
+
+    if (result.length === 0) {
+      throw new SfError(`No record found for ${soql}`, SingleRecordQueryErrors.NoRecords);
+    }
+    if (result.length > 1) {
+      const err = new SfError('The query returned more than 1 record', SingleRecordQueryErrors.MultipleRecords);
+      err.data = result;
+      throw err;
+    }
+    return result[0];
+  }
+
   /**
    * Get Features for a sandbox by name or ID, checking both SandboxProcess and SandboxInfo
    *
@@ -799,18 +824,23 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
 
     if (sandboxName.startsWith('0GQ')) {
-      return this.querySandboxInfoFeaturesById(sandboxName);
+      try {
+        const sandboxProcess = await this.querySandboxInfo({ id: sandboxName, name: '' });
+
+        return sandboxProcess.Features ?? (await this.querySandboxInfoFeaturesById(sandboxName));
+      } catch (err) {
+        if (err instanceof Error && err.name === SingleRecordQueryErrors.NoRecords) {
+          return this.querySandboxInfoFeaturesById(sandboxName);
+        }
+        throw err;
+      }
     }
 
     try {
-      const sandboxProcess = await this.querySandboxProcessBySandboxName(sandboxName);
-      if (sandboxProcess.Features) {
-        return sandboxProcess.Features;
-      }
+      const sandboxProcess = await this.querySandboxInfo({ id: '', name: sandboxName });
 
-      return await this.querySandboxInfoFeaturesBySandboxName(sandboxName);
+      return sandboxProcess.Features ?? (await this.querySandboxInfoFeaturesBySandboxName(sandboxName));
     } catch (err) {
-      // If not found in SandboxProcess, try SandboxInfo
       if (err instanceof Error && err.name === SingleRecordQueryErrors.NoRecords) {
         return this.querySandboxInfoFeaturesBySandboxName(sandboxName);
       }

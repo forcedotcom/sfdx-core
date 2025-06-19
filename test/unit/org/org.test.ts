@@ -1178,6 +1178,26 @@ describe('Org Tests', () => {
           expect(devHubQueryStub.called).to.be.false;
         }
       });
+
+      it('when creating sandbox with features', async () => {
+        const sandboxDefinition = {
+          SandboxName: 'testSandboxWithFeatures',
+          Features: '[SandboxStorage]',
+        };
+
+        await prod.cloneSandbox(sandboxDefinition, 'testSandbox', { wait: Duration.seconds(30) });
+
+        expect(createStub.calledOnce).to.be.true;
+        expect(querySandboxProcessStub.calledTwice).to.be.true;
+        expect(pollStatusAndAuthStub.calledOnce).to.be.true;
+
+        const createCallArgs = createStub.firstCall.args;
+        expect(createCallArgs[0]).to.equal('SandboxInfo');
+        expect(createCallArgs[1]).to.deep.include({
+          SandboxName: 'testSandboxWithFeatures',
+          Features: '[SandboxStorage]',
+        });
+      });
     });
 
     describe('resumeSandbox', () => {
