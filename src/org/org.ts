@@ -127,6 +127,26 @@ const sandboxProcessFields = [
   'Features',
 ];
 
+const sandboxInfoFields = [
+  'Id',
+  'IsDeleted',
+  'CreatedDate',
+  'CreatedById',
+  'LastModifiedDate',
+  'LastModifiedById',
+  'SandboxName',
+  'LicenseType',
+  'TemplateId',
+  'HistoryDays',
+  'CopyChatter',
+  'AutoActivate',
+  'ApexClassId',
+  'Description',
+  'SourceId',
+  'ActivationUserGroupId',
+  'Features',
+];
+
 export type SandboxRequest = {
   SandboxName: string;
   LicenseType?: string;
@@ -764,42 +784,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     );
   }
 
-  /**
-   * Query SandboxInfo Features by sandbox name
-   *
-   * @param sandboxName The sandbox name to query for
-   */
-  public async querySandboxInfoFeaturesBySandboxName(name: string): Promise<string | undefined> {
-    return (
-      await this.connection.singleRecordQuery<{ Features: string }>(
-        `SELECT Features FROM SandboxInfo WHERE SandboxName = '${name}'`,
-        { tooling: true }
-      )
-    ).Features;
-  }
-
-  /**
-   * Query SandboxInfo Features by ID
-   *
-   * @param id The SandboxInfo ID to query for
-   */
-  public async querySandboxInfoFeaturesById(id: string): Promise<string | undefined> {
-    return (
-      await this.connection.singleRecordQuery<{ Features: string }>(
-        `SELECT Features FROM SandboxInfo WHERE Id = '${id}'`,
-        { tooling: true }
-      )
-    ).Features;
-  }
-
-  public async querySandboxInfo(by: SandboxInfoQueryFields): Promise<SandboxProcessObject> {
-    const whereClause = by.id ? `SandboxInfoId='${by.id}'` : `SandboxName='${by.name}'`;
-    const soql = `SELECT ${sandboxProcessFields.join(
+  public async querySandboxInfo(by: SandboxInfoQueryFields): Promise<SandboxInfo> {
+    const whereClause = by.id ? `Id='${by.id}'` : `SandboxName='${by.name}'`;
+    const soql = `SELECT ${sandboxInfoFields.join(
       ','
-    )} FROM SandboxProcess WHERE ${whereClause} ORDER BY CreatedDate DESC`;
-    const result = (await this.connection.tooling.query<SandboxProcessObject>(soql)).records.filter(
-      (item) => !item.Status.startsWith('Del')
-    );
+    )} FROM SandboxInfo WHERE ${whereClause} ORDER BY CreatedDate DESC`;
+    const result = (await this.connection.tooling.query<SandboxInfo>(soql)).records.filter((item) => !item.IsDeleted);
 
     if (result.length === 0) {
       throw new SfError(`No record found for ${soql}`, SingleRecordQueryErrors.NoRecords);
@@ -810,42 +800,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       throw err;
     }
     return result[0];
-  }
-
-  /**
-   * Get Features for a sandbox by name or ID, checking both SandboxProcess and SandboxInfo
-   *
-   * @param sandboxName The sandbox name or ID to query for
-   */
-  public async getSandboxFeatures(sandboxName: string): Promise<string | undefined> {
-    if (sandboxName.startsWith('0GR')) {
-      const sandboxProcess = await this.querySandboxProcessById(sandboxName);
-      return sandboxProcess.Features;
-    }
-
-    if (sandboxName.startsWith('0GQ')) {
-      try {
-        const sandboxProcess = await this.querySandboxInfo({ id: sandboxName, name: '' });
-
-        return sandboxProcess.Features ?? (await this.querySandboxInfoFeaturesById(sandboxName));
-      } catch (err) {
-        if (err instanceof Error && err.name === SingleRecordQueryErrors.NoRecords) {
-          return this.querySandboxInfoFeaturesById(sandboxName);
-        }
-        throw err;
-      }
-    }
-
-    try {
-      const sandboxProcess = await this.querySandboxInfo({ id: '', name: sandboxName });
-
-      return sandboxProcess.Features ?? (await this.querySandboxInfoFeaturesBySandboxName(sandboxName));
-    } catch (err) {
-      if (err instanceof Error && err.name === SingleRecordQueryErrors.NoRecords) {
-        return this.querySandboxInfoFeaturesBySandboxName(sandboxName);
-      }
-      throw err;
-    }
   }
 
   /**
