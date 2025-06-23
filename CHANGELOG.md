@@ -1,3 +1,12 @@
+## [8.14.1](https://github.com/forcedotcom/sfdx-core/compare/8.14.0...8.14.1) (2025-06-23)
+
+
+### Bug Fixes
+
+* ensure that colored logs are on by default ([#1206](https://github.com/forcedotcom/sfdx-core/issues/1206)) ([c393593](https://github.com/forcedotcom/sfdx-core/commit/c393593bbf6ceef4dbeae1758c730b42bc0cea47))
+
+
+
 # [8.14.0](https://github.com/forcedotcom/sfdx-core/compare/8.13.0...8.14.0) (2025-06-13)
 
 
