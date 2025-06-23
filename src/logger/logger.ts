@@ -458,7 +458,9 @@ const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
     return {
       target: 'pino-pretty',
       options: {
-        colorize: env.getBoolean('SF_LOG_COLORIZE') ?? true,
+        // NOTE: env.getBoolean() defaults to false if the env var is not set
+        // so it's important to use `||` instead of `??`
+        colorize: env.getBoolean('SF_LOG_COLORIZE') || true,
         destination: env.getBoolean('SF_LOG_STDERR') ? 2 : 1,
       },
     };
