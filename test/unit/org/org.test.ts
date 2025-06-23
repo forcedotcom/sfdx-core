@@ -1182,7 +1182,7 @@ describe('Org Tests', () => {
       it('when creating sandbox with features', async () => {
         const sandboxDefinition = {
           SandboxName: 'testSandboxWithFeatures',
-          Features: '[SandboxStorage]',
+          Features: ['SandboxStorage'],
         };
 
         await prod.cloneSandbox(sandboxDefinition, 'testSandbox', { wait: Duration.seconds(30) });
@@ -1195,7 +1195,7 @@ describe('Org Tests', () => {
         expect(createCallArgs[0]).to.equal('SandboxInfo');
         expect(createCallArgs[1]).to.deep.include({
           SandboxName: 'testSandboxWithFeatures',
-          Features: '[SandboxStorage]',
+          Features: ['SandboxStorage'],
         });
       });
     });
