@@ -30,7 +30,7 @@ import { Global } from '../global';
 import { Lifecycle } from '../lifecycleEvents';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
-import { trimTo15 } from '../util/sfdc';
+import { trimTo15, validateSalesforceId } from '../util/sfdc';
 import { WebOAuthServer } from '../webOAuthServer';
 import { Messages } from '../messages';
 import { StateAggregator } from '../stateAggregator/stateAggregator';
@@ -43,6 +43,8 @@ import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'org');
+
+export type XOR<T, U> = (T & { [K in keyof U]?: never }) | (U & { [K in keyof T]?: never });
 
 export type OrganizationInformation = {
   Name: string;
@@ -110,6 +112,7 @@ export type SandboxProcessObject = {
   Description?: string;
   ApexClassId?: string;
   EndDate?: string;
+  Features?: string[];
 };
 const sandboxProcessFields = [
   'Id',
@@ -123,6 +126,27 @@ const sandboxProcessFields = [
   'SourceId',
   'Description',
   'EndDate',
+  'Features',
+];
+
+const sandboxInfoFields = [
+  'Id',
+  'IsDeleted',
+  'CreatedDate',
+  'CreatedById',
+  'LastModifiedDate',
+  'LastModifiedById',
+  'SandboxName',
+  'LicenseType',
+  'TemplateId',
+  'HistoryDays',
+  'CopyChatter',
+  'AutoActivate',
+  'ApexClassId',
+  'Description',
+  'SourceId',
+  'ActivationUserGroupId',
+  'Features',
 ];
 
 export type SandboxRequest = {
@@ -133,6 +157,7 @@ export type SandboxRequest = {
   Description?: string;
   ApexClassId?: string;
   ActivationUserGroupId?: string;
+  Features?: string[];
 };
 export type ResumeSandboxRequest = {
   SandboxName?: string;
@@ -158,6 +183,7 @@ export type SandboxInfo = {
   SourceId?: string; // SandboxInfoId as the source org used for a clone
   ActivationUserGroupId?: string; // Support might be added back in API v61.0 (Summer '24)
   CopyArchivedActivities?: boolean; // only for full sandboxes; depends if a license was purchased
+  Features?: string[];
 };
 
 export type ScratchOrgRequest = Omit<ScratchOrgCreateOptions, 'hubOrg'>;
@@ -171,6 +197,8 @@ export type SandboxFields = {
   sandboxInfoId?: string;
   timestamp?: string;
 };
+
+export type SandboxInfoQueryFields = XOR<{ name: string }, { id: string }>;
 
 /**
  * Provides a way to manage a locally authenticated Org.
@@ -753,6 +781,31 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     return this.getConnection().singleRecordQuery<OrganizationInformation>(
       'SELECT Name, InstanceName, IsSandbox, TrialExpirationDate, NamespacePrefix FROM Organization'
     );
+  }
+
+  public async querySandboxInfo(by: SandboxInfoQueryFields): Promise<SandboxInfo> {
+    if (by.id) {
+      // Validate that the ID is a valid Salesforce ID
+      if (!validateSalesforceId(by.id)) {
+        throw new SfError(`Invalid Salesforce ID format: ${by.id}`, 'InvalidSalesforceId');
+      }
+    }
+
+    const whereClause = by.id ? `Id='${by.id}'` : `SandboxName='${by.name}'`;
+    const soql = `SELECT ${sandboxInfoFields.join(
+      ','
+    )} FROM SandboxInfo WHERE ${whereClause} ORDER BY CreatedDate DESC`;
+    const result = (await this.connection.tooling.query<SandboxInfo>(soql)).records.filter((item) => !item.IsDeleted);
+
+    if (result.length === 0) {
+      throw new SfError(`No record found for ${soql}`, SingleRecordQueryErrors.NoRecords);
+    }
+    if (result.length > 1) {
+      const err = new SfError('The query returned more than 1 record', SingleRecordQueryErrors.MultipleRecords);
+      err.data = result;
+      throw err;
+    }
+    return result[0];
   }
 
   /**
