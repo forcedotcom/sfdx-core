@@ -5,11 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
+import { Duration } from '@salesforce/kit';
+import { stubMethod } from '@salesforce/ts-sinon';
 import { SfError } from '../../../src/sfError';
 import { ScratchOrgInfo } from '../../../src/org/scratchOrgTypes';
-import { checkScratchOrgInfoForErrors } from '../../../src/org/scratchOrgErrorCodes';
+import { checkScratchOrgInfoForErrors, validateScratchOrgInfoForResume } from '../../../src/org/scratchOrgErrorCodes';
 import { shouldThrow } from '../../../src/testSetup';
-
+import { ScratchOrgCache } from '../../../src/org/scratchOrgCache';
+import { Org } from '../../../src/org/org';
+import * as scratchOrgInfoApi from '../../../src/org/scratchOrgInfoApi';
+import { TestContext } from '../../../src/testSetup';
+import { PollingClient } from '../../../src/status/pollingClient';
 const testUsername = 'foo';
 const baseOrgInfo: ScratchOrgInfo = {
   SignupEmail: '',
@@ -23,6 +29,125 @@ const baseOrgInfo: ScratchOrgInfo = {
   OrgName: '00D123456789012345',
   Id: '2SR123456789012345',
 };
+
+describe('validateScratchOrgInfoForResume - timeout validation', () => {
+  const $$ = new TestContext();
+  it('should throw StillInProgressError when timeout is 0 minutes and status is New', async () => {
+    const scratchOrgInfo = { ...baseOrgInfo, Status: 'New', Id: 'test-job-id' };
+
+    // Mock the API call to return an org in 'New' status
+    stubMethod($$.SANDBOX, scratchOrgInfoApi, 'queryScratchOrgInfo').resolves(scratchOrgInfo);
+
+    try {
+      await shouldThrow(
+        validateScratchOrgInfoForResume({
+          jobId: 'test-job-id',
+          hubOrg: {} as Org,
+          cache: {} as ScratchOrgCache,
+          hubUsername: 'hub@test.com',
+          timeout: Duration.minutes(0),
+        })
+      );
+    } catch (err) {
+      if (!(err instanceof SfError)) {
+        expect.fail('should have thrown SfError');
+      }
+      expect(err.name).to.equal('StillInProgressError');
+      expect(err.message).to.equal('The scratch org is not ready yet (Status = New).');
+    }
+  });
+
+  it('should throw StillInProgressError when timeout is 0 minutes and status is Creating', async () => {
+    const scratchOrgInfo = { ...baseOrgInfo, Status: 'Creating', Id: 'test-job-id' };
+
+    // Mock the API call to return an org in 'Creating' status
+    stubMethod($$.SANDBOX, scratchOrgInfoApi, 'queryScratchOrgInfo').resolves(scratchOrgInfo);
+
+    try {
+      await shouldThrow(
+        validateScratchOrgInfoForResume({
+          jobId: 'test-job-id',
+          hubOrg: {} as Org,
+          cache: {} as ScratchOrgCache,
+          hubUsername: 'hub@test.com',
+          timeout: Duration.minutes(0),
+        })
+      );
+    } catch (err) {
+      if (!(err instanceof SfError)) {
+        expect.fail('should have thrown SfError');
+      }
+      expect(err.name).to.equal('StillInProgressError');
+      expect(err.message).to.include('The scratch org is not ready yet (Status = Creating).');
+    }
+  });
+
+  it('should proceed with polling when timeout is greater than 0 minutes', async () => {
+    const scratchOrgInfo = { ...baseOrgInfo, Status: 'Creating', Id: 'test-job-id' };
+    stubMethod($$.SANDBOX, scratchOrgInfoApi, 'queryScratchOrgInfo').resolves(scratchOrgInfo);
+
+    // Mock PollingClient to simulate immediate failure (not timeout)
+    const pollingError = new Error('Polling failed');
+    pollingError.name = 'PollingError';
+    const mockPollingClient = {
+      subscribe: $$.SANDBOX.stub().rejects(pollingError),
+    };
+    stubMethod($$.SANDBOX, PollingClient, 'create').resolves(mockPollingClient);
+
+    try {
+      await shouldThrow(
+        validateScratchOrgInfoForResume({
+          jobId: 'test-job-id',
+          hubOrg: {} as Org,
+          cache: {} as ScratchOrgCache,
+          hubUsername: 'hub@test.com',
+          timeout: Duration.minutes(1),
+        })
+      );
+    } catch (err) {
+      // We expect some error due to polling failure, but it should NOT be StillInProgressError
+      if (err instanceof SfError && err.name === 'StillInProgressError') {
+        expect.fail('Should not throw StillInProgressError when timeout > 0');
+      }
+      expect((err as Error).name).to.equal('PollingError');
+      expect((err as Error).message).to.not.include('Last known Status');
+    }
+  });
+
+  it.only('should enhance timeout error message with last known status', async () => {
+    const scratchOrgInfo = { ...baseOrgInfo, Status: 'Creating', Id: 'test-job-id' };
+    stubMethod($$.SANDBOX, scratchOrgInfoApi, 'queryScratchOrgInfo').resolves(scratchOrgInfo);
+
+    // Create a mock polling client that will throw the timeout error
+    const timeoutError = new Error('Polling client timed out.');
+    timeoutError.name = 'ScratchOrgResumeTimeOutError';
+    const mockPollingClient = {
+      subscribe: $$.SANDBOX.stub().rejects(timeoutError),
+    };
+    stubMethod($$.SANDBOX, PollingClient, 'create').resolves(mockPollingClient);
+
+    try {
+      await shouldThrow(
+        validateScratchOrgInfoForResume({
+          jobId: 'test-job-id',
+          hubOrg: {} as Org,
+          cache: {} as ScratchOrgCache,
+          hubUsername: 'hub@test.com',
+          timeout: Duration.minutes(1), // Use a timeout > 0 to trigger polling
+        })
+      );
+    } catch (error) {
+      if (!(error instanceof Error)) {
+        expect.fail('should have thrown Error');
+      }
+      // Verify that the error name is still the timeout error
+      expect(error.name).to.equal('ScratchOrgResumeTimeOutError');
+      // Verify that the error message has been enhanced with the last known status
+      expect(error.message).to.equal('Polling client timed out. (Last known Status: Creating)');
+    }
+  });
+});
+
 describe('getHumanErrorMessage', () => {
   it('test get message by regex format W-DDDD', async () => {
     const ErrorCode = 'T-0002';
