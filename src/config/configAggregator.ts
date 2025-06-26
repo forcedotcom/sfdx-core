@@ -116,28 +116,6 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
 
   // Use typing from AsyncOptionalCreatable to support extending ConfigAggregator.
   // We really don't want ConfigAggregator extended but typescript doesn't support a final.
-  // public static async create<P extends ConfigAggregator.Options, T extends AsyncOptionalCreatable<P>>(
-  //   this: new (options?: P) => T,
-  //   options?: P
-  // ): Promise<T> {
-  //   let config = ConfigAggregator.instance as ConfigAggregator | undefined;
-  //   if (!config) {
-  //     config = ConfigAggregator.instance = new this(options) as unknown as ConfigAggregator;
-  //     await config.init();
-  //   }
-
-  //   if (ConfigAggregator.encrypted) {
-  //     await config.loadProperties();
-  //   }
-
-  //   if (options?.customConfigMeta) {
-  //     Config.addAllowedProperties(options.customConfigMeta);
-  //   }
-
-  //   // console.log(ConfigAggregator.instance);
-  //   return ConfigAggregator.instance as T;
-  // }
-
   public static async create<P extends ConfigAggregator.Options, T extends AsyncOptionalCreatable<P>>(
     this: new (options?: P) => T,
     options?: P
