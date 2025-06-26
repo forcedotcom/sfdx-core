@@ -7,11 +7,13 @@
 
 import { AsyncOptionalCreatable } from '@salesforce/kit';
 import { Global } from '../global';
+import { Mutex } from '../util/mutex';
 import { AliasAccessor } from './accessors/aliasAccessor';
 import { OrgAccessor } from './accessors/orgAccessor';
 import { SandboxAccessor } from './accessors/sandboxAccessor';
 export class StateAggregator extends AsyncOptionalCreatable {
   private static instanceMap: Map<string, StateAggregator> = new Map();
+  private static readonly mutex = new Mutex();
   public aliases!: AliasAccessor;
   public orgs!: OrgAccessor;
   public sandboxes!: SandboxAccessor;
@@ -22,20 +24,34 @@ export class StateAggregator extends AsyncOptionalCreatable {
    * HomeDir might be stubbed in tests
    */
   public static async getInstance(): Promise<StateAggregator> {
-    if (!StateAggregator.instanceMap.has(Global.DIR)) {
-      StateAggregator.instanceMap.set(Global.DIR, await StateAggregator.create());
-    }
-    // TS assertion is valid because there either was one OR it was just now instantiated
-    return StateAggregator.instanceMap.get(Global.DIR) as StateAggregator;
+    return StateAggregator.mutex.lock(async () => {
+      if (!StateAggregator.instanceMap.has(Global.DIR)) {
+        StateAggregator.instanceMap.set(Global.DIR, await StateAggregator.create());
+      }
+      // TS assertion is valid because there either was one OR it was just now instantiated
+      return StateAggregator.instanceMap.get(Global.DIR) as StateAggregator;
+    });
   }
 
   /**
    * Clear the cache to force reading from disk.
    *
    * *NOTE: Only call this method if you must and you know what you are doing.*
+   * *NOTE: This call is NOT thread-safe, so it should only be called when no other threads are using the StateAggregator.*
    */
   public static clearInstance(path = Global.DIR): void {
     StateAggregator.instanceMap.delete(path);
+  }
+
+  /**
+   * Clear the cache to force reading from disk in a thread-safe manner.
+   *
+   * *NOTE: Only call this method if you must and you know what you are doing.*
+   */
+  public static async clearInstanceAsync(path = Global.DIR): Promise<void> {
+    return StateAggregator.mutex.lock(() => {
+      StateAggregator.clearInstance(path);
+    });
   }
 
   protected async init(): Promise<void> {
