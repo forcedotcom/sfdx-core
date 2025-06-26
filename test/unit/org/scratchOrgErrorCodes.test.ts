@@ -114,7 +114,7 @@ describe('validateScratchOrgInfoForResume - timeout validation', () => {
     }
   });
 
-  it.only('should enhance timeout error message with last known status', async () => {
+  it('should enhance timeout error message with last known status', async () => {
     const scratchOrgInfo = { ...baseOrgInfo, Status: 'Creating', Id: 'test-job-id' };
     stubMethod($$.SANDBOX, scratchOrgInfoApi, 'queryScratchOrgInfo').resolves(scratchOrgInfo);
 
