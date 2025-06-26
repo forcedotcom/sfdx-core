@@ -9,6 +9,7 @@ import { AsyncOptionalCreatable, merge, sortBy } from '@salesforce/kit';
 import { AnyJson, Dictionary, isArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
+import { Mutex } from '../util/mutex';
 import { EnvVars } from './envVars';
 import { Config, ConfigPropertyMeta } from './config';
 
@@ -75,8 +76,10 @@ export type ConfigInfo = {
  * ```
  */
 export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Options> {
-  protected static instance: AsyncOptionalCreatable;
   protected static encrypted = true;
+  protected static instance: AsyncOptionalCreatable | undefined;
+
+  private static readonly mutex = new Mutex();
 
   // Initialized in loadProperties
   private allowedProperties!: ConfigPropertyMeta[];
@@ -113,23 +116,62 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
 
   // Use typing from AsyncOptionalCreatable to support extending ConfigAggregator.
   // We really don't want ConfigAggregator extended but typescript doesn't support a final.
+  // public static async create<P extends ConfigAggregator.Options, T extends AsyncOptionalCreatable<P>>(
+  //   this: new (options?: P) => T,
+  //   options?: P
+  // ): Promise<T> {
+  //   let config = ConfigAggregator.instance as ConfigAggregator | undefined;
+  //   if (!config) {
+  //     config = ConfigAggregator.instance = new this(options) as unknown as ConfigAggregator;
+  //     await config.init();
+  //   }
+
+  //   if (ConfigAggregator.encrypted) {
+  //     await config.loadProperties();
+  //   }
+
+  //   if (options?.customConfigMeta) {
+  //     Config.addAllowedProperties(options.customConfigMeta);
+  //   }
+
+  //   // console.log(ConfigAggregator.instance);
+  //   return ConfigAggregator.instance as T;
+  // }
+
   public static async create<P extends ConfigAggregator.Options, T extends AsyncOptionalCreatable<P>>(
     this: new (options?: P) => T,
     options?: P
   ): Promise<T> {
-    let config = ConfigAggregator.instance as ConfigAggregator;
-    if (!config) {
-      config = ConfigAggregator.instance = new this(options) as unknown as ConfigAggregator;
-      await config.init();
-    }
-    if (ConfigAggregator.encrypted) {
-      await config.loadProperties();
-    }
+    return ConfigAggregator.mutex.lock(async () => {
+      let config = ConfigAggregator.instance as ConfigAggregator | undefined;
+      if (!config) {
+        config = ConfigAggregator.instance = new this(options) as unknown as ConfigAggregator;
+        await config.init();
+      }
 
-    if (options?.customConfigMeta) {
-      Config.addAllowedProperties(options.customConfigMeta);
-    }
-    return ConfigAggregator.instance as T;
+      if (ConfigAggregator.encrypted) {
+        await config.loadProperties();
+      }
+
+      if (options?.customConfigMeta) {
+        Config.addAllowedProperties(options.customConfigMeta);
+      }
+
+      // console.log(ConfigAggregator.instance);
+      return ConfigAggregator.instance as T;
+    });
+  }
+
+  /**
+   * Clear the cache to force reading from disk.
+   *
+   * *NOTE: Only call this method if you must and you know what you are doing.*
+   */
+  public static async clearInstance(): Promise<void> {
+    return ConfigAggregator.mutex.lock(() => {
+      ConfigAggregator.instance = undefined;
+      ConfigAggregator.encrypted = true; // Reset encryption flag as well
+    });
   }
 
   /**
