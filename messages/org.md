@@ -73,3 +73,11 @@ The sandbox %s cannot resume with status of %s.
 # FrontdoorURLError
 
 Failed to generate a frontdoor URL.
+
+# FlowIdNotFound
+
+ID not found for Flow %s.
+
+# CustomObjectIdNotFound
+
+ID not found for custom object %s.

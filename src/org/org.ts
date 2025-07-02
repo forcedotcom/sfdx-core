@@ -253,6 +253,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * ApexPage: opens page
    * Flow: open in Flow Builder
    * FlexiPage: open in Lightning App Builder
+   * CustomObject: open in Object Manager
    *
    * if you pass any other metadata type you'll get a path to Lightning App Builder
    */
@@ -287,9 +288,32 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       }
     };
 
+    const customObjectFileNameToId = async (conn: Connection, filePath: string): Promise<string> => {
+      try {
+        const customObject = await conn.singleRecordQuery<{ Id: string }>(
+          `SELECT Id FROM CustomObject WHERE DeveloperName = '${path.basename(
+            filePath.replace(/__c/g, ''),
+            '.object-meta.xml'
+          )}'`,
+          {
+            tooling: true,
+          }
+        );
+        return customObject.Id;
+      } catch (error) {
+        throw messages.createError('CustomObjectIdNotFound', [filePath]);
+      }
+    };
+
     let redirectUri = '';
 
     switch (typeName) {
+      case 'CustomObject':
+        redirectUri = `lightning/setup/ObjectManager/${await customObjectFileNameToId(
+          this.connection,
+          file
+        )}/Details/view`;
+        break;
       case 'Bot':
         redirectUri = `/AiCopilot/copilotStudio.app#/copilot/builder?copilotId=${await botFileNameToId(
           this.connection,
