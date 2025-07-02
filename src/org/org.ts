@@ -247,6 +247,23 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
+   * Get a Frontdoor URL
+   *
+   * This uses the UI Bridge API to generate a single-use Frontdoor URL:
+   * https://help.salesforce.com/s/articleView?id=xcloud.frontdoor_singleaccess.htm&type=5
+   */
+  public async getFrontDoorUrl(): Promise<string> {
+    // the `singleaccess` endpoint returns 403 when using an expired token and jsforce only triggers a token refresh on 401 so we check if it's valid first
+    await this.refreshAuth();
+
+    type SingleAccessUrlRes = { frontdoor_uri: string | undefined };
+
+    const response = await this.connection.requestGet<SingleAccessUrlRes>('/services/oauth2/singleaccess');
+    if (response.frontdoor_uri) return response.frontdoor_uri;
+    throw new SfError(messages.getMessage('FrontdoorURLError')).setData(response);
+  }
+
+  /**
    * create a sandbox from a production org
    * 'this' needs to be a production org with sandbox licenses available
    *
