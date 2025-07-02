@@ -6,7 +6,7 @@
  */
 /* eslint-disable class-methods-use-this */
 
-import { join as pathJoin } from 'node:path';
+import path from 'node:path';
 import * as fs from 'node:fs';
 import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
 import {
@@ -21,7 +21,6 @@ import {
   JsonMap,
   Nullable,
 } from '@salesforce/ts-types';
-import path from 'node:path';
 import { HttpRequest, SaveResult } from '@jsforce/jsforce-node';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
@@ -1241,7 +1240,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
   private async getLocalDataDir(orgDataPath: Nullable<string>): Promise<string> {
     const rootFolder: string = await Config.resolveRootFolder(false);
-    return pathJoin(rootFolder, Global.SFDX_STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
+    return path.join(rootFolder, Global.SFDX_STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
   }
 
   /**
@@ -1744,7 +1743,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   private async removeSourceTrackingFiles(): Promise<void> {
     try {
       const rootFolder = await Config.resolveRootFolder(false);
-      await fs.promises.rm(pathJoin(rootFolder, Global.SF_STATE_FOLDER, 'orgs', this.getOrgId()), {
+      await fs.promises.rm(path.join(rootFolder, Global.SF_STATE_FOLDER, 'orgs', this.getOrgId()), {
         recursive: true,
         force: true,
       });
