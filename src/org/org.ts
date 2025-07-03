@@ -254,6 +254,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Flow: open in Flow Builder
    * FlexiPage: open in Lightning App Builder
    * CustomObject: open in Object Manager
+   * ApexClass: open in Setup -> Apex Classes UI
    *
    * if you pass any other metadata type you'll get a path to Lightning App Builder
    */
@@ -305,9 +306,29 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       }
     };
 
+    const apexClassFileNameToId = async (conn: Connection, filePath: string): Promise<string> => {
+      try {
+        const apexClass = await conn.singleRecordQuery<{ Id: string }>(
+          `SELECT Id FROM ApexClass WHERE Name = '${path.basename(filePath, '.cls')}'`,
+          {
+            tooling: true,
+          }
+        );
+        return apexClass.Id;
+      } catch (error) {
+        throw messages.createError('ApexClassIdNotFound', [filePath]);
+      }
+    };
+
     let redirectUri = '';
 
     switch (typeName) {
+      case 'ApexClass':
+        redirectUri = `lightning/setup/ApexClasses/page?address=%2F${await apexClassFileNameToId(
+          this.connection,
+          file
+        )}`;
+        break;
       case 'CustomObject':
         redirectUri = `lightning/setup/ObjectManager/${await customObjectFileNameToId(
           this.connection,

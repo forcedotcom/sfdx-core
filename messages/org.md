@@ -81,3 +81,7 @@ ID not found for Flow %s.
 # CustomObjectIdNotFound
 
 ID not found for custom object %s.
+
+# ApexClassIdNotFound
+
+ID not found for Apex class %s.
