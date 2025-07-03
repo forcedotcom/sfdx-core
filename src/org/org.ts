@@ -247,7 +247,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
-   * Generate a Salesforce "builder" valid URL path for supported metadata types.
+   * Generate a URL to a metadata UI builder/setup section in an org.
    *
    * Bot: open in Agentforce Builder
    * ApexPage: opens page
@@ -257,8 +257,21 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * ApexClass: open in Setup -> Apex Classes UI
    *
    * if you pass any other metadata type you'll get a path to Lightning App Builder
+   *
+   * @example
+   *   // use SDR resolver:
+   *   import { MetadataResolver } from '@salesforce/source-deploy-retrieve';
+   *
+   *   const metadataResolver = new MetadataResolver();
+   *   const components = metadataResolver.getComponentsFromPath(filePath);
+   *   const typeName = components[0]?.type?.name;
+   *
+   *   const metadataBuilderUrl = await org.getMetadataUIURL(typeName, filePath);
+   *
+   * @typeName Bot | ApexPage | Flow | FlexiPage | CustomObject | ApexClass
+   * @file Absolute file path to the metadata file
    */
-  public async getMetadataBuilderUrl(typeName: string, file: string): Promise<string> {
+  public async getMetadataUIURL(typeName: string, file: string): Promise<string> {
     const botFileNameToId = async (conn: Connection, filePath: string): Promise<string> =>
       (
         await conn.singleRecordQuery<{ Id: string }>(
