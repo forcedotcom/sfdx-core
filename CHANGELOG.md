@@ -1,3 +1,12 @@
+# [8.16.0](https://github.com/forcedotcom/sfdx-core/compare/8.15.0...8.16.0) (2025-07-03)
+
+
+### Features
+
+* **W-18653307:** use mutex to make ConfigAgg and StateAgg thread safe ([55b5929](https://github.com/forcedotcom/sfdx-core/commit/55b592971b6d1e0f5783f7898255f3c8a5886a0e))
+
+
+
 # [8.15.0](https://github.com/forcedotcom/sfdx-core/compare/8.14.1...8.15.0) (2025-06-24)
 
 
