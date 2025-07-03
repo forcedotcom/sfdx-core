@@ -728,6 +728,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   /**
    * Get the org front door (used for web based oauth flows)
+   *
+   * @deprecated Will be removed in the next major version. Use the `Org.getFrontDoorUrl()` method instead.
    */
   public getOrgFrontDoorUrl(): string {
     const authFields = this.getFields(true);
