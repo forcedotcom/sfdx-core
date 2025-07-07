@@ -1,3 +1,21 @@
+# [8.17.0](https://github.com/forcedotcom/sfdx-core/compare/8.16.0...8.17.0) (2025-07-03)
+
+
+### Features
+
+* export Mutex class ([#1210](https://github.com/forcedotcom/sfdx-core/issues/1210)) ([d09601b](https://github.com/forcedotcom/sfdx-core/commit/d09601bea664c8b53eb7e5c6d4358953bb930a7c))
+
+
+
+# [8.16.0](https://github.com/forcedotcom/sfdx-core/compare/8.15.0...8.16.0) (2025-07-03)
+
+
+### Features
+
+* **W-18653307:** use mutex to make ConfigAgg and StateAgg thread safe ([55b5929](https://github.com/forcedotcom/sfdx-core/commit/55b592971b6d1e0f5783f7898255f3c8a5886a0e))
+
+
+
 # [8.15.0](https://github.com/forcedotcom/sfdx-core/compare/8.14.1...8.15.0) (2025-06-24)
 
 
