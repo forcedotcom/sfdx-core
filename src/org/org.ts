@@ -259,14 +259,14 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * if you pass any other metadata type you'll get a path to Lightning App Builder
    *
    * @example
-   *   // use SDR resolver:
-   *   import { MetadataResolver } from '@salesforce/source-deploy-retrieve';
+   * // use SDR resolver:
+   * import { MetadataResolver } from '@salesforce/source-deploy-retrieve';
    *
-   *   const metadataResolver = new MetadataResolver();
-   *   const components = metadataResolver.getComponentsFromPath(filePath);
-   *   const typeName = components[0]?.type?.name;
+   * const metadataResolver = new MetadataResolver();
+   * const components = metadataResolver.getComponentsFromPath(filePath);
+   * const typeName = components[0]?.type?.name;
    *
-   *   const metadataBuilderUrl = await org.getMetadataUIURL(typeName, filePath);
+   * const metadataBuilderUrl = await org.getMetadataUIURL(typeName, filePath);
    *
    * @typeName Bot | ApexPage | Flow | FlexiPage | CustomObject | ApexClass
    * @file Absolute file path to the metadata file
