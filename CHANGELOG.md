@@ -1,3 +1,13 @@
+# [8.18.0](https://github.com/forcedotcom/sfdx-core/compare/8.17.0...8.18.0) (2025-07-08)
+
+
+### Features
+
+* **org:** add `frontdoor` methods @W-18944112@ ([#1209](https://github.com/forcedotcom/sfdx-core/issues/1209)) ([7b3292b](https://github.com/forcedotcom/sfdx-core/commit/7b3292b78f226bdf61d3487a58002686ec148d83))
+* trigger release for [#1209](https://github.com/forcedotcom/sfdx-core/issues/1209) ([7c69c9a](https://github.com/forcedotcom/sfdx-core/commit/7c69c9a20a13cfe490b61e53f89beb7cd55fa29e))
+
+
+
 # [8.17.0](https://github.com/forcedotcom/sfdx-core/compare/8.16.0...8.17.0) (2025-07-03)
 
 
