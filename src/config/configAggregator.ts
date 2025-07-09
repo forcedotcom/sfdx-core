@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { resolve } from 'node:path';
 import { AsyncOptionalCreatable, merge, sortBy } from '@salesforce/kit';
 import { AnyJson, Dictionary, isArray, isJsonMap, JsonMap, Optional } from '@salesforce/ts-types';
 import { Messages } from '../messages';
@@ -98,7 +99,10 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
     // Don't throw an project error with the aggregator, since it should resolve to global if
     // there is no project.
     try {
-      this.localConfig = new Config(Config.getDefaultOptions(false));
+      this.localConfig = new Config({
+        ...Config.getDefaultOptions(false),
+        ...(options?.projectPath ? { rootFolder: options.projectPath } : {}),
+      });
     } catch (err) {
       if ((err as Error).name !== 'InvalidProjectWorkspaceError') {
         throw err;
@@ -106,7 +110,6 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
     }
 
     this.globalConfig = new Config(Config.getDefaultOptions(true));
-
     this.setAllowedProperties(Config.getAllowedProperties());
   }
 
@@ -129,7 +132,7 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
     options?: ConfigAggregator.Options
   ): Promise<T> {
     return ConfigAggregator.mutex.lock(async () => {
-      const projectPath = options?.projectPath ?? process.cwd();
+      const projectPath = options?.projectPath ? resolve(options.projectPath) : process.cwd();
       if (!ConfigAggregator.instances.has(projectPath)) {
         const agg = new this(options);
         ConfigAggregator.instances.set(projectPath, agg);
@@ -160,7 +163,8 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
   public static async clearInstance(projectPath?: string): Promise<void> {
     return ConfigAggregator.mutex.lock(() => {
       if (projectPath) {
-        ConfigAggregator.instances.delete(projectPath);
+        const normalizedPath = resolve(projectPath);
+        ConfigAggregator.instances.delete(normalizedPath);
       } else {
         ConfigAggregator.instances.clear();
       }
@@ -184,12 +188,13 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    * asynchronously by calling {@link ConfigAggregator.reload}
    */
   private static getInstance(projectPath = process.cwd()): ConfigAggregator {
-    if (!ConfigAggregator.instances.has(projectPath)) {
-      const instance = new ConfigAggregator({ projectPath });
-      ConfigAggregator.instances.set(projectPath, instance);
+    const normalizedPath = resolve(projectPath);
+    if (!ConfigAggregator.instances.has(normalizedPath)) {
+      const instance = new ConfigAggregator({ projectPath: normalizedPath });
+      ConfigAggregator.instances.set(normalizedPath, instance);
       instance.loadPropertiesSync();
     }
-    return ConfigAggregator.instances.get(projectPath)!;
+    return ConfigAggregator.instances.get(normalizedPath)!;
   }
 
   /**
@@ -482,6 +487,7 @@ export namespace ConfigAggregator {
 
   export type Options = {
     customConfigMeta?: ConfigPropertyMeta[];
+    /** an absolute path to the project root */
     projectPath?: string;
   };
 }
