@@ -66,6 +66,11 @@ export const validateScratchOrgInfoForResume = async ({
   if (['New', 'Creating'].includes(scratchOrgInfo.Status)) {
     // 2. scratchOrgInfo exists, still isn't finished.  Stays in cache for future attempts
     const logger = await Logger.child('scratchOrgResume');
+
+    if (timeout.minutes === 0) {
+      throw namedMessages.createError('StillInProgressError', [scratchOrgInfo.Status], ['action.StillInProgress']);
+    }
+
     logger.debug(`PollingTimeout in minutes: ${timeout.minutes}`);
 
     const options: PollingClient.Options = {
@@ -99,8 +104,16 @@ export const validateScratchOrgInfoForResume = async ({
       timeout,
     };
     const client = await PollingClient.create(options);
-    const result = await client.subscribe<ScratchOrgInfo>();
-    return checkScratchOrgInfoForErrors(result, hubUsername);
+    try {
+      const result = await client.subscribe<ScratchOrgInfo>();
+      return await checkScratchOrgInfoForErrors(result, hubUsername);
+    } catch (error) {
+      const e = error as Error;
+      if (e.name === 'ScratchOrgResumeTimeOutError') {
+        e.message = e.message + ` (Last known Status: ${scratchOrgInfo.Status})`;
+      }
+      throw error;
+    }
   }
   return checkScratchOrgInfoForErrors(scratchOrgInfo, hubUsername);
 };
