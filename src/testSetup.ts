@@ -669,7 +669,7 @@ export const restoreContext = (testContext: TestContext): void => {
   SfProject.clearInstances();
   // Allow each test to have their own config aggregator
   // @ts-ignore clear for testing.
-  delete ConfigAggregator.instance;
+  ConfigAggregator.instances.clear();
 };
 
 /**
