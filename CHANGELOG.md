@@ -1,3 +1,7 @@
+## [8.18.1](https://github.com/forcedotcom/sfdx-core/compare/8.18.0...8.18.1) (2025-07-09)
+
+
+
 # [8.18.0](https://github.com/forcedotcom/sfdx-core/compare/8.17.0...8.18.0) (2025-07-08)
 
 
