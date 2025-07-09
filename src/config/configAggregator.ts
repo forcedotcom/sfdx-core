@@ -77,7 +77,7 @@ export type ConfigInfo = {
  */
 export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Options> {
   protected static encrypted = true;
-  protected static instance: AsyncOptionalCreatable | undefined;
+  protected static instances = new Map<string, ConfigAggregator>();
 
   private static readonly mutex = new Mutex();
 
@@ -116,16 +116,27 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
 
   // Use typing from AsyncOptionalCreatable to support extending ConfigAggregator.
   // We really don't want ConfigAggregator extended but typescript doesn't support a final.
+  public static async create<T extends ConfigAggregator>(
+    this: new (options?: ConfigAggregator.Options) => T,
+    options?: ConfigAggregator.Options
+  ): Promise<T>;
   public static async create<P extends ConfigAggregator.Options, T extends AsyncOptionalCreatable<P>>(
     this: new (options?: P) => T,
     options?: P
+  ): Promise<T>;
+  public static async create<T extends ConfigAggregator>(
+    this: new (options?: ConfigAggregator.Options) => T,
+    options?: ConfigAggregator.Options
   ): Promise<T> {
     return ConfigAggregator.mutex.lock(async () => {
-      let config = ConfigAggregator.instance as ConfigAggregator | undefined;
-      if (!config) {
-        config = ConfigAggregator.instance = new this(options) as unknown as ConfigAggregator;
-        await config.init();
+      const projectPath = options?.projectPath ?? process.cwd();
+      if (!ConfigAggregator.instances.has(projectPath)) {
+        const agg = new this(options);
+        ConfigAggregator.instances.set(projectPath, agg);
+        await agg.init();
       }
+      // we just either created the instance or got it from the cache
+      const config = ConfigAggregator.instances.get(projectPath)!;
 
       if (ConfigAggregator.encrypted) {
         await config.loadProperties();
@@ -136,18 +147,23 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
       }
 
       // console.log(ConfigAggregator.instance);
-      return ConfigAggregator.instance as T;
+      return config as T;
     });
   }
 
   /**
    * Clear the cache to force reading from disk.
+   * If no projectPath is provided, all instances will be cleared.
    *
    * *NOTE: Only call this method if you must and you know what you are doing.*
    */
-  public static async clearInstance(): Promise<void> {
+  public static async clearInstance(projectPath?: string): Promise<void> {
     return ConfigAggregator.mutex.lock(() => {
-      ConfigAggregator.instance = undefined;
+      if (projectPath) {
+        ConfigAggregator.instances.delete(projectPath);
+      } else {
+        ConfigAggregator.instances.clear();
+      }
       ConfigAggregator.encrypted = true; // Reset encryption flag as well
     });
   }
@@ -158,8 +174,8 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    *
    * @param key The config key.
    */
-  public static getValue(key: string): ConfigInfo {
-    return this.getInstance().getInfo(key);
+  public static getValue(key: string, projectPath?: string): ConfigInfo {
+    return this.getInstance(projectPath ?? process.cwd()).getInfo(key);
   }
 
   /**
@@ -167,14 +183,13 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    * the **encrypted** config values. Encrypted config values need to be resolved
    * asynchronously by calling {@link ConfigAggregator.reload}
    */
-  // Use typing from AsyncOptionalCreatable to support extending ConfigAggregator.
-  // We really don't want ConfigAggregator extended but typescript doesn't support a final.
-  private static getInstance<P, T extends AsyncOptionalCreatable<P>>(this: new () => T): T {
-    if (!ConfigAggregator.instance) {
-      ConfigAggregator.instance = new this();
-      (ConfigAggregator.instance as ConfigAggregator).loadPropertiesSync();
+  private static getInstance(projectPath = process.cwd()): ConfigAggregator {
+    if (!ConfigAggregator.instances.has(projectPath)) {
+      const instance = new ConfigAggregator({ projectPath });
+      ConfigAggregator.instances.set(projectPath, instance);
+      instance.loadPropertiesSync();
     }
-    return ConfigAggregator.instance as T;
+    return ConfigAggregator.instances.get(projectPath)!;
   }
 
   /**
@@ -472,5 +487,6 @@ export namespace ConfigAggregator {
 
   export type Options = {
     customConfigMeta?: ConfigPropertyMeta[];
+    projectPath?: string;
   };
 }
