@@ -449,18 +449,13 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
 
     // Global config must be read first so it is on the left hand of the
     // object assign and is overwritten by the local config.
-
-    const configs = [globalConfig];
-
-    // We might not be in a project workspace
-    if (localConfig) {
-      configs.push(localConfig);
-    }
-
-    configs.push(this.envVars);
-
-    const json: JsonMap = {};
-    return configs.filter(isJsonMap).reduce((acc: JsonMap, el: AnyJson) => merge(acc, el), json);
+    return [
+      globalConfig,
+      ...(localConfig ? [localConfig] : []), // We might not be in a project workspace
+      this.envVars,
+    ]
+      .filter(isJsonMap)
+      .reduce((acc: JsonMap, el: AnyJson) => merge(acc, el), {});
   }
 }
 
