@@ -46,17 +46,17 @@ describe('configAggregator unique by paths', () => {
   });
 
   it('add a prop to only project 2, verify both projects are as expected after reloading', async () => {
-    await execProm('sf config set disable-telemetry=true', { cwd: testDir2 });
+    await execProm('sf config set org-metadata-rest-deploy=true', { cwd: testDir2 });
     const config = await ConfigAggregator.create({ projectPath: testDir2 });
     expect(config.getPropertyValue('org-max-query-limit')).to.equal('2');
 
     // undefined because singleton behavior prevents a reread
-    expect(config.getPropertyValue('disable-telemetry')).to.equal(undefined);
+    expect(config.getPropertyValue('org-metadata-rest-deploy')).to.equal(undefined);
 
     // reload the config
     await config.reload();
     expect(config.getPropertyValue('org-max-query-limit')).to.equal('2');
-    expect(config.getPropertyValue('disable-telemetry')).to.equal('true');
+    expect(config.getPropertyValue('org-metadata-rest-deploy')).to.equal('true');
   });
 
   describe('clearInstance', () => {
