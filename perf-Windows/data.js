@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752082451425,
+  "lastUpdate": 1752356449135,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -30486,6 +30486,72 @@ window.BENCHMARK_DATA = {
             "range": "±189.53%",
             "unit": "ops/sec",
             "extra": "36 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6725e2c50a5fd0d2a1fb192bf4467fba96c12030",
+          "message": "chore(dev-deps): bump esbuild from 0.25.3 to 0.25.6\n\nBumps [esbuild](https://github.com/evanw/esbuild) from 0.25.3 to 0.25.6.\n- [Release notes](https://github.com/evanw/esbuild/releases)\n- [Changelog](https://github.com/evanw/esbuild/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/evanw/esbuild/compare/v0.25.3...v0.25.6)\n\n---\nupdated-dependencies:\n- dependency-name: esbuild\n  dependency-version: 0.25.6\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-07-12T21:34:11Z",
+          "tree_id": "6d2eb5632053610407866d7c25be541516c5a37a",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/6725e2c50a5fd0d2a1fb192bf4467fba96c12030"
+        },
+        "date": 1752356423662,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 324394,
+            "range": "±2.09%",
+            "unit": "ops/sec",
+            "extra": "88 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 874200,
+            "range": "±7.82%",
+            "unit": "ops/sec",
+            "extra": "61 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 562779,
+            "range": "±12.47%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 2224,
+            "range": "±276.23%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 287730,
+            "range": "±87.28%",
+            "unit": "ops/sec",
+            "extra": "70 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 445927,
+            "range": "±7.68%",
+            "unit": "ops/sec",
+            "extra": "72 samples"
           }
         ]
       }
