@@ -176,6 +176,187 @@ describe('Org Tests', () => {
     });
   });
 
+  describe('getMetadataUIURL', () => {
+    let org: Org;
+    let instanceUrl: string;
+    let singleRecordQueryStub: sinon.SinonStub;
+    let getFrontDoorUrlStub: sinon.SinonStub;
+
+    beforeEach(async () => {
+      org = await createOrgViaAuthInfo();
+      instanceUrl = org.getField<string>(Org.Fields.INSTANCE_URL);
+      singleRecordQueryStub = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery');
+      // NOTE:
+      // `org.getFrontDoorUrl(redirectURI)` will get the redirectURI param as the `startURL` param in the URL returned from the API:
+      // https://mydomainname.my.salesforce.com/secur/frontdoor.jsp?otp=*****&startURL=lightning%2Fsetup%2FManageUsers%2Fhome&cshc=x000001X7tNx0000006GpL
+      //
+      // for testing purposes we always return the instance URL (no URL param) so it's easy to assert.
+      // Each unit tests ensures that it passes the right redirectURI param  (getFrontDoorUrlStub first call param).
+      getFrontDoorUrlStub = stubMethod($$.SANDBOX, org, 'getFrontDoorUrl').resolves(instanceUrl);
+    });
+
+    it('should generate correct URL for Bot metadata type', async () => {
+      const botId = '0Mwxx0000004C92';
+      const filePath = '/path/to/TestBot.bot-meta.xml';
+      singleRecordQueryStub.resolves({ Id: botId });
+
+      const result = await org.getMetadataUIURL('Bot', filePath);
+
+      expect(singleRecordQueryStub.calledOnce).to.be.true;
+      expect(singleRecordQueryStub.firstCall.args[0]).to.equal(
+        "SELECT id FROM BotDefinition WHERE DeveloperName='TestBot'"
+      );
+      expect(getFrontDoorUrlStub.calledOnce).to.be.true;
+      expect(getFrontDoorUrlStub.firstCall.args[0]).to.equal(
+        `/AiCopilot/copilotStudio.app#/copilot/builder?copilotId=${botId}`
+      );
+      expect(result).to.equal(instanceUrl);
+    });
+
+    it('should generate correct URL for ApexPage metadata type', async () => {
+      const filePath = '/path/to/TestPage.page-meta.xml';
+
+      const result = await org.getMetadataUIURL('ApexPage', filePath);
+
+      expect(singleRecordQueryStub.called).to.be.false;
+      expect(getFrontDoorUrlStub.calledOnce).to.be.true;
+      expect(getFrontDoorUrlStub.firstCall.args[0]).to.equal('/apex/TestPage');
+      expect(result).to.equal(instanceUrl);
+    });
+
+    it('should generate correct URL for ApexPage with .page extension', async () => {
+      const filePath = '/path/to/TestPage.page';
+
+      const result = await org.getMetadataUIURL('ApexPage', filePath);
+
+      expect(singleRecordQueryStub.called).to.be.false;
+      expect(getFrontDoorUrlStub.calledOnce).to.be.true;
+      expect(getFrontDoorUrlStub.firstCall.args[0]).to.equal('/apex/TestPage');
+      expect(result).to.equal(instanceUrl);
+    });
+
+    it('should generate correct URL for Flow metadata type', async () => {
+      const flowId = '301xx0000004C92';
+      const filePath = '/path/to/TestFlow.flow-meta.xml';
+      singleRecordQueryStub.resolves({ DurableId: flowId });
+
+      const result = await org.getMetadataUIURL('Flow', filePath);
+
+      expect(singleRecordQueryStub.calledOnce).to.be.true;
+      expect(singleRecordQueryStub.firstCall.args[0]).to.equal(
+        "SELECT DurableId FROM FlowVersionView WHERE FlowDefinitionView.ApiName = 'TestFlow' ORDER BY VersionNumber DESC LIMIT 1"
+      );
+      expect(getFrontDoorUrlStub.calledOnce).to.be.true;
+      expect(getFrontDoorUrlStub.firstCall.args[0]).to.equal(
+        `/builder_platform_interaction/flowBuilder.app?flowId=${flowId}`
+      );
+      expect(result).to.equal(instanceUrl);
+    });
+
+    it('should throw error when Flow ID is not found', async () => {
+      const filePath = '/path/to/NonExistentFlow.flow-meta.xml';
+      singleRecordQueryStub.rejects(new Error('No records found'));
+
+      try {
+        await org.getMetadataUIURL('Flow', filePath);
+        fail('Expected error to be thrown');
+      } catch (error) {
+        expect(error).to.be.instanceOf(SfError);
+        expect((error as SfError).name).to.equal('FlowIdNotFoundError');
+      }
+    });
+
+    it('should generate correct URL for FlexiPage metadata type', async () => {
+      const flexiPageId = '0M0xx0000004C92';
+      const filePath = '/path/to/TestFlexiPage.flexipage-meta.xml';
+      singleRecordQueryStub.resolves({ Id: flexiPageId });
+
+      const result = await org.getMetadataUIURL('FlexiPage', filePath);
+
+      expect(singleRecordQueryStub.calledOnce).to.be.true;
+      expect(singleRecordQueryStub.firstCall.args[0]).to.equal(
+        "SELECT id FROM flexipage WHERE DeveloperName='TestFlexiPage'"
+      );
+      expect(singleRecordQueryStub.firstCall.args[1]).to.deep.equal({ tooling: true });
+      expect(getFrontDoorUrlStub.calledOnce).to.be.true;
+      expect(getFrontDoorUrlStub.firstCall.args[0]).to.equal(`/visualEditor/appBuilder.app?pageId=${flexiPageId}`);
+      expect(result).to.equal(instanceUrl);
+    });
+
+    it('should generate correct URL for CustomObject metadata type', async () => {
+      const customObjectId = '01Ixx0000004C92';
+      const filePath = '/path/to/TestObject__c.object-meta.xml';
+      singleRecordQueryStub.resolves({ Id: customObjectId });
+
+      const result = await org.getMetadataUIURL('CustomObject', filePath);
+
+      expect(singleRecordQueryStub.calledOnce).to.be.true;
+      expect(singleRecordQueryStub.firstCall.args[0]).to.equal(
+        "SELECT Id FROM CustomObject WHERE DeveloperName = 'TestObject'"
+      );
+      expect(singleRecordQueryStub.firstCall.args[1]).to.deep.equal({ tooling: true });
+      expect(getFrontDoorUrlStub.calledOnce).to.be.true;
+      expect(getFrontDoorUrlStub.firstCall.args[0]).to.equal(
+        `lightning/setup/ObjectManager/${customObjectId}/Details/view`
+      );
+      expect(result).to.equal(instanceUrl);
+    });
+
+    it('should throw error when CustomObject ID is not found', async () => {
+      const filePath = '/path/to/NonExistentObject__c.object-meta.xml';
+      singleRecordQueryStub.rejects(new Error('No records found'));
+
+      try {
+        await org.getMetadataUIURL('CustomObject', filePath);
+        fail('Expected error to be thrown');
+      } catch (error) {
+        expect(error).to.be.instanceOf(SfError);
+        expect((error as SfError).name).to.equal('CustomObjectIdNotFoundError');
+      }
+    });
+
+    it('should generate correct URL for ApexClass metadata type', async () => {
+      const apexClassId = '01pxx0000004C92';
+      const filePath = '/path/to/TestApexClass.cls';
+      singleRecordQueryStub.resolves({ Id: apexClassId });
+
+      const result = await org.getMetadataUIURL('ApexClass', filePath);
+
+      expect(singleRecordQueryStub.calledOnce).to.be.true;
+      expect(singleRecordQueryStub.firstCall.args[0]).to.equal("SELECT Id FROM ApexClass WHERE Name = 'TestApexClass'");
+      expect(singleRecordQueryStub.firstCall.args[1]).to.deep.equal({ tooling: true });
+      expect(getFrontDoorUrlStub.calledOnce).to.be.true;
+      expect(getFrontDoorUrlStub.firstCall.args[0]).to.equal(
+        `lightning/setup/ApexClasses/page?address=%2F${apexClassId}`
+      );
+      expect(result).to.equal(instanceUrl);
+    });
+
+    it('should throw error when ApexClass ID is not found', async () => {
+      const filePath = '/path/to/NonExistentClass.cls';
+      singleRecordQueryStub.rejects(new Error('No records found'));
+
+      try {
+        await org.getMetadataUIURL('ApexClass', filePath);
+        fail('Expected error to be thrown');
+      } catch (error) {
+        expect(error).to.be.instanceOf(SfError);
+        expect((error as SfError).name).to.equal('ApexClassIdNotFoundError');
+      }
+    });
+
+    it('should generate default URL for unknown metadata type', async () => {
+      const filePath = '/path/to/UnknownType.unknown';
+
+      const result = await org.getMetadataUIURL('UnknownType', filePath);
+
+      expect(singleRecordQueryStub.called).to.be.false;
+      expect(getFrontDoorUrlStub.calledOnce).to.be.true;
+      expect(getFrontDoorUrlStub.firstCall.args[0]).to.equal('/lightning/setup/FlexiPageList/home');
+      expect(result).to.equal(instanceUrl);
+    });
+  });
+
   describe('cleanLocalOrgData', () => {
     describe('mock remove', () => {
       let removeStub: sinon.SinonStub;
