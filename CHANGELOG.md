@@ -1,3 +1,12 @@
+## [8.18.4](https://github.com/forcedotcom/sfdx-core/compare/8.18.3...8.18.4) (2025-07-24)
+
+
+### Bug Fixes
+
+* include status of the scratch creation in timeout  error W-18895089 ([#1207](https://github.com/forcedotcom/sfdx-core/issues/1207)) ([ff15205](https://github.com/forcedotcom/sfdx-core/commit/ff152055a6ae6325693471e47bb80e4dde4024e1))
+
+
+
 ## [8.18.3](https://github.com/forcedotcom/sfdx-core/compare/8.18.2...8.18.3) (2025-07-21)
 
 
