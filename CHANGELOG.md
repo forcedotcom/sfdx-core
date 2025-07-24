@@ -1,3 +1,12 @@
+## [8.18.5](https://github.com/forcedotcom/sfdx-core/compare/8.18.4...8.18.5) (2025-07-24)
+
+
+### Bug Fixes
+
+* update timeout error msg ([1590fda](https://github.com/forcedotcom/sfdx-core/commit/1590fda67ce79581d820c9b34a315eeec13b41e8))
+
+
+
 ## [8.18.4](https://github.com/forcedotcom/sfdx-core/compare/8.18.3...8.18.4) (2025-07-24)
 
 
