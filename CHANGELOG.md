@@ -1,3 +1,12 @@
+## [8.18.6](https://github.com/forcedotcom/sfdx-core/compare/8.18.5...8.18.6) (2025-08-01)
+
+
+### Bug Fixes
+
+* bump jsforce to drop old`form-data` version([#1220](https://github.com/forcedotcom/sfdx-core/issues/1220)) ([1ff4acd](https://github.com/forcedotcom/sfdx-core/commit/1ff4acdf67a49a117a1e05e1fe4e19b9bbaa30c4))
+
+
+
 ## [8.18.5](https://github.com/forcedotcom/sfdx-core/compare/8.18.4...8.18.5) (2025-07-24)
 
 
