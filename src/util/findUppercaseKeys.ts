@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { strictEqual } from 'node:assert/strict';
+import { strict as assert } from 'node:assert';
 import { JsonMap, isJsonMap } from '@salesforce/ts-types';
 import { Messages } from '../messages';
 
@@ -19,7 +19,7 @@ export const ensureNoUppercaseKeys =
   (data: JsonMap): string[] => {
     const keys = getKeys(data, allowList);
     const upperCaseKeys = keys.filter((key) => /^[A-Z]/.test(key)).join(', ');
-    strictEqual(upperCaseKeys.length, 0, coreMessages.getMessage('invalidJsonCasing', [upperCaseKeys, path]));
+    assert.strictEqual(upperCaseKeys.length, 0, coreMessages.getMessage('invalidJsonCasing', [upperCaseKeys, path]));
     return keys;
   };
 

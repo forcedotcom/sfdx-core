@@ -6,7 +6,7 @@
  */
 
 // docs: https://github.com/moxystudio/node-proper-lockfile
-import fs from 'node:fs';
+import { fs } from '../fs/fs';
 
 export const lockOptions = { stale: 10_000 };
 export const lockRetryOptions = {

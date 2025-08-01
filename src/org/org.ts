@@ -6,8 +6,7 @@
  */
 /* eslint-disable class-methods-use-this */
 
-import path from 'node:path';
-import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
 import {
   AnyFunction,
@@ -22,6 +21,7 @@ import {
   Nullable,
 } from '@salesforce/ts-types';
 import { HttpRequest, SaveResult } from '@jsforce/jsforce-node';
+import { fs } from '../fs/fs';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { ConfigContents } from '../config/configStackTypes';
@@ -706,7 +706,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     const trimmedId = trimTo15(thisOrgAuthConfig.orgId);
 
-    const DEV_HUB_SOQL = `SELECT CreatedDate,Edition,ExpirationDate FROM ActiveScratchOrg WHERE ScratchOrg='${trimmedId}'`;
+    const DEV_HUB_SOQL = `SELECT CreatedDate,Edition,ExpirationDate FROM ActiveScratchOrg WHERE ScratchOrg='${
+      trimmedId ?? '<undefined>'
+    }'`;
 
     try {
       const results = await devHubConnection.query(DEV_HUB_SOQL);
@@ -941,7 +943,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       }
     }
 
-    const whereClause = by.id ? `Id='${by.id}'` : `SandboxName='${by.name}'`;
+    const whereClause = by.id ? `Id='${by.id}'` : `SandboxName='${by.name ?? '<undefined>'}'`;
     const soql = `SELECT ${sandboxInfoFields.join(
       ','
     )} FROM SandboxInfo WHERE ${whereClause} ORDER BY CreatedDate DESC`;
@@ -1052,7 +1054,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
 
     const authInfo = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
-    this.logger.debug(`adding username ${authInfo.getFields().username}`);
+    this.logger.debug(`adding username ${authInfo.getFields().username ?? '<undefined>'}`);
 
     const orgConfig = await this.retrieveOrgUsersConfig();
 
@@ -1101,7 +1103,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     const authInfo: AuthInfo = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
 
-    this.logger.debug(`removing username ${authInfo.getFields().username}`);
+    this.logger.debug(`removing username ${authInfo.getFields().username ?? '<undefined>'}`);
 
     const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
     const contents = await orgConfig.read();
@@ -1398,7 +1400,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       try {
         // grab sandboxName from config or try to calculate from the sandbox username
         const sandboxName =
-          sandbox?.sandboxName ?? (this.getUsername() ?? '').split(`${resolvedProdOrg.getUsername()}.`)[1];
+          sandbox?.sandboxName ??
+          (this.getUsername() ?? '').split(`${resolvedProdOrg.getUsername() ?? '<undefined>'}.`)[1];
         if (!sandboxName) {
           this.logger.debug('Sandbox name is not available');
           // jump to query by orgId
@@ -1454,7 +1457,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     try {
       const devHubConn = resolvedDevHub.getConnection();
-      const username = this.getUsername();
+      const username = ensureString(this.getUsername(), 'org is missing username');
 
       const activeScratchOrgRecordId = (
         await devHubConn.singleRecordQuery<{ Id: string }>(

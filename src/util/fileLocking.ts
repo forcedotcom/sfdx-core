@@ -4,18 +4,21 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as fs from 'node:fs';
 import { dirname } from 'node:path';
 import { lock, lockSync, check, checkSync } from 'proper-lockfile';
 import { Duration } from '@salesforce/kit';
 import { retryDecorator } from 'ts-retry-promise';
+import { fs } from '../fs/fs';
 import { SfError } from '../sfError';
 import { Logger } from '../logger/logger';
+import { Global } from '../global';
 import { lockOptions, lockRetryOptions } from './lockRetryOptions';
 
-type LockInitResponse = { writeAndUnlock: (data: string) => Promise<void>; unlock: () => Promise<void> };
+export type LockInitResponse = { writeAndUnlock: (data: string) => Promise<void>; unlock: () => Promise<void> };
 type LockInitSyncResponse = { writeAndUnlock: (data: string) => void; unlock: () => void };
 
+export const noop = (): void => {};
+export const asyncNoop = async (): Promise<void> => {};
 /**
  *
  *This method exists as a separate function so it can be used by ConfigFile OR outside of ConfigFile.
@@ -33,7 +36,7 @@ export const lockInit = async (filePath: string): Promise<LockInitResponse> => {
     throw SfError.wrap(err as Error);
   }
 
-  const unlock = await lock(filePath, { ...lockRetryOptions, realpath: false, fs });
+  const unlock = Global.isWeb ? asyncNoop : await lock(filePath, { ...lockRetryOptions, realpath: false, fs });
   return {
     writeAndUnlock: async (data: string): Promise<void> => {
       (await Logger.child('fileLocking.writeAndUnlock')).debug(`Writing to file: ${filePath}`);
@@ -59,7 +62,7 @@ export const lockInitSync = (filePath: string): LockInitSyncResponse => {
     throw SfError.wrap(err as Error);
   }
 
-  const unlock = lockSync(filePath, { ...lockOptions, realpath: false, fs });
+  const unlock = Global.isWeb ? noop : lockSync(filePath, { ...lockOptions, realpath: false, fs });
   return {
     writeAndUnlock: (data: string): void => {
       const logger = Logger.childFromRoot('fileLocking.writeAndUnlock');
@@ -80,6 +83,9 @@ export const lockInitSync = (filePath: string): LockInitSyncResponse => {
  * @param filePath file path to check
  */
 export const pollUntilUnlock = async (filePath: string): Promise<void> => {
+  if (Global.isWeb) {
+    return;
+  }
   try {
     await retryDecorator(check, {
       timeout: Duration.minutes(1).milliseconds,
@@ -94,6 +100,9 @@ export const pollUntilUnlock = async (filePath: string): Promise<void> => {
 };
 
 export const pollUntilUnlockSync = (filePath: string): void => {
+  if (Global.isWeb) {
+    return;
+  }
   // Set a counter to ensure that the while loop does not run indefinitely
   let counter = 0;
   let locked = true;

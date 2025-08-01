@@ -126,7 +126,9 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
 
                 if (decryptedCopy.clientApps && this.clientApp in decryptedCopy.clientApps) {
                   throw new SfError(
-                    `The username ${this.username} is already linked to a client app named "${this.clientApp}". Please authenticate again with a different client app name.`
+                    `The username ${this.username ?? '<undefined>'} is already linked to a client app named "${
+                      this.clientApp
+                    }". Please authenticate again with a different client app name.`
                   );
                 }
 
@@ -216,7 +218,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
       this.webServer.server.on('request', async (request: WebOAuthServer.Request, response) => {
         if (request.url) {
           const url = parseUrl(request.url);
-          this.logger.debug(`processing request for uri: ${url.pathname}`);
+          this.logger.debug(`processing request for uri: ${url.pathname ?? 'null'}`);
           if (request.method === 'GET') {
             if (url.pathname?.startsWith('/OauthRedirect') && url.query) {
               // eslint-disable-next-line no-param-reassign
@@ -247,7 +249,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
             } else if (url.pathname === '/OauthError') {
               this.webServer.reportError(this.oauthError, response);
             } else if (iconPaths.includes(url.pathname ?? '')) {
-              this.logger.debug(`Ignoring request for icon path: ${url.pathname}`);
+              this.logger.debug(`Ignoring request for icon path: ${url.pathname ?? 'null'}`);
             } else {
               this.webServer.sendError(404, 'Resource not found', response);
               const errName = 'invalidRequestUri';
@@ -297,10 +299,10 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
         this.logger.debug('Expected an auth code but could not find one.');
         throw messages.createError('missingAuthCode');
       }
-      this.logger.debug(`oauthConfig.loginUrl: ${this.oauthConfig.loginUrl}`);
-      this.logger.debug(`oauthConfig.clientId: ${this.oauthConfig.clientId}`);
-      this.logger.debug(`oauthConfig.redirectUri: ${this.oauthConfig.redirectUri}`);
-      this.logger.debug(`oauthConfig.useVerifier: ${this.oauthConfig.useVerifier}`);
+      this.logger.debug(`oauthConfig.loginUrl: ${this.oauthConfig.loginUrl ?? '<undefined>'}`);
+      this.logger.debug(`oauthConfig.clientId: ${this.oauthConfig.clientId ?? '<undefined>'}`);
+      this.logger.debug(`oauthConfig.redirectUri: ${this.oauthConfig.redirectUri ?? '<undefined>'}`);
+      this.logger.debug(`oauthConfig.useVerifier: ${this.oauthConfig.useVerifier ?? '<undefined>'}`);
       return authCode;
     }
     return null;

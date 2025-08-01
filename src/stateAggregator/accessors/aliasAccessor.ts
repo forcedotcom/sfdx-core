@@ -7,11 +7,10 @@
 
 import { join, dirname } from 'node:path';
 import { homedir } from 'node:os';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
 
 import { AsyncOptionalCreatable, ensureArray } from '@salesforce/kit';
 import { Nullable } from '@salesforce/ts-types';
-
+import { fs } from '../../fs/fs';
 import { Global } from '../../global';
 import { AuthFields } from '../../org/authInfo';
 import { ConfigContents } from '../../config/configStackTypes';
@@ -127,7 +126,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    */
   public async unsetAndSave(alias: string): Promise<void> {
     const lockResponse = await lockInit(this.fileLocation);
-    await this.readFileToAliasStore();
+    await this.readFileToAliasStore(false);
     this.aliasStore.delete(alias);
     return lockResponse.writeAndUnlock(aliasStoreToRawFileContents(this.aliasStore));
   }
@@ -139,7 +138,7 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    */
   public async unsetValuesAndSave(aliasees: Aliasable[]): Promise<void> {
     const lockResponse = await lockInit(this.fileLocation);
-    await this.readFileToAliasStore();
+    await this.readFileToAliasStore(false);
     ensureArray(aliasees)
       .flatMap((a) => this.getAll(a))
       .map((a) => this.aliasStore.delete(a));
@@ -164,14 +163,20 @@ export class AliasAccessor extends AsyncOptionalCreatable {
    * go to the fileSystem and read the file, storing a copy in the class's store
    * if the file doesn't exist, create it empty
    */
-  private async readFileToAliasStore(): Promise<void> {
+  private async readFileToAliasStore(useLock = false): Promise<void> {
+    const lockResponse = useLock ? await lockInit(this.fileLocation) : undefined;
     try {
-      this.aliasStore = fileContentsRawToAliasStore(await readFile(this.fileLocation, 'utf-8'));
+      this.aliasStore = fileContentsRawToAliasStore(await fs.promises.readFile(this.fileLocation, 'utf-8'));
+      if (lockResponse) return await lockResponse.unlock();
     } catch (e) {
       if (e instanceof Error && 'code' in e && typeof e.code === 'string' && ['ENOENT', 'ENOTDIR'].includes(e.code)) {
-        await mkdir(dirname(this.fileLocation), { recursive: true });
+        await fs.promises.mkdir(dirname(this.fileLocation), { recursive: true });
         this.aliasStore = new Map<string, string>();
-        return writeFile(this.fileLocation, aliasStoreToRawFileContents(this.aliasStore));
+        await fs.promises.writeFile(this.fileLocation, aliasStoreToRawFileContents(this.aliasStore));
+        return lockResponse ? await lockResponse.unlock() : undefined;
+      }
+      if (lockResponse) {
+        await lockResponse.unlock();
       }
       throw e;
     }

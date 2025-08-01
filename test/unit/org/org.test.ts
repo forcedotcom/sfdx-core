@@ -621,10 +621,9 @@ describe('Org Tests', () => {
 
     it('should remove all assets associated with the org', async () => {
       $$.SANDBOX.stub(fileLocking, 'lockInit').resolves({
-        writeAndUnlock: async () => {},
-        unlock: async () => {},
+        writeAndUnlock: fileLocking.asyncNoop,
+        unlock: fileLocking.asyncNoop,
       });
-
       const org = await createOrgViaAuthInfo();
 
       const deletedPaths: string[] = [];
@@ -645,8 +644,8 @@ describe('Org Tests', () => {
 
     it('should not fail when no scratch org has been written', async () => {
       $$.SANDBOX.stub(fileLocking, 'lockInit').resolves({
-        writeAndUnlock: async () => {},
-        unlock: async () => {},
+        writeAndUnlock: fileLocking.asyncNoop,
+        unlock: fileLocking.asyncNoop,
       });
       const org = await createOrgViaAuthInfo();
 
@@ -721,8 +720,8 @@ describe('Org Tests', () => {
 
     it('should not fail when no sandboxOrgConfig', async () => {
       $$.SANDBOX.stub(fileLocking, 'lockInit').resolves({
-        writeAndUnlock: async () => {},
-        unlock: async () => {},
+        writeAndUnlock: fileLocking.asyncNoop,
+        unlock: fileLocking.asyncNoop,
       });
       const org = await createOrgViaAuthInfo();
 

@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { promises as fs } from 'node:fs';
 import { parseJson } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
+import { fs } from '../fs/fs';
 import { SfProjectJson, isPackagingDirectory } from '../sfProject';
 import { WebOAuthServer } from '../webOAuthServer';
 import { Messages } from '../messages';
@@ -183,7 +183,7 @@ export const getAncestorIds = async (
       if (packageDir.ancestorId && packageAliases?.[packageDir.ancestorId]) {
         return packageAliases[packageDir.ancestorId];
       }
-      throw new SfError(`Invalid ancestorId ${packageDir.ancestorId}`, 'InvalidAncestorId');
+      throw new SfError(`Invalid ancestorId ${packageDir.ancestorId ?? '<undefined>'}`, 'InvalidAncestorId');
     })
   );
 
@@ -320,7 +320,7 @@ export const getScratchOrgInfoPayload = async (options: {
 
 const parseDefinitionFile = async (definitionFile: string): Promise<Record<string, unknown>> => {
   try {
-    const fileData = await fs.readFile(definitionFile, 'utf8');
+    const fileData = await fs.promises.readFile(definitionFile, 'utf8');
     const defFileContents = parseJson(fileData) as Record<string, unknown>;
     // remove key '$schema' from the definition file
     delete defFileContents['$schema'];

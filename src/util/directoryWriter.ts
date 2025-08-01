@@ -6,10 +6,10 @@
  */
 
 import { Readable, pipeline as cbPipeline } from 'node:stream';
-import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { promisify } from 'node:util';
+import { fs } from '../fs/fs';
 import { StructuredWriter } from './structuredWriter';
 
 const pipeline = promisify(cbPipeline);

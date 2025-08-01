@@ -6,13 +6,12 @@
  */
 
 import * as childProcess from 'node:child_process';
-import * as nodeFs from 'node:fs';
-import * as fs from 'node:fs';
 import * as os from 'node:os';
 import { homedir } from 'node:os';
 import * as path from 'node:path';
 import { asString, ensureString, Nullable } from '@salesforce/ts-types';
 import { parseJsonMap } from '@salesforce/kit';
+import { fs } from '../fs/fs';
 import { Global } from '../global';
 import { SfError } from '../sfError';
 import { Messages } from '../messages';
@@ -20,7 +19,7 @@ import { Messages } from '../messages';
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'encryption');
 
-export type FsIfc = Pick<typeof nodeFs, 'statSync'>;
+export type FsIfc = Pick<typeof fs, 'statSync'>;
 
 const GET_PASSWORD_RETRY_COUNT = 3;
 
@@ -329,7 +328,7 @@ const linuxImpl: OsImpl = {
   setCommandFunc(opts, fn) {
     const secretTool = fn(linuxImpl.getProgram(), linuxImpl.setProgramOptions(opts));
     if (secretTool.stdin) {
-      secretTool.stdin.write(`${opts.password}\n`);
+      secretTool.stdin.write(`${opts.password ?? ''}\n`);
     }
     return secretTool;
   },
@@ -592,8 +591,8 @@ export const keyChainImpl = {
   generic_unix: new GenericUnixKeychainAccess(),
   // eslint-disable-next-line camelcase
   generic_windows: new GenericWindowsKeychainAccess(),
-  darwin: new KeychainAccess(darwinImpl, nodeFs),
-  linux: new KeychainAccess(linuxImpl, nodeFs),
+  darwin: new KeychainAccess(darwinImpl, fs),
+  linux: new KeychainAccess(linuxImpl, fs),
   validateProgram: _validateProgram,
 };
 

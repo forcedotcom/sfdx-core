@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Nullable, entriesOf } from '@salesforce/ts-types';
 import { AsyncOptionalCreatable, isEmpty } from '@salesforce/kit';
+import { fs } from '../../fs/fs';
 import { AuthInfoConfig } from '../../config/authInfoConfig';
 import { Global } from '../../global';
 import { AuthFields } from '../../org/authInfo';
@@ -143,7 +143,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
    *
    * @param username
    */
-  public async stat(username: string): Promise<Nullable<fs.Stats>> {
+  public async stat(username: string): Promise<Nullable<Awaited<ReturnType<typeof fs.promises.stat>>>> {
     const config = this.configs.get(username);
     return config ? config.stat() : null;
   }

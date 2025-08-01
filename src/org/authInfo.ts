@@ -9,7 +9,6 @@
 import { randomBytes } from 'node:crypto';
 import { resolve as pathResolve } from 'node:path';
 import * as os from 'node:os';
-import * as fs from 'node:fs';
 import { Record as RecordType } from '@jsforce/jsforce-node';
 import { AsyncOptionalCreatable, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
@@ -29,6 +28,7 @@ import {
 import { OAuth2Config, OAuth2, TokenResponse } from '@jsforce/jsforce-node';
 import Transport from '@jsforce/jsforce-node/lib/transport';
 import * as jwt from 'jsonwebtoken';
+import { fs } from '../fs/fs';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';
@@ -40,8 +40,8 @@ import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
 import { findSuggestion } from '../util/findSuggestion';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
-import { OrgConfigProperties } from './orgConfigProperties';
 import { Org, SandboxFields } from './org';
+import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'core');
@@ -426,7 +426,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         try {
           const soi = await AuthInfo.queryScratchOrg(hubAuthInfo.username, fields.orgId as string);
           // if any return a result
-          logger.debug(`found orgId ${fields.orgId} in devhub ${hubAuthInfo.username}`);
+          logger.debug(`found orgId ${fields.orgId ?? '<undefined>'} in devhub ${hubAuthInfo.username}`);
           try {
             await orgAuthInfo.save({
               ...fields,
@@ -537,7 +537,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     if (result) return result;
 
     throw new SfError(
-      `DevHub ${devHubUsername} has no active scratch orgs that match ${trimmedId}`,
+      `DevHub ${devHubUsername ?? '<undefined>'} has no active scratch orgs that match ${trimmedId}`,
       'NoActiveScratchOrgFound'
     );
   }
@@ -1182,7 +1182,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // Exchange the auth code for an access token and refresh token.
     let authFields: TokenResponse;
     try {
-      this.logger.debug(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
+      this.logger.debug(`Exchanging auth code for access token using loginUrl: ${options.loginUrl ?? '<undefined>'}`);
       authFields = await oauth2.requestToken(ensure(options.authCode));
     } catch (err) {
       const msg = err instanceof Error ? `${err.name}::${err.message}` : typeof err === 'string' ? err : 'UNKNOWN';
