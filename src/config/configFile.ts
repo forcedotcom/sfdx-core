@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs';
-import { constants as fsConstants, Stats as fsStats } from 'node:fs';
 import { homedir as osHomedir } from 'node:os';
 import { join as pathJoin } from 'node:path';
+import { constants as fsConstants, Stats as fsStats } from 'node:fs';
 import { parseJsonMap } from '@salesforce/kit';
+import { fs } from '../fs/fs';
 import { Global } from '../global';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
@@ -34,7 +34,7 @@ import { stateFromContents } from './lwwMap';
  * const myConfig = await MyConfig.create({
  *   isGlobal: true
  * });
- * myConfig.set('mykey', 'myvalue');
+ * myConfig.set('myKey', 'myValue');
  * await myConfig.write();
  * ```
  */
@@ -446,5 +446,5 @@ const getNsTimeStampSync = (filePath: string): bigint =>
   getNsTimeStampFromStatus(fs.statSync(filePath, { bigint: true }));
 
 /** in browser environment, memfs is missing the bigInt ns timestamp, so we generate it from the ms */
-const getNsTimeStampFromStatus = (stats: fs.BigIntStats): bigint =>
-  stats.mtimeNs ?? BigInt(stats.mtimeMs) * BigInt(1_000_000);
+const getNsTimeStampFromStatus = (stats: Awaited<ReturnType<typeof fs.promises.stat>>): bigint =>
+  'mtimeNs' in stats ? stats.mtimeNs : BigInt(stats.mtimeMs) * BigInt(1_000_000);

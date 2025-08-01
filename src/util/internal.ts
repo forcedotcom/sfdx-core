@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { Optional } from '@salesforce/ts-types';
+import { fs } from '../fs/fs';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
 

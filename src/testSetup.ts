@@ -10,7 +10,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import * as fs from 'node:fs';
 import { EventEmitter } from 'node:events';
 import { tmpdir as osTmpdir } from 'node:os';
 import { basename, join as pathJoin, dirname } from 'node:path';
@@ -30,6 +29,7 @@ import {
   Nullable,
   Optional,
 } from '@salesforce/ts-types';
+import { fs } from './fs/fs';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStackTypes';
@@ -50,9 +50,9 @@ import { SandboxAccessor } from './stateAggregator/accessors/sandboxAccessor';
 import { Global } from './global';
 import { uniqid } from './util/uniqid';
 
-// this was previously exported from the testSetup module
+//  this was previously exported from the testSetup module
 export { uniqid };
-// stuff previously imported via /lib/foo and used in unit tests
+//  stuff previously imported via /lib/foo and used in unit tests
 export { SecureBuffer } from './crypto/secureBuffer';
 
 /**
@@ -139,9 +139,9 @@ export class TestContext {
   public constructor(options: { sinon?: SinonStatic; sandbox?: SinonSandbox; setup?: boolean } = {}) {
     const opts = { setup: true, ...options };
     const sinon = requireSinon(opts.sinon);
-    // Import all the messages files in the sfdx-core messages dir.
+    //  Import all the messages files in the sfdx-core messages dir.
     Messages.importMessagesDirectory(pathJoin(__dirname));
-    // Create a global sinon sandbox and a test logger instance for use within tests.
+    //  Create a global sinon sandbox and a test logger instance for use within tests.
     this.SANDBOX = opts.sandbox ?? sinon.createSandbox();
     this.SANDBOXES = {
       DEFAULT: this.SANDBOX,
@@ -231,7 +231,7 @@ export class TestContext {
    *
    * **See** {@link Connection.request}
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  //  eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async fakeConnectionRequest(request: AnyJson, options?: AnyJson): Promise<AnyJson> {
     return defaultFakeConnectionRequest();
   }
@@ -295,7 +295,7 @@ export class TestContext {
     );
     const orgMap = new Map(entries);
 
-    // @ts-expect-error because private method
+    //  @ts-expect-error because private method
     this.SANDBOX.stub(OrgAccessor.prototype, 'getAllFiles').resolves([...orgMap.keys()].map((o) => `${o}.json`));
 
     this.SANDBOX.stub(OrgAccessor.prototype, 'hasFile').callsFake((username: string) =>
@@ -368,7 +368,7 @@ export class TestContext {
     )) as Array<[string, SandboxFields]>;
     const sandboxMap = new Map(entries);
 
-    // @ts-expect-error because private method
+    //  @ts-expect-error because private method
     this.SANDBOX.stub(SandboxAccessor.prototype, 'getAllFiles').resolves(
       [...sandboxMap.keys()].map((o) => `${o}.sandbox.json`)
     );
@@ -385,8 +385,8 @@ export class TestContext {
    * Stub the aliases in the global aliases config file.
    */
   public stubAliases(aliases: Record<string, string>, group = aliasAccessorEntireFile.DEFAULT_GROUP): void {
-    // we don't really "stub" these since they don't use configFile.
-    // write the fileContents to location
+    //  we don't really "stub" these since they don't use configFile.
+    //  write the fileContents to location
     fs.mkdirSync(dirname(getAliasFileLocation()), { recursive: true });
     fs.writeFileSync(getAliasFileLocation(), JSON.stringify({ [group]: aliases }));
   }
@@ -396,8 +396,8 @@ export class TestContext {
    */
   public async stubConfig(config: Record<string, string>): Promise<void> {
     this.configStubs.Config = { contents: config };
-    // configAggregator may have already loaded an instance.  We're not sure why this happens.
-    // This seems to solve the problem by forcing a load of the new stubbed config.
+    //  configAggregator may have already loaded an instance.  We're not sure why this happens.
+    //  This seems to solve the problem by forcing a load of the new stubbed config.
     await ConfigAggregator.create();
   }
 
@@ -427,7 +427,7 @@ export class TestContext {
 const requireSinon = (sinon: Nullable<SinonStatic>): SinonStatic => {
   if (sinon) return sinon;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
+    //  eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
     const newSinon = require('sinon');
     return newSinon as SinonStatic;
   } catch (e) {
@@ -449,7 +449,7 @@ function retrieveRootPathSync(isGlobal: boolean, uid: string = uniqid()): string
   return isGlobal ? getTestGlobalPath(uid) : getTestLocalPath(uid);
 }
 
-// eslint-disable-next-line @typescript-eslint/require-await
+//  eslint-disable-next-line @typescript-eslint/require-await
 async function retrieveRootPath(isGlobal: boolean, uid: string = uniqid()): Promise<string> {
   return retrieveRootPathSync(isGlobal, uid);
 }
@@ -506,12 +506,12 @@ export const instantiateContext = (sinon?: SinonStatic): TestContext => new Test
  * @param testContext
  */
 export const stubContext = (testContext: TestContext): Record<string, SinonStub> => {
-  // Turn off the interoperability feature so that we don't have to mock
-  // the old .sfdx config files
+  //  Turn off the interoperability feature so that we don't have to mock
+  //  the old .sfdx config files
   Global.SFDX_INTEROPERABILITY = false;
   const stubs: Record<string, SinonStub> = {};
 
-  // Most core files create a child logger so stub this to return our test logger.
+  //  Most core files create a child logger so stub this to return our test logger.
   testContext.SANDBOX.stub(Logger, 'child').resolves(testContext.TEST_LOGGER);
   testContext.SANDBOX.stub(Logger, 'childFromRoot').returns(testContext.TEST_LOGGER);
   testContext.inProject(true);
@@ -522,17 +522,17 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
     testContext.rootPathRetrieverSync(isGlobal, testContext.id)
   );
 
-  // @ts-expect-error using private method
+  //  @ts-expect-error using private method
   testContext.SANDBOXES.PROJECT.stub(SfProjectJson.prototype, 'doesPackageExist').callsFake(() => true);
 
   const initStubForRead = (configFile: ConfigFile<ConfigFile.Options>): ConfigStub => {
     testContext.configStubs[configFile.constructor.name] ??= {};
     const stub: ConfigStub = testContext.configStubs[configFile.constructor.name] ?? {};
-    // init calls read calls getPath which sets the path on the config file the first time.
-    // Since read is now stubbed, make sure to call getPath to initialize it.
+    //  init calls read calls getPath which sets the path on the config file the first time.
+    //  Since read is now stubbed, make sure to call getPath to initialize it.
     configFile.getPath();
 
-    // @ts-expect-error: set this to true to avoid an infinite loop in tests when reading config files.
+    //  @ts-expect-error: set this to true to avoid an infinite loop in tests when reading config files.
     configFile.hasRead = true;
     return stub;
   };
@@ -557,9 +557,9 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
     }
   };
 
-  // Mock out all config file IO for all tests. They can restore individually if they need original functionality.
+  //  Mock out all config file IO for all tests. They can restore individually if they need original functionality.
   stubs.configRead = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'read').callsFake(read);
-  // @ts-expect-error: muting exact type match for stub readSync
+  //  @ts-expect-error: muting exact type match for stub readSync
   stubs.configReadSync = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'readSync').callsFake(readSync);
 
   const writeSync = function (this: ConfigFile<ConfigFile.Options>): void {
@@ -584,9 +584,9 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
 
   stubs.configWrite = testContext.SANDBOXES.CONFIG.stub(ConfigFile.prototype, 'write').callsFake(write);
 
-  // @ts-expect-error: getKeyChain is private
+  //  @ts-expect-error: getKeyChain is private
   testContext.SANDBOXES.CRYPTO.stub(Crypto.prototype, 'getKeyChain').callsFake(() =>
-    // @ts-expect-error: not the full type
+    //  @ts-expect-error: not the full type
     Promise.resolve({
       setPassword: () => Promise.resolve(),
       getPassword: (data: Record<string, unknown>, cb: AnyFunction) =>
@@ -596,7 +596,7 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
 
   testContext.SANDBOXES.CONNECTION.stub(Connection.prototype, 'isResolvable').resolves(true);
 
-  // @ts-expect-error: just enough of an httpResponse for testing
+  //  @ts-expect-error: just enough of an httpResponse for testing
   testContext.SANDBOXES.CONNECTION.stub(Connection.prototype, 'request').callsFake(function (
     this: Connection,
     request: string,
@@ -614,7 +614,7 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
     this: OrgAccessor,
     username: string
   ): Promise<boolean> {
-    // @ts-expect-error because private member
+    //  @ts-expect-error because private member
     if ([...this.contents.keys()].includes(username)) return Promise.resolve(true);
     else return Promise.resolve(false);
   });
@@ -623,12 +623,12 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
     this: OrgAccessor,
     username: string
   ): Promise<void> {
-    // @ts-expect-error because private member
+    //  @ts-expect-error because private member
     if ([...this.contents.keys()].includes(username)) return Promise.resolve();
     else return Promise.resolve();
   });
 
-  // Always start with the default and tests beforeEach or it methods can override it.
+  //  Always start with the default and tests beforeEach or it methods can override it.
   testContext.fakeConnectionRequest = defaultFakeConnectionRequest;
 
   testContext.stubs = stubs;
@@ -658,17 +658,17 @@ const getAliasFileLocation = (): string =>
  * @param testContext
  */
 export const restoreContext = (testContext: TestContext): void => {
-  // Restore the default value for this setting on restore.
+  //  Restore the default value for this setting on restore.
   Global.SFDX_INTEROPERABILITY = true;
   testContext.SANDBOX.restore();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  //  eslint-disable-next-line @typescript-eslint/no-unsafe-return
   Object.values(testContext.SANDBOXES).forEach((theSandbox) => theSandbox.restore());
   testContext.configStubs = {};
-  // Give each test run a clean StateAggregator
+  //  Give each test run a clean StateAggregator
   StateAggregator.clearInstance();
   SfProject.clearInstances();
-  // Allow each test to have their own config aggregator
-  // @ts-ignore clear for testing.
+  //  Allow each test to have their own config aggregator
+  //  @ts-ignore clear for testing.
   ConfigAggregator.instances.clear();
 };
 
@@ -842,13 +842,13 @@ export class StreamingMockCometClient extends CometClient {
   /**
    * Fake addExtension. Does nothing.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
+  //  eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
   public addExtension(extension: StreamingExtension): void {}
 
   /**
    * Fake disable. Does nothing.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
+  //  eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
   public disable(label: string): void {}
 
   /**
@@ -865,7 +865,7 @@ export class StreamingMockCometClient extends CometClient {
   /**
    * Fake setHeader. Does nothing,
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
+  //  eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
   public setHeader(name: string, value: string): void {}
 
   /**
@@ -1049,7 +1049,7 @@ export class MockTestOrgData {
       config.password = crypto.encrypt(this.password);
     }
 
-    // remove "undefined" properties that don't exist in actual files
+    //  remove "undefined" properties that don't exist in actual files
     return Object.fromEntries(Object.entries(config).filter(([, v]) => v !== undefined)) as AuthFields;
   }
 
@@ -1089,7 +1089,7 @@ export class MockTestSandboxData {
   /**
    * Return the auth config file contents.
    */
-  // eslint-disable-next-line @typescript-eslint/require-await
+  //  eslint-disable-next-line @typescript-eslint/require-await
   public async getConfig(): Promise<SandboxFields> {
     return {
       sandboxOrgId: this.sandboxOrgId,

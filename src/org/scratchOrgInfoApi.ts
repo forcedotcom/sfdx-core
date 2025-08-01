@@ -97,7 +97,7 @@ const buildOAuth2Options = async (options: {
   };
 
   logger.debug(`isJwtFlow: ${isJwtFlow}`);
-  logger.debug(`using resolved loginUrl: ${oauth2Options.loginUrl}`);
+  logger.debug(`using resolved loginUrl: ${oauth2Options.loginUrl ?? '<undefined>'}`);
 
   if (isJwtFlow && !process.env.SFDX_CLIENT_SECRET) {
     oauth2Options.privateKeyFile = options.hubOrg.getConnection().getAuthInfoFields().privateKey;
@@ -238,7 +238,9 @@ export const authorizeScratchOrg = async (options: {
     // try the oauth flow again using it now.
     if (scratchOrgInfoComplete.LoginUrl && oAuth2Options.options.loginUrl !== scratchOrgInfoComplete.LoginUrl) {
       logger.debug(
-        `Auth failed with loginUrl ${oAuth2Options.options.loginUrl} so trying with ${scratchOrgInfoComplete.LoginUrl}`
+        `Auth failed with loginUrl ${oAuth2Options.options.loginUrl ?? '<undefined>'} so trying with ${
+          scratchOrgInfoComplete.LoginUrl
+        }`
       );
       oAuth2Options.options = { ...oAuth2Options.options, ...{ loginUrl: scratchOrgInfoComplete.LoginUrl } };
       try {

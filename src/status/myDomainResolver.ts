@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { lookup, resolveCname } from 'node:dns';
+import { lookup } from 'node:dns';
 import { URL } from 'node:url';
 import { promisify } from 'node:util';
 
@@ -120,18 +120,6 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
     };
     const client = await PollingClient.create(pollingOptions);
     return ensureString(await client.subscribe());
-  }
-
-  /** @deprecated there is nothing using this in forcedotcom, salesforcecli, or public github search */
-  public async getCnames(): Promise<string[]> {
-    try {
-      await this.resolve();
-      return await promisify(resolveCname)(this.options.url.host);
-    } catch (e) {
-      this.logger.debug(`An error occurred trying to resolve: ${this.options.url.host}`);
-      this.logger.debug(`Error: ${(e as Error).message}`);
-      return [];
-    }
   }
 
   /**
