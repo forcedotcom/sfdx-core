@@ -1,3 +1,12 @@
+## [8.18.7](https://github.com/forcedotcom/sfdx-core/compare/8.18.6...8.18.7) (2025-08-02)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/schemas from 1.9.0 to 1.9.1 ([5577f15](https://github.com/forcedotcom/sfdx-core/commit/5577f151a0cedc4191ff85d2cf391ab1d4310b11))
+
+
+
 ## [8.18.6](https://github.com/forcedotcom/sfdx-core/compare/8.18.5...8.18.6) (2025-08-01)
 
 
