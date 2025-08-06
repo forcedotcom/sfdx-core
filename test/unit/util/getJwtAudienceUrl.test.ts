@@ -8,20 +8,11 @@
 import { OAuth2Config } from '@jsforce/jsforce-node';
 import { expect } from 'chai';
 import { Env } from '@salesforce/kit';
-import { TestContext } from '../../../src/testSetup';
 import { SfdcUrl } from '../../../src/util/sfdcUrl';
-import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { getJwtAudienceUrl } from '../../../src/util/getJwtAudienceUrl';
-
-const TEST_CNAMES = ['login.salesforce.com', 'test.salesforce.com'];
 
 describe('getJwtAudienceUrl', () => {
   const env = new Env();
-  const $$ = new TestContext();
-
-  before(() => {
-    $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves(TEST_CNAMES);
-  });
 
   afterEach(() => {
     env.unset('SFDX_AUDIENCE_URL');
@@ -35,7 +26,6 @@ describe('getJwtAudienceUrl', () => {
   });
 
   it('should use the correct audience URL for createdOrgInstance beginning with "gs1"', async () => {
-    $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves([]);
     const options: OAuth2Config & { createdOrgInstance?: string } = {
       loginUrl: 'https://foo.bar.baz',
       createdOrgInstance: 'gs1',
@@ -45,7 +35,6 @@ describe('getJwtAudienceUrl', () => {
   });
 
   it('should return production URL if domain cannot be resolved', async () => {
-    $$.SANDBOX.stub(MyDomainResolver.prototype, 'getCnames').resolves([]);
     const options: OAuth2Config = {
       loginUrl: 'https://foo.bar.baz',
     };

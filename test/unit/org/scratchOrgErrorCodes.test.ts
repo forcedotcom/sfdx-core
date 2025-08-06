@@ -16,6 +16,11 @@ import { Org } from '../../../src/org/org';
 import * as scratchOrgInfoApi from '../../../src/org/scratchOrgInfoApi';
 import { TestContext } from '../../../src/testSetup';
 import { PollingClient } from '../../../src/status/pollingClient';
+import { Messages } from '../../../src/messages';
+
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.loadMessages('@salesforce/core', 'scratchOrgErrorCodes');
+
 const testUsername = 'foo';
 const baseOrgInfo: ScratchOrgInfo = {
   SignupEmail: '',
@@ -53,7 +58,7 @@ describe('validateScratchOrgInfoForResume - timeout validation', () => {
         expect.fail('should have thrown SfError');
       }
       expect(err.name).to.equal('StillInProgressError');
-      expect(err.message).to.equal("The scratch org isn't ready yet (Status = New).");
+      expect(err.message).to.equal(messages.getMessage('StillInProgressError', ['New']));
     }
   });
 
@@ -78,7 +83,7 @@ describe('validateScratchOrgInfoForResume - timeout validation', () => {
         expect.fail('should have thrown SfError');
       }
       expect(err.name).to.equal('StillInProgressError');
-      expect(err.message).to.include("The scratch org isn't ready yet (Status = Creating).");
+      expect(err.message).to.equal(messages.getMessage('StillInProgressError', ['Creating']));
     }
   });
 

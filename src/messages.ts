@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as util from 'node:util';
 import { fileURLToPath } from 'node:url';
+// this can use `real fs` because messages are bundled during build by the ts transform
+import * as fs from 'node:fs';
 import { AnyJson, asString, ensureJsonMap, ensureString, isJsonMap, isObject } from '@salesforce/ts-types';
 import { ensureArray, upperFirst } from '@salesforce/kit';
 import { Logger } from './logger/logger';

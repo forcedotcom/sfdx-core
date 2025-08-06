@@ -423,9 +423,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
   }
 
   private async getKeyChain(platform: string): Promise<KeyChain> {
-    if (!this.options.keychain) {
-      this.options.keychain = await retrieveKeychain(platform);
-    }
+    this.options.keychain ??= await retrieveKeychain(platform);
     return this.options.keychain;
   }
 }
