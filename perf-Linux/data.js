@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1754644933492,
+  "lastUpdate": 1755381128177,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -31806,6 +31806,72 @@ window.BENCHMARK_DATA = {
             "range": "±228.24%",
             "unit": "ops/sec",
             "extra": "9 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b7bbaceb6b7fb876bc301e7e9e893132bbfaa557",
+          "message": "chore(dev-deps): bump esbuild-plugin-pino from 2.2.0 to 2.3.1\n\nBumps [esbuild-plugin-pino](https://github.com/davipon/esbuild-plugin-pino) from 2.2.0 to 2.3.1.\n- [Release notes](https://github.com/davipon/esbuild-plugin-pino/releases)\n- [Changelog](https://github.com/wd-David/esbuild-plugin-pino/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/davipon/esbuild-plugin-pino/compare/v2.2.0...v2.3.1)\n\n---\nupdated-dependencies:\n- dependency-name: esbuild-plugin-pino\n  dependency-version: 2.3.1\n  dependency-type: direct:development\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-08-16T21:48:39Z",
+          "tree_id": "0e58b3a09c7fba946ef0064fc1ffc17411b46598",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/b7bbaceb6b7fb876bc301e7e9e893132bbfaa557"
+        },
+        "date": 1755381119901,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 485780,
+            "range": "±1.03%",
+            "unit": "ops/sec",
+            "extra": "94 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1104431,
+            "range": "±10.06%",
+            "unit": "ops/sec",
+            "extra": "70 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 29026,
+            "range": "±197.98%",
+            "unit": "ops/sec",
+            "extra": "29 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 459144,
+            "range": "±28.61%",
+            "unit": "ops/sec",
+            "extra": "77 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 664280,
+            "range": "±8.07%",
+            "unit": "ops/sec",
+            "extra": "74 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 4873,
+            "range": "±234.63%",
+            "unit": "ops/sec",
+            "extra": "8 samples"
           }
         ]
       }
