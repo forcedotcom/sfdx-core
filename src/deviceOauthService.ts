@@ -77,7 +77,7 @@ async function makeRequest<T extends JsonMap>(options: HttpRequest): Promise<T> 
 /**
  * THIS CLASS IS DEPRECATED AND WILL BE REMOVED MID JANUARY 2026.
  *
- * @deprecated Use WebOAuthServer instead
+ * @deprecated Use other oauth flows instead
  */
 export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
   public static RESPONSE_TYPE = 'device_code';
@@ -98,9 +98,7 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
   }
 
   /**
-   * Begin the authorization flow by requesting the login
-   *
-   * @returns {Promise<DeviceCodeResponse>}
+   * @deprecated Will be removed mid January 2026
    */
   public async requestDeviceLogin(): Promise<DeviceCodeResponse> {
     const deviceFlowRequestUrl = this.getDeviceFlowRequestUrl();
@@ -109,9 +107,7 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
   }
 
   /**
-   * Polls the server until successful response OR max attempts have been made
-   *
-   * @returns {Promise<Nullable<DeviceCodePollingResponse>>}
+   * @deprecated Will be removed mid January 2026
    */
   public async awaitDeviceApproval(loginData: DeviceCodeResponse): Promise<Nullable<DeviceCodePollingResponse>> {
     const deviceFlowRequestUrl = this.getDeviceFlowRequestUrl();
@@ -121,9 +117,7 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
   }
 
   /**
-   * Creates and saves new AuthInfo
-   *
-   * @returns {Promise<AuthInfo>}
+   * @deprecated Will be removed mid January 2026
    */
   public async authorizeAndSave(approval: DeviceCodePollingResponse): Promise<AuthInfo> {
     const authInfo = await AuthInfo.create({
