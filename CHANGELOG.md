@@ -1,3 +1,12 @@
+# [8.20.0](https://github.com/forcedotcom/sfdx-core/compare/8.19.1...8.20.0) (2025-08-18)
+
+
+### Features
+
+* deprecate `DeviceOauthService` and types - W-19362390 ([#1227](https://github.com/forcedotcom/sfdx-core/issues/1227)) ([accb16c](https://github.com/forcedotcom/sfdx-core/commit/accb16c1e8fc6b7063e59eafcc9fc5a70b96831f))
+
+
+
 ## [8.19.1](https://github.com/forcedotcom/sfdx-core/compare/8.19.0...8.19.1) (2025-08-07)
 
 
