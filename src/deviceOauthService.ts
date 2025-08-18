@@ -17,10 +17,14 @@ import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org/authInfo';
 import { SFDX_HTTP_HEADERS } from './org/connection';
 import { SfError } from './sfError';
 import { Messages } from './messages';
+import { Lifecycle } from './lifecycleEvents';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'auth');
 
+/**
+ * @deprecated Will be removed mid January 2026
+ */
 export type DeviceCodeResponse = {
   device_code: string;
   interval: number;
@@ -28,6 +32,9 @@ export type DeviceCodeResponse = {
   verification_uri: string;
 } & JsonMap;
 
+/**
+ * @deprecated Will be removed mid January 2026
+ */
 export type DeviceCodePollingResponse = {
   access_token: string;
   refresh_token: string;
@@ -68,20 +75,9 @@ async function makeRequest<T extends JsonMap>(options: HttpRequest): Promise<T> 
 }
 
 /**
- * Handles device based login flows
+ * THIS CLASS IS DEPRECATED AND WILL BE REMOVED MID JANUARY 2026.
  *
- * Usage:
- * ```
- * const oauthConfig = {
- *   loginUrl: this.flags.instanceurl,
- *   clientId: this.flags.clientid,
- * };
- * const deviceOauthService = await DeviceOauthService.create(oauthConfig);
- * const loginData = await deviceOauthService.requestDeviceLogin();
- * console.log(loginData);
- * const approval = await deviceOauthService.awaitDeviceApproval(loginData);
- * const authInfo = await deviceOauthService.authorizeAndSave(approval);
- * ```
+ * @deprecated Use WebOAuthServer instead
  */
 export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
   public static RESPONSE_TYPE = 'device_code';
@@ -95,6 +91,7 @@ export class DeviceOauthService extends AsyncCreatable<OAuth2Config> {
 
   public constructor(options: OAuth2Config) {
     super(options);
+    void Lifecycle.getInstance().emitWarning('Device Oauth flow is deprecated and will be removed mid January 2026');
     this.options = options;
     if (!this.options.clientId) this.options.clientId = DEFAULT_CONNECTED_APP_INFO.clientId;
     if (!this.options.loginUrl) this.options.loginUrl = AuthInfo.getDefaultInstanceUrl();
