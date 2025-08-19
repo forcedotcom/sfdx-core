@@ -16,7 +16,7 @@ import { OAuth2 } from '@jsforce/jsforce-node';
 import { AsyncCreatable, Env, set, toNumber } from '@salesforce/kit';
 import { asString, ensureString, get, Nullable } from '@salesforce/ts-types';
 import { Logger } from './logger/logger';
-import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org/authInfo';
+import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, CODE_BUILDER_CONNECTED_APP_INFO } from './org/authInfo';
 import { SfError } from './sfError';
 import { Messages } from './messages';
 import { SfProjectJson } from './sfProject';
@@ -27,6 +27,8 @@ const messages = Messages.loadMessages('@salesforce/core', 'auth');
 
 // Server ignores requests for site icons
 const iconPaths = ['/favicon.ico', '/apple-touch-icon-precomposed.png'];
+
+const CODE_BUILDER_REDIRECT_URI = 'api/oauth2/salesforce/callback';
 
 /**
  * Handles the creation of a web server for web based login flows.
@@ -193,10 +195,34 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   protected async init(): Promise<void> {
     this.logger = await Logger.child(this.constructor.name);
     const port = await WebOAuthServer.determineOauthPort();
+    this.oauthConfig.loginUrl ??= AuthInfo.getDefaultInstanceUrl();
+    const env = new Env();
 
-    if (!this.oauthConfig.clientId) this.oauthConfig.clientId = DEFAULT_CONNECTED_APP_INFO.clientId;
-    if (!this.oauthConfig.loginUrl) this.oauthConfig.loginUrl = AuthInfo.getDefaultInstanceUrl();
-    if (!this.oauthConfig.redirectUri) this.oauthConfig.redirectUri = `http://localhost:${port}/OauthRedirect`;
+    if (env.getBoolean('CODE_BUILDER')) {
+      if (this.oauthConfig.clientId !== CODE_BUILDER_CONNECTED_APP_INFO.clientId) {
+        this.logger.warn(messages.getMessage('invalidClientId', [this.oauthConfig.clientId]));
+      }
+      this.oauthConfig.clientId = CODE_BUILDER_CONNECTED_APP_INFO.clientId;
+      const cbUri = env.getString('CODE_BUILDER_URI');
+      if (!cbUri) {
+        messages.createError('error.missingCodeBuilderUri');
+      }
+      const cbStateSha = env.getString('CODE_BUILDER_STATE_SHA');
+      if (!cbStateSha) {
+        messages.createError('error.missingCodeBuilderStateSha');
+      }
+      this.oauthConfig.state = JSON.stringify({
+        PORT: port,
+        CODE_BUILDER_URI: cbUri,
+        CODE_BUILDER_STATE_SHA: cbStateSha,
+      });
+      const maybeSlash = this.oauthConfig.loginUrl.endsWith('/') ? '' : '/';
+      this.oauthConfig.redirectUri = `${this.oauthConfig.loginUrl}${maybeSlash}${CODE_BUILDER_REDIRECT_URI}`;
+    } else {
+      this.oauthConfig.clientId ??= DEFAULT_CONNECTED_APP_INFO.clientId;
+      this.oauthConfig.redirectUri ??= `http://localhost:${port}/OauthRedirect`;
+    }
+
     // Unless explicitly turned off, use a code verifier as a best practice
     if (this.oauthConfig.useVerifier !== false) this.oauthConfig.useVerifier = true;
 

@@ -24,6 +24,18 @@ Invalid request method: %s
 
 Invalid request uri: %s
 
+# invalidClientId
+
+Ignoring client ID: %s for Code Builder authentication when CODE_BUILDER=true env var is set.
+
+# error.missingCodeBuilderUri
+
+Missing Code Builder URI in environment.
+
+# error.missingCodeBuilderStateSha
+
+Missing Code builder SHA in environment.
+
 # error.HttpApi
 
 HTTP response contains html content. Check that the org exists and can be reached.

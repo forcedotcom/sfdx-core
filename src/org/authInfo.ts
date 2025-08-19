@@ -129,6 +129,7 @@ export type JwtOAuth2Config = OAuth2Config & {
   authCode?: string;
   refreshToken?: string;
   username?: string;
+  state?: string;
 };
 
 type UserInfo = AnyJson & {
@@ -188,6 +189,11 @@ function parseIdUrl(idUrl: string): { userId: string | undefined; orgId: string 
 
 export const DEFAULT_CONNECTED_APP_INFO = {
   clientId: 'PlatformCLI',
+  clientSecret: '',
+};
+
+export const CODE_BUILDER_CONNECTED_APP_INFO = {
+  clientId: 'CodeBuilder',
   clientSecret: '',
 };
 
@@ -350,7 +356,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // The state parameter allows the redirectUri callback listener to ignore request
     // that don't contain the state value.
     const params = {
-      state: randomBytes(Math.ceil(6)).toString('hex'),
+      state: options.state ?? randomBytes(Math.ceil(6)).toString('hex'),
       prompt: 'login',
       // Default connected app is 'refresh_token api web'
       scope: options.scope ?? env.getString('SFDX_AUTH_SCOPES', 'refresh_token api web'),
