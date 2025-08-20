@@ -29,8 +29,8 @@ const messages = Messages.loadMessages('@salesforce/core', 'auth');
 const iconPaths = ['/favicon.ico', '/apple-touch-icon-precomposed.png'];
 
 const CODE_BUILDER_REDIRECT_URI_STAGE =
-  'https://api.code-builder-stg.platform.salesforce.com/api/oauth/salesforce/callback';
-const CODE_BUILDER_REDIRECT_URI_PROD = 'https://api.code-builder.platform.salesforce.com/api/oauth/salesforce/callback';
+  'https://api.code-builder-stg.platform.salesforce.com/api/auth/salesforce/callback';
+const CODE_BUILDER_REDIRECT_URI_PROD = 'https://api.code-builder.platform.salesforce.com/api/auth/salesforce/callback';
 
 /**
  * Handles the creation of a web server for web based login flows.
