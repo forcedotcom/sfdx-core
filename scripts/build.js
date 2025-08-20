@@ -40,30 +40,10 @@ const sharedConfig = {
     logOverride: {
       'unsupported-dynamic-import': 'error',
     },
+    define: {
+      // this prevents the logger from writing to any files, obviating the need for pino-bundling stuff
+      'process.env.SF_DISABLE_LOG_FILE': "'true'",
+    },
     outdir: tmpOutputFolder,
-  });
-  const filePath = `${tmpOutputFolder}/index.js`;
-  let bundledEntryPoint = fs.readFileSync(filePath, 'utf8');
-
-  // There is a wrong reference after bundling due to a bug from esbuild-plugin-pino. We will replace it with the correct one.
-  const searchString = /\$\{process\.cwd\(\)\}\$\{require\("path"\)\.sep\}tmp-lib/g;
-  const replacementString = `\${__dirname}\${require("path").sep}`;
-
-  if (!searchString.test(bundledEntryPoint)) {
-    console.error('Error: the reference to be modified is not detected - Please reach out to IDEx Foundations team.');
-    process.exit(1); // Exit with an error code
-  }
-  bundledEntryPoint = bundledEntryPoint.replace(searchString, replacementString);
-  fs.writeFileSync(filePath, bundledEntryPoint, 'utf8');
-
-  await build({
-    entryPoints: [`${outputFolder}/logger/transformStream.js`],
-    bundle: true,
-    minify: true,
-    outdir: tmpOutputFolder,
-    platform: 'node', // for CJS
-    plugins: [
-      // esbuildPluginPino({ transports: ['pino-pretty'] }),
-    ],
   });
 })();

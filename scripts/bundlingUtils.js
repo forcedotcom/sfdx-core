@@ -43,37 +43,6 @@ function updatePackageJson() {
   });
 }
 
-// make sure the path to transformStream is not changed, and update the logger path by input
-function resolvePinoLogger(updateLoggerPath) {
-  const loggerPath = './src/logger/logger.ts';
-  const targetString = "target: path.join('..', '..', 'lib', 'logger', 'transformStream')";
-  const replacementString = "target: './transformStream'";
-
-  fs.readFile(loggerPath, 'utf8', (err, data) => {
-    if (err) {
-      console.error(`Error reading logger.ts: ${err}`);
-      return;
-    }
-    // Check if the target string exists in the file
-    if (!data.includes(targetString)) {
-      console.error(
-        `Error: The target string "${targetString}" was not found in logger.ts.\n Please make sure to bundle transformStream by referencing the new path or reach out to IDEx Foundations Team.`
-      );
-      return;
-    }
-    if (updateLoggerPath) {
-      let updatedData = data.replace(targetString, replacementString);
-      fs.writeFile(loggerPath, updatedData, 'utf8', (writeErr) => {
-        if (writeErr) {
-          console.error(`Error writing to logger.ts: ${writeErr}`);
-        } else {
-          console.log('Logger.ts updated successfully.');
-        }
-      });
-    }
-  });
-}
-
 function updateLoadMessagesParam() {
   const dirs = ['./src', './test'];
   function replaceTextInFile(filePath) {
@@ -114,6 +83,5 @@ function addTestSetupToIndex() {
 }
 
 exports.updatePackageJson = updatePackageJson;
-exports.resolvePinoLogger = resolvePinoLogger;
 exports.updateLoadMessagesParam = updateLoadMessagesParam;
 exports.addTestSetupToIndex = addTestSetupToIndex;
