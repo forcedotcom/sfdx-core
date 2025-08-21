@@ -32,7 +32,7 @@ See the [Test Setup documentation](TEST_SETUP.md).
 
 The Messages class, by default, loads message text during run time. It's optimized to do this only per file.
 
-If you're using @salesforce/core or other code that uses its Messages class in a bundler (webpack, esbuild, etc) it may struggle with these runtime references.
+If you're using @salesforce/core or other code that uses its Messages class in a bundler (webpack, esbuild, etc) it may struggle with these runtime references. Bundle from the compiled code (post-messageTranssformer)
 
 src/messageTransformer will "inline" the messages into the js files during TS compile using `https://github.com/nonara/ts-patch`.
 
