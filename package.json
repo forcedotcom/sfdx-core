@@ -14,6 +14,7 @@
     "./configAggregator": "./lib/config/configAggregator.js",
     "./envVars": "./lib/config/envVars.js",
     "./fs": "./lib/fs/fs.js",
+    "./global": "./lib/global.js",
     "./lifecycle": "./lib/lifecycleEvents.js",
     "./logger": "./lib/logger/logger.js",
     "./messages": "./lib/messages.js",
