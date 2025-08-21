@@ -15,7 +15,7 @@
 <a id="md:using-testsetup" class="tsd-anchor"></a><h1><a href="#md:using-testsetup">Using TestSetup</a></h1><p>The Salesforce DX Core Library provides a unit testing utility to help with mocking and sand-boxing core components. This feature allows unit tests to execute without needing to make API calls to salesforce.com.</p>
 <p>See the <a href="TEST_SETUP.md">Test Setup documentation</a>.</p>
 <a id="md:message-transformer" class="tsd-anchor"></a><h2><a href="#md:message-transformer">Message Transformer</a></h2><p>The Messages class, by default, loads message text during run time. It&#39;s optimized to do this only per file.</p>
-<p>If you&#39;re using @salesforce/core or other code that uses its Messages class in a bundler (webpack, esbuild, etc) it may struggle with these runtime references.</p>
+<p>If you&#39;re using @salesforce/core or other code that uses its Messages class in a bundler (webpack, esbuild, etc) it may struggle with these runtime references. Bundle from the compiled code (post-messageTranssformer)</p>
 <p>src/messageTransformer will &quot;inline&quot; the messages into the js files during TS compile using <code>https://github.com/nonara/ts-patch</code>.</p>
 <p>In your plugin or library,</p>
 <p><code>yarn add --dev ts-patch</code></p>
