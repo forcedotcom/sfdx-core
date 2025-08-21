@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755799214615,
+  "lastUpdate": 1755808085451,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -32070,6 +32070,72 @@ window.BENCHMARK_DATA = {
             "range": "±189.90%",
             "unit": "ops/sec",
             "extra": "32 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "183ca70fc9420425096688fe703200e35418c217",
+          "message": "fix(deps): bump faye from 1.4.0 to 1.4.1\n\nBumps [faye](https://github.com/faye/faye) from 1.4.0 to 1.4.1.\n- [Changelog](https://github.com/faye/faye/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/faye/faye/compare/1.4.0...1.4.1)\n\n---\nupdated-dependencies:\n- dependency-name: faye\n  dependency-version: 1.4.1\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-08-21T20:22:51Z",
+          "tree_id": "002a09e863f82ed3f2fc0e4c09d8856bd0843514",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/183ca70fc9420425096688fe703200e35418c217"
+        },
+        "date": 1755808072759,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 334641,
+            "range": "±0.33%",
+            "unit": "ops/sec",
+            "extra": "96 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 904818,
+            "range": "±6.87%",
+            "unit": "ops/sec",
+            "extra": "57 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 39558,
+            "range": "±185.12%",
+            "unit": "ops/sec",
+            "extra": "59 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 451872,
+            "range": "±5.41%",
+            "unit": "ops/sec",
+            "extra": "76 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 506237,
+            "range": "±8.68%",
+            "unit": "ops/sec",
+            "extra": "69 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 19305,
+            "range": "±186.74%",
+            "unit": "ops/sec",
+            "extra": "38 samples"
           }
         ]
       }
