@@ -168,6 +168,7 @@ export class Logger {
       const commonOptions = {
         name: options.name ?? Logger.ROOT_NAME,
         base: options.fields ?? {},
+        level,
         enabled,
         ...(Global.isWeb ? { browser: { asObject: true } } : {}),
       };

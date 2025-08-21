@@ -201,17 +201,17 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
     const env = new Env();
 
     if (env.getBoolean('CODE_BUILDER')) {
-      if (this.oauthConfig.clientId !== CODE_BUILDER_CONNECTED_APP_INFO.clientId) {
+      if (this.oauthConfig.clientId && this.oauthConfig.clientId !== CODE_BUILDER_CONNECTED_APP_INFO.clientId) {
         this.logger.warn(messages.getMessage('invalidClientId', [this.oauthConfig.clientId]));
       }
       this.oauthConfig.clientId = CODE_BUILDER_CONNECTED_APP_INFO.clientId;
       const cbUri = env.getString('CODE_BUILDER_URI');
       if (!cbUri) {
-        messages.createError('error.missingCodeBuilderUri');
+        throw messages.createError('error.missingCodeBuilderUri');
       }
       const cbStateSha = env.getString('CODE_BUILDER_STATE_SHA');
       if (!cbStateSha) {
-        messages.createError('error.missingCodeBuilderStateSha');
+        throw messages.createError('error.missingCodeBuilderStateSha');
       }
       this.oauthConfig.state = JSON.stringify({
         PORT: port,
