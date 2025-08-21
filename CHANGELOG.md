@@ -1,3 +1,12 @@
+# [8.21.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.0...8.21.0) (2025-08-21)
+
+
+### Features
+
+* add global to top-level exports ([1373c97](https://github.com/forcedotcom/sfdx-core/commit/1373c976500584eace12dad9613eb30d0ff8201d))
+
+
+
 # [8.20.0](https://github.com/forcedotcom/sfdx-core/compare/8.19.1...8.20.0) (2025-08-18)
 
 
