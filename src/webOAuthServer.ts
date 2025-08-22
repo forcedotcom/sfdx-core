@@ -28,9 +28,7 @@ const messages = Messages.loadMessages('@salesforce/core', 'auth');
 // Server ignores requests for site icons
 const iconPaths = ['/favicon.ico', '/apple-touch-icon-precomposed.png'];
 
-const CODE_BUILDER_REDIRECT_URI_STAGE =
-  'https://api.code-builder-stg.platform.salesforce.com/api/auth/salesforce/callback';
-const CODE_BUILDER_REDIRECT_URI_PROD = 'https://api.code-builder.platform.salesforce.com/api/auth/salesforce/callback';
+const CODE_BUILDER_REDIRECT_URI = 'https://api.code-builder.platform.salesforce.com/api/auth/salesforce/callback';
 
 /**
  * Handles the creation of a web server for web based login flows.
@@ -213,8 +211,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
         PORT: port,
         CODE_BUILDER_STATE: cbStateSha,
       });
-      const cbProd = env.getBoolean('CODE_BUILDER_PROD');
-      this.oauthConfig.redirectUri = cbProd ? CODE_BUILDER_REDIRECT_URI_PROD : CODE_BUILDER_REDIRECT_URI_STAGE;
+      this.oauthConfig.redirectUri = CODE_BUILDER_REDIRECT_URI;
     } else {
       this.oauthConfig.clientId ??= DEFAULT_CONNECTED_APP_INFO.clientId;
       this.oauthConfig.redirectUri ??= `http://localhost:${port}/OauthRedirect`;
