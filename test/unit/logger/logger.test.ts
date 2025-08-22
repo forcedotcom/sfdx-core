@@ -215,4 +215,25 @@ describe('Logger', () => {
       expect(logRecords[0]).to.have.property('newField3', true);
     });
   });
+
+  describe('Pino level configuration', () => {
+    it('make sure the pino level is set correctly', async () => {
+      // When no level is set, the Pino level defaults to INFO.
+      // So we set a level lower than INFO to make sure the Pino level is set correctly
+      process.env.SF_LOG_LEVEL = 'debug';
+
+      const logger = await Logger.child('childTestLogger');
+      logger.trace('This message should NOT appear');
+      logger.debug('This message SHOULD appear');
+      logger.error('This message SHOULD appear');
+      logger.info('This message SHOULD appear');
+
+      // Assert
+      const records = logger.getBufferedRecords();
+      expect(records).to.have.length(3);
+      expect(records[0]).to.have.property('level', LoggerLevel.DEBUG);
+      expect(records[1]).to.have.property('level', LoggerLevel.ERROR);
+      expect(records[2]).to.have.property('level', LoggerLevel.INFO);
+    });
+  });
 });
