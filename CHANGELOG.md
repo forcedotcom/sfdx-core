@@ -1,3 +1,12 @@
+## [8.21.2](https://github.com/forcedotcom/sfdx-core/compare/8.21.1...8.21.2) (2025-08-22)
+
+
+### Bug Fixes
+
+* set log level in Pino options ([42e92dd](https://github.com/forcedotcom/sfdx-core/commit/42e92dd584846fd48a35d6aefc19c17f639c94d0))
+
+
+
 ## [8.21.1](https://github.com/forcedotcom/sfdx-core/compare/8.21.0...8.21.1) (2025-08-22)
 
 
