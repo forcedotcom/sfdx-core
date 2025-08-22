@@ -24,17 +24,13 @@ Invalid request method: %s
 
 Invalid request uri: %s
 
-# invalidClientId
+# warn.invalidClientId
 
-Ignoring client ID: %s for Code Builder authentication when CODE_BUILDER=true env var is set.
+Code Builder web authentication is only supported with the Code Builder connected app. Ignoring client ID: %s
 
-# error.missingCodeBuilderUri
+# error.invalidCodeBuilderState
 
-Missing Code Builder URI in environment.
-
-# error.missingCodeBuilderStateSha
-
-Missing Code builder SHA in environment.
+Invalid authentication state.
 
 # error.HttpApi
 

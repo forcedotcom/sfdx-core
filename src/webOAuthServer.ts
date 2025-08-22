@@ -202,21 +202,16 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
 
     if (env.getBoolean('CODE_BUILDER')) {
       if (this.oauthConfig.clientId && this.oauthConfig.clientId !== CODE_BUILDER_CONNECTED_APP_INFO.clientId) {
-        this.logger.warn(messages.getMessage('invalidClientId', [this.oauthConfig.clientId]));
+        this.logger.warn(messages.getMessage('warn.invalidClientId', [this.oauthConfig.clientId]));
       }
       this.oauthConfig.clientId = CODE_BUILDER_CONNECTED_APP_INFO.clientId;
-      const cbUri = env.getString('CODE_BUILDER_URI');
-      if (!cbUri) {
-        throw messages.createError('error.missingCodeBuilderUri');
-      }
-      const cbStateSha = env.getString('CODE_BUILDER_STATE_SHA');
+      const cbStateSha = env.getString('CODE_BUILDER_STATE');
       if (!cbStateSha) {
-        throw messages.createError('error.missingCodeBuilderStateSha');
+        throw messages.createError('error.invalidCodeBuilderState');
       }
       this.oauthConfig.state = JSON.stringify({
         PORT: port,
-        CODE_BUILDER_URI: cbUri,
-        CODE_BUILDER_STATE_SHA: cbStateSha,
+        CODE_BUILDER_STATE: cbStateSha,
       });
       const cbProd = env.getBoolean('CODE_BUILDER_PROD');
       this.oauthConfig.redirectUri = cbProd ? CODE_BUILDER_REDIRECT_URI_PROD : CODE_BUILDER_REDIRECT_URI_STAGE;
