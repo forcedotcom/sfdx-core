@@ -181,7 +181,6 @@ export class Logger {
           transport: {
             pipeline: [
               {
-                // WARNING: Please make sure to bundle transformStream by referencing the correct path. Reach out to IDEx Foundations Team.
                 target: path.join('..', '..', 'lib', 'logger', 'transformStream'),
               },
               getWriteStream(level),

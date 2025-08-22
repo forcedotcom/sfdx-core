@@ -1,3 +1,12 @@
+## [8.21.1](https://github.com/forcedotcom/sfdx-core/compare/8.21.0...8.21.1) (2025-08-22)
+
+
+### Bug Fixes
+
+* **deps:** bump faye from 1.4.0 to 1.4.1 ([183ca70](https://github.com/forcedotcom/sfdx-core/commit/183ca70fc9420425096688fe703200e35418c217))
+
+
+
 # [8.21.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.0...8.21.0) (2025-08-21)
 
 ### Features
