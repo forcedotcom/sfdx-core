@@ -55,7 +55,7 @@
     "messageTransformer/messageTransformer.ts"
   ],
   "dependencies": {
-    "@jsforce/jsforce-node": "^3.10.1",
+    "@jsforce/jsforce-node": "^3.10.4",
     "@salesforce/kit": "^3.2.2",
     "@salesforce/schemas": "^1.9.1",
     "@salesforce/ts-types": "^2.0.11",
