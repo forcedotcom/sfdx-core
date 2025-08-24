@@ -1,3 +1,12 @@
+## [8.21.3](https://github.com/forcedotcom/sfdx-core/compare/8.21.2...8.21.3) (2025-08-24)
+
+
+### Bug Fixes
+
+* **deps:** bump @jsforce/jsforce-node from 3.10.1 to 3.10.4 ([f3c408d](https://github.com/forcedotcom/sfdx-core/commit/f3c408dbc246ad8a352a071093ea23f3ff2e6dfc))
+
+
+
 ## [8.21.2](https://github.com/forcedotcom/sfdx-core/compare/8.21.1...8.21.2) (2025-08-22)
 
 
