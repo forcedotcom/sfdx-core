@@ -1,4 +1,53 @@
-## [8.21.3](https://github.com/forcedotcom/sfdx-core/compare/8.21.2...8.21.3) (2025-08-24)
+# [8.22.0](https://github.com/forcedotcom/sfdx-core/compare/8.21.3...8.22.0) (2025-08-25)
+
+
+
+## [8.21.2-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.21.2...8.21.2-cb.0) (2025-08-22)
+
+
+### Bug Fixes
+
+* update messages and env vars ([086b9b3](https://github.com/forcedotcom/sfdx-core/commit/086b9b301c94aa0333212b607b00b8846e44aea1))
+
+
+
+## [8.21.1-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.21.0...8.21.1-cb.0) (2025-08-21)
+
+
+### Bug Fixes
+
+* throw errors properly and fix logger ([33b0491](https://github.com/forcedotcom/sfdx-core/commit/33b0491bde35a8edff58befb509e0c32953c9b26))
+
+
+
+## [8.20.1-cb.1](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-cb.0...8.20.1-cb.1) (2025-08-21)
+
+
+### Bug Fixes
+
+* correct redirect uri ([25cc593](https://github.com/forcedotcom/sfdx-core/commit/25cc5937d905be2f7737baf4218e2c2670a0447e))
+
+
+
+## [8.20.1-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-dev-cb.0...8.20.1-cb.0) (2025-08-20)
+
+
+### Bug Fixes
+
+* update redirect uri ([baaf79f](https://github.com/forcedotcom/sfdx-core/commit/baaf79f7b7df4fc0c992cff242447eb6152617ac))
+
+
+
+## [8.20.1-dev-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.0...8.20.1-dev-cb.0) (2025-08-19)
+
+
+### Features
+
+* support code builder web auth ([a24a42e](https://github.com/forcedotcom/sfdx-core/commit/a24a42e7189e950ac4c67c5174350141fb76b372))
+
+
+
+## [8.21.3](https://github.com/forcedotcom/sfdx-core/compare/8.21.2-cb.0...8.21.3) (2025-08-24)
 
 
 ### Bug Fixes
@@ -16,7 +65,61 @@
 
 
 
-## [8.21.1](https://github.com/forcedotcom/sfdx-core/compare/8.21.0...8.21.1) (2025-08-22)
+## [8.21.2-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.21.2...8.21.2-cb.0) (2025-08-22)
+
+
+### Bug Fixes
+
+* update messages and env vars ([086b9b3](https://github.com/forcedotcom/sfdx-core/commit/086b9b301c94aa0333212b607b00b8846e44aea1))
+
+
+
+## [8.21.1-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.21.0...8.21.1-cb.0) (2025-08-21)
+
+
+### Bug Fixes
+
+* throw errors properly and fix logger ([33b0491](https://github.com/forcedotcom/sfdx-core/commit/33b0491bde35a8edff58befb509e0c32953c9b26))
+
+
+
+## [8.20.1-cb.1](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-cb.0...8.20.1-cb.1) (2025-08-21)
+
+
+### Bug Fixes
+
+* correct redirect uri ([25cc593](https://github.com/forcedotcom/sfdx-core/commit/25cc5937d905be2f7737baf4218e2c2670a0447e))
+
+
+
+## [8.20.1-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-dev-cb.0...8.20.1-cb.0) (2025-08-20)
+
+
+### Bug Fixes
+
+* update redirect uri ([baaf79f](https://github.com/forcedotcom/sfdx-core/commit/baaf79f7b7df4fc0c992cff242447eb6152617ac))
+
+
+
+## [8.20.1-dev-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.0...8.20.1-dev-cb.0) (2025-08-19)
+
+
+### Features
+
+* support code builder web auth ([a24a42e](https://github.com/forcedotcom/sfdx-core/commit/a24a42e7189e950ac4c67c5174350141fb76b372))
+
+
+
+## [8.21.2](https://github.com/forcedotcom/sfdx-core/compare/8.21.1...8.21.2) (2025-08-22)
+
+
+### Bug Fixes
+
+* set log level in Pino options ([42e92dd](https://github.com/forcedotcom/sfdx-core/commit/42e92dd584846fd48a35d6aefc19c17f639c94d0))
+
+
+
+## [8.21.1](https://github.com/forcedotcom/sfdx-core/compare/8.21.1-cb.0...8.21.1) (2025-08-22)
 
 
 ### Bug Fixes
@@ -25,12 +128,75 @@
 
 
 
-# [8.21.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.0...8.21.0) (2025-08-21)
+## [8.21.1-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.21.0...8.21.1-cb.0) (2025-08-21)
+
+
+### Bug Fixes
+
+* throw errors properly and fix logger ([33b0491](https://github.com/forcedotcom/sfdx-core/commit/33b0491bde35a8edff58befb509e0c32953c9b26))
+
+
+
+## [8.20.1-cb.1](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-cb.0...8.20.1-cb.1) (2025-08-21)
+
+
+### Bug Fixes
+
+* correct redirect uri ([25cc593](https://github.com/forcedotcom/sfdx-core/commit/25cc5937d905be2f7737baf4218e2c2670a0447e))
+
+
+
+## [8.20.1-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-dev-cb.0...8.20.1-cb.0) (2025-08-20)
+
+
+### Bug Fixes
+
+* update redirect uri ([baaf79f](https://github.com/forcedotcom/sfdx-core/commit/baaf79f7b7df4fc0c992cff242447eb6152617ac))
+
+
+
+## [8.20.1-dev-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.0...8.20.1-dev-cb.0) (2025-08-19)
+
+
+### Features
+
+* support code builder web auth ([a24a42e](https://github.com/forcedotcom/sfdx-core/commit/a24a42e7189e950ac4c67c5174350141fb76b372))
+
+
+
+# [8.21.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-cb.1...8.21.0) (2025-08-21)
 
 
 ### Features
 
 * add global to top-level exports ([1373c97](https://github.com/forcedotcom/sfdx-core/commit/1373c976500584eace12dad9613eb30d0ff8201d))
+
+
+
+## [8.20.1-cb.1](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-cb.0...8.20.1-cb.1) (2025-08-21)
+
+
+### Bug Fixes
+
+* correct redirect uri ([25cc593](https://github.com/forcedotcom/sfdx-core/commit/25cc5937d905be2f7737baf4218e2c2670a0447e))
+
+
+
+## [8.20.1-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-dev-cb.0...8.20.1-cb.0) (2025-08-20)
+
+
+### Bug Fixes
+
+* update redirect uri ([baaf79f](https://github.com/forcedotcom/sfdx-core/commit/baaf79f7b7df4fc0c992cff242447eb6152617ac))
+
+
+
+## [8.20.1-dev-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.0...8.20.1-dev-cb.0) (2025-08-19)
+
+
+### Features
+
+* support code builder web auth ([a24a42e](https://github.com/forcedotcom/sfdx-core/commit/a24a42e7189e950ac4c67c5174350141fb76b372))
 
 
 
