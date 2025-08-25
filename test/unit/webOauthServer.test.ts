@@ -54,6 +54,22 @@ describe('WebOauthServer', () => {
       expect(authUrl).to.include('state=');
       expect(authUrl).to.include('response_type=code');
     });
+
+    it('should return authorization url for code builder', async () => {
+      const cbState = '1234567890';
+      stubMethod($$.SANDBOX, Env.prototype, 'getBoolean').withArgs('CODE_BUILDER').returns(true);
+      stubMethod($$.SANDBOX, Env.prototype, 'getString').withArgs('CODE_BUILDER_STATE').returns(cbState);
+      const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
+      const authUrl = oauthServer.getAuthorizationUrl();
+      expect(authUrl).to.not.be.undefined;
+      expect(authUrl).to.include('client_id=CodeBuilder');
+      expect(authUrl).to.include('code_challenge=');
+      expect(authUrl).to.include('state=');
+      expect(authUrl).to.include('response_type=code');
+      expect(authUrl).to.include('redirect_uri=');
+      expect(authUrl).to.include('api.code-builder.platform.salesforce.com');
+      expect(authUrl).to.include(cbState);
+    });
   });
 
   describe('authorizeAndSave', () => {

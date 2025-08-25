@@ -24,6 +24,14 @@ Invalid request method: %s
 
 Invalid request uri: %s
 
+# warn.invalidClientId
+
+Code Builder web authentication is only supported with the Code Builder connected app. Ignoring client ID: %s
+
+# error.invalidCodeBuilderState
+
+Invalid authentication state.
+
 # error.HttpApi
 
 HTTP response contains html content. Check that the org exists and can be reached.

@@ -1302,6 +1302,24 @@ describe('AuthInfo', () => {
       expect(url).to.contain('prompt=login');
       expect(url).to.contain('scope=from-option');
     });
+
+    it('should return the correct url with state', () => {
+      const state = JSON.stringify({ PORT: 12_345, CODE_BUILDER_STATE: '1234567890' });
+      const options = {
+        clientId: 'CodeBuilder',
+        redirectUri: testOrg.redirectUri,
+        loginUrl: testOrg.loginUrl,
+        state,
+        scope: 'test',
+      };
+      const url = AuthInfo.getAuthorizationUrl(options);
+
+      expect(url.startsWith(options.loginUrl), 'authorization URL should start with the loginUrl').to.be.true;
+      expect(url).to.contain(`state=${encodeURIComponent(state)}`);
+      expect(url).to.contain('prompt=login');
+      expect(url).to.contain('scope=test');
+      expect(url).to.contain('client_id=CodeBuilder');
+    });
   });
 
   describe('getSfdxAuthUrl', () => {
