@@ -33,7 +33,7 @@ describe('SfProject', () => {
           const json = await SfProjectJson.create();
           json.set('packageAliases', { MyName: 'somePackage' });
           await json.write();
-          expect($$.getConfigStubContents('SfProjectJson').packageAliases!['MyName']).to.equal('somePackage');
+          expect(($$.getConfigStubContents('SfProjectJson').packageAliases as any)['MyName']).to.equal('somePackage');
         });
         it('allows uppercase packaging aliases on read', async () => {
           $$.setConfigStubContents('SfProjectJson', { contents: { packageAliases: { MyName: 'somePackage' } } });
@@ -61,7 +61,7 @@ describe('SfProject', () => {
           const json = await SfProjectJson.create();
           json.set('packageBundleAliases', { MyName: 'someBundle' });
           await json.write();
-          expect($$.getConfigStubContents('SfProjectJson').packageBundleAliases!['MyName']).to.equal('someBundle');
+          expect(($$.getConfigStubContents('SfProjectJson').packageBundleAliases as any)['MyName']).to.equal('someBundle');
         });
         it('allows uppercase packaging aliases on read', async () => {
           $$.setConfigStubContents('SfProjectJson', { contents: { packageBundleAliases: { MyName: 'someBundle' } } });
