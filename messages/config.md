@@ -44,7 +44,7 @@ The config value can only be set to true or false.
 
 # invalidProjectWorkspace
 
-This directory does not contain a valid Salesforce DX project.
+%s does not contain a valid Salesforce DX project.
 
 # schemaValidationError
 

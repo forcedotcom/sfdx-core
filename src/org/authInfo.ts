@@ -9,7 +9,6 @@
 import { randomBytes } from 'node:crypto';
 import { resolve as pathResolve } from 'node:path';
 import * as os from 'node:os';
-import * as fs from 'node:fs';
 import { Record as RecordType } from '@jsforce/jsforce-node';
 import { AsyncOptionalCreatable, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
@@ -29,6 +28,7 @@ import {
 import { OAuth2Config, OAuth2, TokenResponse } from '@jsforce/jsforce-node';
 import Transport from '@jsforce/jsforce-node/lib/transport';
 import * as jwt from 'jsonwebtoken';
+import { fs } from '../fs/fs';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';
@@ -40,8 +40,8 @@ import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
 import { findSuggestion } from '../util/findSuggestion';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
-import { OrgConfigProperties } from './orgConfigProperties';
 import { Org, SandboxFields } from './org';
+import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'core');
@@ -50,6 +50,15 @@ const messages = Messages.loadMessages('@salesforce/core', 'core');
  * Fields for authorization, org, and local information.
  */
 export type AuthFields = {
+  clientApps?: {
+    [key: string]: {
+      clientId: string;
+      clientSecret?: string;
+      accessToken: string;
+      refreshToken: string;
+      oauthFlow: 'web';
+    };
+  };
   accessToken?: string;
   alias?: string;
   authCode?: string;
@@ -120,6 +129,7 @@ export type JwtOAuth2Config = OAuth2Config & {
   authCode?: string;
   refreshToken?: string;
   username?: string;
+  state?: string;
 };
 
 type UserInfo = AnyJson & {
@@ -179,6 +189,11 @@ function parseIdUrl(idUrl: string): { userId: string | undefined; orgId: string 
 
 export const DEFAULT_CONNECTED_APP_INFO = {
   clientId: 'PlatformCLI',
+  clientSecret: '',
+};
+
+export const CODE_BUILDER_CONNECTED_APP_INFO = {
+  clientId: 'CodeBuilder',
   clientSecret: '',
 };
 
@@ -341,7 +356,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // The state parameter allows the redirectUri callback listener to ignore request
     // that don't contain the state value.
     const params = {
-      state: randomBytes(Math.ceil(6)).toString('hex'),
+      state: options.state ?? randomBytes(Math.ceil(6)).toString('hex'),
       prompt: 'login',
       // Default connected app is 'refresh_token api web'
       scope: options.scope ?? env.getString('SFDX_AUTH_SCOPES', 'refresh_token api web'),
@@ -417,7 +432,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         try {
           const soi = await AuthInfo.queryScratchOrg(hubAuthInfo.username, fields.orgId as string);
           // if any return a result
-          logger.debug(`found orgId ${fields.orgId} in devhub ${hubAuthInfo.username}`);
+          logger.debug(`found orgId ${fields.orgId ?? '<undefined>'} in devhub ${hubAuthInfo.username}`);
           try {
             await orgAuthInfo.save({
               ...fields,
@@ -528,7 +543,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     if (result) return result;
 
     throw new SfError(
-      `DevHub ${devHubUsername} has no active scratch orgs that match ${trimmedId}`,
+      `DevHub ${devHubUsername ?? '<undefined>'} has no active scratch orgs that match ${trimmedId}`,
       'NoActiveScratchOrgFound'
     );
   }
@@ -607,41 +622,94 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   /**
    * Get the auth fields (decrypted) needed to make a connection.
+   *
+   * @param clientApp Name of the CA/ECA associated with the user.
    */
-  public getConnectionOptions(): ConnectionOptions {
+  public getConnectionOptions(clientApp?: string): ConnectionOptions {
     const decryptedCopy = this.getFields(true);
     const { accessToken, instanceUrl, loginUrl } = decryptedCopy;
 
-    if (this.isAccessTokenFlow()) {
-      this.logger.info('Returning fields for a connection using access token.');
+    // return main app auth fields
+    if (!clientApp) {
+      if (this.isAccessTokenFlow()) {
+        this.logger.info('Returning fields for a connection using access token.');
 
-      // Just auth with the accessToken
-      return { accessToken, instanceUrl, loginUrl };
-    }
-    if (this.isJwt()) {
-      this.logger.info('Returning fields for a connection using JWT config.');
+        // Just auth with the accessToken
+        return { accessToken, instanceUrl, loginUrl };
+      }
+      if (this.isJwt()) {
+        this.logger.info('Returning fields for a connection using JWT config.');
+        return {
+          accessToken,
+          instanceUrl,
+          refreshFn: this.refreshFn.bind(this),
+        };
+      }
+      // @TODO: figure out loginUrl and redirectUri (probably get from config class)
+      //
+      // redirectUri: org.config.getOauthCallbackUrl()
+      // loginUrl: this.fields.instanceUrl || this.config.getAppConfig().sfdcLoginUrl
+      this.logger.info('Returning fields for a connection using OAuth config.');
+
+      // Decrypt a user provided client secret or use the default.
       return {
+        oauth2: {
+          loginUrl: instanceUrl ?? SfdcUrl.PRODUCTION,
+          clientId: this.getClientId(),
+          redirectUri: this.getRedirectUri(),
+        },
         accessToken,
         instanceUrl,
         refreshFn: this.refreshFn.bind(this),
       };
     }
-    // @TODO: figure out loginUrl and redirectUri (probably get from config class)
-    //
-    // redirectUri: org.config.getOauthCallbackUrl()
-    // loginUrl: this.fields.instanceUrl || this.config.getAppConfig().sfdcLoginUrl
-    this.logger.info('Returning fields for a connection using OAuth config.');
 
-    // Decrypt a user provided client secret or use the default.
+    if (!decryptedCopy.clientApps) {
+      throw new SfError(`${this.username} does not have any client app linked.`);
+    }
+
+    if (!(clientApp in decryptedCopy.clientApps)) {
+      throw new SfError(`${this.username} does not have a "${clientApp}" client app linked.`);
+    }
+
+    const decryptedApp = decryptedCopy.clientApps[clientApp];
+
     return {
       oauth2: {
         loginUrl: instanceUrl ?? SfdcUrl.PRODUCTION,
-        clientId: this.getClientId(),
+        clientId: decryptedApp.clientId,
         redirectUri: this.getRedirectUri(),
       },
-      accessToken,
+      accessToken: decryptedApp.accessToken,
       instanceUrl,
-      refreshFn: this.refreshFn.bind(this),
+      // Specific refreshFn for AuthInfo's clientApps.
+      //
+      // Each client app stores the oauth flow used for its initial auth, here we ensure each refresh returns
+      // a token, update the auth file with it and send it back to jsforce's through the callback.
+      refreshFn: async (_conn, callback): Promise<void> => {
+        // This only handles refresh for web flow.
+        // When more flows are supported for client apps, check the `app.oauthFlow` field to set the appropiate refresh helper.
+        const authFields = await this.buildRefreshTokenConfig({
+          clientId: decryptedApp.clientId,
+          clientSecret: decryptedApp.clientSecret,
+          refreshToken: decryptedApp.refreshToken,
+          loginUrl: instanceUrl,
+        });
+
+        await this.save({
+          clientApps: {
+            ...decryptedCopy.clientApps,
+            [clientApp]: {
+              accessToken: ensureString(authFields.accessToken),
+              clientId: decryptedApp.clientId,
+              clientSecret: decryptedApp.clientSecret,
+              refreshToken: decryptedApp.refreshToken,
+              oauthFlow: 'web',
+            },
+          },
+        });
+        await callback(null, authFields.accessToken);
+      },
     };
   }
 
@@ -666,6 +734,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   /**
    * Get the org front door (used for web based oauth flows)
+   *
+   * @deprecated Will be removed in the next major version. Use the `Org.getFrontDoorUrl()` method instead.
    */
   public getOrgFrontDoorUrl(): string {
     const authFields = this.getFields(true);
@@ -1118,7 +1188,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // Exchange the auth code for an access token and refresh token.
     let authFields: TokenResponse;
     try {
-      this.logger.debug(`Exchanging auth code for access token using loginUrl: ${options.loginUrl}`);
+      this.logger.debug(`Exchanging auth code for access token using loginUrl: ${options.loginUrl ?? '<undefined>'}`);
       authFields = await oauth2.requestToken(ensure(options.authCode));
     } catch (err) {
       const msg = err instanceof Error ? `${err.name}::${err.message}` : typeof err === 'string' ? err : 'UNKNOWN';
@@ -1277,6 +1347,13 @@ export namespace AuthInfo {
      * OAuth options.
      */
     oauth2Options?: JwtOAuth2Config;
+    clientApps?: Array<{
+      name: string;
+      accessToken: string;
+      refreshToken: string;
+      clientId: string;
+      clientSecret?: string;
+    }>;
     /**
      * Options for the access token auth.
      */

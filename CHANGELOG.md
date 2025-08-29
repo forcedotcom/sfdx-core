@@ -1,3 +1,363 @@
+# [8.22.0](https://github.com/forcedotcom/sfdx-core/compare/8.21.3...8.22.0) (2025-08-25)
+
+
+
+## [8.21.2-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.21.2...8.21.2-cb.0) (2025-08-22)
+
+
+### Bug Fixes
+
+* update messages and env vars ([086b9b3](https://github.com/forcedotcom/sfdx-core/commit/086b9b301c94aa0333212b607b00b8846e44aea1))
+
+
+
+## [8.21.1-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.21.0...8.21.1-cb.0) (2025-08-21)
+
+
+### Bug Fixes
+
+* throw errors properly and fix logger ([33b0491](https://github.com/forcedotcom/sfdx-core/commit/33b0491bde35a8edff58befb509e0c32953c9b26))
+
+
+
+## [8.20.1-cb.1](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-cb.0...8.20.1-cb.1) (2025-08-21)
+
+
+### Bug Fixes
+
+* correct redirect uri ([25cc593](https://github.com/forcedotcom/sfdx-core/commit/25cc5937d905be2f7737baf4218e2c2670a0447e))
+
+
+
+## [8.20.1-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-dev-cb.0...8.20.1-cb.0) (2025-08-20)
+
+
+### Bug Fixes
+
+* update redirect uri ([baaf79f](https://github.com/forcedotcom/sfdx-core/commit/baaf79f7b7df4fc0c992cff242447eb6152617ac))
+
+
+
+## [8.20.1-dev-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.0...8.20.1-dev-cb.0) (2025-08-19)
+
+
+### Features
+
+* support code builder web auth ([a24a42e](https://github.com/forcedotcom/sfdx-core/commit/a24a42e7189e950ac4c67c5174350141fb76b372))
+
+
+
+## [8.21.3](https://github.com/forcedotcom/sfdx-core/compare/8.21.2-cb.0...8.21.3) (2025-08-24)
+
+
+### Bug Fixes
+
+* **deps:** bump @jsforce/jsforce-node from 3.10.1 to 3.10.4 ([f3c408d](https://github.com/forcedotcom/sfdx-core/commit/f3c408dbc246ad8a352a071093ea23f3ff2e6dfc))
+
+
+
+## [8.21.2](https://github.com/forcedotcom/sfdx-core/compare/8.21.1...8.21.2) (2025-08-22)
+
+
+### Bug Fixes
+
+* set log level in Pino options ([42e92dd](https://github.com/forcedotcom/sfdx-core/commit/42e92dd584846fd48a35d6aefc19c17f639c94d0))
+
+
+
+## [8.21.2-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.21.2...8.21.2-cb.0) (2025-08-22)
+
+
+### Bug Fixes
+
+* update messages and env vars ([086b9b3](https://github.com/forcedotcom/sfdx-core/commit/086b9b301c94aa0333212b607b00b8846e44aea1))
+
+
+
+## [8.21.1-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.21.0...8.21.1-cb.0) (2025-08-21)
+
+
+### Bug Fixes
+
+* throw errors properly and fix logger ([33b0491](https://github.com/forcedotcom/sfdx-core/commit/33b0491bde35a8edff58befb509e0c32953c9b26))
+
+
+
+## [8.20.1-cb.1](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-cb.0...8.20.1-cb.1) (2025-08-21)
+
+
+### Bug Fixes
+
+* correct redirect uri ([25cc593](https://github.com/forcedotcom/sfdx-core/commit/25cc5937d905be2f7737baf4218e2c2670a0447e))
+
+
+
+## [8.20.1-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-dev-cb.0...8.20.1-cb.0) (2025-08-20)
+
+
+### Bug Fixes
+
+* update redirect uri ([baaf79f](https://github.com/forcedotcom/sfdx-core/commit/baaf79f7b7df4fc0c992cff242447eb6152617ac))
+
+
+
+## [8.20.1-dev-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.0...8.20.1-dev-cb.0) (2025-08-19)
+
+
+### Features
+
+* support code builder web auth ([a24a42e](https://github.com/forcedotcom/sfdx-core/commit/a24a42e7189e950ac4c67c5174350141fb76b372))
+
+
+
+## [8.21.2](https://github.com/forcedotcom/sfdx-core/compare/8.21.1...8.21.2) (2025-08-22)
+
+
+### Bug Fixes
+
+* set log level in Pino options ([42e92dd](https://github.com/forcedotcom/sfdx-core/commit/42e92dd584846fd48a35d6aefc19c17f639c94d0))
+
+
+
+## [8.21.1](https://github.com/forcedotcom/sfdx-core/compare/8.21.1-cb.0...8.21.1) (2025-08-22)
+
+
+### Bug Fixes
+
+* **deps:** bump faye from 1.4.0 to 1.4.1 ([183ca70](https://github.com/forcedotcom/sfdx-core/commit/183ca70fc9420425096688fe703200e35418c217))
+
+
+
+## [8.21.1-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.21.0...8.21.1-cb.0) (2025-08-21)
+
+
+### Bug Fixes
+
+* throw errors properly and fix logger ([33b0491](https://github.com/forcedotcom/sfdx-core/commit/33b0491bde35a8edff58befb509e0c32953c9b26))
+
+
+
+## [8.20.1-cb.1](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-cb.0...8.20.1-cb.1) (2025-08-21)
+
+
+### Bug Fixes
+
+* correct redirect uri ([25cc593](https://github.com/forcedotcom/sfdx-core/commit/25cc5937d905be2f7737baf4218e2c2670a0447e))
+
+
+
+## [8.20.1-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-dev-cb.0...8.20.1-cb.0) (2025-08-20)
+
+
+### Bug Fixes
+
+* update redirect uri ([baaf79f](https://github.com/forcedotcom/sfdx-core/commit/baaf79f7b7df4fc0c992cff242447eb6152617ac))
+
+
+
+## [8.20.1-dev-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.0...8.20.1-dev-cb.0) (2025-08-19)
+
+
+### Features
+
+* support code builder web auth ([a24a42e](https://github.com/forcedotcom/sfdx-core/commit/a24a42e7189e950ac4c67c5174350141fb76b372))
+
+
+
+# [8.21.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-cb.1...8.21.0) (2025-08-21)
+
+
+### Features
+
+* add global to top-level exports ([1373c97](https://github.com/forcedotcom/sfdx-core/commit/1373c976500584eace12dad9613eb30d0ff8201d))
+
+
+
+## [8.20.1-cb.1](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-cb.0...8.20.1-cb.1) (2025-08-21)
+
+
+### Bug Fixes
+
+* correct redirect uri ([25cc593](https://github.com/forcedotcom/sfdx-core/commit/25cc5937d905be2f7737baf4218e2c2670a0447e))
+
+
+
+## [8.20.1-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.1-dev-cb.0...8.20.1-cb.0) (2025-08-20)
+
+
+### Bug Fixes
+
+* update redirect uri ([baaf79f](https://github.com/forcedotcom/sfdx-core/commit/baaf79f7b7df4fc0c992cff242447eb6152617ac))
+
+
+
+## [8.20.1-dev-cb.0](https://github.com/forcedotcom/sfdx-core/compare/8.20.0...8.20.1-dev-cb.0) (2025-08-19)
+
+
+### Features
+
+* support code builder web auth ([a24a42e](https://github.com/forcedotcom/sfdx-core/commit/a24a42e7189e950ac4c67c5174350141fb76b372))
+
+
+
+# [8.20.0](https://github.com/forcedotcom/sfdx-core/compare/8.19.1...8.20.0) (2025-08-18)
+
+
+### Features
+
+* deprecate `DeviceOauthService` and types - W-19362390 ([#1227](https://github.com/forcedotcom/sfdx-core/issues/1227)) ([accb16c](https://github.com/forcedotcom/sfdx-core/commit/accb16c1e8fc6b7063e59eafcc9fc5a70b96831f))
+
+
+
+## [8.19.1](https://github.com/forcedotcom/sfdx-core/compare/8.19.0...8.19.1) (2025-08-07)
+
+
+### Bug Fixes
+
+* bump jsforce ([#1223](https://github.com/forcedotcom/sfdx-core/issues/1223)) ([a7d0d1d](https://github.com/forcedotcom/sfdx-core/commit/a7d0d1dde4b9cc2be171777116e75e947382142b))
+
+
+
+# [8.19.0](https://github.com/forcedotcom/sfdx-core/compare/8.18.7...8.19.0) (2025-08-06)
+
+
+### Features
+
+* virtualized-fs ([8be04a2](https://github.com/forcedotcom/sfdx-core/commit/8be04a25944eac1c5d31275405de69aa5018bcd8))
+
+
+
+## [8.18.7](https://github.com/forcedotcom/sfdx-core/compare/8.18.6...8.18.7) (2025-08-02)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/schemas from 1.9.0 to 1.9.1 ([5577f15](https://github.com/forcedotcom/sfdx-core/commit/5577f151a0cedc4191ff85d2cf391ab1d4310b11))
+
+
+
+## [8.18.6](https://github.com/forcedotcom/sfdx-core/compare/8.18.5...8.18.6) (2025-08-01)
+
+
+### Bug Fixes
+
+* bump jsforce to drop old`form-data` version([#1220](https://github.com/forcedotcom/sfdx-core/issues/1220)) ([1ff4acd](https://github.com/forcedotcom/sfdx-core/commit/1ff4acdf67a49a117a1e05e1fe4e19b9bbaa30c4))
+
+
+
+## [8.18.5](https://github.com/forcedotcom/sfdx-core/compare/8.18.4...8.18.5) (2025-07-24)
+
+
+### Bug Fixes
+
+* update timeout error msg ([1590fda](https://github.com/forcedotcom/sfdx-core/commit/1590fda67ce79581d820c9b34a315eeec13b41e8))
+
+
+
+## [8.18.4](https://github.com/forcedotcom/sfdx-core/compare/8.18.3...8.18.4) (2025-07-24)
+
+
+### Bug Fixes
+
+* include status of the scratch creation in timeout  error W-18895089 ([#1207](https://github.com/forcedotcom/sfdx-core/issues/1207)) ([ff15205](https://github.com/forcedotcom/sfdx-core/commit/ff152055a6ae6325693471e47bb80e4dde4024e1))
+
+
+
+## [8.18.3](https://github.com/forcedotcom/sfdx-core/compare/8.18.2...8.18.3) (2025-07-21)
+
+
+### Bug Fixes
+
+* examples/package.json & examples/yarn.lock to reduce vulnerabilities ([e7a30b6](https://github.com/forcedotcom/sfdx-core/commit/e7a30b684adbc8f27f63327ea847f65463e6b881))
+
+
+
+## [8.18.2](https://github.com/forcedotcom/sfdx-core/compare/8.18.1...8.18.2) (2025-07-21)
+
+
+### Bug Fixes
+
+* package.json & yarn.lock to reduce vulnerabilities ([072f2cb](https://github.com/forcedotcom/sfdx-core/commit/072f2cbb05c7c14278c402bbcf17314ebc40b098))
+
+
+
+## [8.18.1](https://github.com/forcedotcom/sfdx-core/compare/8.18.0...8.18.1) (2025-07-09)
+
+
+
+# [8.18.0](https://github.com/forcedotcom/sfdx-core/compare/8.17.0...8.18.0) (2025-07-08)
+
+
+### Features
+
+* **org:** add `frontdoor` methods @W-18944112@ ([#1209](https://github.com/forcedotcom/sfdx-core/issues/1209)) ([7b3292b](https://github.com/forcedotcom/sfdx-core/commit/7b3292b78f226bdf61d3487a58002686ec148d83))
+* trigger release for [#1209](https://github.com/forcedotcom/sfdx-core/issues/1209) ([7c69c9a](https://github.com/forcedotcom/sfdx-core/commit/7c69c9a20a13cfe490b61e53f89beb7cd55fa29e))
+
+
+
+# [8.17.0](https://github.com/forcedotcom/sfdx-core/compare/8.16.0...8.17.0) (2025-07-03)
+
+
+### Features
+
+* export Mutex class ([#1210](https://github.com/forcedotcom/sfdx-core/issues/1210)) ([d09601b](https://github.com/forcedotcom/sfdx-core/commit/d09601bea664c8b53eb7e5c6d4358953bb930a7c))
+
+
+
+# [8.16.0](https://github.com/forcedotcom/sfdx-core/compare/8.15.0...8.16.0) (2025-07-03)
+
+
+### Features
+
+* **W-18653307:** use mutex to make ConfigAgg and StateAgg thread safe ([55b5929](https://github.com/forcedotcom/sfdx-core/commit/55b592971b6d1e0f5783f7898255f3c8a5886a0e))
+
+
+
+# [8.15.0](https://github.com/forcedotcom/sfdx-core/compare/8.14.1...8.15.0) (2025-06-24)
+
+
+### Bug Fixes
+
+* add feature to org test ([783854c](https://github.com/forcedotcom/sfdx-core/commit/783854cfd63ea8d480216c1a81230c23c04f55fb))
+* add validation and XOR types ([7cf7b75](https://github.com/forcedotcom/sfdx-core/commit/7cf7b756ea932183bc1f2f45b3a01b0ad0e84642))
+* array in test format ([4827231](https://github.com/forcedotcom/sfdx-core/commit/4827231fe71b60a9207cf2d383d210b141ae5132))
+* remove query function and add sandboxinfo field ([a972c87](https://github.com/forcedotcom/sfdx-core/commit/a972c87583d95a3fbc2adf4a81a7f207b3601b45))
+
+
+### Features
+
+* add features query ([52d7356](https://github.com/forcedotcom/sfdx-core/commit/52d7356d76f57f6d56cb31c3ffbb7041b48c8e5d))
+* add query function ([b1b1f7e](https://github.com/forcedotcom/sfdx-core/commit/b1b1f7e426c4cb8002933e498d27d314f1ca869b))
+
+
+
+## [8.14.1](https://github.com/forcedotcom/sfdx-core/compare/8.14.0...8.14.1) (2025-06-23)
+
+
+### Bug Fixes
+
+* ensure that colored logs are on by default ([#1206](https://github.com/forcedotcom/sfdx-core/issues/1206)) ([c393593](https://github.com/forcedotcom/sfdx-core/commit/c393593bbf6ceef4dbeae1758c730b42bc0cea47))
+
+
+
+# [8.14.0](https://github.com/forcedotcom/sfdx-core/compare/8.13.0...8.14.0) (2025-06-13)
+
+
+### Features
+
+* add env vars for debug logger ([#1204](https://github.com/forcedotcom/sfdx-core/issues/1204)) ([9788ca4](https://github.com/forcedotcom/sfdx-core/commit/9788ca47a9ca9ee32391dbe2c5aa5b73117c2b9b))
+
+
+
+# [8.13.0](https://github.com/forcedotcom/sfdx-core/compare/8.12.0...8.13.0) (2025-06-12)
+
+
+### Features
+
+* **auth:** link connected apps to a user W-18394868 ([#1188](https://github.com/forcedotcom/sfdx-core/issues/1188)) ([9c369a4](https://github.com/forcedotcom/sfdx-core/commit/9c369a481d586b397f1e76ca467cc688586b2cc7))
+
+
+
 # [8.12.0](https://github.com/forcedotcom/sfdx-core/compare/8.11.4...8.12.0) (2025-06-03)
 
 

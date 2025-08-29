@@ -13,6 +13,7 @@ lerna-debug.log
 
 # compile source
 lib
+dist
 
 # test artifacts
 *xunit.xml

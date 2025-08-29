@@ -14,9 +14,9 @@ import { Socket } from 'node:net';
 import { EventEmitter } from 'node:events';
 import { OAuth2 } from '@jsforce/jsforce-node';
 import { AsyncCreatable, Env, set, toNumber } from '@salesforce/kit';
-import { asString, get, Nullable } from '@salesforce/ts-types';
+import { asString, ensureString, get, Nullable } from '@salesforce/ts-types';
 import { Logger } from './logger/logger';
-import { AuthInfo, DEFAULT_CONNECTED_APP_INFO } from './org/authInfo';
+import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, CODE_BUILDER_CONNECTED_APP_INFO } from './org/authInfo';
 import { SfError } from './sfError';
 import { Messages } from './messages';
 import { SfProjectJson } from './sfProject';
@@ -27,6 +27,8 @@ const messages = Messages.loadMessages('@salesforce/core', 'auth');
 
 // Server ignores requests for site icons
 const iconPaths = ['/favicon.ico', '/apple-touch-icon-precomposed.png'];
+
+const CODE_BUILDER_REDIRECT_URI = 'https://api.code-builder.platform.salesforce.com/api/auth/salesforce/callback';
 
 /**
  * Handles the creation of a web server for web based login flows.
@@ -52,10 +54,24 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   private oauth2!: OAuth2;
   private oauthConfig: JwtOAuth2Config;
   private oauthError = new Error('Oauth Error');
+  private clientApp?: string;
+  private username?: string;
 
   public constructor(options: WebOAuthServer.Options) {
     super(options);
     this.oauthConfig = options.oauthConfig;
+
+    // runtime check due to TS's loose type validation when using union types.
+    if (Object.hasOwn(options, 'username') && !Object.hasOwn(options, 'clientApp')) {
+      throw messages.createError('error.missingWebOauthServer.options');
+    }
+    if (Object.hasOwn(options, 'clientApp') && !Object.hasOwn(options, 'username')) {
+      throw messages.createError('error.missingWebOauthServer.options');
+    }
+    if ('clientApp' in options) {
+      this.clientApp = options.clientApp;
+      this.username = options.username;
+    }
   }
 
   /**
@@ -95,14 +111,56 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
         this.executeOauthRequest()
           .then(async (response) => {
             try {
-              const authInfo = await AuthInfo.create({
-                oauth2Options: this.oauthConfig,
-                oauth2: this.oauth2,
-              });
-              await authInfo.save();
-              await this.webServer.handleSuccess(response);
-              response.end();
-              resolve(authInfo);
+              // Link client app to an existing auth file.
+              if (this.clientApp) {
+                const authInfo = await AuthInfo.create({
+                  oauth2Options: this.oauthConfig,
+                  oauth2: this.oauth2,
+                });
+                const authFields = authInfo.getFields(true);
+
+                // get user authInfo and save client app creds in `clientApps`
+                const userAuthInfo = await AuthInfo.create({
+                  username: this.username,
+                });
+
+                const decryptedCopy = userAuthInfo.getFields(true);
+
+                if (decryptedCopy.clientApps && this.clientApp in decryptedCopy.clientApps) {
+                  throw new SfError(
+                    `The username ${this.username ?? '<undefined>'} is already linked to a client app named "${
+                      this.clientApp
+                    }". Please authenticate again with a different client app name.`
+                  );
+                }
+
+                await userAuthInfo.save({
+                  clientApps: {
+                    ...userAuthInfo.getFields(true).clientApps,
+                    [this.clientApp]: {
+                      clientId: ensureString(authFields.clientId),
+                      clientSecret: authFields.clientSecret,
+                      accessToken: ensureString(authFields.accessToken),
+                      refreshToken: ensureString(authFields.refreshToken),
+                      oauthFlow: 'web',
+                    },
+                  },
+                });
+
+                await this.webServer.handleSuccess(response);
+                response.end();
+                resolve(authInfo);
+              } else {
+                // new auth, create new file.
+                const authInfo = await AuthInfo.create({
+                  oauth2Options: this.oauthConfig,
+                  oauth2: this.oauth2,
+                });
+                await authInfo.save();
+                await this.webServer.handleSuccess(response);
+                response.end();
+                resolve(authInfo);
+              }
             } catch (err) {
               this.oauthError = err as Error;
               await this.webServer.handleError(response);
@@ -137,10 +195,28 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   protected async init(): Promise<void> {
     this.logger = await Logger.child(this.constructor.name);
     const port = await WebOAuthServer.determineOauthPort();
+    this.oauthConfig.loginUrl ??= AuthInfo.getDefaultInstanceUrl();
+    const env = new Env();
 
-    if (!this.oauthConfig.clientId) this.oauthConfig.clientId = DEFAULT_CONNECTED_APP_INFO.clientId;
-    if (!this.oauthConfig.loginUrl) this.oauthConfig.loginUrl = AuthInfo.getDefaultInstanceUrl();
-    if (!this.oauthConfig.redirectUri) this.oauthConfig.redirectUri = `http://localhost:${port}/OauthRedirect`;
+    if (env.getBoolean('CODE_BUILDER')) {
+      if (this.oauthConfig.clientId && this.oauthConfig.clientId !== CODE_BUILDER_CONNECTED_APP_INFO.clientId) {
+        this.logger.warn(messages.getMessage('warn.invalidClientId', [this.oauthConfig.clientId]));
+      }
+      this.oauthConfig.clientId = CODE_BUILDER_CONNECTED_APP_INFO.clientId;
+      const cbStateSha = env.getString('CODE_BUILDER_STATE');
+      if (!cbStateSha) {
+        throw messages.createError('error.invalidCodeBuilderState');
+      }
+      this.oauthConfig.state = JSON.stringify({
+        PORT: port,
+        CODE_BUILDER_STATE: cbStateSha,
+      });
+      this.oauthConfig.redirectUri = CODE_BUILDER_REDIRECT_URI;
+    } else {
+      this.oauthConfig.clientId ??= DEFAULT_CONNECTED_APP_INFO.clientId;
+      this.oauthConfig.redirectUri ??= `http://localhost:${port}/OauthRedirect`;
+    }
+
     // Unless explicitly turned off, use a code verifier as a best practice
     if (this.oauthConfig.useVerifier !== false) this.oauthConfig.useVerifier = true;
 
@@ -162,7 +238,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
       this.webServer.server.on('request', async (request: WebOAuthServer.Request, response) => {
         if (request.url) {
           const url = parseUrl(request.url);
-          this.logger.debug(`processing request for uri: ${url.pathname}`);
+          this.logger.debug(`processing request for uri: ${url.pathname ?? 'null'}`);
           if (request.method === 'GET') {
             if (url.pathname?.startsWith('/OauthRedirect') && url.query) {
               // eslint-disable-next-line no-param-reassign
@@ -193,7 +269,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
             } else if (url.pathname === '/OauthError') {
               this.webServer.reportError(this.oauthError, response);
             } else if (iconPaths.includes(url.pathname ?? '')) {
-              this.logger.debug(`Ignoring request for icon path: ${url.pathname}`);
+              this.logger.debug(`Ignoring request for icon path: ${url.pathname ?? 'null'}`);
             } else {
               this.webServer.sendError(404, 'Resource not found', response);
               const errName = 'invalidRequestUri';
@@ -243,10 +319,10 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
         this.logger.debug('Expected an auth code but could not find one.');
         throw messages.createError('missingAuthCode');
       }
-      this.logger.debug(`oauthConfig.loginUrl: ${this.oauthConfig.loginUrl}`);
-      this.logger.debug(`oauthConfig.clientId: ${this.oauthConfig.clientId}`);
-      this.logger.debug(`oauthConfig.redirectUri: ${this.oauthConfig.redirectUri}`);
-      this.logger.debug(`oauthConfig.useVerifier: ${this.oauthConfig.useVerifier}`);
+      this.logger.debug(`oauthConfig.loginUrl: ${this.oauthConfig.loginUrl ?? '<undefined>'}`);
+      this.logger.debug(`oauthConfig.clientId: ${this.oauthConfig.clientId ?? '<undefined>'}`);
+      this.logger.debug(`oauthConfig.redirectUri: ${this.oauthConfig.redirectUri ?? '<undefined>'}`);
+      this.logger.debug(`oauthConfig.useVerifier: ${this.oauthConfig.useVerifier ?? '<undefined>'}`);
       return authCode;
     }
     return null;
@@ -276,9 +352,35 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
 }
 
 export namespace WebOAuthServer {
-  export type Options = {
-    oauthConfig: JwtOAuth2Config;
-  };
+  export type Options =
+    | {
+        oauthConfig: JwtOAuth2Config & {
+          /**
+           * OAuth scopes to be requested for the access token.
+           *
+           * This should be a string with each scope separated by spaces:
+           * "refresh_token sfap_api chatbot_api web api"
+           *
+           * If not specified, all scopes assigned to the connected app are requested.
+           */
+          scope?: string;
+        };
+      }
+    | {
+        oauthConfig: JwtOAuth2Config & {
+          /**
+           * OAuth scopes to be requested for the access token.
+           *
+           * This should be a string with each scope separated by spaces:
+           * "refresh_token sfap_api chatbot_api web api"
+           *
+           * If not specified, all scopes assigned to the connected app are requested.
+           */
+          scope?: string;
+        };
+        clientApp: string;
+        username: string;
+      };
 
   export type Request = http.IncomingMessage & {
     query: { code: string; state: string; error?: string; error_description?: string };

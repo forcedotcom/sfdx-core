@@ -187,6 +187,50 @@ describe('AuthInfo', () => {
         // double check the stringified objects don't have secrets.
         expect(strObj).does.not.include(decryptedRefreshToken);
       });
+
+      it('should return app-specific connection options when app parameter is provided', () => {
+        const clientApp = 'agent-jwt-app';
+        const clientAppConfig = {
+          accessToken: 'app-access-token',
+          clientId: 'app-client-id',
+          clientSecret: 'app-client-secret',
+          refreshToken: 'app-refresh-token',
+          oauthFlow: 'web' as const,
+        };
+
+        // Set up the apps field in auth info
+        authInfo.update({
+          clientApps: {
+            [clientApp]: clientAppConfig,
+          },
+        });
+
+        const fields = authInfo.getConnectionOptions(clientApp);
+
+        // Verify app-specific connection options
+        expect(fields.oauth2).to.have.property('clientId', 'app-client-id');
+        expect(fields.oauth2).to.have.property('redirectUri');
+        expect(fields.accessToken).to.equal('app-access-token');
+        expect(fields).to.have.property('instanceUrl');
+        expect(fields).to.have.property('refreshFn').and.is.a('function');
+      });
+
+      it('should throw error when app does not exist', () => {
+        const clientApp = 'NonExistentApp';
+        authInfo.update({
+          clientApps: {
+            SomeOtherApp: {
+              accessToken: 'token',
+              clientId: 'client',
+              refreshToken: 'refresh',
+              oauthFlow: 'web' as const,
+            },
+          },
+        });
+        expect(() => authInfo.getConnectionOptions(clientApp)).to.throw(
+          `${authInfo.getUsername()} does not have a "${clientApp}" client app linked.`
+        );
+      });
     });
 
     describe('AuthInfo', () => {
@@ -1257,6 +1301,24 @@ describe('AuthInfo', () => {
       expect(url).to.contain('state=');
       expect(url).to.contain('prompt=login');
       expect(url).to.contain('scope=from-option');
+    });
+
+    it('should return the correct url with state', () => {
+      const state = JSON.stringify({ PORT: 12_345, CODE_BUILDER_STATE: '1234567890' });
+      const options = {
+        clientId: 'CodeBuilder',
+        redirectUri: testOrg.redirectUri,
+        loginUrl: testOrg.loginUrl,
+        state,
+        scope: 'test',
+      };
+      const url = AuthInfo.getAuthorizationUrl(options);
+
+      expect(url.startsWith(options.loginUrl), 'authorization URL should start with the loginUrl').to.be.true;
+      expect(url).to.contain(`state=${encodeURIComponent(state)}`);
+      expect(url).to.contain('prompt=login');
+      expect(url).to.contain('scope=test');
+      expect(url).to.contain('client_id=CodeBuilder');
     });
   });
 

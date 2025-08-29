@@ -7,7 +7,7 @@
 import * as os from 'node:os';
 import * as path from 'node:path';
 
-import { Logger as PinoLogger, pino } from 'pino';
+import { type Logger as PinoLogger, pino } from 'pino';
 import { Env } from '@salesforce/kit';
 import { ensureString, isKeyOf, isString } from '@salesforce/ts-types';
 import { Global, Mode } from '../global';
@@ -170,6 +170,7 @@ export class Logger {
         base: options.fields ?? {},
         level,
         enabled,
+        ...(Global.isWeb ? { browser: { asObject: true } } : {}),
       };
       if (Boolean(options.useMemoryLogger) || Global.getEnvironmentMode() === Mode.TEST || !enabled) {
         this.memoryLogger = new MemoryLogger();
@@ -180,7 +181,6 @@ export class Logger {
           transport: {
             pipeline: [
               {
-                // WARNING: Please make sure to bundle transformStream by referencing the correct path. Reach out to IDEx Foundations Team.
                 target: path.join('..', '..', 'lib', 'logger', 'transformStream'),
               },
               getWriteStream(level),
@@ -452,11 +452,17 @@ export class Logger {
 
 /** return various streams that the logger could send data to, depending on the options and env  */
 const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
+  const env = new Env();
   // used when debug mode, writes to stdout (colorized)
   if (process.env.DEBUG) {
     return {
       target: 'pino-pretty',
-      options: { colorize: true },
+      options: {
+        // NOTE: env.getBoolean() defaults to false if the env var is not set
+        // so it's important to use `||` instead of `??`
+        colorize: env.getBoolean('SF_LOG_COLORIZE') || true,
+        destination: env.getBoolean('SF_LOG_STDERR') ? 2 : 1,
+      },
     };
   }
 
@@ -466,7 +472,7 @@ const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
     ['1h', new Date().toISOString().split(':').slice(0, 1).join('-')],
     ['1d', new Date().toISOString().split('T')[0]],
   ]);
-  const logRotationPeriod = new Env().getString('SF_LOG_ROTATION_PERIOD') ?? '1d';
+  const logRotationPeriod = env.getString('SF_LOG_ROTATION_PERIOD') ?? '1d';
 
   return {
     // write to a rotating file

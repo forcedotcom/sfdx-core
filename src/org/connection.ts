@@ -29,6 +29,7 @@ import { SfError } from '../sfError';
 import { validateApiVersion } from '../util/sfdc';
 import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
+import { Global } from '../global';
 import { AuthFields, AuthInfo } from './authInfo';
 import { OrgConfigProperties } from './orgConfigProperties';
 
@@ -38,7 +39,8 @@ const messages = Messages.loadMessages('@salesforce/core', 'connection');
 const clientId = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS ?? ''}`;
 export const SFDX_HTTP_HEADERS = {
   'content-type': 'application/json',
-  'user-agent': clientId,
+  // web browser security keeps you from setting user-agent
+  ...(Global.isWeb ? {} : { 'user-agent': clientId }),
 };
 
 export const DNS_ERROR_NAME = 'DomainNotFoundError';
@@ -118,7 +120,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       callOptions: {
         client: clientId,
       },
-      ...options.authInfo.getConnectionOptions(),
+      ...options.authInfo.getConnectionOptions(options.clientApp),
       // this assertion is questionable, but has existed before core7
     } as ConnectionConfig<S>;
 
@@ -219,7 +221,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     await this.isResolvable();
     type Versioned = { version: string };
 
-    this.logger.debug(`Fetching API versions supported for org: ${this.getUsername()}`);
+    this.logger.debug(`Fetching API versions supported for org: ${this.getUsername() ?? ''}`);
     const versions: Versioned[] = await this.request<Versioned[]>(`${this.instanceUrl}/services/data`);
     // if the server doesn't return a list of versions, it's possibly a instanceUrl issue where the local file is out of date.
     if (!Array.isArray(versions)) {
@@ -455,7 +457,9 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     if (lastChecked) {
       const now = new Date();
       const has24HoursPastSinceLastCheck = now.getTime() - lastChecked > Duration.hours(24).milliseconds;
-      this.logger.debug(`API version cache last checked on ${lastCheckedDateString} (now is ${now.toLocaleString()})`);
+      this.logger.debug(
+        `API version cache last checked on ${lastCheckedDateString ?? '<undefined>'} (now is ${now.toLocaleString()})`
+      );
 
       if (!has24HoursPastSinceLastCheck && version) {
         // return cached API version
@@ -495,6 +499,10 @@ export namespace Connection {
      * Additional connection parameters.
      */
     connectionOptions?: ConnectionConfig<S>;
+    /**
+     * Client app to use for auth info credentials.
+     */
+    clientApp?: string;
   };
 }
 

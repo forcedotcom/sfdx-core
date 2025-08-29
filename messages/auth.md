@@ -24,6 +24,14 @@ Invalid request method: %s
 
 Invalid request uri: %s
 
+# warn.invalidClientId
+
+Code Builder web authentication is only supported with the Code Builder connected app. Ignoring client ID: %s
+
+# error.invalidCodeBuilderState
+
+Invalid authentication state.
+
 # error.HttpApi
 
 HTTP response contains html content. Check that the org exists and can be reached.
@@ -31,6 +39,10 @@ HTTP response contains html content. Check that the org exists and can be reache
 # pollingTimeout
 
 The device authorization request timed out. After executing force:auth:device:login, you must approve access to the device within 10 minutes. This can happen if the URL wasn’t copied into the browser, login was not attempted, or the 2FA process was not completed within 10 minutes. Request authorization again.
+
+# error.missingWebOauthServer.options
+
+You must specify both an `clientApp` and `username` if you intend the server to link a connected app to a user.
 
 # serverErrorHTMLResponse
 

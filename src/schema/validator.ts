@@ -6,10 +6,10 @@
  */
 
 import * as path from 'node:path';
-import * as fs from 'node:fs';
 import Ajv, { DefinedError } from 'ajv';
 import { AnyJson, JsonMap } from '@salesforce/ts-types';
 import { getJsonValuesByName, parseJsonMap } from '@salesforce/kit';
+import { fs } from '../fs/fs';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
 
@@ -170,7 +170,7 @@ export class SchemaValidator {
   private getErrorsText(errors: DefinedError[]): string {
     return errors
       .map((error) => {
-        const msg = `${error.schemaPath}: ${error.message}`;
+        const msg = `${error.schemaPath}: ${error.message ?? '<no error message>'}`;
 
         switch (error.keyword) {
           case 'additionalProperties':

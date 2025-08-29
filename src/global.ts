@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { env } from '@salesforce/kit';
+import { fs } from './fs/fs';
 import { SfError } from './sfError';
 
 /**
@@ -54,7 +54,7 @@ export class Global {
    * Whether the code is running in a web browser.
    */
   public static get isWeb(): boolean {
-    return 'window' in globalThis;
+    return 'window' in globalThis || 'self' in globalThis;
   }
 
   /**
@@ -105,7 +105,7 @@ export class Global {
   public static async createDir(dirPath?: string): Promise<void> {
     const resolvedPath = dirPath ? path.join(Global.SFDX_DIR, dirPath) : Global.SFDX_DIR;
     try {
-      if (process.platform === 'win32') {
+      if (process.platform === 'win32' || Global.isWeb) {
         await fs.promises.mkdir(resolvedPath, { recursive: true });
       } else {
         await fs.promises.mkdir(resolvedPath, { recursive: true, mode: 0o700 });

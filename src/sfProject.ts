@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { basename, dirname, isAbsolute, normalize, resolve, sep } from 'node:path';
-import * as fs from 'node:fs';
 import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import { PackageDir, ProjectJson as ProjectJsonSchema, PackagePackageDir, BundleEntry } from '@salesforce/schemas';
+import { fs } from './fs/fs';
 import { SfdcUrl } from './util/sfdcUrl';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';

@@ -314,7 +314,7 @@ export const scratchOrgCreate = async (options: ScratchOrgCreateOptions): Promis
   // we'll need this scratch org connection later;
   const scratchOrg = await Org.create({ aliasOrUsername: soi.Username ?? soi.SignupUsername });
   const username = scratchOrg.getUsername();
-  logger.debug(`scratch org username ${username}`);
+  logger.debug(`scratch org username ${username ?? '<undefined>'}`);
 
   await emit({ stage: 'deploy settings', scratchOrgInfo: soi });
   const configAggregator = await ConfigAggregator.create();

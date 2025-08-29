@@ -6,8 +6,7 @@
  */
 /* eslint-disable class-methods-use-this */
 
-import { join as pathJoin } from 'node:path';
-import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
 import {
   AnyFunction,
@@ -22,6 +21,7 @@ import {
   Nullable,
 } from '@salesforce/ts-types';
 import { HttpRequest, SaveResult } from '@jsforce/jsforce-node';
+import { fs } from '../fs/fs';
 import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { ConfigContents } from '../config/configStackTypes';
@@ -30,7 +30,7 @@ import { Global } from '../global';
 import { Lifecycle } from '../lifecycleEvents';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
-import { trimTo15 } from '../util/sfdc';
+import { trimTo15, validateSalesforceId } from '../util/sfdc';
 import { WebOAuthServer } from '../webOAuthServer';
 import { Messages } from '../messages';
 import { StateAggregator } from '../stateAggregator/stateAggregator';
@@ -43,6 +43,8 @@ import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'org');
+
+export type XOR<T, U> = (T & { [K in keyof U]?: never }) | (U & { [K in keyof T]?: never });
 
 export type OrganizationInformation = {
   Name: string;
@@ -110,6 +112,7 @@ export type SandboxProcessObject = {
   Description?: string;
   ApexClassId?: string;
   EndDate?: string;
+  Features?: string[];
 };
 const sandboxProcessFields = [
   'Id',
@@ -123,6 +126,27 @@ const sandboxProcessFields = [
   'SourceId',
   'Description',
   'EndDate',
+  'Features',
+];
+
+const sandboxInfoFields = [
+  'Id',
+  'IsDeleted',
+  'CreatedDate',
+  'CreatedById',
+  'LastModifiedDate',
+  'LastModifiedById',
+  'SandboxName',
+  'LicenseType',
+  'TemplateId',
+  'HistoryDays',
+  'CopyChatter',
+  'AutoActivate',
+  'ApexClassId',
+  'Description',
+  'SourceId',
+  'ActivationUserGroupId',
+  'Features',
 ];
 
 export type SandboxRequest = {
@@ -133,6 +157,7 @@ export type SandboxRequest = {
   Description?: string;
   ApexClassId?: string;
   ActivationUserGroupId?: string;
+  Features?: string[];
 };
 export type ResumeSandboxRequest = {
   SandboxName?: string;
@@ -158,6 +183,7 @@ export type SandboxInfo = {
   SourceId?: string; // SandboxInfoId as the source org used for a clone
   ActivationUserGroupId?: string; // Support might be added back in API v61.0 (Summer '24)
   CopyArchivedActivities?: boolean; // only for full sandboxes; depends if a license was purchased
+  Features?: string[];
 };
 
 export type ScratchOrgRequest = Omit<ScratchOrgCreateOptions, 'hubOrg'>;
@@ -171,6 +197,8 @@ export type SandboxFields = {
   sandboxInfoId?: string;
   timestamp?: string;
 };
+
+export type SandboxInfoQueryFields = XOR<{ name: string }, { id: string }>;
 
 /**
  * Provides a way to manage a locally authenticated Org.
@@ -216,6 +244,156 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   public constructor(options?: Org.Options) {
     super(options);
     this.options = options ?? {};
+  }
+
+  /**
+   * Generate a URL to a metadata UI builder/setup section in an org.
+   *
+   * Bot: open in Agentforce Builder
+   * ApexPage: opens page
+   * Flow: open in Flow Builder
+   * FlexiPage: open in Lightning App Builder
+   * CustomObject: open in Object Manager
+   * ApexClass: open in Setup -> Apex Classes UI
+   *
+   * if you pass any other metadata type you'll get a path to Lightning App Builder
+   *
+   * @example
+   * // use SDR resolver:
+   * import { MetadataResolver } from '@salesforce/source-deploy-retrieve';
+   *
+   * const metadataResolver = new MetadataResolver();
+   * const components = metadataResolver.getComponentsFromPath(filePath);
+   * const typeName = components[0]?.type?.name;
+   *
+   * const metadataBuilderUrl = await org.getMetadataUIURL(typeName, filePath);
+   *
+   * @typeName Bot | ApexPage | Flow | FlexiPage | CustomObject | ApexClass
+   * @file Absolute file path to the metadata file
+   */
+  public async getMetadataUIURL(typeName: string, file: string): Promise<string> {
+    const botFileNameToId = async (conn: Connection, filePath: string): Promise<string> =>
+      (
+        await conn.singleRecordQuery<{ Id: string }>(
+          `SELECT id FROM BotDefinition WHERE DeveloperName='${path.basename(filePath, '.bot-meta.xml')}'`
+        )
+      ).Id;
+    /** query flexipage via toolingAPI to get its ID (starts with 0M0) */
+    const flexiPageFilenameToId = async (conn: Connection, filePath: string): Promise<string> =>
+      (
+        await conn.singleRecordQuery<{ Id: string }>(
+          `SELECT id FROM flexipage WHERE DeveloperName='${path.basename(filePath, '.flexipage-meta.xml')}'`,
+          { tooling: true }
+        )
+      ).Id;
+
+    /** query the rest API to turn a flow's filepath into a FlowId  (starts with 301) */
+    const flowFileNameToId = async (conn: Connection, filePath: string): Promise<string> => {
+      try {
+        const flow = await conn.singleRecordQuery<{ DurableId: string }>(
+          `SELECT DurableId FROM FlowVersionView WHERE FlowDefinitionView.ApiName = '${path.basename(
+            filePath,
+            '.flow-meta.xml'
+          )}' ORDER BY VersionNumber DESC LIMIT 1`
+        );
+        return flow.DurableId;
+      } catch (error) {
+        throw messages.createError('FlowIdNotFound', [filePath]);
+      }
+    };
+
+    const customObjectFileNameToId = async (conn: Connection, filePath: string): Promise<string> => {
+      try {
+        const customObject = await conn.singleRecordQuery<{ Id: string }>(
+          `SELECT Id FROM CustomObject WHERE DeveloperName = '${path.basename(
+            filePath.replace(/__c/g, ''),
+            '.object-meta.xml'
+          )}'`,
+          {
+            tooling: true,
+          }
+        );
+        return customObject.Id;
+      } catch (error) {
+        throw messages.createError('CustomObjectIdNotFound', [filePath]);
+      }
+    };
+
+    const apexClassFileNameToId = async (conn: Connection, filePath: string): Promise<string> => {
+      try {
+        const apexClass = await conn.singleRecordQuery<{ Id: string }>(
+          `SELECT Id FROM ApexClass WHERE Name = '${path.basename(filePath, '.cls')}'`,
+          {
+            tooling: true,
+          }
+        );
+        return apexClass.Id;
+      } catch (error) {
+        throw messages.createError('ApexClassIdNotFound', [filePath]);
+      }
+    };
+
+    let redirectUri = '';
+
+    switch (typeName) {
+      case 'ApexClass':
+        redirectUri = `lightning/setup/ApexClasses/page?address=%2F${await apexClassFileNameToId(
+          this.connection,
+          file
+        )}`;
+        break;
+      case 'CustomObject':
+        redirectUri = `lightning/setup/ObjectManager/${await customObjectFileNameToId(
+          this.connection,
+          file
+        )}/Details/view`;
+        break;
+      case 'Bot':
+        redirectUri = `/AiCopilot/copilotStudio.app#/copilot/builder?copilotId=${await botFileNameToId(
+          this.connection,
+          file
+        )}`;
+        break;
+      case 'ApexPage':
+        redirectUri = `/apex/${path.basename(file).replace('.page-meta.xml', '').replace('.page', '')}`;
+        break;
+      case 'Flow':
+        redirectUri = `/builder_platform_interaction/flowBuilder.app?flowId=${await flowFileNameToId(
+          this.connection,
+          file
+        )}`;
+        break;
+      case 'FlexiPage':
+        redirectUri = `/visualEditor/appBuilder.app?pageId=${await flexiPageFilenameToId(this.connection, file)}`;
+        break;
+      default:
+        redirectUri = '/lightning/setup/FlexiPageList/home';
+        break;
+    }
+
+    return this.getFrontDoorUrl(redirectUri);
+  }
+
+  /**
+   * Get a Frontdoor URL
+   *
+   * This uses the UI Bridge API to generate a single-use Frontdoor URL:
+   * https://help.salesforce.com/s/articleView?id=xcloud.frontdoor_singleaccess.htm&type=5
+   */
+  public async getFrontDoorUrl(redirectUri?: string): Promise<string> {
+    // the `singleaccess` endpoint returns 403 when using an expired token and jsforce only triggers a token refresh on 401 so we check if it's valid first
+    await this.refreshAuth();
+
+    type SingleAccessUrlRes = { frontdoor_uri: string | undefined };
+
+    const singleAccessUrl = new URL('/services/oauth2/singleaccess', this.connection.instanceUrl);
+    if (redirectUri) {
+      singleAccessUrl.searchParams.append('redirect_uri', redirectUri);
+    }
+
+    const response = await this.connection.requestGet<SingleAccessUrlRes>(singleAccessUrl.toString());
+    if (response.frontdoor_uri) return response.frontdoor_uri;
+    throw new SfError(messages.getMessage('FrontdoorURLError')).setData(response);
   }
 
   /**
@@ -528,7 +706,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     const trimmedId = trimTo15(thisOrgAuthConfig.orgId);
 
-    const DEV_HUB_SOQL = `SELECT CreatedDate,Edition,ExpirationDate FROM ActiveScratchOrg WHERE ScratchOrg='${trimmedId}'`;
+    const DEV_HUB_SOQL = `SELECT CreatedDate,Edition,ExpirationDate FROM ActiveScratchOrg WHERE ScratchOrg='${
+      trimmedId ?? '<undefined>'
+    }'`;
 
     try {
       const results = await devHubConnection.query(DEV_HUB_SOQL);
@@ -755,6 +935,31 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     );
   }
 
+  public async querySandboxInfo(by: SandboxInfoQueryFields): Promise<SandboxInfo> {
+    if (by.id) {
+      // Validate that the ID is a valid Salesforce ID
+      if (!validateSalesforceId(by.id)) {
+        throw new SfError(`Invalid Salesforce ID format: ${by.id}`, 'InvalidSalesforceId');
+      }
+    }
+
+    const whereClause = by.id ? `Id='${by.id}'` : `SandboxName='${by.name ?? '<undefined>'}'`;
+    const soql = `SELECT ${sandboxInfoFields.join(
+      ','
+    )} FROM SandboxInfo WHERE ${whereClause} ORDER BY CreatedDate DESC`;
+    const result = (await this.connection.tooling.query<SandboxInfo>(soql)).records.filter((item) => !item.IsDeleted);
+
+    if (result.length === 0) {
+      throw new SfError(`No record found for ${soql}`, SingleRecordQueryErrors.NoRecords);
+    }
+    if (result.length > 1) {
+      const err = new SfError('The query returned more than 1 record', SingleRecordQueryErrors.MultipleRecords);
+      err.data = result;
+      throw err;
+    }
+    return result[0];
+  }
+
   /**
    * Some organization information is locally cached, such as if the org name or if it is a scratch org.
    * This method populates/updates the filesystem from information retrieved from the org.
@@ -849,7 +1054,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
 
     const authInfo = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
-    this.logger.debug(`adding username ${authInfo.getFields().username}`);
+    this.logger.debug(`adding username ${authInfo.getFields().username ?? '<undefined>'}`);
 
     const orgConfig = await this.retrieveOrgUsersConfig();
 
@@ -898,7 +1103,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     const authInfo: AuthInfo = isString(auth) ? await AuthInfo.create({ username: auth }) : auth;
 
-    this.logger.debug(`removing username ${authInfo.getFields().username}`);
+    this.logger.debug(`removing username ${authInfo.getFields().username ?? '<undefined>'}`);
 
     const orgConfig: OrgUsersConfig = await this.retrieveOrgUsersConfig();
     const contents = await orgConfig.read();
@@ -1095,7 +1300,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
   private async getLocalDataDir(orgDataPath: Nullable<string>): Promise<string> {
     const rootFolder: string = await Config.resolveRootFolder(false);
-    return pathJoin(rootFolder, Global.SFDX_STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
+    return path.join(rootFolder, Global.SFDX_STATE_FOLDER, orgDataPath ? orgDataPath : 'orgs');
   }
 
   /**
@@ -1195,7 +1400,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       try {
         // grab sandboxName from config or try to calculate from the sandbox username
         const sandboxName =
-          sandbox?.sandboxName ?? (this.getUsername() ?? '').split(`${resolvedProdOrg.getUsername()}.`)[1];
+          sandbox?.sandboxName ??
+          (this.getUsername() ?? '').split(`${resolvedProdOrg.getUsername() ?? '<undefined>'}.`)[1];
         if (!sandboxName) {
           this.logger.debug('Sandbox name is not available');
           // jump to query by orgId
@@ -1251,7 +1457,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
 
     try {
       const devHubConn = resolvedDevHub.getConnection();
-      const username = this.getUsername();
+      const username = ensureString(this.getUsername(), 'org is missing username');
 
       const activeScratchOrgRecordId = (
         await devHubConn.singleRecordQuery<{ Id: string }>(
@@ -1598,7 +1804,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   private async removeSourceTrackingFiles(): Promise<void> {
     try {
       const rootFolder = await Config.resolveRootFolder(false);
-      await fs.promises.rm(pathJoin(rootFolder, Global.SF_STATE_FOLDER, 'orgs', this.getOrgId()), {
+      await fs.promises.rm(path.join(rootFolder, Global.SF_STATE_FOLDER, 'orgs', this.getOrgId()), {
         recursive: true,
         force: true,
       });

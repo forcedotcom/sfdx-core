@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { Optional } from '@salesforce/ts-types';
+import { fs } from '../fs/fs';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
 
@@ -37,7 +37,7 @@ export const SFDX_PROJECT_JSON = 'sfdx-project.json';
 export async function resolveProjectPath(dir: string = process.cwd()): Promise<string> {
   const projectPath = await traverse.forFile(dir, SFDX_PROJECT_JSON);
   if (!projectPath) {
-    throw messages.createError('invalidProjectWorkspace');
+    throw messages.createError('invalidProjectWorkspace', [dir]);
   }
   return projectPath;
 }
@@ -57,7 +57,7 @@ export async function resolveProjectPath(dir: string = process.cwd()): Promise<s
 export function resolveProjectPathSync(dir: string = process.cwd()): string {
   const projectPath = traverse.forFileSync(dir, SFDX_PROJECT_JSON);
   if (!projectPath) {
-    throw messages.createError('invalidProjectWorkspace');
+    throw messages.createError('invalidProjectWorkspace', [dir]);
   }
   return projectPath;
 }
