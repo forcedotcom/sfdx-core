@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Examples using the SFDX Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "index.js",
-  "license": "BSD-3-Clause",
+  "license": "Apache-2.0",
   "scripts": {
     "test": "mocha test/unit/**/*.ts"
   },
