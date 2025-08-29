@@ -286,8 +286,7 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
   /**
    * Has at least one package alias defined in the project.
    */
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/require-await
-  public async hasPackageAliases() {
+  public hasPackageAliases(): boolean {
     return Object.keys(this.getContents().packageAliases ?? {}).length > 0;
   }
 
@@ -355,7 +354,7 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
    * @param bundleEntry
    */
   public addPackageBundle(bundleEntry: BundleEntry): void {
-    const bundles: BundleEntry[] = this.getPackageBundles();
+    const bundles = this.getPackageBundles();
 
     const bundleIndex = bundles.findIndex((b: BundleEntry) => b.name === bundleEntry.name);
 
@@ -375,9 +374,8 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
   /**
    * Has at least one package bundle alias defined in the project.
    */
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/require-await
-  public async hasPackageBundleAliases() {
-    return Object.keys(this.getContents().packagBundleAliases ?? {}).length > 0;
+  public hasPackageBundleAliases(): boolean {
+    return Object.keys(this.getContents().packageBundleAliases ?? {}).length > 0;
   }
 
   /**
@@ -778,7 +776,7 @@ export class SfProject {
     return this.projectConfig;
   }
 
-  public async hasPackageAliases(): Promise<boolean> {
+  public hasPackageAliases(): boolean {
     return this.getSfProjectJson().hasPackageAliases();
   }
 
