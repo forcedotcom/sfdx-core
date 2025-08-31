@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1756587943962,
+  "lastUpdate": 1756609866081,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -33126,6 +33126,72 @@ window.BENCHMARK_DATA = {
             "range": "±179.22%",
             "unit": "ops/sec",
             "extra": "67 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "75f111eac74c0d1e9e9f2784152c4353aa3202bd",
+          "message": "chore(dev-deps): bump @types/jsonwebtoken from 9.0.9 to 9.0.10\n\nBumps [@types/jsonwebtoken](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/HEAD/types/jsonwebtoken) from 9.0.9 to 9.0.10.\n- [Release notes](https://github.com/DefinitelyTyped/DefinitelyTyped/releases)\n- [Commits](https://github.com/DefinitelyTyped/DefinitelyTyped/commits/HEAD/types/jsonwebtoken)\n\n---\nupdated-dependencies:\n- dependency-name: \"@types/jsonwebtoken\"\n  dependency-version: 9.0.10\n  dependency-type: direct:development\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2025-08-31T03:07:04Z",
+          "tree_id": "8a65114fe859fd9e6f07d4d45e20e7d7aca97385",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/75f111eac74c0d1e9e9f2784152c4353aa3202bd"
+        },
+        "date": 1756609857497,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 496541,
+            "range": "±1.29%",
+            "unit": "ops/sec",
+            "extra": "95 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1144847,
+            "range": "±7.18%",
+            "unit": "ops/sec",
+            "extra": "68 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 23207,
+            "range": "±200.31%",
+            "unit": "ops/sec",
+            "extra": "26 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 567262,
+            "range": "±6.83%",
+            "unit": "ops/sec",
+            "extra": "76 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 666639,
+            "range": "±7.03%",
+            "unit": "ops/sec",
+            "extra": "71 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 43804,
+            "range": "±179.72%",
+            "unit": "ops/sec",
+            "extra": "66 samples"
           }
         ]
       }
