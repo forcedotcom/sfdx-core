@@ -1,3 +1,12 @@
+# [8.23.0](https://github.com/forcedotcom/sfdx-core/compare/8.22.0...8.23.0) (2025-09-02)
+
+
+### Features
+
+* added commands for bundles ([ab33004](https://github.com/forcedotcom/sfdx-core/commit/ab330042a724d098d983335e0d364ab1a45f1a85))
+
+
+
 # [8.22.0](https://github.com/forcedotcom/sfdx-core/compare/8.21.3...8.22.0) (2025-08-25)
 
 
