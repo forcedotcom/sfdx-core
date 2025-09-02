@@ -13,7 +13,7 @@ import { expect, assert } from 'chai';
 import { env } from '@salesforce/kit';
 import { SfError } from '../../src/sfError';
 import { Messages } from '../../src/messages';
-import { SfProject, SfProjectJson, NamedPackageDir } from '../../src/sfProject';
+import { SfProject, SfProjectJson, NamedPackageDir, BundleEntry } from '../../src/sfProject';
 import { shouldThrow, shouldThrowSync, TestContext } from '../../src/testSetup';
 
 describe('SfProject', () => {
@@ -33,14 +33,12 @@ describe('SfProject', () => {
           const json = await SfProjectJson.create();
           json.set('packageAliases', { MyName: 'somePackage' });
           await json.write();
-          // @ts-expect-error possibly undefined
-          expect($$.getConfigStubContents('SfProjectJson').packageAliases['MyName']).to.equal('somePackage');
+          expect(json.getPackageAliases()!['MyName']).to.equal('somePackage');
         });
         it('allows uppercase packaging aliases on read', async () => {
           $$.setConfigStubContents('SfProjectJson', { contents: { packageAliases: { MyName: 'somePackage' } } });
           const json = await SfProjectJson.create();
-          // @ts-expect-error possibly undefined
-          expect(json.get('packageAliases')['MyName']).to.equal('somePackage');
+          expect(json.getPackageAliases()!['MyName']).to.equal('somePackage');
         });
       });
       describe('plugins', () => {
@@ -55,6 +53,19 @@ describe('SfProject', () => {
           $$.setConfigStubContents('SfProjectJson', { contents: { plugins: pluginsContent } });
           const json = await SfProjectJson.create();
           expect(json.get('plugins')).to.deep.equal(pluginsContent);
+        });
+      });
+      describe('packageBundleAliases', () => {
+        it('allows uppercase packaging aliases on write', async () => {
+          const json = await SfProjectJson.create();
+          json.set('packageBundleAliases', { MyName: 'someBundle' });
+          await json.write();
+          expect(json.getPackageBundleAliases()!['MyName']).to.equal('someBundle');
+        });
+        it('allows uppercase packaging aliases on read', async () => {
+          $$.setConfigStubContents('SfProjectJson', { contents: { packageBundleAliases: { MyName: 'someBundle' } } });
+          const json = await SfProjectJson.create();
+          expect(json.getPackageBundleAliases()!['MyName']).to.equal('someBundle');
         });
       });
     });
@@ -727,17 +738,17 @@ describe('SfProject', () => {
         });
 
         const project = SfProject.getInstance();
-        expect(project.getPackageAliases()).to.not.be.ok;
+        expect(project.getPackageAliases()).to.be.undefined;
       });
-      it('should return false no aliases are defined', () => {
+      it('should return false no aliases are defined', async () => {
         $$.setConfigStubContents('SfProjectJson', {
           contents: {},
         });
 
         const project = SfProject.getInstance();
-        expect(project.hasPackageAliases()).to.not.be.false;
+        expect(await project.hasPackageAliases()).to.be.false;
       });
-      it('should return true when at least one alias is defined', () => {
+      it('should return true when at least one alias is defined', async () => {
         $$.setConfigStubContents('SfProjectJson', {
           contents: {
             packageAliases: {
@@ -747,7 +758,7 @@ describe('SfProject', () => {
         });
 
         const project = SfProject.getInstance();
-        expect(project.hasPackageAliases()).to.not.be.true;
+        expect(await project.hasPackageAliases()).to.be.true;
       });
       it('should return the defined package aliases', () => {
         $$.setConfigStubContents('SfProjectJson', {
@@ -775,7 +786,7 @@ describe('SfProject', () => {
         const project = SfProject.getInstance();
         expect(project.getPackageIdFromAlias('alias1')).to.equal('04txxxxxxxxxxxxxxx');
       });
-      it('should find id of alias by name', () => {
+      it('should not find id of alias by name when name not in aliases collection', () => {
         $$.setConfigStubContents('SfProjectJson', {
           contents: {
             packageAliases: {
@@ -835,6 +846,234 @@ describe('SfProject', () => {
         const project = SfProject.getInstance();
         project.getSfProjectJson().addPackageAlias('alias2', '04tyyyyyyyyyyyyyyy');
         expect(project.getAliasesFromPackageId('04tyyyyyyyyyyyyyyy')).to.deep.equal(['alias2']);
+      });
+    });
+  });
+  describe('addPackageBundle', () => {
+    it('should add a new package bundle when no package bundles exist', () => {
+      $$.setConfigStubContents('SfProjectJson', {
+        contents: {
+          packageBundles: [],
+        },
+      });
+
+      const project = SfProject.getInstance();
+      project.getSfProjectJson().addPackageBundle({
+        name: 'testBundle',
+        versionName: 'testBundle',
+        versionNumber: '1.0.0.0',
+        versionDescription: 'testBundle',
+      } as BundleEntry);
+
+      expect(SfProject.getInstance().hasMultiplePackageBundles()).to.equal(false);
+    });
+    it('should add a new package bundle when no package bundles property exists', () => {
+      $$.setConfigStubContents('SfProjectJson', {
+        contents: {},
+      });
+
+      const project = SfProject.getInstance();
+      project.getSfProjectJson().addPackageBundle({
+        name: 'testBundle',
+        versionName: 'testBundle',
+        versionNumber: '1.0.0.0',
+        versionDescription: 'testBundle',
+      } as BundleEntry);
+
+      expect(SfProject.getInstance().hasMultiplePackageBundles()).to.equal(false);
+      expect(project.getSfProjectJson().getPackageBundles()).to.have.lengthOf(1);
+    });
+    it('should add a new package bundle to existing package bundles', () => {
+      $$.setConfigStubContents('SfProjectJson', {
+        contents: {
+          packageBundles: [
+            {
+              name: 'testBundle',
+              versionName: 'testBundle',
+              versionNumber: '1.0.0.0',
+              versionDescription: 'testBundle',
+            } as BundleEntry,
+          ],
+        },
+      });
+
+      const project = SfProject.getInstance();
+      project.getSfProjectJson().addPackageBundle({
+        name: 'testBundle2',
+        versionName: 'testBundle2',
+        versionNumber: '1.0.0.0',
+        versionDescription: 'testBundle2',
+      } as BundleEntry);
+
+      expect(SfProject.getInstance().hasMultiplePackageBundles()).to.equal(true);
+    });
+    it('should add a new package bundle to existing package bundles', () => {
+      $$.setConfigStubContents('SfProjectJson', {
+        contents: {
+          packageBundles: [
+            {
+              name: 'testBundle',
+              versionName: 'testBundle',
+              versionNumber: '1.0.0.0',
+              versionDescription: 'testBundle',
+            } as BundleEntry,
+          ],
+        },
+      });
+
+      const project = SfProject.getInstance();
+      project.getSfProjectJson().addPackageBundle({
+        name: 'testBundle2',
+        versionName: 'testBundle2',
+        versionNumber: '1.0.0.0',
+        versionDescription: 'testBundle2',
+      } as BundleEntry);
+
+      expect(SfProject.getInstance().hasMultiplePackageBundles()).to.equal(true);
+    });
+    it('should merge to an existing existing package bundle', () => {
+      $$.setConfigStubContents('SfProjectJson', {
+        contents: {
+          packageBundles: [
+            {
+              name: 'testBundle',
+              versionName: 'testBundle',
+              versionNumber: '1.0.0.0',
+              versionDescription: 'testBundle',
+            } as BundleEntry,
+          ],
+        },
+      });
+
+      const project = SfProject.getInstance();
+      project.getSfProjectJson().addPackageBundle({
+        name: 'testBundle',
+        versionName: 'testBundle',
+        versionNumber: '1.0.0.0',
+        versionDescription: 'testBundle',
+      } as BundleEntry);
+
+      expect(project.hasMultiplePackageBundles()).to.equal(false);
+      expect(project.getSfProjectJson().getPackageBundles()[0]).to.have.property('versionNumber', '1.0.0.0');
+    });
+  });
+
+  describe('packageBundleAliases', () => {
+    describe('sfproject bundle aliases', () => {
+      it('should return an undefined object if no bundle aliases are defined', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {},
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getSfProjectJson().getPackageBundleAliases()).to.be.undefined;
+      });
+      it('should return false when no bundle aliases are defined', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {},
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getSfProjectJson().hasPackageBundleAliases()).to.be.false;
+      });
+      it('should return true when at least one bundle alias is defined', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageBundleAliases: {
+              alias1: '1Flxxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getSfProjectJson().hasPackageBundleAliases()).to.be.true;
+      });
+      it('should return the defined package aliases', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageBundleAliases: {
+              alias1: '1Flxxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getSfProjectJson().getPackageBundleAliases()).to.deep.equal({
+          alias1: '1Flxxxxxxxxxxxxxxx',
+        });
+      });
+      it('should find id of alias by name', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageBundleAliases: {
+              alias1: '1Flxxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getPackageBundleIdFromAlias('alias1')).to.equal('1Flxxxxxxxxxxxxxxx');
+      });
+      it('should not find id of alias by name when name not in aliases collection', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageBundleAliases: {
+              alias1: '1Flxxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getPackageBundleIdFromAlias('alias2')).to.not.be.ok;
+      });
+      it('should find alias by id', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageBundleAliases: {
+              alias1: '1Flxxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getAliasesFromPackageBundleId('1Flxxxxxxxxxxxxxxx')).to.deep.equal(['alias1']);
+      });
+      it('should not find alias by id using id not in aliases collection', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageBundleAliases: {
+              alias1: '1Flxxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getAliasesFromPackageBundleId('1Flyyyyyyyyyyyyyy')).to.deep.equal([]);
+      });
+      it('should find alias using 15 char id', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageBundleAliases: {
+              alias1: '1Flxxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getAliasesFromPackageBundleId('1Flxxxxxxxxxxxx')).to.deep.equal(['alias1']);
+      });
+      it('should add a new alias', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageBundleAliases: {
+              alias1: '1Flxxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        project.getSfProjectJson().addPackageBundleAlias('alias2', '1Flyyyyyyyyyyyyyy');
+        expect(project.getAliasesFromPackageBundleId('1Flyyyyyyyyyyyyyy')).to.deep.equal(['alias2']);
       });
     });
   });
