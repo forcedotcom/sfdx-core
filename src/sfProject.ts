@@ -375,8 +375,7 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
   /**
    * Has at least one package bundle alias defined in the project.
    */
-  // eslint-disable-next-line @typescript-eslint/require-await
-  public async hasPackageBundleAliases(): Promise<boolean> {
+  public hasPackageBundleAliases(): boolean {
     return Object.keys(this.getContents().packageBundleAliases ?? {}).length > 0;
   }
 

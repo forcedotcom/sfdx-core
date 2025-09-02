@@ -968,15 +968,15 @@ describe('SfProject', () => {
         const project = SfProject.getInstance();
         expect(project.getSfProjectJson().getPackageBundleAliases()).to.be.undefined;
       });
-      it('should return false when no bundle aliases are defined', async () => {
+      it('should return false when no bundle aliases are defined', () => {
         $$.setConfigStubContents('SfProjectJson', {
           contents: {},
         });
 
         const project = SfProject.getInstance();
-        expect(await project.getSfProjectJson().hasPackageBundleAliases()).to.be.false;
+        expect(project.getSfProjectJson().hasPackageBundleAliases()).to.be.false;
       });
-      it('should return true when at least one bundle alias is defined', async () => {
+      it('should return true when at least one bundle alias is defined', () => {
         $$.setConfigStubContents('SfProjectJson', {
           contents: {
             packageBundleAliases: {
@@ -986,7 +986,7 @@ describe('SfProject', () => {
         });
 
         const project = SfProject.getInstance();
-        expect(await project.getSfProjectJson().hasPackageBundleAliases()).to.be.true;
+        expect(project.getSfProjectJson().hasPackageBundleAliases()).to.be.true;
       });
       it('should return the defined package aliases', () => {
         $$.setConfigStubContents('SfProjectJson', {
