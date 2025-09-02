@@ -33,13 +33,12 @@ describe('SfProject', () => {
           const json = await SfProjectJson.create();
           json.set('packageAliases', { MyName: 'somePackage' });
           await json.write();
-          expect(($$.getConfigStubContents('SfProjectJson').packageAliases as any)['MyName']).to.equal('somePackage');
+          expect(json.getPackageAliases()!['MyName']).to.equal('somePackage');
         });
         it('allows uppercase packaging aliases on read', async () => {
           $$.setConfigStubContents('SfProjectJson', { contents: { packageAliases: { MyName: 'somePackage' } } });
           const json = await SfProjectJson.create();
-          // @ts-expect-error possibly undefined
-          expect(json.get('packageAliases')['MyName']).to.equal('somePackage');
+          expect(json.getPackageAliases()!['MyName']).to.equal('somePackage');
         });
       });
       describe('plugins', () => {
@@ -61,12 +60,12 @@ describe('SfProject', () => {
           const json = await SfProjectJson.create();
           json.set('packageBundleAliases', { MyName: 'someBundle' });
           await json.write();
-          expect(($$.getConfigStubContents('SfProjectJson').packageBundleAliases as any)['MyName']).to.equal('someBundle');
+          expect(json.getPackageBundleAliases()!['MyName']).to.equal('someBundle');
         });
         it('allows uppercase packaging aliases on read', async () => {
           $$.setConfigStubContents('SfProjectJson', { contents: { packageBundleAliases: { MyName: 'someBundle' } } });
           const json = await SfProjectJson.create();
-          expect(json.get('packageBundleAliases')!['MyName']).to.equal('someBundle');
+          expect(json.getPackageBundleAliases()!['MyName']).to.equal('someBundle');
         });
       });
     });
