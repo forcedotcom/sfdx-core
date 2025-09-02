@@ -740,15 +740,15 @@ describe('SfProject', () => {
         const project = SfProject.getInstance();
         expect(project.getPackageAliases()).to.be.undefined;
       });
-      it('should return false no aliases are defined', () => {
+      it('should return false no aliases are defined', async () => {
         $$.setConfigStubContents('SfProjectJson', {
           contents: {},
         });
 
         const project = SfProject.getInstance();
-        expect(project.hasPackageAliases()).to.be.false;
+        expect(await project.hasPackageAliases()).to.be.false;
       });
-      it('should return true when at least one alias is defined', () => {
+      it('should return true when at least one alias is defined', async () => {
         $$.setConfigStubContents('SfProjectJson', {
           contents: {
             packageAliases: {
@@ -758,7 +758,7 @@ describe('SfProject', () => {
         });
 
         const project = SfProject.getInstance();
-        expect(project.hasPackageAliases()).to.be.true;
+        expect(await project.hasPackageAliases()).to.be.true;
       });
       it('should return the defined package aliases', () => {
         $$.setConfigStubContents('SfProjectJson', {
@@ -968,15 +968,15 @@ describe('SfProject', () => {
         const project = SfProject.getInstance();
         expect(project.getSfProjectJson().getPackageBundleAliases()).to.be.undefined;
       });
-      it('should return false when no bundle aliases are defined', () => {
+      it('should return false when no bundle aliases are defined', async () => {
         $$.setConfigStubContents('SfProjectJson', {
           contents: {},
         });
 
         const project = SfProject.getInstance();
-        expect(project.getSfProjectJson().hasPackageBundleAliases()).to.be.false;
+        expect(await project.getSfProjectJson().hasPackageBundleAliases()).to.be.false;
       });
-      it('should return true when at least one bundle alias is defined', () => {
+      it('should return true when at least one bundle alias is defined', async () => {
         $$.setConfigStubContents('SfProjectJson', {
           contents: {
             packageBundleAliases: {
@@ -986,7 +986,7 @@ describe('SfProject', () => {
         });
 
         const project = SfProject.getInstance();
-        expect(project.getSfProjectJson().hasPackageBundleAliases()).to.be.true;
+        expect(await project.getSfProjectJson().hasPackageBundleAliases()).to.be.true;
       });
       it('should return the defined package aliases', () => {
         $$.setConfigStubContents('SfProjectJson', {

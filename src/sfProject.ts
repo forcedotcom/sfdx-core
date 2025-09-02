@@ -286,7 +286,8 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
   /**
    * Has at least one package alias defined in the project.
    */
-  public hasPackageAliases(): boolean {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public async hasPackageAliases(): Promise<boolean> {
     return Object.keys(this.getContents().packageAliases ?? {}).length > 0;
   }
 
@@ -374,7 +375,8 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
   /**
    * Has at least one package bundle alias defined in the project.
    */
-  public hasPackageBundleAliases(): boolean {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public async hasPackageBundleAliases(): Promise<boolean> {
     return Object.keys(this.getContents().packageBundleAliases ?? {}).length > 0;
   }
 
@@ -776,7 +778,7 @@ export class SfProject {
     return this.projectConfig;
   }
 
-  public hasPackageAliases(): boolean {
+  public async hasPackageAliases(): Promise<boolean> {
     return this.getSfProjectJson().hasPackageAliases();
   }
 
