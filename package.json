@@ -87,7 +87,7 @@
     "esbuild": "^0.25.9",
     "ts-node": "^10.9.2",
     "ts-patch": "^3.2.1",
-    "typescript": "^5.5.4"
+    "typescript": "^5.9.2"
   },
   "resolutions": {
     "@jsforce/jsforce-node/node-fetch/whatwg-url": "^14.0.0"
