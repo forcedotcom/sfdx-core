@@ -1,3 +1,12 @@
+## [8.23.1](https://github.com/forcedotcom/sfdx-core/compare/8.23.0...8.23.1) (2025-09-07)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/kit from 3.2.2 to 3.2.4 ([8766f50](https://github.com/forcedotcom/sfdx-core/commit/8766f502acfe6d56146905f4bb34a47f753cbc28))
+
+
+
 # [8.23.0](https://github.com/forcedotcom/sfdx-core/compare/8.22.0...8.23.0) (2025-09-02)
 
 
