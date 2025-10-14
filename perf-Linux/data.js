@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1759612030934,
+  "lastUpdate": 1760462029854,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -33588,6 +33588,72 @@ window.BENCHMARK_DATA = {
             "range": "±223.20%",
             "unit": "ops/sec",
             "extra": "10 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "actions@github.com",
+            "name": "GitHub Actions",
+            "username": "actions-user"
+          },
+          "committer": {
+            "email": "actions@github.com",
+            "name": "GitHub Actions",
+            "username": "actions-user"
+          },
+          "distinct": true,
+          "id": "623935073ffec748eb3e6472e374ebc0b673f130",
+          "message": "fix: handle options object in readFile/readFileSync for isomorphic-git compatibility\n\nThe current implementation only accepts encoding as a positional parameter,\nbut Node.js fs.readFile/readFileSync accept either a string encoding OR an\noptions object with { encoding: 'utf8' }.\n\nLibraries like isomorphic-git call fs.readFile with an options object:\n  fs.readFile(path, { encoding: 'utf8' })\n\nThis was causing the encoding to be passed incorrectly to memfs, resulting\nin Buffers being returned even when 'utf8' encoding was requested, leading\nto 'X is not a function' errors when string methods were called on Buffers.\n\nChanges:\n- Updated readFile signature to accept BufferEncoding | { encoding?: BufferEncoding }\n- Updated readFileSync signature to accept BufferEncoding | { encoding?: BufferEncoding }\n- Extract encoding from options object if needed before passing to memfs\n- Ensures compatibility with both calling conventions\n\nThis fixes issues when using isomorphic-git with memfs in browser environments.",
+          "timestamp": "2025-10-14T12:09:39-05:00",
+          "tree_id": "8566f27b5bcc61d44bbeb2b0a3b531bec5153d2b",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/623935073ffec748eb3e6472e374ebc0b673f130"
+        },
+        "date": 1760462020654,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 485440,
+            "range": "±1.58%",
+            "unit": "ops/sec",
+            "extra": "94 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1136196,
+            "range": "±6.56%",
+            "unit": "ops/sec",
+            "extra": "72 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 28281,
+            "range": "±197.53%",
+            "unit": "ops/sec",
+            "extra": "31 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 265025,
+            "range": "±96.92%",
+            "unit": "ops/sec",
+            "extra": "76 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 650832,
+            "range": "±9.34%",
+            "unit": "ops/sec",
+            "extra": "68 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 5788,
+            "range": "±234.22%",
+            "unit": "ops/sec",
+            "extra": "8 samples"
           }
         ]
       }
