@@ -34,14 +34,24 @@ export const getVirtualFs = (memfsVolume?: memfs.Volume): VirtualFs => {
           const finalOptions = typeof options === 'string' ? { encoding: options } : options;
           await memfsInstance.promises.writeFile(file, data, finalOptions);
         },
-        readFile: async (path: string, encoding?: BufferEncoding): Promise<string | Buffer> => {
-          const result = await memfsInstance.promises.readFile(path, encoding);
+        readFile: async (
+          path: string,
+          options?: BufferEncoding | { encoding?: BufferEncoding }
+        ): Promise<string | Buffer> => {
+          // Handle both signatures: readFile(path, 'utf8') and readFile(path, { encoding: 'utf8' })
+          const encoding = typeof options === 'string' ? options : options?.encoding;
+          const result = await memfsInstance.promises.readFile(path, encoding ? { encoding } : undefined);
           return encoding === 'utf8' ? String(result) : Buffer.from(result);
         },
       },
 
-      readFileSync: (path: string, encoding?: BufferEncoding): string | Buffer => {
-        const result = memfsInstance.readFileSync(path, encoding);
+      readFileSync: (
+        path: string,
+        options?: BufferEncoding | { encoding?: BufferEncoding }
+      ): string | Buffer => {
+        // Handle both signatures: readFileSync(path, 'utf8') and readFileSync(path, { encoding: 'utf8' })
+        const encoding = typeof options === 'string' ? options : options?.encoding;
+        const result = memfsInstance.readFileSync(path, encoding ? { encoding } : undefined);
         return encoding === 'utf8' ? String(result) : Buffer.from(result);
       },
 
