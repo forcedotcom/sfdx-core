@@ -47,16 +47,20 @@ export type VirtualFs = Omit<
     ) => Promise<void>;
     readFile: {
       (path: string): Promise<Buffer>;
-      (path: string, encoding: BufferEncoding): Promise<string>;
+      (path: string, options: BufferEncoding | { encoding: BufferEncoding }): Promise<string>;
     };
   };
 
   // Override sync methods with specific types
   readFileSync: {
+    (path: string, options: BufferEncoding | { encoding: BufferEncoding }): string;
     (path: string): Buffer;
-    (path: string, encoding: BufferEncoding): string;
   };
-  writeFileSync: (file: string, data: string | Buffer, encoding?: BufferEncoding) => void;
+  writeFileSync: (
+    file: string,
+    data: string | Buffer,
+    options?: BufferEncoding | { encoding?: BufferEncoding; mode?: string | number }
+  ) => void;
   /** there are some differences between node:fs and memfs for statSync around bigint stats.  Be careful if using those */
   statSync: typeof nodeFs.statSync;
   mkdtempSync: typeof nodeFs.mkdtempSync;
