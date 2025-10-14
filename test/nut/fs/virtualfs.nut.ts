@@ -59,6 +59,21 @@ describe('VirtualFS - Memfs Compatibility Tests', () => {
       expect(typeof stringResult).to.equal('string');
       expect(stringResult).to.equal('test content');
 
+      // Test string return (with ascii encoding)
+      const asciiResult = fs.readFileSync(testPath, 'ascii');
+      expect(typeof asciiResult).to.equal('string');
+      expect(asciiResult).to.equal('test content');
+
+      // Test string return (with hex encoding)
+      const hexResult = fs.readFileSync(testPath, 'hex');
+      expect(typeof hexResult).to.equal('string');
+      expect(hexResult).to.equal(Buffer.from('test content').toString('hex'));
+
+      // Test string return (with options object containing encoding)
+      const optionsResult = fs.readFileSync(testPath, { encoding: 'base64' });
+      expect(typeof optionsResult).to.equal('string');
+      expect(optionsResult).to.equal(Buffer.from('test content').toString('base64'));
+
       // Cleanup
       fs.unlinkSync(testPath);
     });
@@ -77,6 +92,21 @@ describe('VirtualFS - Memfs Compatibility Tests', () => {
       const stringResult = await fs.promises.readFile(testPath, 'utf8');
       expect(typeof stringResult).to.equal('string');
       expect(stringResult).to.equal('test content');
+
+      // Test string return (with ascii encoding)
+      const asciiResult = await fs.promises.readFile(testPath, 'ascii');
+      expect(typeof asciiResult).to.equal('string');
+      expect(asciiResult).to.equal('test content');
+
+      // Test string return (with hex encoding)
+      const hexResult = await fs.promises.readFile(testPath, 'hex');
+      expect(typeof hexResult).to.equal('string');
+      expect(hexResult).to.equal(Buffer.from('test content').toString('hex'));
+
+      // Test string return (with options object containing encoding)
+      const optionsResult = await fs.promises.readFile(testPath, { encoding: 'base64' });
+      expect(typeof optionsResult).to.equal('string');
+      expect(optionsResult).to.equal(Buffer.from('test content').toString('base64'));
 
       // Cleanup
       fs.unlinkSync(testPath);
@@ -113,8 +143,31 @@ describe('VirtualFS - Memfs Compatibility Tests', () => {
       const result = fs.readFileSync(testPath, 'utf8');
       expect(result).to.equal(testContent);
 
+      // Test writeFileSync(file, data) - no options
+      const testPath2 = '/test-file2.txt';
+      const bufferData = Buffer.from('buffer content');
+      fs.writeFileSync(testPath2, bufferData);
+      const bufferResult = fs.readFileSync(testPath2);
+      expect(Buffer.isBuffer(bufferResult)).to.be.true;
+      expect(bufferResult).to.deep.equal(bufferData);
+
+      // Test writeFileSync(file, data, options) - options object
+      const testPath3 = '/test-file3.txt';
+      fs.writeFileSync(testPath3, testContent, { encoding: 'utf8' });
+      const optionsResult = fs.readFileSync(testPath3, 'utf8');
+      expect(optionsResult).to.equal(testContent);
+
+      // Test writeFileSync(file, data, options) - options with mode
+      const testPath4 = '/test-file4.txt';
+      fs.writeFileSync(testPath4, testContent, { encoding: 'utf8', mode: '644' });
+      const modeResult = fs.readFileSync(testPath4, 'utf8');
+      expect(modeResult).to.equal(testContent);
+
       // Cleanup
       fs.unlinkSync(testPath);
+      fs.unlinkSync(testPath2);
+      fs.unlinkSync(testPath3);
+      fs.unlinkSync(testPath4);
     });
 
     it('should handle promises.writeFile encoding parameter correctly (override)', async () => {
@@ -126,8 +179,24 @@ describe('VirtualFS - Memfs Compatibility Tests', () => {
       const result = await fs.promises.readFile(testPath, 'utf8');
       expect(result).to.equal(testContent);
 
+      // Test promises.writeFile(file, data) - no options
+      const testPath2 = '/test-file2.txt';
+      const bufferData = Buffer.from('buffer content');
+      await fs.promises.writeFile(testPath2, bufferData);
+      const bufferResult = await fs.promises.readFile(testPath2);
+      expect(Buffer.isBuffer(bufferResult)).to.be.true;
+      expect(bufferResult).to.deep.equal(bufferData);
+
+      // Test promises.writeFile(file, data, options) - options object
+      const testPath3 = '/test-file3.txt';
+      await fs.promises.writeFile(testPath3, testContent, { encoding: 'utf8' });
+      const optionsResult = await fs.promises.readFile(testPath3, 'utf8');
+      expect(optionsResult).to.equal(testContent);
+
       // Cleanup
       fs.unlinkSync(testPath);
+      fs.unlinkSync(testPath2);
+      fs.unlinkSync(testPath3);
     });
 
     it('should handle readFileSync return type correctly (override)', () => {

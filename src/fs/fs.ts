@@ -41,22 +41,24 @@ export const getVirtualFs = (memfsVolume?: memfs.Volume): VirtualFs => {
           // Handle both signatures: readFile(path, 'utf8') and readFile(path, { encoding: 'utf8' })
           const encoding = typeof options === 'string' ? options : options?.encoding;
           const result = await memfsInstance.promises.readFile(path, encoding ? { encoding } : undefined);
-          return encoding === 'utf8' ? String(result) : Buffer.from(result);
+          return encoding ? String(result) : result;
         },
       },
 
-      readFileSync: (
-        path: string,
-        options?: BufferEncoding | { encoding?: BufferEncoding }
-      ): string | Buffer => {
+      readFileSync: (path: string, options?: BufferEncoding | { encoding?: BufferEncoding }): string | Buffer => {
         // Handle both signatures: readFileSync(path, 'utf8') and readFileSync(path, { encoding: 'utf8' })
         const encoding = typeof options === 'string' ? options : options?.encoding;
         const result = memfsInstance.readFileSync(path, encoding ? { encoding } : undefined);
-        return encoding === 'utf8' ? String(result) : Buffer.from(result);
+        return encoding ? String(result) : result;
       },
 
-      writeFileSync: (file: string, data: string | Buffer, encoding?: BufferEncoding): void => {
-        memfsInstance.writeFileSync(file, data, { encoding });
+      writeFileSync: (
+        file: string,
+        data: string | Buffer,
+        options?: BufferEncoding | { encoding?: BufferEncoding; mode?: string | number }
+      ): void => {
+        const finalOptions = typeof options === 'string' ? { encoding: options } : options;
+        memfsInstance.writeFileSync(file, data, finalOptions);
       },
     } as unknown as VirtualFs;
 
