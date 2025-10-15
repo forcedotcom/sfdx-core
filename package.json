@@ -57,7 +57,7 @@
   "dependencies": {
     "@jsforce/jsforce-node": "^3.10.8",
     "@salesforce/kit": "^3.2.4",
-    "@salesforce/schemas": "^1.10.0",
+    "@salesforce/schemas": "^1.10.3",
     "@salesforce/ts-types": "^2.0.11",
     "ajv": "^8.17.1",
     "change-case": "^4.1.2",
