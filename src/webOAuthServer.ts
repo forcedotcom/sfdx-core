@@ -48,6 +48,7 @@ const CODE_BUILDER_REDIRECT_URI = 'https://api.code-builder.platform.salesforce.
  */
 export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   public static DEFAULT_PORT = 1717;
+  public static DEFAULT_AUTH_TIMEOUT = 300_000; // 5 minutes
   private authUrl!: string;
   private logger!: Logger;
   private webServer!: WebServer;
@@ -106,6 +107,12 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
     if (!this.webServer.server) await this.start();
 
     return new Promise((resolve, reject) => {
+      // We have to reject the promise on server timeout or the consumer will get an unresolved promise when calling `this.authorizeAndSave`.
+      this.webServer.setTimeoutCallback(() => {
+        const timeoutError = messages.createError('authTimeout');
+        reject(timeoutError);
+      });
+
       const handler = (): void => {
         this.logger.debug(`OAuth web login service listening on port: ${this.webServer.port}`);
         this.executeOauthRequest()
@@ -398,6 +405,8 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
   private logger!: Logger;
   private sockets: Socket[] = [];
   private redirectStatus = new EventEmitter();
+  private authTimeout?: NodeJS.Timeout;
+  private timeoutCallback?: () => void;
 
   public constructor(options: WebServer.Options) {
     super(options);
@@ -420,6 +429,16 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
         this.sockets.push(socket);
       });
       this.server.listen(this.port, this.host);
+
+      this.authTimeout = setTimeout(() => {
+        this.logger.debug(
+          `Authentication timeout reached (${WebOAuthServer.DEFAULT_AUTH_TIMEOUT} ms), closing server...`
+        );
+        if (this.timeoutCallback) {
+          this.timeoutCallback();
+        }
+        this.close();
+      }, WebOAuthServer.DEFAULT_AUTH_TIMEOUT);
     } catch (err) {
       if ((err as Error).name === 'EADDRINUSE') {
         throw messages.createError('portInUse', [this.port], [this.port]);
@@ -430,9 +449,21 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
   }
 
   /**
+   * Sets a callback to be executed when the authentication timeout occurs
+   */
+  public setTimeoutCallback(callback: () => void): void {
+    this.timeoutCallback = callback;
+  }
+
+  /**
    * Closes the http server and all open sockets
    */
   public close(): void {
+    if (this.authTimeout) {
+      clearTimeout(this.authTimeout);
+      this.authTimeout = undefined;
+    }
+
     this.sockets.forEach((socket) => {
       socket.end();
       socket.destroy();
