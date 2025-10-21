@@ -48,7 +48,7 @@ const CODE_BUILDER_REDIRECT_URI = 'https://api.code-builder.platform.salesforce.
  */
 export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   public static DEFAULT_PORT = 1717;
-  public static DEFAULT_AUTH_TIMEOUT = 300_000; // 5 minutes
+  public static DEFAULT_AUTH_TIMEOUT = 120_000; // 2 minutes
   private authUrl!: string;
   private logger!: Logger;
   private webServer!: WebServer;
