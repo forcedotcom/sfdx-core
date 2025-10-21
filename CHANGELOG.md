@@ -1,3 +1,21 @@
+## [8.23.3](https://github.com/forcedotcom/sfdx-core/compare/8.23.2...8.23.3) (2025-10-21)
+
+
+### Bug Fixes
+
+* bump salesforce/schemas ([cf6aaf3](https://github.com/forcedotcom/sfdx-core/commit/cf6aaf3b5f4567326644c61dda70700f993b2f48))
+* bump ts-types ([6ad56a9](https://github.com/forcedotcom/sfdx-core/commit/6ad56a9705989cd465e513cfd4c95fa6c2e774f7))
+* bump versions ([9920c39](https://github.com/forcedotcom/sfdx-core/commit/9920c394a3d1eb3368979b40b6764c1263ecdc11))
+* handle options object in readFile/readFileSync for isomorphic-git compatibility ([6239350](https://github.com/forcedotcom/sfdx-core/commit/623935073ffec748eb3e6472e374ebc0b673f130))
+* writefile api consistency ([fc8a88d](https://github.com/forcedotcom/sfdx-core/commit/fc8a88d352eac3f1fc2f0524c8c48cf2a0a89649))
+
+
+### Performance Improvements
+
+* only instantiate stateAggregator if no connection passed in ([6636048](https://github.com/forcedotcom/sfdx-core/commit/66360482aaf86101eb34361245a041216f616c71))
+
+
+
 ## [8.23.2](https://github.com/forcedotcom/sfdx-core/compare/8.23.1...8.23.2) (2025-10-05)
 
 
