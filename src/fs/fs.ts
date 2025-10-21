@@ -34,19 +34,31 @@ export const getVirtualFs = (memfsVolume?: memfs.Volume): VirtualFs => {
           const finalOptions = typeof options === 'string' ? { encoding: options } : options;
           await memfsInstance.promises.writeFile(file, data, finalOptions);
         },
-        readFile: async (path: string, encoding?: BufferEncoding): Promise<string | Buffer> => {
-          const result = await memfsInstance.promises.readFile(path, encoding);
-          return encoding === 'utf8' ? String(result) : Buffer.from(result);
+        readFile: async (
+          path: string,
+          options?: BufferEncoding | { encoding?: BufferEncoding }
+        ): Promise<string | Buffer> => {
+          // Handle both signatures: readFile(path, 'utf8') and readFile(path, { encoding: 'utf8' })
+          const encoding = typeof options === 'string' ? options : options?.encoding;
+          const result = await memfsInstance.promises.readFile(path, encoding ? { encoding } : undefined);
+          return encoding ? String(result) : result;
         },
       },
 
-      readFileSync: (path: string, encoding?: BufferEncoding): string | Buffer => {
-        const result = memfsInstance.readFileSync(path, encoding);
-        return encoding === 'utf8' ? String(result) : Buffer.from(result);
+      readFileSync: (path: string, options?: BufferEncoding | { encoding?: BufferEncoding }): string | Buffer => {
+        // Handle both signatures: readFileSync(path, 'utf8') and readFileSync(path, { encoding: 'utf8' })
+        const encoding = typeof options === 'string' ? options : options?.encoding;
+        const result = memfsInstance.readFileSync(path, encoding ? { encoding } : undefined);
+        return encoding ? String(result) : result;
       },
 
-      writeFileSync: (file: string, data: string | Buffer, encoding?: BufferEncoding): void => {
-        memfsInstance.writeFileSync(file, data, { encoding });
+      writeFileSync: (
+        file: string,
+        data: string | Buffer,
+        options?: BufferEncoding | { encoding?: BufferEncoding; mode?: string | number }
+      ): void => {
+        const finalOptions = typeof options === 'string' ? { encoding: options } : options;
+        memfsInstance.writeFileSync(file, data, finalOptions);
       },
     } as unknown as VirtualFs;
 

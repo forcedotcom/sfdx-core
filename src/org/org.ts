@@ -1262,12 +1262,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Initialize async components.
    */
   protected async init(): Promise<void> {
-    const stateAggregator = await StateAggregator.getInstance();
     this.logger = (await Logger.child('Org')).getRawLogger();
-
-    this.configAggregator = this.options.aggregator ? this.options.aggregator : await ConfigAggregator.create();
+    this.configAggregator = this.options.aggregator ?? (await ConfigAggregator.create());
 
     if (!this.options.connection) {
+      const stateAggregator = await StateAggregator.getInstance();
       if (this.options.aliasOrUsername == null) {
         this.configAggregator = this.getConfigAggregator();
         const aliasOrUsername = this.options.isDevHub
