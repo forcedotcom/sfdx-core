@@ -1,3 +1,13 @@
+## [8.23.4](https://github.com/forcedotcom/sfdx-core/compare/8.23.3...8.23.4) (2025-10-28)
+
+
+### Bug Fixes
+
+* add OAuth server default timeout W-19549750 ([#1245](https://github.com/forcedotcom/sfdx-core/issues/1245)) ([7889fda](https://github.com/forcedotcom/sfdx-core/commit/7889fda9b134c17e33543794bdc47195b3bb4e8c))
+* make oauth server timeout configurable ([#1246](https://github.com/forcedotcom/sfdx-core/issues/1246)) ([3a4658e](https://github.com/forcedotcom/sfdx-core/commit/3a4658e98fc81bf1db36864cba68a41d9aa16402))
+
+
+
 ## [8.23.3](https://github.com/forcedotcom/sfdx-core/compare/8.23.2...8.23.3) (2025-10-21)
 
 
