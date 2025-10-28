@@ -90,6 +90,17 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   }
 
   /**
+   * Gets the authentication timeout from environment variable or returns default value
+   *
+   * @returns {number} - represents the auth timeout in ms
+   */
+  public static getAuthTimeout(): number {
+    const env = new Env();
+    const authTimeout = toNumber(env.getNumber('SF_WEB_OAUTH_SERVER_TIMEOUT', WebOAuthServer.DEFAULT_AUTH_TIMEOUT));
+    return Number.isInteger(authTimeout) && authTimeout > 0 ? authTimeout : WebOAuthServer.DEFAULT_AUTH_TIMEOUT;
+  }
+
+  /**
    * Returns the authorization url that's used for the login flow
    *
    * @returns {string}
@@ -430,15 +441,14 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
       });
       this.server.listen(this.port, this.host);
 
+      const authTimeoutMs = WebOAuthServer.getAuthTimeout();
       this.authTimeout = setTimeout(() => {
-        this.logger.debug(
-          `Authentication timeout reached (${WebOAuthServer.DEFAULT_AUTH_TIMEOUT} ms), closing server...`
-        );
+        this.logger.debug(`Authentication timeout reached (${authTimeoutMs} ms), closing server...`);
         if (this.timeoutCallback) {
           this.timeoutCallback();
         }
         this.close();
-      }, WebOAuthServer.DEFAULT_AUTH_TIMEOUT);
+      }, authTimeoutMs);
     } catch (err) {
       if ((err as Error).name === 'EADDRINUSE') {
         throw messages.createError('portInUse', [this.port], [this.port]);
