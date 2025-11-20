@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1763402852598,
+  "lastUpdate": 1763656919195,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -34314,6 +34314,72 @@ window.BENCHMARK_DATA = {
             "range": "±201.45%",
             "unit": "ops/sec",
             "extra": "21 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "cdominguez@salesforce.com",
+            "name": "Cristian Dominguez",
+            "username": "cristiand391"
+          },
+          "committer": {
+            "email": "cdominguez@salesforce.com",
+            "name": "Cristian Dominguez",
+            "username": "cristiand391"
+          },
+          "distinct": true,
+          "id": "2d22d1457e106c4a45232179faf54a3e9c741375",
+          "message": "fix: `refreshAuth` does a `GET` request\n\nWe do need the repsonse body for jsforce to tell when it shouldn't retry refreshing the session",
+          "timestamp": "2025-11-20T13:37:44-03:00",
+          "tree_id": "61a1adc50bd0ef78f282bfc9fa0e0cdbf7a782fe",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/2d22d1457e106c4a45232179faf54a3e9c741375"
+        },
+        "date": 1763656910488,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 500421,
+            "range": "±1.99%",
+            "unit": "ops/sec",
+            "extra": "93 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 121453,
+            "range": "±179.63%",
+            "unit": "ops/sec",
+            "extra": "51 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 500247,
+            "range": "±104.40%",
+            "unit": "ops/sec",
+            "extra": "51 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 21151,
+            "range": "±199.72%",
+            "unit": "ops/sec",
+            "extra": "23 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 526677,
+            "range": "±10.80%",
+            "unit": "ops/sec",
+            "extra": "59 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 396857,
+            "range": "±7.59%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
           }
         ]
       }
