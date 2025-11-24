@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs';
 import { z } from 'zod';
 import { ProjectJsonSchema } from '../../lib/schema/sfdx-project/sfdxProjectJson.js';
-import { schemaSchema, target } from './consts.js';
+import { schemaSchema, target } from './consts';
 
 /**
  * Build script for sfdx-project.schema.json using Zod's native JSON Schema generation

@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs';
 import { z } from 'zod';
 import { ScratchOrgDefSchema } from '../../lib/schema/project-scratch-def/scratchOrgDef.js';
-import { schemaSchema, target } from './consts.js';
+import { schemaSchema, target } from './consts';
 
 /**
  * Build script for project-scratch-def.schema.json using Zod's native JSON Schema generation
