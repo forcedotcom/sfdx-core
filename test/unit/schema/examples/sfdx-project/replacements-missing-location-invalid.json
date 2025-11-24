@@ -1,0 +1,15 @@
+{
+  "name": "project-name",
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true
+    }
+  ],
+  "replacements": [
+    {
+      "stringToReplace": "replaceMe",
+      "replaceWithEnv": "THE_REPLACEMENT"
+    }
+  ]
+}

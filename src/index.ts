@@ -80,6 +80,9 @@ export { OrgConfigProperties, ORG_CONFIG_ALLOWED_PROPERTIES } from './org/orgCon
 
 export { NamedPackageDir, SfProject, SfProjectJson } from './sfProject';
 
+/**
+ * @deprecated For sfdx-project.json and scratch org definitions, use the exported zod schemas (ProjectJsonSchema, ScratchOrgDefSchema) from '@salesforce/core'. For custom schemas, use a schema validator library like zod directly.
+ */
 export { SchemaValidator } from './schema/validator';
 
 export { SfError } from './sfError';
@@ -102,6 +105,8 @@ export {
 } from './org/scratchOrgCreate';
 
 export { ScratchOrgInfo } from './org/scratchOrgTypes';
+export { ProjectJson, ProjectJsonSchema } from './schema/sfdx-project/sfdxProjectJson';
+export { ScratchOrgDef, ScratchOrgDefSchema } from './schema/project-scratch-def/scratchOrgDef';
 export {
   ScratchOrgLifecycleEvent,
   scratchOrgLifecycleEventName,

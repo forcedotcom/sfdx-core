@@ -22,7 +22,9 @@
     "./project": "./lib/sfProject.js",
     "./sfError": "./lib/sfError.js",
     "./stateAggregator": "./lib/stateAggregator/stateAggregator.js",
-    "./testSetup": "./lib/testSetup.js"
+    "./testSetup": "./lib/testSetup.js",
+    "./sfdx-project.schema.json": "./lib/sfdx-project.schema.json",
+    "./project-scratch-def.schema.json": "./lib/project-scratch-def.schema.json"
   },
   "scripts": {
     "build": "wireit",
@@ -57,7 +59,6 @@
   "dependencies": {
     "@jsforce/jsforce-node": "^3.10.8",
     "@salesforce/kit": "^3.2.4",
-    "@salesforce/schemas": "^1.10.3",
     "@salesforce/ts-types": "^2.0.12",
     "ajv": "^8.17.1",
     "change-case": "^4.1.2",
@@ -73,7 +74,8 @@
     "pino-pretty": "^11.3.0",
     "proper-lockfile": "^4.1.2",
     "semver": "^7.7.3",
-    "ts-retry-promise": "^0.8.1"
+    "ts-retry-promise": "^0.8.1",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@salesforce/dev-scripts": "^10.1.1",
@@ -103,7 +105,9 @@
     "build": {
       "dependencies": [
         "compile",
-        "lint"
+        "lint",
+        "build:schema:project",
+        "build:schema:scratch"
       ]
     },
     "compile": {
@@ -197,6 +201,34 @@
     },
     "compile-typedoc": {
       "command": "tsc -p typedocExamples"
+    },
+    "build:schema:project": {
+      "command": "tsx scripts/schemas/build-schema-project.ts",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/schema/sfdx-project/**/*.ts",
+        "scripts/schemas/build-schema-project.ts",
+        "scripts/schemas/consts.ts"
+      ],
+      "output": [
+        "lib/sfdx-project.schema.json"
+      ]
+    },
+    "build:schema:scratch": {
+      "command": "tsx scripts/schemas/build-schema-scratch.ts",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/schema/project-scratch-def/**/*.ts",
+        "scripts/schemas/build-schema-scratch.ts",
+        "scripts/schemas/consts.ts"
+      ],
+      "output": [
+        "lib/project-scratch-def.schema.json"
+      ]
     }
   }
 }

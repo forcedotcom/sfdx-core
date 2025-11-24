@@ -1,0 +1,11 @@
+---
+alwaysApply: true
+---
+
+every change should pass
+
+- yarn compile
+- yarn lint
+- yarn test:only
+- yarn bundle:check
+- yarn test:nuts

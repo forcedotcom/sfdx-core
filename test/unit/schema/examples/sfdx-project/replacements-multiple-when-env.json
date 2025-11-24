@@ -1,0 +1,25 @@
+{
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true
+    }
+  ],
+  "replacements": [
+    {
+      "filename": "force-app/main/default/classes/Config.cls",
+      "stringToReplace": "API_ENDPOINT",
+      "replaceWithEnv": "SERVICE_URL",
+      "replaceWhenEnv": [
+        {
+          "env": "DEPLOY_ENV",
+          "value": "PROD"
+        },
+        {
+          "env": "REGION",
+          "value": "US_EAST"
+        }
+      ]
+    }
+  ]
+}

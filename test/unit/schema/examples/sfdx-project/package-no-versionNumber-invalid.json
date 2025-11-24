@@ -1,0 +1,16 @@
+{
+  "name": "project-name",
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true,
+      "package": "Foo"
+    }
+  ],
+  "namespace": "",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "43.0",
+  "packageAliases": {
+    "dreamhouse": "0Ho1I000000XZDVSA4"
+  }
+}

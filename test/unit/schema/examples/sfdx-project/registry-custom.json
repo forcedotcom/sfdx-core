@@ -1,0 +1,197 @@
+{
+  "name": "project-name",
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true
+    }
+  ],
+  "namespace": "",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "48.0",
+  "registryCustomizations": {
+    "childTypes": {
+      "applicationvisibility": "permissionset",
+      "classaccess": "permissionset",
+      "custommetadatatypeaccess": "permissionset",
+      "custompermissions": "permissionset",
+      "customsettingaccess": "permissionset",
+      "externalcredentialprincipalaccess": "permissionset",
+      "externaldatasourceaccess": "permissionset",
+      "fieldpermission": "permissionset",
+      "flowaccess": "permissionset",
+      "objectpermission": "permissionset",
+      "pageaccess": "permissionset",
+      "recordtypevisibility": "permissionset",
+      "tabsetting": "permissionset",
+      "userpermission": "permissionset"
+    },
+    "strictDirectoryNames": {
+      "permissionsets": "permissionset"
+    },
+    "suffixes": {
+      "permissionset": "permissionset"
+    },
+    "types": {
+      "permissionset": {
+        "children": {
+          "directories": {
+            "applicationVisibilities": "applicationvisibility",
+            "classAccesses": "classaccess",
+            "customMetadataTypeAccesses": "custommetadatatypeaccess",
+            "customPermissions": "custompermissions",
+            "customSettingAccesses": "customsettingaccess",
+            "externalCredentialPrincipalAccesses": "externalcredentialprincipalaccess",
+            "externalDataSourceAccesses": "externaldatasourceaccess",
+            "fieldPermissions": "fieldpermission",
+            "flowAccesses": "flowaccess",
+            "objectPermissions": "objectpermission",
+            "pageAccesses": "pageaccess",
+            "recordTypeVisibilities": "recordtypevisibility",
+            "tabSettings": "tabsetting",
+            "userPermissions": "userpermission"
+          },
+          "suffixes": {
+            "applicationVisibility": "applicationvisibility",
+            "classAccess": "classaccess",
+            "customMetadataTypeAccess": "custommetadatatypeaccess",
+            "customPermission": "custompermissions",
+            "customSettingAccess": "customsettingaccess",
+            "externalCredentialPrincipalAccess": "externalcredentialprincipalaccess",
+            "externalDataSourceAccess": "externaldatasourceaccess",
+            "fieldPermission": "fieldpermission",
+            "flowAccess": "flowaccess",
+            "objectPermission": "objectpermission",
+            "pageAccess": "pageaccess",
+            "recordTypeVisibility": "recordtypevisibility",
+            "tabSetting": "tabsetting",
+            "userPermission": "userpermission"
+          },
+          "types": {
+            "applicationvisibility": {
+              "directoryName": "applicationVisibilities",
+              "id": "applicationvisibility",
+              "isAddressable": false,
+              "name": "ApplicationVisibility",
+              "suffix": "applicationVisibility",
+              "uniqueIdElement": "application"
+            },
+            "classaccess": {
+              "directoryName": "classAccesses",
+              "id": "classaccess",
+              "isAddressable": false,
+              "name": "ClassAccess",
+              "suffix": "classAccess",
+              "uniqueIdElement": "apexClass"
+            },
+            "custommetadatatypeaccess": {
+              "directoryName": "customMetadataTypeAccesses",
+              "id": "custommetadatatypeaccess",
+              "isAddressable": false,
+              "name": "CustomMetadataTypeAccess",
+              "suffix": "customMetadataTypeAccess",
+              "uniqueIdElement": "name"
+            },
+            "custompermissions": {
+              "directoryName": "customPermissions",
+              "id": "custompermissions",
+              "isAddressable": false,
+              "name": "CustomPermission",
+              "suffix": "customPermission",
+              "uniqueIdElement": "name"
+            },
+            "customsettingaccess": {
+              "directoryName": "customSettingAccesses",
+              "id": "customsettingaccess",
+              "isAddressable": false,
+              "name": "CustomSettingAccess",
+              "suffix": "customSettingAccess",
+              "uniqueIdElement": "name"
+            },
+            "externalcredentialprincipalaccess": {
+              "directoryName": "externalCredentialPrincipalAccesses",
+              "id": "externalcredentialprincipalaccess",
+              "isAddressable": false,
+              "name": "ExternalCredentialPrincipalAccess",
+              "suffix": "externalCredentialPrincipalAccess",
+              "uniqueIdElement": "externalCredentialPrincipal"
+            },
+            "externaldatasourceaccess": {
+              "directoryName": "externalDataSourceAccesses",
+              "id": "externaldatasourceaccess",
+              "isAddressable": false,
+              "name": "ExternalDataSourceAccess",
+              "suffix": "externalDataSourceAccess",
+              "uniqueIdElement": "externalDataSource"
+            },
+            "fieldpermission": {
+              "directoryName": "fieldPermissions",
+              "id": "fieldpermission",
+              "isAddressable": false,
+              "name": "FieldPermission",
+              "suffix": "fieldPermission",
+              "uniqueIdElement": "field"
+            },
+            "flowaccess": {
+              "directoryName": "flowAccesses",
+              "id": "flowaccess",
+              "isAddressable": false,
+              "name": "FlowAccess",
+              "suffix": "flowAccess",
+              "uniqueIdElement": "flow"
+            },
+            "objectpermission": {
+              "directoryName": "objectPermissions",
+              "id": "objectpermission",
+              "isAddressable": false,
+              "name": "ObjectPermission",
+              "suffix": "objectPermission",
+              "uniqueIdElement": "object"
+            },
+            "pageaccess": {
+              "directoryName": "pageAccesses",
+              "id": "pageaccess",
+              "isAddressable": false,
+              "name": "PageAccess",
+              "suffix": "pageAccess",
+              "uniqueIdElement": "apexPage"
+            },
+            "recordtypevisibility": {
+              "directoryName": "recordTypeVisibilities",
+              "id": "recordtypevisibility",
+              "isAddressable": false,
+              "name": "RecordTypeVisibility",
+              "suffix": "recordTypeVisibility",
+              "uniqueIdElement": "recordType"
+            },
+            "tabsetting": {
+              "directoryName": "tabSettings",
+              "id": "tabsetting",
+              "isAddressable": false,
+              "name": "TabSetting",
+              "suffix": "tabSetting",
+              "uniqueIdElement": "tab"
+            },
+            "userpermission": {
+              "directoryName": "userPermissions",
+              "id": "userpermission",
+              "isAddressable": false,
+              "name": "UserPermission",
+              "suffix": "userPermission"
+            }
+          }
+        },
+        "directoryName": "permissionsets",
+        "name": "PermissionSet",
+        "strategies": {
+          "adapter": "decomposed",
+          "decomposition": "folderPerType",
+          "transformer": "decomposed"
+        },
+        "id": "permissionset",
+        "strictDirectoryName": true,
+        "suffix": "permissionset"
+      }
+    }
+  }
+}

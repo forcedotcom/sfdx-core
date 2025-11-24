@@ -7,19 +7,24 @@
 import { basename, dirname, isAbsolute, normalize, resolve, sep } from 'node:path';
 import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
-import { PackageDir, ProjectJson as ProjectJsonSchema, PackagePackageDir, BundleEntry } from '@salesforce/schemas';
+import { PackageDir, PackagePackageDir } from './schema/sfdx-project/packageDir';
+import { BundleEntry } from './schema/sfdx-project/bundleEntry';
+import {
+  ProjectJson as ProjectJsonSchema,
+  ProjectJsonSchema as ProjectJsonZodSchema,
+} from './schema/sfdx-project/sfdxProjectJson';
 import { fs } from './fs/fs';
 import { SfdcUrl } from './util/sfdcUrl';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
-import { ConfigContents } from './config/configStackTypes';
 
-import { SchemaValidator } from './schema/validator';
 import { resolveProjectPath, resolveProjectPathSync, SFDX_PROJECT_JSON } from './util/internal';
 
 import { SfError } from './sfError';
 import { Messages } from './messages';
 import { ensureNoUppercaseKeys } from './util/findUppercaseKeys';
+import { Lifecycle } from './lifecycleEvents';
+import { ConfigContents } from './config/configStackTypes';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
@@ -40,7 +45,6 @@ export type NamedPackageDir = PackageDir & NameAndFullPath;
 export type { BundleEntry };
 
 export type ProjectJson = ConfigContents & ProjectJsonSchema;
-
 /**
  * The sfdx-project.json config object. This file determines if a folder is a valid sfdx project.
  *
@@ -116,7 +120,7 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
    * Validates sfdx-project.json against the schema.
    *
    * Set the `SFDX_PROJECT_JSON_VALIDATION` environment variable to `true` to throw an error when schema validation fails.
-   * A warning is logged by default when the file is invalid.
+   * A warning is emitted by default when the file is invalid.
    *
    * ***See*** [sfdx-project.schema.json] ((https://github.com/forcedotcom/schemas/blob/main/sfdx-project.schema.json)
    */
@@ -125,17 +129,16 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
       // read calls back into this method after necessarily setting this.hasRead=true
       await this.read();
     }
-    try {
-      const projectJsonSchemaPath = require.resolve('@salesforce/schemas/sfdx-project.schema.json');
-      const validator = new SchemaValidator(this.logger, projectJsonSchemaPath);
-      await validator.validate(this.getContents());
-    } catch (err) {
-      const error = err as Error;
+    const result = ProjectJsonZodSchema.safeParse(this.getContents());
+    if (!result.success) {
+      const errorMessages = result.error.issues.map((err) => `${err.path.join('.')}: ${err.message}`).join('\n');
+      const fullMessage = messages.getMessage('schemaValidationError', [this.getPath(), errorMessages]);
+
       // Don't throw errors if the global isn't valid, but still warn the user.
       if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false) && !this.options.isGlobal) {
-        throw messages.createError('schemaValidationError', [this.getPath(), error.message], [this.getPath()], error);
+        throw messages.createError('schemaValidationError', [this.getPath(), errorMessages], [this.getPath()]);
       } else {
-        this.logger.warn(messages.getMessage('schemaValidationError', [this.getPath(), error.message]));
+        await Lifecycle.getInstance().emitWarning(fullMessage);
       }
     }
   }
@@ -153,7 +156,7 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
    * Validates sfdx-project.json against the schema.
    *
    * Set the `SFDX_PROJECT_JSON_VALIDATION` environment variable to `true` to throw an error when schema validation fails.
-   * A warning is logged by default when the file is invalid.
+   * A warning is emitted by default when the file is invalid.
    *
    * ***See*** [sfdx-project.schema.json] ((https://github.com/forcedotcom/schemas/blob/main/sfdx-project.schema.json)
    */
@@ -162,17 +165,17 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
       // read calls back into this method after necessarily setting this.hasRead=true
       this.readSync();
     }
-    try {
-      const projectJsonSchemaPath = require.resolve('@salesforce/schemas/sfdx-project.schema.json');
-      const validator = new SchemaValidator(this.logger, projectJsonSchemaPath);
-      validator.validateSync(this.getContents());
-    } catch (err) {
-      const error = err as Error;
+    const result = ProjectJsonZodSchema.safeParse(this.getContents());
+    if (!result.success) {
+      const errorMessages = result.error.issues.map((err) => `${err.path.join('.')}: ${err.message}`).join('\n');
+      const fullMessage = messages.getMessage('schemaValidationError', [this.getPath(), errorMessages]);
+
       // Don't throw errors if the global isn't valid, but still warn the user.
       if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false) && !this.options.isGlobal) {
-        throw messages.createError('schemaValidationError', [this.getPath(), error.message], [this.getPath()], error);
+        throw messages.createError('schemaValidationError', [this.getPath(), errorMessages], [this.getPath()]);
       } else {
-        this.logger.warn(messages.getMessage('schemaValidationError', [this.getPath(), error.message]));
+        // For sync method, we can't await emitWarning, so we use void to fire and forget
+        void Lifecycle.getInstance().emitWarning(fullMessage);
       }
     }
   }
