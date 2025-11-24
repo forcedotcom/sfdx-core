@@ -190,7 +190,7 @@
       ]
     },
     "link-check": {
-      "command": "node -e \"process.exit(process.env.CI ? 0 : 1)\" || linkinator \"./*.md\" --skip \"examples/README.md|CHANGELOG.md|node_modules|test/|confluence.internal.salesforce.com|my.salesforce.com|%s\" --markdown --retry --directory-listing --verbosity error",
+      "command": "node -e \"process.exit(process.env.CI ? 0 : 1)\" || linkinator \"./*.md\" --skip \"examples/README.md|CHANGELOG.md|node_modules|test/|confluence.internal.salesforce.com|my.salesforce.com|%s|npmjs.com\" --markdown --retry --directory-listing --verbosity error",
       "files": [
         "./*.md",
         "./examples/**/*.md",
