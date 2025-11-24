@@ -8,21 +8,21 @@
 /**
  * from packaging library.  Where does this go?
  * export type PackageDescriptorJson = Partial<NamedPackageDir> &
-  Partial<{
-    - id: string;
-    - features: string[];
-    - orgPreferences: string[];
-    - snapshot: string;
-    apexTestAccess: { permissionSets: string[] | string; permissionSetLicenses: string[] | string };
-    - permissionSetNames: string[];
-    - permissionSetLicenseDeveloperNames: string[];
-    - branch: string;
-    subscriberPackageVersionId: string;
-    packageId: string;
-    versionName: string;
-    language?: string;
-  }>;
- 
+ * Partial<{
+ * - id: string;
+ * - features: string[];
+ * - orgPreferences: string[];
+ * - snapshot: string;
+ * apexTestAccess: { permissionSets: string[] | string; permissionSetLicenses: string[] | string };
+ * - permissionSetNames: string[];
+ * - permissionSetLicenseDeveloperNames: string[];
+ * - branch: string;
+ * subscriberPackageVersionId: string;
+ * packageId: string;
+ * versionName: string;
+ * language?: string;
+ * }>;
+ *
  */
 
 import { z } from 'zod';
