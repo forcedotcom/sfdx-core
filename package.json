@@ -203,7 +203,7 @@
       "command": "tsc -p typedocExamples"
     },
     "build:schema:project": {
-      "command": "tsx scripts/schemas/build-schema-project.ts",
+      "command": "ts-node scripts/schemas/build-schema-project.ts",
       "dependencies": [
         "compile"
       ],
@@ -217,7 +217,7 @@
       ]
     },
     "build:schema:scratch": {
-      "command": "tsx scripts/schemas/build-schema-scratch.ts",
+      "command": "ts-node scripts/schemas/build-schema-scratch.ts",
       "dependencies": [
         "compile"
       ],
