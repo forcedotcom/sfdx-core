@@ -39,9 +39,14 @@ const findFeaturesSection = (nodes: TocNode[]): TocNode | undefined =>
     undefined
   );
 
+// Pattern suffix variations in docs: ":<value>" or ": <value>"
+const PATTERN_SUFFIXES = [':<value>', ': <value>'] as const;
+
 // Extract feature name from text (handles both simple and pattern features)
-const parseFeature = (text: string): { name: string; isPattern: boolean } =>
-  text.endsWith(':<value>') ? { name: text.slice(0, -8), isPattern: true } : { name: text, isPattern: false };
+const parseFeature = (text: string): { name: string; isPattern: boolean } => {
+  const suffix = PATTERN_SUFFIXES.find((s) => text.endsWith(s));
+  return suffix ? { name: text.slice(0, -suffix.length), isPattern: true } : { name: text, isPattern: false };
+};
 
 // Generate TS file content for a features list
 const generateFileContent = (varName: string, features: readonly string[]): string =>

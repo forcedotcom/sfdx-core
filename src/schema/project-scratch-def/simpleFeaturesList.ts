@@ -100,7 +100,6 @@ export const simpleFeaturesList = [
   'EdPredictionTimeout',
   'EdPredictionTimeoutBulk',
   'EdPredictionTimeoutByomBulk',
-  'EducationCloud: <value>',
   'Einstein1AIPlatform',
   'EinsteinAnalyticsPlus',
   'EinsteinArticleRecommendations',
