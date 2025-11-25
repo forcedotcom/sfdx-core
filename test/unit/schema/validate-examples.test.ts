@@ -6,10 +6,14 @@
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import Ajv, { type ValidateFunction } from 'ajv';
 import { expect } from 'chai';
 
-const libDir = path.join(__dirname, '..', '..', '..', 'lib');
+// Support both ESM (CI) and CommonJS (local ts-node)
+// @ts-expect-error: import.meta.url is valid in ESM; the check ensures __dirname is used in CommonJS
+const currentDir = typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
+const libDir = path.join(currentDir, '..', '..', '..', 'lib');
 const schemas = fs.readdirSync(libDir).filter((filename) => filename.endsWith('schema.json'));
 
 /** test uses AJV to validate that the schema.json files generated produce the expected results.*/
@@ -30,7 +34,7 @@ const testFile =
 
 schemas.forEach((schema) => {
   const schemaPath = path.join(libDir, schema);
-  const examplePath = path.join(__dirname, 'examples', schema.replace('.schema.json', ''));
+  const examplePath = path.join(currentDir, 'examples', schema.replace('.schema.json', ''));
   const examples = fs.readdirSync(examplePath);
 
   if (examples && examples.length > 0) {
