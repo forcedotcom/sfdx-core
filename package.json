@@ -39,7 +39,7 @@
     "prepack": "sf-prepack",
     "prepare": "sf-install",
     "test": "wireit",
-    "test:nuts": "mocha \"test/**/*.nut.ts\" --timeout 500000",
+    "test:nuts": "wireit",
     "test:only": "wireit",
     "test:perf": "ts-node test/perf/logger/main.test.ts"
   },
@@ -173,8 +173,23 @@
       "dependencies": [
         "test:only",
         "test:compile",
-        "link-check"
+        "link-check",
+        "test:nuts",
+        "bundle-check"
       ]
+    },
+    "test:nuts": {
+      "command": "mocha \"test/**/*.nut.ts\" --timeout 500000",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/nut/**/*",
+        "src/**/*.ts",
+        "**/tsconfig.json",
+        ".mocha*"
+      ],
+      "output": []
     },
     "bundle-check": {
       "command": "node scripts/build.mjs",
