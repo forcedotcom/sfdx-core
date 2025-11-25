@@ -13,7 +13,8 @@ import { expect, assert } from 'chai';
 import { env } from '@salesforce/kit';
 import { SfError } from '../../src/sfError';
 import { Messages } from '../../src/messages';
-import { SfProject, SfProjectJson, NamedPackageDir, BundleEntry } from '../../src/sfProject';
+import { SfProject, SfProjectJson, NamedPackageDir } from '../../src/sfProject';
+import { BundleEntry } from '../../src/schema/sfdx-project/bundleEntry';
 import { shouldThrow, shouldThrowSync, TestContext } from '../../src/testSetup';
 import { Lifecycle } from '../../src/lifecycleEvents';
 

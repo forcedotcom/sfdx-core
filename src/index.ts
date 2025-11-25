@@ -78,7 +78,13 @@ export {
 
 export { OrgConfigProperties, ORG_CONFIG_ALLOWED_PROPERTIES } from './org/orgConfigProperties';
 
-export { NamedPackageDir, SfProject, SfProjectJson } from './sfProject';
+export {
+  NamedPackageDir,
+  SfProject,
+  SfProjectJson,
+  isPackagingDirectory,
+  isNamedPackagingDirectory,
+} from './sfProject';
 
 /**
  * @deprecated For sfdx-project.json and scratch org definitions, use the exported zod schemas (ProjectJsonSchema, ScratchOrgDefSchema) from '@salesforce/core'. For custom schemas, use a schema validator library like zod directly.
