@@ -1,6 +1,6 @@
 import { writeFileSync } from 'node:fs';
 import { z } from 'zod';
-import { ProjectJsonSchema } from '../../lib/schema/sfdx-project/sfdxProjectJson.js';
+import { ProjectJsonSchema } from '../../src/schema/sfdx-project/sfdxProjectJson';
 import { schemaSchema, target } from './consts';
 
 /**

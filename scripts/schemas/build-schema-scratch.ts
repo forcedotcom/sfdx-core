@@ -1,6 +1,6 @@
 import { writeFileSync } from 'node:fs';
 import { z } from 'zod';
-import { ScratchOrgDefSchema } from '../../lib/schema/project-scratch-def/scratchOrgDef.js';
+import { ScratchOrgDefSchema } from '../../src/schema/project-scratch-def/scratchOrgDef';
 import { schemaSchema, target } from './consts';
 
 /**
