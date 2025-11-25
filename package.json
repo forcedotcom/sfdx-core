@@ -42,7 +42,9 @@
     "test": "wireit",
     "test:nuts": "wireit",
     "test:only": "wireit",
-    "test:perf": "ts-node test/perf/logger/main.test.ts"
+    "test:perf": "ts-node test/perf/logger/main.test.ts",
+    "update:features": "ts-node scripts/schemas/update-features.ts",
+    "update:settings": "ts-node scripts/schemas/update-settings.ts"
   },
   "keywords": [
     "force",
