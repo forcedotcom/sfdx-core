@@ -12,11 +12,11 @@ import { z } from 'zod';
  */
 export const SettingsSchema = z
   .object({
-    accountSettings: z
+    accountingSettings: z
       .record(z.string(), z.unknown())
       .optional()
       .describe(
-        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_accountsettings.htm'
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_accountingsettings.htm'
       ),
     accountInsightsSettings: z
       .record(z.string(), z.unknown())
@@ -29,6 +29,18 @@ export const SettingsSchema = z
       .optional()
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_accountintelligencesettings.htm'
+      ),
+    accountPlanSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_accountplansettings.htm'
+      ),
+    accountSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_accountsettings.htm'
       ),
     actionsSettings: z
       .record(z.string(), z.unknown())
@@ -47,6 +59,18 @@ export const SettingsSchema = z
       .optional()
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_addresssettings.htm'
+      ),
+    agentforceForDevelopersSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_agentforcefordeveloperssettings.htm'
+      ),
+    agentPlatformSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_agentplatformsettings.htm'
       ),
     aIReplyRecommendationsSettings: z
       .record(z.string(), z.unknown())
@@ -78,6 +102,12 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_appexperiencesettings.htm'
       ),
+    associationEngineSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_associationenginesettings.htm'
+      ),
     automatedContactsSettings: z
       .record(z.string(), z.unknown())
       .optional()
@@ -90,6 +120,12 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_botsettings.htm'
       ),
+    branchManagementSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_branchmanagementsettings.htm'
+      ),
     businessHoursSettings: z
       .record(z.string(), z.unknown())
       .optional()
@@ -101,12 +137,6 @@ export const SettingsSchema = z
       .optional()
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_campaignsettings.htm'
-      ),
-    einsteinAgentSettings: z
-      .record(z.string(), z.unknown())
-      .optional()
-      .describe(
-        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_einsteinagentsettings.htm'
       ),
     caseSettings: z
       .record(z.string(), z.unknown())
@@ -131,6 +161,18 @@ export const SettingsSchema = z
       .optional()
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_chattersettings.htm'
+      ),
+    codeBuilderSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_codebuildersettings.htm'
+      ),
+    collectionsDashboardSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_collectionsdashboardsettings.htm'
       ),
     communitiesSettings: z
       .record(z.string(), z.unknown())
@@ -168,6 +210,12 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_conversationalintelligencesettings.htm'
       ),
+    conversationChannelDefinition: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_conversationchanneldefinition.htm'
+      ),
     currencySettings: z
       .record(z.string(), z.unknown())
       .optional()
@@ -186,6 +234,12 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datadotcomsettings.htm'
       ),
+    dataImportManagementSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dataimportmanagementsettings.htm'
+      ),
     deploymentSettings: z
       .record(z.string(), z.unknown())
       .optional()
@@ -198,11 +252,41 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_devhubsettings.htm'
       ),
+    documentGenerationSetting: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_documentgenerationsetting.htm'
+      ),
+    dynamicFormsSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dynamicformssettings.htm'
+      ),
     eACSettings: z
       .record(z.string(), z.unknown())
       .optional()
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_eacsettings.htm'
+      ),
+    einsteinAgentSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_einsteinagentsettings.htm'
+      ),
+    einsteinAISettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_einsteinaisettings.htm'
+      ),
+    einsteinGptSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_einsteingptsettings.htm'
       ),
     emailAdministrationSettings: z
       .record(z.string(), z.unknown())
@@ -228,17 +312,17 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_employeeusersettings.htm'
       ),
-    enhancedNotesSettings: z
-      .record(z.string(), z.unknown())
-      .optional()
-      .describe(
-        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_enhancednotessettings.htm'
-      ),
     encryptionKeySettings: z
       .record(z.string(), z.unknown())
       .optional()
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_encryptionkeysettings.htm'
+      ),
+    enhancedNotesSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_enhancednotessettings.htm'
       ),
     entitlementSettings: z
       .record(z.string(), z.unknown())
@@ -257,6 +341,12 @@ export const SettingsSchema = z
       .optional()
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_experiencebundlesettings.htm'
+      ),
+    externalClientAppSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externalclientappsettings.htm'
       ),
     externalServicesSettings: z
       .record(z.string(), z.unknown())
@@ -312,11 +402,29 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ideassettings.htm'
       ),
+    identityProviderSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_identityprovidersettings.htm'
+      ),
     iframeWhiteListUrlSettings: z
       .record(z.string(), z.unknown())
       .optional()
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_iframewhitelisturlsettings.htm'
+      ),
+    incidentMgmtSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_incidentmgmtsettings.htm'
+      ),
+    industriesEinsteinFeatureSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/industrieseinsteinfeaturesettings_metadata_api.htm'
       ),
     industriesLoyaltySettings: z
       .record(z.string(), z.unknown())
@@ -330,11 +438,23 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_industriessettings.htm'
       ),
+    interestTaggingSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_interesttaggingsettings.htm'
+      ),
     inventorySettings: z
       .record(z.string(), z.unknown())
       .optional()
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_inventorysettings.htm'
+      ),
+    invLatePymntRiskCalcSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_invlatepymntriskcalcsettings.htm'
       ),
     invocableActionSettings: z
       .record(z.string(), z.unknown())
@@ -372,17 +492,17 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_leadconvertsettings.htm'
       ),
-    liveAgentSettings: z
-      .record(z.string(), z.unknown())
-      .optional()
-      .describe(
-        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_liveagentsettings.htm'
-      ),
     lightningExperienceSettings: z
       .record(z.string(), z.unknown())
       .optional()
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_lightningexperiencesettings.htm'
+      ),
+    liveAgentSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_liveagentsettings.htm'
       ),
     liveMessageSettings: z
       .record(z.string(), z.unknown())
@@ -414,6 +534,12 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_meetingssettings.htm'
       ),
+    mfgServiceConsoleSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_mfgserviceconsolesettings_metadata_api.htm'
+      ),
     mobileSettings: z
       .record(z.string(), z.unknown())
       .optional()
@@ -444,6 +570,18 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_oauthoidcsettings.htm'
       ),
+    objectHierarchyRelationship: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_objecthierarchyrelationshipsettings_metadata_api.htm'
+      ),
+    objectLinkingSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_objectlinkingsettings.htm'
+      ),
     omniChannelSettings: z
       .record(z.string(), z.unknown())
       .optional()
@@ -456,17 +594,17 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_opportunityinsightssettings.htm'
       ),
-    opportunitySettings: z
-      .record(z.string(), z.unknown())
-      .optional()
-      .describe(
-        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_opportunityssettings.htm'
-      ),
     opportunityScoreSettings: z
       .record(z.string(), z.unknown())
       .optional()
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_opportunityscoresettings.htm'
+      ),
+    opportunitySettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_opportunityssettings.htm'
       ),
     orderManagementSettings: z
       .record(z.string(), z.unknown())
@@ -492,11 +630,11 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_orgsettings.htm'
       ),
-    partyDataModelSettings: z
+    pardotEinsteinSettings: z
       .record(z.string(), z.unknown())
       .optional()
       .describe(
-        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_partydatamodelsettings.htm'
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_pardoteinsteinsettings.htm'
       ),
     pardotSettings: z
       .record(z.string(), z.unknown())
@@ -504,17 +642,23 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_pardotsettings.htm'
       ),
-    pardotEinsteinSettings: z
+    partyDataModelSettings: z
       .record(z.string(), z.unknown())
       .optional()
       .describe(
-        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_pardoteinsteinsettings.htm'
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_partydatamodelsettings.htm'
       ),
     pathAssistantSettings: z
       .record(z.string(), z.unknown())
       .optional()
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_pathassistantsettings.htm'
+      ),
+    paymentsSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_paymentssettings.htm'
       ),
     picklistSettings: z
       .record(z.string(), z.unknown())
@@ -528,6 +672,12 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_platformencryptionsettings.htm'
       ),
+    platformEventSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_platformeventsettings.htm'
+      ),
     predictionBuilderSettings: z
       .record(z.string(), z.unknown())
       .optional()
@@ -539,6 +689,12 @@ export const SettingsSchema = z
       .optional()
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_privacysettings.htm'
+      ),
+    processFlowMigration: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_processflowmigration.htm'
       ),
     productSettings: z
       .record(z.string(), z.unknown())
@@ -569,6 +725,12 @@ export const SettingsSchema = z
       .optional()
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/metadata_api_retexset.htm'
+      ),
+    salesAgreementSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_salesagreementsettings_metadata_api.htm'
       ),
     sandboxSettings: z
       .record(z.string(), z.unknown())
@@ -629,6 +791,18 @@ export const SettingsSchema = z
       .optional()
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_socialprofilesettings.htm'
+      ),
+    sourceTrackingSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sourcetrackingsettings.htm'
+      ),
+    subscriptionManagementSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_subscriptionmanagementsettings.htm'
       ),
     surveySettings: z
       .record(z.string(), z.unknown())
