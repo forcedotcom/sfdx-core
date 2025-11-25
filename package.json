@@ -28,6 +28,7 @@
   },
   "scripts": {
     "build": "wireit",
+    "bundle-check": "wireit",
     "clean": "sf-clean",
     "clean-all": "sf-clean all",
     "compile": "wireit",
@@ -156,6 +157,10 @@
     },
     "test:only": {
       "command": "nyc mocha \"test/unit/**/*.test.ts\"",
+      "dependencies": [
+        "build:schema:project",
+        "build:schema:scratch"
+      ],
       "env": {
         "FORCE_COLOR": "2"
       },
