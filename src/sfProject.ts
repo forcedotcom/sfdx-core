@@ -39,6 +39,7 @@ type NameAndFullPath = {
 
 export type NamedPackagingDir = PackagePackageDir & NameAndFullPath;
 export type NamedPackageDir = PackageDir & NameAndFullPath;
+export type { BundleEntry };
 
 export type ProjectJson = ConfigContents & ProjectJsonType;
 /**

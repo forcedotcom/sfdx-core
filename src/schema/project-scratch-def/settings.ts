@@ -872,5 +872,3 @@ export const SettingsSchema = z
       ),
   })
   .catchall(z.unknown());
-
-export type Settings = z.infer<typeof SettingsSchema>;

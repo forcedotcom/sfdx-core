@@ -80,15 +80,13 @@ const TypeIndexSchema: z.ZodType<{
   [typeId: string]: z.infer<typeof TypeInfoSchema>;
 }> = z.lazy(() => z.record(z.string(), TypeInfoSchema));
 
+type SuffixIndex = z.infer<typeof SuffixIndexSchema>;
+type DirectoryIndex = z.infer<typeof DirectoryIndexSchema>;
+type TypeIndex = { [typeId: string]: z.infer<typeof TypeInfoSchema> };
+
 export const MetadataRegistrySchema = z.object({
   types: TypeIndexSchema,
   suffixes: SuffixIndexSchema,
   strictDirectoryNames: z.record(z.string(), z.string()),
   childTypes: z.record(z.string(), z.string()),
 });
-
-export type MetadataRegistry = z.infer<typeof MetadataRegistrySchema>;
-
-type SuffixIndex = z.infer<typeof SuffixIndexSchema>;
-type TypeIndex = z.infer<typeof TypeIndexSchema>;
-type DirectoryIndex = z.infer<typeof DirectoryIndexSchema>;

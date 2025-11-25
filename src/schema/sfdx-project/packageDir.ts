@@ -27,15 +27,13 @@
 
 import { z } from 'zod';
 
-export const PackageDirDependencySchema = z
+const PackageDirDependencySchema = z
   .object({
     package: z.string(),
     versionNumber: z.string().optional(),
     branch: z.string().optional(),
   })
   .catchall(z.unknown());
-
-export type PackageDirDependency = z.infer<typeof PackageDirDependencySchema>;
 
 /** Base properties for all package directories */
 const BasePackageDirPropsSchema = z.object({
