@@ -9,10 +9,7 @@ import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
 import { PackageDir, PackagePackageDir } from './schema/sfdx-project/packageDir';
 import { BundleEntry } from './schema/sfdx-project/bundleEntry';
-import {
-  ProjectJson as ProjectJsonSchema,
-  ProjectJsonSchema as ProjectJsonZodSchema,
-} from './schema/sfdx-project/sfdxProjectJson';
+import { type ProjectJson as ProjectJsonType, ProjectJsonSchema } from './schema/sfdx-project/sfdxProjectJson';
 import { fs } from './fs/fs';
 import { SfdcUrl } from './util/sfdcUrl';
 import { ConfigAggregator } from './config/configAggregator';
@@ -42,9 +39,8 @@ type NameAndFullPath = {
 
 export type NamedPackagingDir = PackagePackageDir & NameAndFullPath;
 export type NamedPackageDir = PackageDir & NameAndFullPath;
-export type { BundleEntry };
 
-export type ProjectJson = ConfigContents & ProjectJsonSchema;
+export type ProjectJson = ConfigContents & ProjectJsonType;
 /**
  * The sfdx-project.json config object. This file determines if a folder is a valid sfdx project.
  *
@@ -129,7 +125,7 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
       // read calls back into this method after necessarily setting this.hasRead=true
       await this.read();
     }
-    const result = ProjectJsonZodSchema.safeParse(this.getContents());
+    const result = ProjectJsonSchema.safeParse(this.getContents());
     if (!result.success) {
       const errorMessages = result.error.issues.map((err) => `${err.path.join('.')}: ${err.message}`).join('\n');
       const fullMessage = messages.getMessage('schemaValidationError', [this.getPath(), errorMessages]);
@@ -165,7 +161,7 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
       // read calls back into this method after necessarily setting this.hasRead=true
       this.readSync();
     }
-    const result = ProjectJsonZodSchema.safeParse(this.getContents());
+    const result = ProjectJsonSchema.safeParse(this.getContents());
     if (!result.success) {
       const errorMessages = result.error.issues.map((err) => `${err.path.join('.')}: ${err.message}`).join('\n');
       const fullMessage = messages.getMessage('schemaValidationError', [this.getPath(), errorMessages]);
