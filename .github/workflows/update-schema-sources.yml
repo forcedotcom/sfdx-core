@@ -27,11 +27,13 @@ jobs:
       - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
       - run: yarn update:features
       - run: yarn update:settings
+        # regenerate the json files
+      - run: yarn commpile
       - run: |
           if [[ -n $(git status --short src/schema/project-scratch-def/) ]]; then
             git add src/schema/project-scratch-def/
-            git commit -m "chore: update features and settings from docs [no ci]"
-            git push
+            git commit --no-verify -m "chore: update features and settings from docs [no ci]"
+            git push --no-verify
           else
             echo "Already up to date"
           fi
