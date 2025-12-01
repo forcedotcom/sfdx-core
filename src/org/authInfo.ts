@@ -1190,6 +1190,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     try {
       this.logger.debug(`Exchanging auth code for access token using loginUrl: ${options.loginUrl ?? '<undefined>'}`);
       authFields = await oauth2.requestToken(ensure(options.authCode));
+      this.logger.debug(`Successfully requested an access token with scopes: "${authFields.scope}".`);
     } catch (err) {
       const msg = err instanceof Error ? `${err.name}::${err.message}` : typeof err === 'string' ? err : 'UNKNOWN';
       const redacted = filterSecrets(options);
