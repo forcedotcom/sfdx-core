@@ -25,5 +25,3 @@ export const FeaturesSchema = z.array(
     z.enum(simpleFeaturesList),
   ])
 );
-
-export type Features = z.infer<typeof FeaturesSchema>;

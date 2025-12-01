@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/core",
-  "version": "8.23.4",
+  "version": "8.23.5-qaext.0",
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/index",
   "types": "lib/index.d.ts",
@@ -42,7 +42,9 @@
     "test": "wireit",
     "test:nuts": "wireit",
     "test:only": "wireit",
-    "test:perf": "ts-node test/perf/logger/main.test.ts"
+    "test:perf": "ts-node test/perf/logger/main.test.ts",
+    "update:features": "ts-node scripts/schemas/update-features.ts",
+    "update:settings": "ts-node scripts/schemas/update-settings.ts"
   },
   "keywords": [
     "force",

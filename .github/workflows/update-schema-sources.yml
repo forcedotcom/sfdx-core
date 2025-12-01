@@ -1,0 +1,37 @@
+name: update-schema-sources
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 9 * * 6' # Saturday 9am UTC
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.SVC_CLI_BOT_GITHUB_TOKEN }}
+      - uses: salesforcecli/github-workflows/.github/actions/getGithubUserInfo@main
+        id: github-user-info
+        with:
+          SVC_CLI_BOT_GITHUB_TOKEN: ${{ secrets.SVC_CLI_BOT_GITHUB_TOKEN }}
+      - uses: salesforcecli/github-workflows/.github/actions/gitConfig@main
+        with:
+          username: ${{ steps.github-user-info.outputs.username }}
+          email: ${{ steps.github-user-info.outputs.email }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: yarn
+      - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
+      - run: yarn update:features
+      - run: yarn update:settings
+      - run: |
+          if [[ -n $(git status --short src/schema/project-scratch-def/) ]]; then
+            git add src/schema/project-scratch-def/
+            git commit -m "chore: update features and settings from docs [no ci]"
+            git push
+          else
+            echo "Already up to date"
+          fi

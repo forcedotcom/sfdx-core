@@ -7,5 +7,3 @@
 import { z } from 'zod';
 
 export const RegistryPresetsSchema = z.array(z.string());
-
-export type RegistryPresets = z.infer<typeof RegistryPresetsSchema>;

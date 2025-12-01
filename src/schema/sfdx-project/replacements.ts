@@ -73,5 +73,3 @@ export const ReplacementsSchema = z.union([
     allowUnsetEnvVariable: z.boolean().optional(),
   }).strict(),
 ]);
-
-export type Replacements = z.infer<typeof ReplacementsSchema>;
