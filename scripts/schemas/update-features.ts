@@ -53,6 +53,7 @@ const generateFileContent = (varName: string, features: readonly string[]): stri
   `${COPYRIGHT_HEADER}export const ${varName} = [\n${features.map((f) => `  '${f}',`).join('\n')}\n];\n`;
 
 // Fetch JSON from URL using node:https
+// TODO: use node's `fetch` after dropping node v20
 const fetchJson = (url: string): Promise<DocsResponse> =>
   new Promise((resolve, reject) => {
     get(url, (res) => {

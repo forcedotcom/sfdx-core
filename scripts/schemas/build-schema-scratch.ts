@@ -23,7 +23,7 @@ const scratchDefSchema = z.toJSONSchema(ScratchOrgDefSchema, {
 });
 const scratchDefSchemaJson = JSON.stringify(scratchDefSchema, null, 2);
 
-console.log('writing project-scratch-def schema to lib/');
-writeFileSync('lib/project-scratch-def.schema.json', scratchDefSchemaJson);
+console.log('writing project-scratch-def schema to src/');
+writeFileSync('src/schema/project-scratch-def/project-scratch-def.schema.json', scratchDefSchemaJson);
 
 console.log('done');

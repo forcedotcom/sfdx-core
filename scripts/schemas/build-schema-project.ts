@@ -21,7 +21,7 @@ const projectSchema = z.toJSONSchema(ProjectJsonSchema, {
 });
 const projectSchemaJson = JSON.stringify(projectSchema, null, 2);
 
-console.log('writing sfdx-project schema to lib/');
-writeFileSync('lib/sfdx-project.schema.json', projectSchemaJson);
+console.log('writing sfdx-project schema to src/');
+writeFileSync('src/schema/sfdx-project/sfdx-project.schema.json', projectSchemaJson);
 
 console.log('done');

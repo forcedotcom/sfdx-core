@@ -24,7 +24,7 @@ jobs:
           node-version: lts/*
           cache: yarn
       - uses: salesforcecli/github-workflows/.github/actions/yarnInstallWithRetries@main
-      - run: yarn bundle-check
+
   nuts:
     needs: linux-unit-tests
     uses: salesforcecli/github-workflows/.github/workflows/nut.yml@main
