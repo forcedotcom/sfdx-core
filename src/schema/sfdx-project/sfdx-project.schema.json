@@ -60,12 +60,18 @@
                   "permissionSets": {
                     "title": "Permission Sets",
                     "description": "The list of permission sets to enable while running Apex tests",
-                    "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "string" }]
+                    "anyOf": [
+                      { "type": "array", "items": { "type": "string" } },
+                      { "type": "string" }
+                    ]
                   },
                   "permissionSetLicenses": {
                     "title": "Permission Set Licenses",
                     "description": "The list of permission sets licenses to enable while running Apex tests",
-                    "anyOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "string" }]
+                    "anyOf": [
+                      { "type": "array", "items": { "type": "string" } },
+                      { "type": "string" }
+                    ]
                   }
                 },
                 "required": ["permissionSets", "permissionSetLicenses"],
@@ -109,12 +115,18 @@
                   "permissionSets": {
                     "title": "Permission Sets",
                     "description": "The list of permission sets to enable while deploying package metadata",
-                    "anyOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
+                    "anyOf": [
+                      { "type": "string" },
+                      { "type": "array", "items": { "type": "string" } }
+                    ]
                   },
                   "permissionSetLicenses": {
                     "title": "Permission Set Licenses",
                     "description": "The list of permission set licenses to enable while deploying package metadata",
-                    "anyOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
+                    "anyOf": [
+                      { "type": "string" },
+                      { "type": "array", "items": { "type": "string" } }
+                    ]
                   }
                 },
                 "required": ["permissionSets", "permissionSetLicenses"],
@@ -284,7 +296,10 @@
       "type": "object",
       "propertyNames": { "type": "string" },
       "additionalProperties": {
-        "anyOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
+        "anyOf": [
+          { "type": "string" },
+          { "type": "array", "items": { "type": "string" } }
+        ]
       }
     },
     "registryPresets": {
@@ -565,7 +580,13 @@
             "properties": {
               "adapter": {
                 "type": "string",
-                "enum": ["mixedContent", "matchingContentFile", "decomposed", "bundle", "default"]
+                "enum": [
+                  "mixedContent",
+                  "matchingContentFile",
+                  "decomposed",
+                  "bundle",
+                  "default"
+                ]
               },
               "transformer": {
                 "type": "string",
