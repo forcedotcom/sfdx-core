@@ -6,7 +6,7 @@
     "compile": {
       "command": "tspc -p . --pretty --incremental",
       "dependencies": ["build:schema:project", "build:schema:scratch"],
-      "files": ["src/**/*.ts", "tsconfig.json", "messages", "messageTransformer"],
+      "files": ["src/**/*.ts", "src/**/*.json", "tsconfig.json", "messages", "messageTransformer"],
       "output": ["lib/**", "*.tsbuildinfo"],
       "clean": "if-file-deleted"
     },
