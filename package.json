@@ -23,8 +23,8 @@
     "./sfError": "./lib/sfError.js",
     "./stateAggregator": "./lib/stateAggregator/stateAggregator.js",
     "./testSetup": "./lib/testSetup.js",
-    "./sfdx-project.schema.json": "./lib/sfdx-project.schema.json",
-    "./project-scratch-def.schema.json": "./lib/project-scratch-def.schema.json"
+    "./sfdx-project.schema.json": "./lib/schema/sfdx-project/sfdx-project.schema.json",
+    "./project-scratch-def.schema.json": "./lib/schema/project-scratch-def/project-scratch-def.schema.json"
   },
   "scripts": {
     "build": "wireit",
@@ -119,6 +119,7 @@
       ],
       "files": [
         "src/**/*.ts",
+        "src/**/*.json",
         "tsconfig.json",
         "messages",
         "messageTransformer"
@@ -234,7 +235,7 @@
         "scripts/schemas/consts.ts"
       ],
       "output": [
-        "lib/sfdx-project.schema.json"
+        "src/schema/sfdx-project/sfdx-project.schema.json"
       ]
     },
     "build:schema:scratch": {
@@ -245,7 +246,7 @@
         "scripts/schemas/consts.ts"
       ],
       "output": [
-        "lib/project-scratch-def.schema.json"
+        "src/schema/project-scratch-def/project-scratch-def.schema.json"
       ]
     }
   }
