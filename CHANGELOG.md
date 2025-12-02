@@ -1,3 +1,12 @@
+## [8.23.5](https://github.com/forcedotcom/sfdx-core/compare/8.23.4...8.23.5) (2025-12-02)
+
+
+### Bug Fixes
+
+* **auth:** log scopes associated to the access token ([7ec3bea](https://github.com/forcedotcom/sfdx-core/commit/7ec3bea7dc8778aaef5925876244f03d8534c1b9))
+
+
+
 ## [8.23.4](https://github.com/forcedotcom/sfdx-core/compare/8.23.3...8.23.4) (2025-10-28)
 
 
