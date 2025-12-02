@@ -28,7 +28,7 @@ jobs:
       - run: yarn update:features
       - run: yarn update:settings
         # regenerate the json files
-      - run: yarn commpile
+      - run: yarn compile
       - run: |
           if [[ -n $(git status --short src/schema/project-scratch-def/) ]]; then
             git add src/schema/project-scratch-def/
