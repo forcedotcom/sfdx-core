@@ -234,7 +234,8 @@
         "scripts/schemas/consts.ts"
       ],
       "output": [
-        "src/schema/sfdx-project/sfdx-project.schema.json"
+        "src/schema/sfdx-project/sfdx-project.schema.json",
+        "lib/schema/sfdx-project/sfdx-project.schema.json"
       ]
     },
     "build:schema:scratch": {
@@ -245,7 +246,8 @@
         "scripts/schemas/consts.ts"
       ],
       "output": [
-        "src/schema/project-scratch-def/project-scratch-def.schema.json"
+        "src/schema/project-scratch-def/project-scratch-def.schema.json",
+        "lib/schema/project-scratch-def/project-scratch-def.schema.json"
       ]
     }
   }

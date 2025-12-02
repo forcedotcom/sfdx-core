@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { z } from 'zod';
 import { ProjectJsonSchema } from '../../src/schema/sfdx-project/sfdxProjectJson';
 import { schemaSchema, target } from './consts';
@@ -21,7 +21,9 @@ const projectSchema = z.toJSONSchema(ProjectJsonSchema, {
 });
 const projectSchemaJson = JSON.stringify(projectSchema, null, 2);
 
-console.log('writing sfdx-project schema to src/');
+console.log('writing sfdx-project schema to src/ and lib/');
 writeFileSync('src/schema/sfdx-project/sfdx-project.schema.json', projectSchemaJson);
+mkdirSync('lib/schema/sfdx-project', { recursive: true });
+writeFileSync('lib/schema/sfdx-project/sfdx-project.schema.json', projectSchemaJson);
 
 console.log('done');
