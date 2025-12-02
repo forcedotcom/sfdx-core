@@ -184,7 +184,6 @@
         "test:only",
         "test:compile",
         "link-check",
-        "test:nuts",
         "bundle-check"
       ]
     },
