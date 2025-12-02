@@ -173,14 +173,14 @@ describe('concurrency', () => {
     }
   });
 
-  it.skip('safe reads on parallel writes', async () => {
+  it('safe reads on parallel writes', async () => {
     const configOriginal = new TestConfig(TestConfig.getOptions('test', true, true, sharedLocation));
     configOriginal.set('x', 0);
     await configOriginal.write();
     await sleep(SLEEP_FUDGE_MS);
 
     await Promise.all(
-      Array.from({ length: 50 }).map((_, i) => execProm(`yarn ts-node test/nut/concurrencyReadWrite.ts ${i}`))
+      Array.from({ length: 20 }).map((_, i) => execProm(`yarn ts-node test/nut/concurrencyReadWrite.ts ${i}`))
     );
   });
 });
