@@ -26,6 +26,8 @@ jobs:
           ignore-scripts: true
       - run: yarn build
       - run: npm run test:perf | tee test/perf/output.txt
+      # restore generated schemas to avoid git conflicts when benchmark action switches branches
+      - run: git checkout -- schemas/
 
       # Run `github-action-benchmark` action
       - name: Store benchmark result
