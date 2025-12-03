@@ -415,7 +415,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   }
 
   /**
-   * Executes a HEAD request on the baseUrl to force an auth refresh.
+   * Executes a GET request on the baseUrl to force an auth refresh.
    * This is useful for the raw methods (request, requestRaw) that use the accessToken directly and don't handle refreshes.
    *
    * This method issues a request using the current access token to check if it is still valid.
@@ -427,7 +427,13 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     this.logger.debug('Refreshing auth for org.');
     const requestInfo: HttpRequest = {
       url: this.baseUrl(),
-      method: 'HEAD',
+      /**
+       * IMPORTANT:
+       * We do a GET request instead of a HEAD to get the response body.
+       *
+       * jsforce relies on the res status code AND body to be able to stop retrying on known invalid scenarios (e.g. API access restricted to a specific CA/ECA)
+       */
+      method: 'GET',
     };
     await this.request(requestInfo);
   }
