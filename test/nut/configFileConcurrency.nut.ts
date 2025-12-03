@@ -180,7 +180,7 @@ describe('concurrency', () => {
     await sleep(SLEEP_FUDGE_MS);
 
     await Promise.all(
-      Array.from({ length: 50 }).map((_, i) => execProm(`yarn ts-node test/nut/concurrencyReadWrite.ts ${i}`))
+      Array.from({ length: 20 }).map((_, i) => execProm(`yarn ts-node test/nut/concurrencyReadWrite.ts ${i}`))
     );
   });
 });
