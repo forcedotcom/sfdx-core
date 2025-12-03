@@ -347,7 +347,6 @@
             ]
           },
           {
-            "type": "string",
             "enum": [
               "AIAttribution",
               "API",
@@ -609,7 +608,8 @@
               "Workflow",
               "WorkflowFlowActionFeature",
               "WorkplaceCommandCenterUser"
-            ]
+            ],
+            "type": "string"
           }
         ]
       }
