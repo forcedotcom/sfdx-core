@@ -1,0 +1,5 @@
+{
+  "orgName": "Uppercase Features Test",
+  "edition": "Developer",
+  "features": ["MULTICURRENCY", "KNOWLEDGE", "FIELDSERVICE:10", "MAXCUSTOMLABELS:500"]
+}
