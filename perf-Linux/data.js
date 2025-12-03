@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1764711201516,
+  "lastUpdate": 1764767297706,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -35568,6 +35568,72 @@ window.BENCHMARK_DATA = {
             "range": "±7.35%",
             "unit": "ops/sec",
             "extra": "63 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "6853656+cristiand391@users.noreply.github.com",
+            "name": "Cristian Dominguez",
+            "username": "cristiand391"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "054a4f49b0ef3d54ba6cd1d66fa6833157c87a0c",
+          "message": "chore: fix configFileConcurrency NUT failure W-19992404 (#1252)\n\n* chore: run lib nuts\n\n* chore: bump mocha to latest\n\n* chore: skip test\n\n* chore: reduce qty of parallel child processes\n\n* chore: revert workflow changes",
+          "timestamp": "2025-12-03T10:05:00-03:00",
+          "tree_id": "d0ade84f21a7e85fe154f054fa34cac237ab7af0",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/054a4f49b0ef3d54ba6cd1d66fa6833157c87a0c"
+        },
+        "date": 1764767288966,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 525053,
+            "range": "±1.31%",
+            "unit": "ops/sec",
+            "extra": "92 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1196900,
+            "range": "±6.32%",
+            "unit": "ops/sec",
+            "extra": "40 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 16574,
+            "range": "±226.85%",
+            "unit": "ops/sec",
+            "extra": "9 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 594099,
+            "range": "±5.94%",
+            "unit": "ops/sec",
+            "extra": "57 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 511531,
+            "range": "±10.33%",
+            "unit": "ops/sec",
+            "extra": "55 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 8776,
+            "range": "±209.03%",
+            "unit": "ops/sec",
+            "extra": "15 samples"
           }
         ]
       }
