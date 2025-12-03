@@ -3,6 +3,7 @@
 - [Description](#description)
 - [Usage](#usage)
   - [Contributing](#contributing)
+- [JSON Schemas](#json-schemas)
 - [Using TestSetup](#using-testsetup)
 - [Message Transformer](#message-transformer)
 
@@ -21,6 +22,32 @@ If you're interested in contributing, take a look at the [CONTRIBUTING](CONTRIBU
 ## Issues
 
 Report all issues to the [issues only repository](https://github.com/forcedotcom/cli/issues).
+
+## JSON Schemas
+
+This library provides JSON schemas for `sfdx-project.json` and scratch org definition files. These schemas are generated from Zod schemas that are also exported for runtime validation.
+
+### Importing JSON Schemas
+
+```javascript
+// Import the JSON schema files directly
+import sfdxProjectSchema from '@salesforce/core/sfdx-project.schema.json';
+import scratchDefSchema from '@salesforce/core/project-scratch-def.schema.json';
+```
+
+### Using Zod Schemas for Validation
+
+`.parse` validates and the result is TS-typed. See zod docs for all the parsing options.
+
+```typescript
+import { ProjectJsonSchema, ScratchOrgDefSchema } from '@salesforce/core';
+
+// Validate and parse sfdx-project.json contents (throws on invalid)
+const projectJson = ProjectJsonSchema.parse(projectJsonContents);
+
+// Validate and parse scratch org definition
+const scratchDef = ScratchOrgDefSchema.parse(scratchDefContents);
+```
 
 # Using TestSetup
 
