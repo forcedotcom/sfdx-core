@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { z } from 'zod';
 import { ScratchOrgDefSchema } from '../../src/schema/project-scratch-def/scratchOrgDef';
 import { schemaSchema, target } from './consts';
@@ -23,9 +23,7 @@ const scratchDefSchema = z.toJSONSchema(ScratchOrgDefSchema, {
 });
 const scratchDefSchemaJson = JSON.stringify(scratchDefSchema, null, 2);
 
-console.log('writing project-scratch-def schema to src/ and lib/');
-writeFileSync('src/schema/project-scratch-def/project-scratch-def.schema.json', scratchDefSchemaJson);
-mkdirSync('lib/schema/project-scratch-def', { recursive: true });
-writeFileSync('lib/schema/project-scratch-def/project-scratch-def.schema.json', scratchDefSchemaJson);
+console.log('writing project-scratch-def schema to schemas/');
+writeFileSync('schemas/project-scratch-def.schema.json', scratchDefSchemaJson);
 
 console.log('done');

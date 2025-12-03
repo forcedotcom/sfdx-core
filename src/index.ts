@@ -8,9 +8,6 @@
 import { OAuth2Config } from '@jsforce/jsforce-node';
 import { Messages } from './messages';
 
-import sfdxProjectSchema from './schema/sfdx-project/sfdx-project.schema.json';
-import projectScratchDefSchema from './schema/project-scratch-def/project-scratch-def.schema.json';
-
 Messages.importMessagesDirectory(__dirname);
 
 export { OAuth2Config };
@@ -116,7 +113,6 @@ export {
 export { ScratchOrgInfo } from './org/scratchOrgTypes';
 export { ProjectJson, ProjectJsonSchema } from './schema/sfdx-project/sfdxProjectJson';
 export { ScratchOrgDef, ScratchOrgDefSchema } from './schema/project-scratch-def/scratchOrgDef';
-export { sfdxProjectSchema, projectScratchDefSchema };
 export {
   ScratchOrgLifecycleEvent,
   scratchOrgLifecycleEventName,
