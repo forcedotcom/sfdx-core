@@ -2,6 +2,7 @@
   "test": {
     "testsPath": "test/unit/**/*.test.ts"
   },
+  "devDepOverrides": ["mocha"],
   "wireit": {
     "compile": {
       "command": "tspc -p . --pretty --incremental",

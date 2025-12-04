@@ -945,10 +945,15 @@ describe('Org Tests', () => {
 
   describe('refresh auth', () => {
     let url: string;
+    type RequestInfo = { method: string } & AnyJson;
+
     beforeEach(() => {
-      $$.fakeConnectionRequest = (requestInfo: AnyJson): Promise<AnyJson> => {
-        url = ensureString(ensureJsonMap(requestInfo).url);
-        return Promise.resolve({});
+      $$.fakeConnectionRequest = (requestInfo: RequestInfo): Promise<AnyJson> => {
+        if (requestInfo.method === 'GET') {
+          url = ensureString(ensureJsonMap(requestInfo).url);
+          return Promise.resolve({});
+        }
+        throw new Error('refreshAuth should always a GET request to get the response body');
       };
     });
     it('should request an refresh token', async () => {

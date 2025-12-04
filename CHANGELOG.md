@@ -1,3 +1,9 @@
+## [8.23.6](https://github.com/forcedotcom/sfdx-core/compare/8.23.5...8.23.6) (2025-12-03)
+
+### Bug Fixes
+
+- `refreshAuth` does a `GET` request W-19992404 ([#1248](https://github.com/forcedotcom/sfdx-core/issues/1248)) ([e245a66](https://github.com/forcedotcom/sfdx-core/commit/e245a66fca535d2c3e81a937063d540d5a879465)), closes [#1252](https://github.com/forcedotcom/sfdx-core/issues/1252)
+
 ## [8.23.5](https://github.com/forcedotcom/sfdx-core/compare/8.23.4...8.23.5) (2025-12-02)
 
 ### Bug Fixes
