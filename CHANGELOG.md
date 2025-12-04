@@ -1,3 +1,12 @@
+## [8.23.7](https://github.com/forcedotcom/sfdx-core/compare/8.23.6...8.23.7) (2025-12-04)
+
+
+### Bug Fixes
+
+* bump jsonwebtoken for security fix ([f049410](https://github.com/forcedotcom/sfdx-core/commit/f0494102b08cfc33695a09459c285c4f2882e5c0))
+
+
+
 ## [8.23.6](https://github.com/forcedotcom/sfdx-core/compare/8.23.5...8.23.6) (2025-12-03)
 
 
