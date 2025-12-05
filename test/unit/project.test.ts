@@ -13,8 +13,10 @@ import { expect, assert } from 'chai';
 import { env } from '@salesforce/kit';
 import { SfError } from '../../src/sfError';
 import { Messages } from '../../src/messages';
-import { SfProject, SfProjectJson, NamedPackageDir, BundleEntry } from '../../src/sfProject';
+import { SfProject, SfProjectJson, NamedPackageDir } from '../../src/sfProject';
+import { BundleEntry } from '../../src/schema/sfdx-project/bundleEntry';
 import { shouldThrow, shouldThrowSync, TestContext } from '../../src/testSetup';
+import { Lifecycle } from '../../src/lifecycleEvents';
 
 describe('SfProject', () => {
   const $$ = new TestContext();
@@ -131,42 +133,50 @@ describe('SfProject', () => {
         },
       });
       const loggerSpy = $$.SANDBOX.spy($$.TEST_LOGGER, 'warn');
+      const warnStub = $$.SANDBOX.stub(Lifecycle.prototype, 'emitWarning');
+
       const project = new SfProjectJson({});
       await project.schemaValidate();
       expect(loggerSpy.called).to.be.false;
+      expect(warnStub.called).to.be.false;
     });
-    it('throws when SFDX_PROJECT_JSON_VALIDATION=true and invalid file', async () => {
-      $$.setConfigStubContents('SfProjectJson', {
-        contents: {
-          packageDirectories: [{ path: 'force-app', default: true }],
-          foo: 'bar',
-        },
-      });
-      $$.SANDBOX.stub(env, 'getBoolean').callsFake((envVarName) => envVarName === 'SFDX_PROJECT_JSON_VALIDATION');
-      const expectedError = "Validation errors:\n#/additionalProperties: must NOT have additional properties 'foo'";
-      try {
-        const project = new SfProjectJson({});
-        await shouldThrow(project.schemaValidate());
-      } catch (e) {
-        if (!(e instanceof Error)) {
-          expect.fail('Expected error to be an instance of Error');
+
+    describe('invalid file', () => {
+      it('throws when SFDX_PROJECT_JSON_VALIDATION=true', async () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageDirectories: [{ path: 'force-app', default: true }],
+            foo: 'bar',
+          },
+        });
+        $$.SANDBOX.stub(env, 'getBoolean').callsFake((envVarName) => envVarName === 'SFDX_PROJECT_JSON_VALIDATION');
+        const expectedError = 'Unrecognized key: "foo"';
+        try {
+          const project = new SfProjectJson({});
+          await shouldThrow(project.schemaValidate());
+        } catch (e) {
+          if (!(e instanceof Error)) {
+            expect.fail('Expected error to be an instance of Error');
+          }
+          expect(e.name).to.equal('SchemaValidationError');
+          expect(e.message).to.contain(expectedError);
         }
-        expect(e.name).to.equal('SchemaValidationError');
-        expect(e.message).to.contain(expectedError);
-      }
-    });
-    it('warns when SFDX_PROJECT_JSON_VALIDATION=false and invalid file', async () => {
-      $$.setConfigStubContents('SfProjectJson', {
-        contents: {
-          packageDirectories: [{ path: 'force-app', default: true }],
-          foo: 'bar',
-        },
       });
-      const loggerSpy = $$.SANDBOX.spy($$.TEST_LOGGER, 'warn');
-      const project = new SfProjectJson({});
-      await project.schemaValidate();
-      expect(loggerSpy.calledOnce).to.be.true;
-      expect(loggerSpy.args[0][0]).to.contain('is not schema valid');
+      it('warns when SFDX_PROJECT_JSON_VALIDATION=false', async () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageDirectories: [{ path: 'force-app', default: true }],
+            foo: 'bar',
+          },
+        });
+        const warnStub = $$.SANDBOX.stub(Lifecycle.prototype, 'emitWarning');
+        const project = new SfProjectJson({});
+        await project.schemaValidate();
+
+        expect(warnStub.calledOnce).to.be.true;
+        expect(warnStub.firstCall.firstArg).to.contain('is not schema valid');
+        expect(warnStub.firstCall.firstArg).to.contain('Unrecognized key');
+      });
     });
   });
 

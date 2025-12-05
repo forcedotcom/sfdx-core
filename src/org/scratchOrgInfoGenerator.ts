@@ -11,6 +11,8 @@ import { SfProjectJson, isPackagingDirectory } from '../sfProject';
 import { WebOAuthServer } from '../webOAuthServer';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
+import { ScratchOrgDef, ScratchOrgDefSchema } from '../schema/project-scratch-def/scratchOrgDef';
+import { Lifecycle } from '../lifecycleEvents';
 import { Org } from './org';
 import { ScratchOrgInfo } from './scratchOrgTypes';
 import { ScratchOrgFeatureDeprecation } from './scratchOrgFeatureDeprecation';
@@ -318,13 +320,24 @@ export const getScratchOrgInfoPayload = async (options: {
   };
 };
 
-const parseDefinitionFile = async (definitionFile: string): Promise<Record<string, unknown>> => {
+const parseDefinitionFile = async (definitionFile: string): Promise<ScratchOrgDef | Record<string, unknown>> => {
   try {
     const fileData = await fs.promises.readFile(definitionFile, 'utf8');
     const defFileContents = parseJson(fileData) as Record<string, unknown>;
     // remove key '$schema' from the definition file
     delete defFileContents['$schema'];
-    return defFileContents;
+
+    // Validate with zod schema and emit warnings if there are issues
+    const result = ScratchOrgDefSchema.safeParse(defFileContents);
+    if (!result.success) {
+      const errorMessages = result.error.issues.map((err) => `${err.path.join('.')}: ${err.message}`).join('\n');
+      await Lifecycle.getInstance().emitWarning(
+        `Scratch org definition validation issues in ${definitionFile}:\n${errorMessages}`
+      );
+      return defFileContents;
+    } else {
+      return result.data;
+    }
   } catch (err) {
     const error = err as Error;
     if (error.name === 'JsonParseError') {

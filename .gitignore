@@ -21,6 +21,7 @@ dist
 *unitcoverage
 .nyc_output
 coverage
+**/.concurrencyReadWrite.js
 
 # generated docs
 docs

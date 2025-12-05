@@ -1,0 +1,22 @@
+{
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true
+    }
+  ],
+  "replacements": [
+    {
+      "filename": "force-app/main/default/classes/myClass.cls",
+      "stringToReplace": "PLACEHOLDER",
+      "replaceWithEnv": "ACTUAL_VALUE",
+      "allowUnsetEnvVariable": true,
+      "replaceWhenEnv": [
+        {
+          "env": "FEATURE_FLAG",
+          "value": "enabled"
+        }
+      ]
+    }
+  ]
+}

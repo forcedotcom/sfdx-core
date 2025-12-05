@@ -15,6 +15,8 @@ import { SfError } from '../sfError';
 
 /**
  * Loads a JSON schema and performs validations against JSON objects.
+ *
+ * @deprecated For sfdx-project.json and scratch org definitions, use the exported zod schemas (ProjectJsonSchema, ScratchOrgDefSchema) from '@salesforce/core'. For custom schemas, use a schema validator library like zod directly.
  */
 export class SchemaValidator {
   private readonly schemasDir: string;
@@ -35,6 +37,8 @@ export class SchemaValidator {
 
   /**
    * Loads a JSON schema from the `schemaPath` parameter provided at instantiation.
+   *
+   * @deprecated For sfdx-project.json and scratch org definitions, use the exported zod schemas (ProjectJsonSchema, ScratchOrgDefSchema) from '@salesforce/core'. For custom schemas, use a schema validator library like zod directly.
    */
   public async load(): Promise<JsonMap> {
     if (!this.schema) {
@@ -46,6 +50,8 @@ export class SchemaValidator {
 
   /**
    * Loads a JSON schema from the `schemaPath` parameter provided at instantiation.
+   *
+   * @deprecated For sfdx-project.json and scratch org definitions, use the exported zod schemas (ProjectJsonSchema, ScratchOrgDefSchema) from '@salesforce/core'. For custom schemas, use a schema validator library like zod directly.
    */
   public loadSync(): JsonMap {
     if (!this.schema) {
@@ -64,6 +70,7 @@ export class SchemaValidator {
    *
    * @param json A JSON value to validate against this instance's target schema.
    * @returns The validated JSON data.
+   * @deprecated For sfdx-project.json and scratch org definitions, use the exported zod schemas (ProjectJsonSchema, ScratchOrgDefSchema) from '@salesforce/core'. For custom schemas, use a schema validator library like zod directly.
    */
   // eslint-disable-next-line @typescript-eslint/require-await
   public async validate(json: AnyJson): Promise<AnyJson> {
@@ -79,6 +86,7 @@ export class SchemaValidator {
    *
    * @param json A JSON value to validate against this instance's target schema.
    * @returns The validated JSON data.
+   * @deprecated For sfdx-project.json and scratch org definitions, use the exported zod schemas (ProjectJsonSchema, ScratchOrgDefSchema) from '@salesforce/core'. For custom schemas, use a schema validator library like zod directly.
    */
   public validateSync<T extends AnyJson>(json: T): T {
     const schema = this.loadSync();

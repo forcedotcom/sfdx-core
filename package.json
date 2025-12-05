@@ -22,10 +22,13 @@
     "./project": "./lib/sfProject.js",
     "./sfError": "./lib/sfError.js",
     "./stateAggregator": "./lib/stateAggregator/stateAggregator.js",
-    "./testSetup": "./lib/testSetup.js"
+    "./testSetup": "./lib/testSetup.js",
+    "./sfdx-project.schema.json": "./schemas/sfdx-project.schema.json",
+    "./project-scratch-def.schema.json": "./schemas/project-scratch-def.schema.json"
   },
   "scripts": {
     "build": "wireit",
+    "bundle-check": "wireit",
     "clean": "sf-clean",
     "clean-all": "sf-clean all",
     "compile": "wireit",
@@ -37,9 +40,11 @@
     "prepack": "sf-prepack",
     "prepare": "sf-install",
     "test": "wireit",
-    "test:nuts": "mocha \"test/**/*.nut.ts\" --timeout 500000",
+    "test:nuts": "wireit",
     "test:only": "wireit",
-    "test:perf": "ts-node test/perf/logger/main.test.ts"
+    "test:perf": "ts-node test/perf/logger/main.test.ts",
+    "update:features": "ts-node scripts/schemas/update-features.ts",
+    "update:settings": "ts-node scripts/schemas/update-settings.ts"
   },
   "keywords": [
     "force",
@@ -51,13 +56,13 @@
     "docs",
     "lib",
     "messages",
+    "schemas",
     "!lib/**/*.map",
     "messageTransformer/messageTransformer.ts"
   ],
   "dependencies": {
     "@jsforce/jsforce-node": "^3.10.10",
     "@salesforce/kit": "^3.2.4",
-    "@salesforce/schemas": "^1.10.3",
     "@salesforce/ts-types": "^2.0.12",
     "ajv": "^8.17.1",
     "change-case": "^4.1.2",
@@ -73,7 +78,8 @@
     "pino-pretty": "^11.3.0",
     "proper-lockfile": "^4.1.2",
     "semver": "^7.7.3",
-    "ts-retry-promise": "^0.8.1"
+    "ts-retry-promise": "^0.8.1",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@salesforce/dev-scripts": "^10.1.1",
@@ -109,8 +115,13 @@
     },
     "compile": {
       "command": "tspc -p . --pretty --incremental",
+      "dependencies": [
+        "build:schema:project",
+        "build:schema:scratch"
+      ],
       "files": [
         "src/**/*.ts",
+        "src/**/*.json",
         "tsconfig.json",
         "messages",
         "messageTransformer"
@@ -153,6 +164,10 @@
     },
     "test:only": {
       "command": "nyc mocha \"test/unit/**/*.test.ts\"",
+      "dependencies": [
+        "build:schema:project",
+        "build:schema:scratch"
+      ],
       "env": {
         "FORCE_COLOR": "2"
       },
@@ -170,8 +185,22 @@
       "dependencies": [
         "test:only",
         "test:compile",
-        "link-check"
+        "link-check",
+        "bundle-check"
       ]
+    },
+    "test:nuts": {
+      "command": "mocha \"test/**/*.nut.ts\" --timeout 500000",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/nut/**/*",
+        "src/**/*.ts",
+        "**/tsconfig.json",
+        ".mocha*"
+      ],
+      "output": []
     },
     "bundle-check": {
       "command": "node scripts/build.mjs",
@@ -187,7 +216,7 @@
       ]
     },
     "link-check": {
-      "command": "node -e \"process.exit(process.env.CI ? 0 : 1)\" || linkinator \"./*.md\" --skip \"examples/README.md|CHANGELOG.md|node_modules|test/|confluence.internal.salesforce.com|my.salesforce.com|%s\" --markdown --retry --directory-listing --verbosity error",
+      "command": "node -e \"process.exit(process.env.CI ? 0 : 1)\" || linkinator \"./*.md\" --skip \"examples/README.md|CHANGELOG.md|node_modules|test/|confluence.internal.salesforce.com|my.salesforce.com|%s|npmjs.com\" --markdown --retry --directory-listing --verbosity error",
       "files": [
         "./*.md",
         "./examples/**/*.md",
@@ -198,6 +227,30 @@
     },
     "compile-typedoc": {
       "command": "tsc -p typedocExamples"
+    },
+    "build:schema:project": {
+      "command": "ts-node scripts/schemas/build-schema-project.ts",
+      "files": [
+        "src/schema/sfdx-project/**/*.ts",
+        "scripts/schemas/build-schema-project.ts",
+        "scripts/schemas/consts.ts"
+      ],
+      "output": [
+        "schemas/sfdx-project.schema.json"
+      ],
+      "clean": "if-file-deleted"
+    },
+    "build:schema:scratch": {
+      "command": "ts-node scripts/schemas/build-schema-scratch.ts",
+      "files": [
+        "src/schema/project-scratch-def/**/*.ts",
+        "scripts/schemas/build-schema-scratch.ts",
+        "scripts/schemas/consts.ts"
+      ],
+      "output": [
+        "schemas/project-scratch-def.schema.json"
+      ],
+      "clean": "if-file-deleted"
     }
   }
 }

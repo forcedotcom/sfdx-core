@@ -1,0 +1,37 @@
+{
+  "name": "project-name",
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true
+    }
+  ],
+  "replacements": [
+    {
+      "filename": "force-app/main/default/classes/myClass.cls",
+      "stringToReplace": "replaceMe",
+      "replaceWithEnv": "THE_REPLACEMENT"
+    },
+    {
+      "filename": "force-app/main/default/classes/myClass.cls",
+      "stringToReplace": "replaceMe",
+      "replaceWithFile": "~/substitutions.txt"
+    },
+    {
+      "glob": "**/*.cls",
+      "regexToReplace": "\\d",
+      "replaceWithFile": "~/substitutions.txt"
+    },
+    {
+      "filename": "force-app/main/default/classes/myClass.cls",
+      "stringToReplace": "replaceMe",
+      "replaceWithEnv": "THE_REPLACEMENT",
+      "replaceWhenEnv": [
+        {
+          "env": "DEPLOY_DESTINATION",
+          "value": "PROD"
+        }
+      ]
+    }
+  ]
+}

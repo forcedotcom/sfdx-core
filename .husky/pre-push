@@ -1,4 +1,4 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-yarn build && yarn test
+yarn build && yarn test && yarn test:nuts
