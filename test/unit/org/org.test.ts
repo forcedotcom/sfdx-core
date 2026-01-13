@@ -1136,6 +1136,38 @@ describe('Org Tests', () => {
         expect(pollStatusAndAuthStub.calledOnce).to.be.true;
       });
 
+      it('will create the SandboxInfo sObject correctly with features as an array', async () => {
+        await prod.createSandbox(
+          { SandboxName: 'testSandbox', Features: ['SandboxStorage'] },
+          { wait: Duration.seconds(30) }
+        );
+        expect(createStub.calledOnce).to.be.true;
+        expect(querySandboxProcessStub.calledOnce).to.be.true;
+        expect(pollStatusAndAuthStub.calledOnce).to.be.true;
+        const createCallArgs = createStub.firstCall.args;
+        expect(createCallArgs[0]).to.equal('SandboxInfo');
+        expect(createCallArgs[1]).to.deep.include({
+          SandboxName: 'testSandbox',
+          Features: '["SandboxStorage"]',
+        });
+      });
+
+      it('will create the SandboxInfo sObject correctly with features as a string', async () => {
+        await prod.createSandbox(
+          { SandboxName: 'testSandbox', Features: '["SandboxStorage"]' },
+          { wait: Duration.seconds(30) }
+        );
+        expect(createStub.calledOnce).to.be.true;
+        expect(querySandboxProcessStub.calledOnce).to.be.true;
+        expect(pollStatusAndAuthStub.calledOnce).to.be.true;
+        const createCallArgs = createStub.firstCall.args;
+        expect(createCallArgs[0]).to.equal('SandboxInfo');
+        expect(createCallArgs[1]).to.deep.include({
+          SandboxName: 'testSandbox',
+          Features: '["SandboxStorage"]',
+        });
+      });
+
       it('will throw an error if it fails to create SandboxInfo', async () => {
         createStub.restore();
         createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
@@ -1380,7 +1412,7 @@ describe('Org Tests', () => {
         expect(createCallArgs[0]).to.equal('SandboxInfo');
         expect(createCallArgs[1]).to.deep.include({
           SandboxName: 'testSandboxWithFeatures',
-          Features: ['SandboxStorage'],
+          Features: '["SandboxStorage"]',
         });
       });
     });

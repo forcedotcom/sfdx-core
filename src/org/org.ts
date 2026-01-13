@@ -157,8 +157,9 @@ export type SandboxRequest = {
   Description?: string;
   ApexClassId?: string;
   ActivationUserGroupId?: string;
-  Features?: string[];
+  Features?: string[] | string;
 };
+
 export type ResumeSandboxRequest = {
   SandboxName?: string;
   SandboxProcessObjId?: string;
@@ -412,6 +413,10 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
   ): Promise<SandboxProcessObject> {
     this.logger.debug(sandboxReq, 'CreateSandbox called with SandboxRequest');
+    // The tooling create API expects a string, not an array, so convert.
+    if (sandboxReq.Features && Array.isArray(sandboxReq.Features)) {
+      sandboxReq.Features = JSON.stringify(sandboxReq.Features);
+    }
     const createResult = await this.connection.tooling.create('SandboxInfo', sandboxReq);
     this.logger.debug(createResult, 'Return from calling tooling.create');
 
