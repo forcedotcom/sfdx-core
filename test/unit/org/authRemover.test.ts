@@ -125,6 +125,20 @@ describe('AuthRemover', () => {
       ]);
       expect($$.stubs.configWrite.callCount).to.equal(2);
     });
+
+    it('should not write config files when there are no config keys to remove', async () => {
+      // Set up a username with no config values associated with it
+      // No aliases, and no config properties set to this username
+      $$.setConfigStubContents('Config', {
+        contents: {},
+      });
+
+      const remover = await AuthRemover.create();
+      // @ts-expect-error because private member
+      await remover.unsetConfigValues(username);
+      // When there are no keys to remove, write should not be called
+      expect($$.stubs.configWrite.callCount).to.equal(0);
+    });
   });
 
   describe('unsetAliases', () => {
