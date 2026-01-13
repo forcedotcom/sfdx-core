@@ -1,3 +1,12 @@
+## [8.24.1](https://github.com/forcedotcom/sfdx-core/compare/8.24.0...8.24.1) (2026-01-13)
+
+
+### Bug Fixes
+
+* support sandbox features as array or string ([#1254](https://github.com/forcedotcom/sfdx-core/issues/1254)) ([0d62ff7](https://github.com/forcedotcom/sfdx-core/commit/0d62ff7645a445f55b1f1a0bbcb95a2143be22c3))
+
+
+
 # [8.24.0](https://github.com/forcedotcom/sfdx-core/compare/8.23.7...8.24.0) (2025-12-05)
 
 
