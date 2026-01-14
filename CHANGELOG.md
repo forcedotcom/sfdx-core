@@ -1,3 +1,12 @@
+## [8.24.2](https://github.com/forcedotcom/sfdx-core/compare/8.24.1...8.24.2) (2026-01-14)
+
+
+### Bug Fixes
+
+* avoid unnecessary config writes and add a test ([ab3ee5d](https://github.com/forcedotcom/sfdx-core/commit/ab3ee5d96dae63a211706fd0042bc5f0d568cdb5))
+
+
+
 ## [8.24.1](https://github.com/forcedotcom/sfdx-core/compare/8.24.0...8.24.1) (2026-01-13)
 
 
