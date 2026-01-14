@@ -156,17 +156,19 @@ export class AuthRemover extends AsyncOptionalCreatable {
           .filter((k) => !!k)
           .reduce((x, y) => x.concat(y), []);
         const allKeys = keysWithUsername.concat(keysWithAlias);
-        this.logger.debug(`Found these config keys to remove: ${allKeys.join(',')}`);
-        allKeys.forEach((key) => {
-          try {
-            config.unset(key);
-          } catch {
-            this.logger.debug(`Failed to remove ${key}`);
-          }
-        });
-        // prevent ConfigFile collision bug
-        // eslint-disable-next-line no-await-in-loop
-        await config.write();
+        if (allKeys.length) {
+          this.logger.debug(`Found these config keys to remove: ${allKeys.join(',')}`);
+          allKeys.forEach((key) => {
+            try {
+              config.unset(key);
+            } catch {
+              this.logger.debug(`Failed to remove ${key}`);
+            }
+          });
+          // prevent ConfigFile collision bug
+          // eslint-disable-next-line no-await-in-loop
+          await config.write();
+        }
       }
     }
   }
@@ -178,7 +180,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    */
   private async unsetAliases(username: string): Promise<void> {
     this.logger.debug(`Clearing aliases for username: ${username}`);
-    const existingAliases = this.stateAggregator.aliases.getAll(username);
+    const existingAliases = this.getAliases(username);
     if (existingAliases.length === 0) return;
 
     this.logger.debug(`Found these aliases to remove: ${existingAliases.join(',')}`);
