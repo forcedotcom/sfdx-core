@@ -114,8 +114,7 @@ describe('util/sfdc', () => {
       it('should return true for a valid JWT access token', () => {
         expect(
           matchesAccessToken(
-            // Note: The `exp` property in this token corresponds to Jan 16, 2035. If this code suddenly starts failing in 2035, that's why.
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImFiY2RlZmciLCJ0dHkiOiJzZmRjLWNvcmUtdG9rZW4iLCJ0bmsiOiJhYmNkZWZnIiwidmVyIjoiMS4wIn0.eyJzdWIiOiIxMjM0NTZhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYTc4OTAiLCJuYW1lIjoiSm9obiBEb2UiLCJhdWQiOlsiYWJjIl0sImV4cCI6IjIwNTI1OTExMTIiLCJpc3MiOiJteS5zaXRlLmNvbSIsIm10eSI6ImFzZGZhc2RmYXNkZiIsIm5iZiI6IjExMTExMSIsInNmaSI6ImFhYWFhYSIsInNjcCI6WyJhc2RmYXNkZmFzZGYiXSwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.XWLM29ZTH135BBH7V0Psx_3ti2D1DRGbEvvr7FLrNAA'
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImFiY2RlZmciLCJ0dHkiOiJzZmRjLWNvcmUtdG9rZW4iLCJ0bmsiOiJhYmNkZWZnIiwidmVyIjoiMS4wIn0.eyJzdWIiOiIxMjM0NTZhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYTc4OTAiLCJhdWQiOlsiYWJjIl0sImV4cCI6IjIwNTI1OTExMTIiLCJpc3MiOiJteS5zaXRlLmNvbSIsIm10eSI6ImFzZGZhc2RmYXNkZiIsIm5iZiI6IjExMTExMSIsInNmaSI6ImFhYWFhYSIsInNjcCI6WyJhc2RmYXNkZmFzZGYiXSwiaWF0IjoxNTE2MjM5MDIyfQ.l9ccflgu7FuynJ8yWC1WQDn_QwG6EBskfXpSKWJKpcg'
           )
         ).to.equal(true);
       });
@@ -151,12 +150,14 @@ describe('util/sfdc', () => {
         {
           segName: '1st',
           token:
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTZhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYTc4OTAiLCJuYW1lIjoiSm9obiBEb2UiLCJhdWQiOlsiYWJjIl0sImV4cCI6IjEyMzQ1NjciLCJpc3MiOiJteS5zaXRlLmNvbSIsIm10eSI6ImFzZGZhc2RmYXNkZiIsIm5iZiI6IjExMTExMSIsInNmaSI6ImFhYWFhYSIsInNjcCI6WyJhc2RmYXNkZmFzZGYiXSwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30',
+            // missing the `kid` required header key
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsInR0eSI6InNmZGMtY29yZS10b2tlbiIsInRuayI6ImFiY2RlZmciLCJ2ZXIiOiIxLjAifQ.eyJzdWIiOiIxMjM0NTZhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYTc4OTAiLCJhdWQiOlsiYWJjIl0sImV4cCI6IjIwNTI1OTExMTIiLCJpc3MiOiJteS5zaXRlLmNvbSIsIm10eSI6ImFzZGZhc2RmYXNkZiIsIm5iZiI6IjExMTExMSIsInNmaSI6ImFhYWFhYSIsInNjcCI6WyJhc2RmYXNkZmFzZGYiXSwiaWF0IjoxNTE2MjM5MDIyfQ.NQ-waqIZ9AZUxEOzdPojl-oUt8aYAGbJ466e70sPffM',
         },
         {
           segName: '2nd',
           token:
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImFiY2RlZmciLCJ0dHkiOiJzZmRjLWNvcmUtdG9rZW4iLCJ0bmsiOiJhYmNkZWZnIiwidmVyIjoiMS4wIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30',
+            // Missing required `exp` payload key
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImFiY2RlZmciLCJ0dHkiOiJzZmRjLWNvcmUtdG9rZW4iLCJ0bmsiOiJhYmNkZWZnIiwidmVyIjoiMS4wIn0.eyJzdWIiOiIxMjM0NTZhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYTc4OTAiLCJhdWQiOlsiYWJjIl0sImlzcyI6Im15LnNpdGUuY29tIiwibXR5IjoiYXNkZmFzZGZhc2RmIiwibmJmIjoiMTExMTExIiwic2ZpIjoiYWFhYWFhIiwic2NwIjpbImFzZGZhc2RmYXNkZiJdLCJpYXQiOjE1MTYyMzkwMjJ9.8-TI38jRA-98x_Yuonzs5HHyvzB1UElfcwTr3irj6NA',
         },
       ];
       tokensWithMissingKeys.forEach((tokenDesc) => {
@@ -165,11 +166,20 @@ describe('util/sfdc', () => {
         });
       });
 
-      it('rejects token with expiration date in the past', () => {
-        // This token has an `exp` property of "1675198836", corresponding to Jan 31, 2023.
+      it('should return true for a header section with unexpected keys', () => {
         expect(
           matchesAccessToken(
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImFiY2RlZmciLCJ0dHkiOiJzZmRjLWNvcmUtdG9rZW4iLCJ0bmsiOiJhYmNkZWZnIiwidmVyIjoiMS4wIn0.eyJzdWIiOiIxMjM0NTZhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYTc4OTAiLCJuYW1lIjoiSm9obiBEb2UiLCJhdWQiOlsiYWJjIl0sImV4cCI6IjE2NzUxOTg4MzYiLCJpc3MiOiJteS5zaXRlLmNvbSIsIm10eSI6ImFzZGZhc2RmYXNkZiIsIm5iZiI6IjExMTExMSIsInNmaSI6ImFhYWFhYSIsInNjcCI6WyJhc2RmYXNkZmFzZGYiXSwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.JVeMwFhLpzZ-DpAKBYPLNQScOtbhX28HoZLJmjANv7A'
+            // This token has an extra key `ext` in its header.
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImV4dCI6IlRoaXMga2V5IHNob3VsZCBub3QgZXhpc3QiLCJraWQiOiJhYmNkZWZnIiwidHR5Ijoic2ZkYy1jb3JlLXRva2VuIiwidG5rIjoiYWJjZGVmZyIsInZlciI6IjEuMCJ9.eyJzdWIiOiIxMjM0NTZhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYTc4OTAiLCJhdWQiOlsiYWJjIl0sImV4cCI6IjEyMzQ1NjciLCJpc3MiOiJteS5zaXRlLmNvbSIsIm10eSI6ImFzZGZhc2RmYXNkZiIsIm5iZiI6IjExMTExMSIsInNmaSI6ImFhYWFhYSIsInNjcCI6WyJhc2RmYXNkZmFzZGYiXSwiaWF0IjoxNTE2MjM5MDIyfQ.ocsifsRJGQLdejkO_GDSCA3EK7B7qFzxtWJMC9xUMNo'
+          )
+        ).to.equal(true);
+      });
+
+      it('should return false for a payload section with unexpected keys', () => {
+        expect(
+          matchesAccessToken(
+            // This token has an extra key `ext` in its payload.
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImFiY2RlZmciLCJ0dHkiOiJzZmRjLWNvcmUtdG9rZW4iLCJ0bmsiOiJhYmNkZWZnIiwidmVyIjoiMS4wIn0.eyJzdWIiOiIxMjM0NTZhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYTc4OTAiLCJhdWQiOlsiYWJjIl0sImV4dCI6IlRoaXMga2V5IHNob3VsZCBub3QgZXhpc3QiLCJleHAiOiIxMjM0NTY3IiwiaXNzIjoibXkuc2l0ZS5jb20iLCJtdHkiOiJhc2RmYXNkZmFzZGYiLCJuYmYiOiIxMTExMTEiLCJzZmkiOiJhYWFhYWEiLCJzY3AiOlsiYXNkZmFzZGZhc2RmIl0sImlhdCI6MTUxNjIzOTAyMn0.YiEdY9P7r1tcQsaWcB5AxStlY3W1w-xgYFEdeeoM0sY'
           )
         ).to.equal(false);
       });
