@@ -103,12 +103,66 @@ describe('util/sfdc', () => {
   });
 
   describe('matchesAccessToken', () => {
-    it('should return true for a valid access token', () => {
+    it('should return true for a valid opaque access token', () => {
       expect(
         matchesAccessToken(
           '00D0t000000HkBf!AQ8AQAuHh7lXOFdOA202PMQuGflRrtUkVIfSNK1BrWLlJTJuvypx3r8dLONoJdniYKap1nsTlbxRbbGDqT6r2Rze_Ii5no2y'
         )
       ).to.equal(true);
+    });
+    describe('JWT validation', () => {
+      it('should return true for a valid JWT access token', () => {
+        expect(
+          matchesAccessToken(
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImFiY2RlZmciLCJ0dHkiOiJzZmRjLWNvcmUtdG9rZW4iLCJ0bmsiOiJhYmNkZWZnIiwidmVyIjoiMS4wIn0.eyJzdWIiOiIxMjM0NTZhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYTc4OTAiLCJuYW1lIjoiSm9obiBEb2UiLCJhdWQiOlsiYWJjIl0sImV4cCI6IjEyMzQ1NjciLCJpc3MiOiJteS5zaXRlLmNvbSIsIm10eSI6ImFzZGZhc2RmYXNkZiIsIm5iZiI6IjExMTExMSIsInNmaSI6ImFhYWFhYSIsInNjcCI6WyJhc2RmYXNkZmFzZGYiXSwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30'
+          )
+        ).to.equal(true);
+      });
+
+      it('should return false for a token with the wrong number of segments', () => {
+        expect(
+          matchesAccessToken(
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0'
+          )
+        ).to.equal(false);
+      });
+
+      const tokensWithMalformedSegments = [
+        {
+          segName: '1st',
+          token:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJeee9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30',
+        },
+        {
+          segName: '2nd',
+          token:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eeeeyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30',
+        },
+      ];
+
+      tokensWithMalformedSegments.forEach((tokenDesc) => {
+        it(`should return false when the ${tokenDesc.segName} segment is not a base64-encoded JSON`, () => {
+          expect(matchesAccessToken(tokenDesc.token)).to.equal(false);
+        });
+      });
+
+      const tokensWithMissingKeys = [
+        {
+          segName: '1st',
+          token:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTZhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYTc4OTAiLCJuYW1lIjoiSm9obiBEb2UiLCJhdWQiOlsiYWJjIl0sImV4cCI6IjEyMzQ1NjciLCJpc3MiOiJteS5zaXRlLmNvbSIsIm10eSI6ImFzZGZhc2RmYXNkZiIsIm5iZiI6IjExMTExMSIsInNmaSI6ImFhYWFhYSIsInNjcCI6WyJhc2RmYXNkZmFzZGYiXSwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30',
+        },
+        {
+          segName: '2nd',
+          token:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImFiY2RlZmciLCJ0dHkiOiJzZmRjLWNvcmUtdG9rZW4iLCJ0bmsiOiJhYmNkZWZnIiwidmVyIjoiMS4wIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30',
+        },
+      ];
+      tokensWithMissingKeys.forEach((tokenDesc) => {
+        it(`should return false when ${tokenDesc.segName} segment is missing required keys`, () => {
+          expect(matchesAccessToken(tokenDesc.token)).to.equal(false);
+        });
+      });
     });
     it('should return false for an invalid access token', () => {
       expect(matchesAccessToken('iamjustaregularusername@example.com')).to.equal(false);

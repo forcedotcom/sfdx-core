@@ -59,8 +59,49 @@ export const sfdxAuthUrlRegex =
   /force:\/\/([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]*):([a-zA-Z0-9._-]+={0,2})@([a-zA-Z0-9._-]+)/;
 
 /**
- * Tests whether a given string is an access token
+ * Tests whether a given string is an opaque access token, a JWT token, or neither.
  *
  * @param value
  */
-export const matchesAccessToken = (value: string): boolean => accessTokenRegex.test(value);
+export const matchesAccessToken = (value: string): boolean =>
+  matchesOpaqueAccessToken(value) || matchesJwtAccessToken(value);
+
+/**
+ * Tests whether a given string is an opaque access token.
+ *
+ * @param value
+ */
+export const matchesOpaqueAccessToken = (value: string): boolean => accessTokenRegex.test(value);
+
+/**
+ * Tests whether a given string is a JWT-formatted access token.
+ *
+ * @param value
+ */
+export const matchesJwtAccessToken = (value: string): boolean => {
+  const segments: string[] = value.split('.');
+  if (segments.length !== 3) {
+    return false;
+  }
+
+  if (!isJsonWithRequiredKeys(segments[0], ['alg', 'typ', 'kid', 'tty', 'tnk', 'ver'])) {
+    return false;
+  }
+
+  return isJsonWithRequiredKeys(segments[1], ['aud', 'exp', 'iss', 'mty', 'nbf', 'sfi', 'sub', 'scp']);
+};
+
+const isJsonWithRequiredKeys = (str: string, requiredKeys: string[]): boolean => {
+  try {
+    const parsedJson: JSON = JSON.parse(Buffer.from(str, 'base64').toString('utf-8')) as JSON;
+    const presentKeys: Set<string> = new Set(Object.keys(parsedJson));
+    for (const requiredKey of requiredKeys) {
+      if (!presentKeys.has(requiredKey)) {
+        return false;
+      }
+    }
+  } catch (e) {
+    return false;
+  }
+  return true;
+};
