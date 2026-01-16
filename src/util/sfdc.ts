@@ -88,7 +88,11 @@ export const matchesJwtAccessToken = (value: string): boolean => {
     return false;
   }
 
-  return isJsonWithRequiredKeys(segments[1], ['aud', 'exp', 'iss', 'mty', 'nbf', 'sfi', 'sub', 'scp']);
+  if (!isJsonWithRequiredKeys(segments[1], ['aud', 'exp', 'iss', 'mty', 'nbf', 'sfi', 'sub', 'scp'])) {
+    return false;
+  }
+
+  return jwtNotExpired(segments[1]);
 };
 
 const isJsonWithRequiredKeys = (str: string, requiredKeys: string[]): boolean => {
@@ -104,4 +108,15 @@ const isJsonWithRequiredKeys = (str: string, requiredKeys: string[]): boolean =>
     return false;
   }
   return true;
+};
+
+const jwtNotExpired = (str: string): boolean => {
+  // try-catch unnecessary, since anything here has already been validated by `isJsonWithRequiredKeys`.
+  const parsedJson: JSON = JSON.parse(Buffer.from(str, 'base64').toString('utf-8')) as JSON;
+  // istanbul ignore else - `if` only here to satisfy type checker.
+  if ('exp' in parsedJson && typeof parsedJson.exp === 'string') {
+    return parseInt(parsedJson.exp, 10) * 1000 > Date.now();
+  } else {
+    return false;
+  }
 };
