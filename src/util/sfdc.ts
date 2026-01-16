@@ -84,18 +84,25 @@ export const matchesJwtAccessToken = (value: string): boolean => {
     return false;
   }
 
-  if (!isJsonWithRequiredKeys(segments[0], ['alg', 'typ', 'kid', 'tty', 'tnk', 'ver'])) {
+  if (!isJsonWithValidKeys(segments[0], ['alg', 'typ', 'kid', 'tty', 'tnk', 'ver'])) {
     return false;
   }
 
-  if (!isJsonWithRequiredKeys(segments[1], ['aud', 'exp', 'iss', 'mty', 'nbf', 'sfi', 'sub', 'scp'])) {
-    return false;
-  }
-
-  return jwtNotExpired(segments[1]);
+  return isJsonWithValidKeys(segments[1], ['aud', 'exp', 'iss', 'mty', 'nbf', 'sfi', 'sub', 'scp'], true, [
+    'acx',
+    'client_id',
+    'iat',
+    'roles',
+    'obo',
+  ]);
 };
 
-const isJsonWithRequiredKeys = (str: string, requiredKeys: string[]): boolean => {
+const isJsonWithValidKeys = (
+  str: string,
+  requiredKeys: string[],
+  strict: boolean = false,
+  optionalExtraKeys: string[] = []
+): boolean => {
   try {
     const parsedJson: JSON = JSON.parse(Buffer.from(str, 'base64').toString('utf-8')) as JSON;
     const presentKeys: Set<string> = new Set(Object.keys(parsedJson));
@@ -104,19 +111,16 @@ const isJsonWithRequiredKeys = (str: string, requiredKeys: string[]): boolean =>
         return false;
       }
     }
+    if (strict) {
+      const allowableKeysSet: Set<string> = new Set([...requiredKeys, ...optionalExtraKeys]);
+      for (const presentKey of presentKeys.values()) {
+        if (!allowableKeysSet.has(presentKey)) {
+          return false;
+        }
+      }
+    }
+    return true;
   } catch (e) {
-    return false;
-  }
-  return true;
-};
-
-const jwtNotExpired = (str: string): boolean => {
-  // try-catch unnecessary, since anything here has already been validated by `isJsonWithRequiredKeys`.
-  const parsedJson: JSON = JSON.parse(Buffer.from(str, 'base64').toString('utf-8')) as JSON;
-  // istanbul ignore else - `if` only here to satisfy type checker.
-  if ('exp' in parsedJson && typeof parsedJson.exp === 'string') {
-    return parseInt(parsedJson.exp, 10) * 1000 > Date.now();
-  } else {
     return false;
   }
 };
