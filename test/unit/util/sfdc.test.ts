@@ -114,7 +114,7 @@ describe('util/sfdc', () => {
       it('should return true for a valid JWT access token', () => {
         expect(
           matchesAccessToken(
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImFiY2RlZmciLCJ0dHkiOiJzZmRjLWNvcmUtdG9rZW4iLCJ0bmsiOiJhYmNkZWZnIiwidmVyIjoiMS4wIn0.eyJzdWIiOiIxMjM0NTZhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYTc4OTAiLCJhdWQiOlsiYWJjIl0sImV4cCI6IjIwNTI1OTExMTIiLCJpc3MiOiJteS5zaXRlLmNvbSIsIm10eSI6ImFzZGZhc2RmYXNkZiIsIm5iZiI6IjExMTExMSIsInNmaSI6ImFhYWFhYSIsInNjcCI6WyJhc2RmYXNkZmFzZGYiXSwiaWF0IjoxNTE2MjM5MDIyfQ.l9ccflgu7FuynJ8yWC1WQDn_QwG6EBskfXpSKWJKpcg'
+            'eyJ0bmsiOiJjb3JlL3Byb2QvMDBENDYwMDAwMDE5TWt5RUFFIiwidmVyIjoiMS4wIiwia2lkIjoiQ09SRV9BVEpXVC4wMEQ0NjAwMDAwMTlNa3kuMTc2NTM4MDM2NDU2MyIsInR0eSI6InNmZGMtY29yZS10b2tlbiIsInR5cCI6IkpXVCIsImFsZyI6IlJTMjU2In0.eyJzY3AiOiJyZWZyZXNoX3Rva2VuIHdlYiBhcGkiLCJhdWQiOlsiaHR0cHM6Ly9uYTQwLWRldi1odWIubXkuc2FsZXNmb3JjZS5jb20iXSwic3ViIjoidWlkOjAwNTQ2MDAwMDAyakRGRkFBMiIsIm5iZiI6MTc2ODkyODU1MiwibXR5Ijoib2F1dGgiLCJzZmkiOiI2MzY0NGVkYTI5NjY4MmNlOWIxNmQ1ZjdkN2MzM2Y0MTMyMzViYTcxMDkyYWMwZTU4ZTQ2Y2U2ZDMyY2NkNjI3Iiwicm9sZXMiOltdLCJpc3MiOiJodHRwczovL25hNDAtZGV2LWh1Yi5teS5zYWxlc2ZvcmNlLmNvbSIsImhzYyI6ZmFsc2UsImV4cCI6MTc2ODkzNTc2NywiaWF0IjoxNzY4OTI4NTY3LCJjbGllbnRfaWQiOiIzTVZHOWkxSFJwR0xYcC5vYXIwejZ6NnhzS09VakEuNVBjTVlWanhISlQ1M1NIcE4za09aaWVXT1IyUXhIRmlyX2JybDM1bFNCa2ZiSWtlSDZTRHcwIn0.dVlR-OQGoYsaftRJ_c5ENFEKhVyuu26qhcOGjt9rg6z_sJ7kFi8F-tgHptHZ3I2XEB02C-_lzmDHqk9Qc9GN6OyZaNbcGsJGSpZaLqUxCIXm9Uwsh6RLj2B4MO6n4JwBS2pH_qLj1SkmrTR0nUP7uIJRj1ZuCHRkOtXPtI8nuOZ9cmIn_PWpv2jMSjfmgBs7dpOFITJ_A1yETuEWqMKeV-_znJqAnhkzfm4ejU4kwvu19RWlhIasWoz9RzgWtKkSlnW1akP-fPpvUt_Y0NWZBmKCW8z-gXNwZlNEKv8s5AQgwzg5dO7tryNAeyK3NS9RY7XVnVb2MB8g6-xJGpu5bA'
           )
         ).to.equal(true);
       });
@@ -146,24 +146,12 @@ describe('util/sfdc', () => {
         });
       });
 
-      const tokensWithMissingKeys = [
-        {
-          segName: '1st',
-          token:
-            // missing the `kid` required header key
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsInR0eSI6InNmZGMtY29yZS10b2tlbiIsInRuayI6ImFiY2RlZmciLCJ2ZXIiOiIxLjAifQ.eyJzdWIiOiIxMjM0NTZhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYTc4OTAiLCJhdWQiOlsiYWJjIl0sImV4cCI6IjIwNTI1OTExMTIiLCJpc3MiOiJteS5zaXRlLmNvbSIsIm10eSI6ImFzZGZhc2RmYXNkZiIsIm5iZiI6IjExMTExMSIsInNmaSI6ImFhYWFhYSIsInNjcCI6WyJhc2RmYXNkZmFzZGYiXSwiaWF0IjoxNTE2MjM5MDIyfQ.NQ-waqIZ9AZUxEOzdPojl-oUt8aYAGbJ466e70sPffM',
-        },
-        {
-          segName: '2nd',
-          token:
-            // Missing required `exp` payload key
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImFiY2RlZmciLCJ0dHkiOiJzZmRjLWNvcmUtdG9rZW4iLCJ0bmsiOiJhYmNkZWZnIiwidmVyIjoiMS4wIn0.eyJzdWIiOiIxMjM0NTZhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYTc4OTAiLCJhdWQiOlsiYWJjIl0sImlzcyI6Im15LnNpdGUuY29tIiwibXR5IjoiYXNkZmFzZGZhc2RmIiwibmJmIjoiMTExMTExIiwic2ZpIjoiYWFhYWFhIiwic2NwIjpbImFzZGZhc2RmYXNkZiJdLCJpYXQiOjE1MTYyMzkwMjJ9.8-TI38jRA-98x_Yuonzs5HHyvzB1UElfcwTr3irj6NA',
-        },
-      ];
-      tokensWithMissingKeys.forEach((tokenDesc) => {
-        it(`should return false when ${tokenDesc.segName} segment is missing required keys`, () => {
-          expect(matchesAccessToken(tokenDesc.token)).to.equal(false);
-        });
+      it('should return false when the header does not have `typ` == `JWT`', () => {
+        expect(
+          matchesAccessToken(
+            'ewogICJhbGciOiAiSFMyNTYiLAogICJ0eXAiOiAiSlciCn0.eyJzdWIiOiIxMjM0NTZhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYTc4OTAiLCJhdWQiOlsiYWJjIl0sImV4cCI6IjIwNTI1OTExMTIiLCJpc3MiOiJteS5zaXRlLmNvbSIsIm10eSI6ImFzZGZhc2RmYXNkZiIsIm5iZiI6IjExMTExMSIsInNmaSI6ImFhYWFhYSIsInNjcCI6WyJhc2RmYXNkZmFzZGYiXSwiaWF0IjoxNTE2MjM5MDIyfQ.NQ-waqIZ9AZUxEOzdPojl-oUt8aYAGbJ466e70sPffM'
+          )
+        ).to.equal(false);
       });
 
       it('should return true for a header section with unexpected keys', () => {
@@ -173,15 +161,6 @@ describe('util/sfdc', () => {
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImV4dCI6IlRoaXMga2V5IHNob3VsZCBub3QgZXhpc3QiLCJraWQiOiJhYmNkZWZnIiwidHR5Ijoic2ZkYy1jb3JlLXRva2VuIiwidG5rIjoiYWJjZGVmZyIsInZlciI6IjEuMCJ9.eyJzdWIiOiIxMjM0NTZhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYTc4OTAiLCJhdWQiOlsiYWJjIl0sImV4cCI6IjEyMzQ1NjciLCJpc3MiOiJteS5zaXRlLmNvbSIsIm10eSI6ImFzZGZhc2RmYXNkZiIsIm5iZiI6IjExMTExMSIsInNmaSI6ImFhYWFhYSIsInNjcCI6WyJhc2RmYXNkZmFzZGYiXSwiaWF0IjoxNTE2MjM5MDIyfQ.ocsifsRJGQLdejkO_GDSCA3EK7B7qFzxtWJMC9xUMNo'
           )
         ).to.equal(true);
-      });
-
-      it('should return false for a payload section with unexpected keys', () => {
-        expect(
-          matchesAccessToken(
-            // This token has an extra key `ext` in its payload.
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImFiY2RlZmciLCJ0dHkiOiJzZmRjLWNvcmUtdG9rZW4iLCJ0bmsiOiJhYmNkZWZnIiwidmVyIjoiMS4wIn0.eyJzdWIiOiIxMjM0NTZhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYTc4OTAiLCJhdWQiOlsiYWJjIl0sImV4dCI6IlRoaXMga2V5IHNob3VsZCBub3QgZXhpc3QiLCJleHAiOiIxMjM0NTY3IiwiaXNzIjoibXkuc2l0ZS5jb20iLCJtdHkiOiJhc2RmYXNkZmFzZGYiLCJuYmYiOiIxMTExMTEiLCJzZmkiOiJhYWFhYWEiLCJzY3AiOlsiYXNkZmFzZGZhc2RmIl0sImlhdCI6MTUxNjIzOTAyMn0.YiEdY9P7r1tcQsaWcB5AxStlY3W1w-xgYFEdeeoM0sY'
-          )
-        ).to.equal(false);
       });
     });
     it('should return false for an invalid access token', () => {

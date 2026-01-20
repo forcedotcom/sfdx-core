@@ -63,9 +63,9 @@ export const sfdxAuthUrlRegex =
  *
  * @param value
  */
-export const matchesAccessToken = (value: string): boolean =>
-  matchesOpaqueAccessToken(value) || matchesJwtAccessToken(value);
-
+export function matchesAccessToken(value: string): boolean {
+  return matchesOpaqueAccessToken(value) || matchesJwtAccessToken(value);
+}
 /**
  * Tests whether a given string is an opaque access token.
  *
@@ -84,42 +84,20 @@ export const matchesJwtAccessToken = (value: string): boolean => {
     return false;
   }
 
-  if (!isJsonWithValidKeys(segments[0], ['alg', 'typ', 'kid', 'tty', 'tnk', 'ver'])) {
+  if (!isValidJson(segments[0], true)) {
     return false;
   }
-
-  return isJsonWithValidKeys(segments[1], ['aud', 'exp', 'iss', 'mty', 'nbf', 'sfi', 'sub', 'scp'], true, [
-    'acx',
-    'client_id',
-    'iat',
-    'roles',
-    'obo',
-  ]);
+  return isValidJson(segments[1], false);
 };
 
-const isJsonWithValidKeys = (
-  str: string,
-  requiredKeys: string[],
-  strict: boolean = false,
-  optionalExtraKeys: string[] = []
-): boolean => {
+const isValidJson = (str: string, checkForTyp: boolean): boolean => {
   try {
     const parsedJson: JSON = JSON.parse(Buffer.from(str, 'base64').toString('utf-8')) as JSON;
-    const presentKeys: Set<string> = new Set(Object.keys(parsedJson));
-    for (const requiredKey of requiredKeys) {
-      if (!presentKeys.has(requiredKey)) {
-        return false;
-      }
+    if (checkForTyp) {
+      return 'typ' in parsedJson && parsedJson.typ === 'JWT';
+    } else {
+      return true;
     }
-    if (strict) {
-      const allowableKeysSet: Set<string> = new Set([...requiredKeys, ...optionalExtraKeys]);
-      for (const presentKey of presentKeys.values()) {
-        if (!allowableKeysSet.has(presentKey)) {
-          return false;
-        }
-      }
-    }
-    return true;
   } catch (e) {
     return false;
   }
