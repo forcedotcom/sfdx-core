@@ -1,3 +1,12 @@
+# [8.25.0](https://github.com/forcedotcom/sfdx-core/compare/8.24.3...8.25.0) (2026-01-21)
+
+
+### Features
+
+* add scratch feature to schema ([a1dc7ef](https://github.com/forcedotcom/sfdx-core/commit/a1dc7ef4029dc93c85caa65c9ed7fe17b0be2aad))
+
+
+
 ## [8.24.3](https://github.com/forcedotcom/sfdx-core/compare/8.24.2...8.24.3) (2026-01-15)
 
 
