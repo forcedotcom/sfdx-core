@@ -56,7 +56,7 @@ export const validatePathDoesNotContainInvalidChars = (value: string): boolean =
 
 export const accessTokenRegex = /(00D\w{12,15})![.\w]*/;
 // 'eyJ' strongly suggests that this is a base64 JSON, and so the general shape of the rest of it is enough to presume it's a JWT.
-export const jwtTokenRegex = /eyJ[A-Za-z0-9+-]+\.[A-Za-z0-9+=-]+\.[A-Za-z0-9+=-]/;
+export const jwtTokenRegex = /eyJ[A-Za-z0-9+-]+\.[A-Za-z0-9+=-]+\.[A-Za-z0-9+=-]+/;
 export const sfdxAuthUrlRegex =
   /force:\/\/([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]*):([a-zA-Z0-9._-]+={0,2})@([a-zA-Z0-9._-]+)/;
 
