@@ -261,6 +261,7 @@ export const simpleFeaturesList = [
   'TimelineRecordTypeLimit',
   'TransactionFinalizers',
   'UsageManagement',
+  'VolunteerManagement',
   'Walkthroughs',
   'WaveMaxCurrency',
   'WavePlatform',
