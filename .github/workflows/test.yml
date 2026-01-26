@@ -53,7 +53,7 @@ jobs:
   # hidden until we fix source-testkit to better handle jwt
   pdrNuts:
     needs: linux-unit-tests
-    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
+    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@jf/nut-debug
     strategy:
       fail-fast: false
       matrix:
