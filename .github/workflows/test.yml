@@ -17,7 +17,7 @@ jobs:
 
   nuts:
     needs: linux-unit-tests
-    uses: salesforcecli/github-workflows/.github/workflows/nut.yml@main
+    uses: salesforcecli/github-workflows/.github/workflows/nut.yml@jf/nut-debug
 
   xNuts:
     needs: linux-unit-tests
