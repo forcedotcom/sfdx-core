@@ -182,6 +182,10 @@ export class ConfigFile<
           this.setContentsFromFileContents({} as P);
           return this.getContents();
         }
+      } else if ((err as Error).name === 'JsonParseError') {
+        this.logger.debug(`Contents of ${this.getPath()} could not be parsed as JSON. Using empty object instead.`);
+        this.setContentsFromObject({} as P);
+        return this.getContents();
       }
       // Necessarily set this even when an error happens to avoid infinite re-reading.
       // To attempt another read, pass `force=true`.
@@ -397,6 +401,8 @@ export class ConfigFile<
   private handleWriteError(err: unknown): void {
     if (err instanceof Error && err.message.includes('ENOENT')) {
       this.logger.debug(`No file found at ${this.getPath()}.  Write will create it.`);
+    } else if (err instanceof Error && err.name === 'JsonParseError') {
+      this.logger.debug(`Could not parse ${this.getPath()} as JSON. Existing contents will be replaced.`);
     } else {
       throw err;
     }
