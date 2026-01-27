@@ -33,7 +33,7 @@ import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
-import { matchesAccessToken, trimTo15 } from '../util/sfdc';
+import { matchesOpaqueAccessToken, trimTo15 } from '../util/sfdc';
 import { StateAggregator } from '../stateAggregator/stateAggregator';
 import { filterSecrets } from '../logger/filters';
 import { Messages } from '../messages';
@@ -595,7 +595,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     this.update(authData);
     const username = ensure(this.getUsername());
 
-    if (matchesAccessToken(username)) {
+    if (matchesOpaqueAccessToken(username)) {
       this.logger.debug('Username is an accesstoken. Skip saving authinfo to disk.');
       return this;
     }
@@ -859,7 +859,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     } // Else it will be set in initAuthOptions below.
 
     // If the username is an access token, use that for auth and don't persist
-    if (isString(oauthUsername) && matchesAccessToken(oauthUsername)) {
+    if (isString(oauthUsername) && matchesOpaqueAccessToken(oauthUsername)) {
       // Need to initAuthOptions the logger and authInfoCrypto since we don't call init()
       this.logger = await Logger.child('AuthInfo');
 

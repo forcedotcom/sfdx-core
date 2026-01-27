@@ -14,7 +14,7 @@ import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { SecureBuffer } from '../crypto/secureBuffer';
 import { SfError } from '../sfError';
-import { matchesAccessToken, validateSalesforceId } from '../util/sfdc';
+import { matchesOpaqueAccessToken, validateSalesforceId } from '../util/sfdc';
 import { Connection } from './connection';
 import { PermissionSetAssignment } from './permissionSetAssignment';
 import { Org } from './org';
@@ -551,7 +551,7 @@ const resolveUsernameFromAccessToken =
   (logger: Logger) =>
   (conn: Connection) =>
   async (usernameOrAccessToken: string): Promise<string> => {
-    if (matchesAccessToken(usernameOrAccessToken)) {
+    if (matchesOpaqueAccessToken(usernameOrAccessToken)) {
       logger.debug('received an accessToken for the username.  Converting...');
       const username = (await conn.identity()).username;
       logger.debug(`accessToken converted to ${username}`);
