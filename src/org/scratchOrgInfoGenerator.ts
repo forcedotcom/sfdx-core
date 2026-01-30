@@ -271,13 +271,15 @@ export const getScratchOrgInfoPayload = async (options: {
 }> => {
   let warnings: string[] = [];
 
-  // orgConfig input overrides definitionjson (-j option; hidden/deprecated) overrides definitionfile (-f option)
+  // Merge after all validations complete
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const scratchOrgInfoPayload: ScratchOrgInfoPayload = {
     ...(options.definitionfile ? await parseDefinitionFile(options.definitionfile) : {}),
-    ...(options.definitionjson ? JSON.parse(options.definitionjson) : {}),
-    ...(options.orgConfig ?? {}),
-  };
+    ...(options.definitionjson
+      ? await validateInputDef(JSON.parse(options.definitionjson) as Record<string, unknown>, 'definitionjson')
+      : {}),
+    ...(options.orgConfig ? await validateInputDef(options.orgConfig, 'orgConfig') : {}),
+  } as ScratchOrgInfoPayload;
 
   // scratchOrgInfoPayload must be heads down camelcase.
   Object.keys(scratchOrgInfoPayload).forEach((key) => {
@@ -318,6 +320,26 @@ export const getScratchOrgInfoPayload = async (options: {
     ignoreAncestorIds: options.nonamespace ?? options.noancestors ?? false,
     warnings,
   };
+};
+
+/**
+ * Validates input definition objects (definitionjson or orgConfig) against schema
+ * Emits warnings if validation issues are found
+ */
+const validateInputDef = async (
+  input: Record<string, unknown>,
+  source: string
+): Promise<ScratchOrgDef | Record<string, unknown>> => {
+  const result = ScratchOrgDefSchema.safeParse(input);
+  if (!result.success) {
+    const errorMessages = result.error.issues.map((err) => `${err.path.join('.')}: ${err.message}`).join('\n');
+    await Lifecycle.getInstance().emitWarning(
+      `Scratch org definition validation issues in ${source}:\n${errorMessages}`
+    );
+    return input;
+  }
+
+  return result.data;
 };
 
 const parseDefinitionFile = async (definitionFile: string): Promise<ScratchOrgDef | Record<string, unknown>> => {
