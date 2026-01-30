@@ -330,16 +330,6 @@ const validateInputDef = async (
   input: Record<string, unknown>,
   source: string
 ): Promise<ScratchOrgDef | Record<string, unknown>> => {
-  // Normalize fields that accept case-insensitive input of edition
-  if (input.edition && typeof input.edition === 'string') {
-    input.edition = input.edition.charAt(0).toUpperCase() + input.edition.slice(1).toLowerCase();
-  }
-
-  // Normalize fields that accept case-insensitive input of release
-  if (input.release && typeof input.release === 'string') {
-    input.release = input.release.toLowerCase();
-  }
-
   const result = ScratchOrgDefSchema.safeParse(input);
   if (!result.success) {
     const errorMessages = result.error.issues.map((err) => `${err.path.join('.')}: ${err.message}`).join('\n');
