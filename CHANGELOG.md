@@ -1,3 +1,12 @@
+## [8.25.1](https://github.com/forcedotcom/sfdx-core/compare/8.25.0...8.25.1) (2026-02-02)
+
+
+### Bug Fixes
+
+* correctly handles empty deploy-cache.json file @W-19727166@ ([#1260](https://github.com/forcedotcom/sfdx-core/issues/1260)) ([4f9768b](https://github.com/forcedotcom/sfdx-core/commit/4f9768b388651d14d5f4d66f65cb86d1f9bda1a8))
+
+
+
 # [8.25.0](https://github.com/forcedotcom/sfdx-core/compare/8.24.3...8.25.0) (2026-01-21)
 
 
