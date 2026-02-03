@@ -55,12 +55,52 @@ export const validatePathDoesNotContainInvalidChars = (value: string): boolean =
   !/[\["\?<>\|\]]+/.test(value);
 
 export const accessTokenRegex = /(00D\w{12,15})![.\w]*/;
+// 'eyJ' strongly suggests that this is a base64 JSON, and so the general shape of the rest of it is enough to presume it's a JWT.
+export const jwtTokenRegex = /eyJ[A-Za-z0-9+=_-]+\.[A-Za-z0-9+=_-]+\.[A-Za-z0-9+=_-]+/;
 export const sfdxAuthUrlRegex =
   /force:\/\/([a-zA-Z0-9._-]+):([a-zA-Z0-9._-]*):([a-zA-Z0-9._-]+={0,2})@([a-zA-Z0-9._-]+)/;
 
 /**
- * Tests whether a given string is an access token
+ * Tests whether a given string is an opaque access token, a JWT token, or neither.
  *
  * @param value
  */
-export const matchesAccessToken = (value: string): boolean => accessTokenRegex.test(value);
+export function matchesAccessToken(value: string): boolean {
+  return matchesOpaqueAccessToken(value) || matchesJwtAccessToken(value);
+}
+/**
+ * Tests whether a given string is an opaque access token.
+ *
+ * @param value
+ */
+export const matchesOpaqueAccessToken = (value: string): boolean => accessTokenRegex.test(value);
+
+/**
+ * Tests whether a given string is a JWT-formatted access token.
+ *
+ * @param value
+ */
+export const matchesJwtAccessToken = (value: string): boolean => {
+  const segments: string[] = value.split('.');
+  if (segments.length !== 3) {
+    return false;
+  }
+
+  if (!isValidJson(segments[0], true)) {
+    return false;
+  }
+  return isValidJson(segments[1], false);
+};
+
+const isValidJson = (str: string, checkForTyp: boolean): boolean => {
+  try {
+    const parsedJson: JSON = JSON.parse(Buffer.from(str, 'base64').toString('utf-8')) as JSON;
+    if (checkForTyp) {
+      return 'typ' in parsedJson && parsedJson.typ === 'JWT';
+    } else {
+      return true;
+    }
+  } catch (e) {
+    return false;
+  }
+};

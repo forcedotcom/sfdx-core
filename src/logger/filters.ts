@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { isArray, isObject, isString } from '@salesforce/ts-types';
-import { accessTokenRegex, sfdxAuthUrlRegex } from '../util/sfdc';
+import { accessTokenRegex, jwtTokenRegex, sfdxAuthUrlRegex } from '../util/sfdc';
 export const HIDDEN = 'HIDDEN';
 
 type FilteredKeyDefinition = { name: string; regex?: string };
@@ -31,6 +31,7 @@ const buildKeyRegex = (expElement: string): RegExp =>
 // This will redact values when the keys match certain patterns
 const FILTERED_KEYS: FilteredKeyDefinition[] = [
   { name: 'sid' },
+  { name: 'jwt' },
   { name: 'Authorization' },
   // Any json attribute that contains the words "refresh" and "token" will have the attribute/value hidden
   { name: 'refresh_token', regex: 'refresh[^\'"]*token' },
@@ -60,6 +61,7 @@ const replacementFunctions = FILTERED_KEYS_FOR_PROCESSING.flatMap(
   (input: string): string =>
     input
       .replace(new RegExp(accessTokenRegex, 'g'), '<REDACTED ACCESS TOKEN>')
+      .replace(new RegExp(jwtTokenRegex, 'g'), '<REDACTED JWT TOKEN>')
       .replace(new RegExp(sfdxAuthUrlRegex, 'g'), '<REDACTED AUTH URL TOKEN>'),
   // conditional replacement for clientId: leave the value if it's the PlatformCLI, otherwise redact it
   (input: string): string =>
