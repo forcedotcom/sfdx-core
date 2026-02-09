@@ -76,7 +76,6 @@ export type AuthFields = {
   password?: string;
   privateKey?: string;
   refreshToken?: string;
-  scratchAdminUsername?: string;
   snapshot?: string;
   userId?: string;
   username?: string;
