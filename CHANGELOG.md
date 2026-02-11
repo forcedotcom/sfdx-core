@@ -1,3 +1,25 @@
+# [8.26.0](https://github.com/forcedotcom/sfdx-core/compare/8.25.1...8.26.0) (2026-02-11)
+
+
+### Bug Fixes
+
+* logger redacts jwt tokens @W-20036916@ ([6dd27ab](https://github.com/forcedotcom/sfdx-core/commit/6dd27ab5ea0807cc04a682f0c85382b70aab250e))
+
+
+### Features
+
+* added JWT validation logic @W-20036916@ ([66100a6](https://github.com/forcedotcom/sfdx-core/commit/66100a6dc21cb5b39463ab262e36b9383b41ad48))
+* existing code now expects opaque tokense explicitly @W-20036916@ ([f7a2ed4](https://github.com/forcedotcom/sfdx-core/commit/f7a2ed4207e71bb751539b2b93396866385c73a2))
+* feedback on JWT validation @W-20036916@ ([ea6dd1a](https://github.com/forcedotcom/sfdx-core/commit/ea6dd1a1325dc33158dfad5b7812adac8ac2a7bc))
+* fixed JWT redaction @W-20036916@ ([fc0934c](https://github.com/forcedotcom/sfdx-core/commit/fc0934c48c89b59462db3de28b356b6cf2f71344))
+* jwt detection regex strictened @W-20036916@ ([fb739c9](https://github.com/forcedotcom/sfdx-core/commit/fb739c91f2d5a0cc43c7b5330068e123d02a48a0))
+* jwt redaction fixed further @W-20036916@ ([496fa99](https://github.com/forcedotcom/sfdx-core/commit/496fa99e6360ff8e0393dc1d89d57532f383fa5a))
+* jwt validation rejects expired tokens @W-20036916@ ([e6c72ae](https://github.com/forcedotcom/sfdx-core/commit/e6c72ae314f0e43d0914528daaa995454d3f384d))
+* laxed validation rules for JWT token @W-20036916@ ([f6214c8](https://github.com/forcedotcom/sfdx-core/commit/f6214c8005fe2a996b328a1a074a6c91f5af83d4))
+* rerunning CI ([8faa184](https://github.com/forcedotcom/sfdx-core/commit/8faa1845e983c143505cd5ed9d3c09a0a15f5371))
+
+
+
 ## [8.25.1](https://github.com/forcedotcom/sfdx-core/compare/8.25.0...8.25.1) (2026-02-02)
 
 
