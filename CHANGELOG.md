@@ -1,3 +1,14 @@
+## [8.26.1](https://github.com/forcedotcom/sfdx-core/compare/8.26.0...8.26.1) (2026-02-17)
+
+
+### Bug Fixes
+
+* remove if-statement case-sensitive ([f1b5d8a](https://github.com/forcedotcom/sfdx-core/commit/f1b5d8a1c4e3ba7921ee0b228829b4c829e16d92))
+* update the schema to accept lowercase ([3701782](https://github.com/forcedotcom/sfdx-core/commit/37017828d33e858e93e1df72a140b68a5c1d0b6b))
+* validate all schema before merge ([3a6a170](https://github.com/forcedotcom/sfdx-core/commit/3a6a17032c429eba0139a3655ba82f98eaa8aa7a))
+
+
+
 # [8.26.0](https://github.com/forcedotcom/sfdx-core/compare/8.25.1...8.26.0) (2026-02-11)
 
 
