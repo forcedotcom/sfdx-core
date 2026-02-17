@@ -1,3 +1,12 @@
+## [8.26.2](https://github.com/forcedotcom/sfdx-core/compare/8.26.1...8.26.2) (2026-02-17)
+
+
+### Bug Fixes
+
+* package.json & yarn.lock to reduce vulnerabilities ([01e5af1](https://github.com/forcedotcom/sfdx-core/commit/01e5af1d748009a595293960f038dc2c4b2d5f26))
+
+
+
 ## [8.26.1](https://github.com/forcedotcom/sfdx-core/compare/8.26.0...8.26.1) (2026-02-17)
 
 
