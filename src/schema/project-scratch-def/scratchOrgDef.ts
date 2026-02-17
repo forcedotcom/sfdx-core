@@ -17,14 +17,14 @@ export const ScratchOrgDefSchema = z
     orgName: z.string().optional().describe('The name of the scratch org.').meta({ title: 'Organization Name' }),
     edition: z
       .enum([
-        'Developer',
-        'Enterprise',
-        'Group',
-        'Partner Developer',
-        'Partner Enterprise',
-        'Partner Group',
-        'Partner Professional',
-        'Professional',
+        'developer',
+        'enterprise',
+        'group',
+        'partner-developer',
+        'partner-enterprise',
+        'partner-group',
+        'partner-professional',
+        'professional',
       ])
       .describe('The Salesforce edition of the scratch org.'),
     country: z
