@@ -14,7 +14,7 @@ import { StubbedType, spyMethod, stubInterface, stubMethod } from '@salesforce/t
 import { Env } from '@salesforce/kit';
 import { MockTestOrgData, TestContext } from '../../src/testSetup';
 import { SfProjectJson } from '../../src/sfProject';
-import { WebOAuthServer, WebServer } from '../../src/webOAuthServer';
+import { DEFAULT_CODE_BUILDER_REDIRECT_URI, WebOAuthServer, WebServer } from '../../src/webOAuthServer';
 import { AuthFields, AuthInfo } from '../../src/org/authInfo';
 
 describe('WebOauthServer', () => {
@@ -69,6 +69,42 @@ describe('WebOauthServer', () => {
       expect(authUrl).to.include('redirect_uri=');
       expect(authUrl).to.include('api.code-builder.platform.salesforce.com');
       expect(authUrl).to.include(cbState);
+    });
+
+    it('should use default redirect URI when CODE_BUILDER_REDIRECT_URI env is not set', async () => {
+      const cbState = '1234567890';
+      stubMethod($$.SANDBOX, Env.prototype, 'getBoolean').withArgs('CODE_BUILDER').returns(true);
+      const getStringStub = stubMethod($$.SANDBOX, Env.prototype, 'getString');
+      getStringStub.withArgs('CODE_BUILDER_STATE').returns(cbState);
+      // Do not stub CODE_BUILDER_REDIRECT_URI so it is undefined → default is used
+      const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
+      const authUrl = oauthServer.getAuthorizationUrl();
+      expect(authUrl).to.not.be.undefined;
+      expect(authUrl).to.include('client_id=CodeBuilder');
+      expect(authUrl).to.include('redirect_uri=');
+      expect(
+        authUrl.includes('api.code-builder.platform.salesforce.com') ||
+          authUrl.includes(encodeURIComponent(DEFAULT_CODE_BUILDER_REDIRECT_URI))
+      ).to.be.true;
+    });
+
+    it('should use CODE_BUILDER_REDIRECT_URI from env when set for code builder', async () => {
+      const cbState = '1234567890';
+      const stagingRedirectUri = 'https://api.code-builder-stg.platform.salesforce.com/api/auth/salesforce/callback';
+      stubMethod($$.SANDBOX, Env.prototype, 'getBoolean').withArgs('CODE_BUILDER').returns(true);
+      const getStringStub = stubMethod($$.SANDBOX, Env.prototype, 'getString');
+      getStringStub.withArgs('CODE_BUILDER_STATE').returns(cbState);
+      getStringStub.withArgs('CODE_BUILDER_REDIRECT_URI').returns(stagingRedirectUri);
+      const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
+      const authUrl = oauthServer.getAuthorizationUrl();
+      expect(authUrl).to.not.be.undefined;
+      expect(authUrl).to.include('client_id=CodeBuilder');
+      expect(authUrl).to.include('redirect_uri=');
+      // Redirect URI may be URL-encoded in the auth URL
+      expect(
+        authUrl.includes('api.code-builder-stg.platform.salesforce.com') ||
+          authUrl.includes(encodeURIComponent(stagingRedirectUri))
+      ).to.be.true;
     });
   });
 
