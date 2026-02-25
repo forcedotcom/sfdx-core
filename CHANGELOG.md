@@ -1,3 +1,12 @@
+## [8.26.3](https://github.com/forcedotcom/sfdx-core/compare/8.26.2...8.26.3) (2026-02-25)
+
+
+### Bug Fixes
+
+* **auth:** add default oauth redirect uri for code builder ([685101b](https://github.com/forcedotcom/sfdx-core/commit/685101be13c2f7049397c3eb5ec969f7b3e50748))
+
+
+
 ## [8.26.2](https://github.com/forcedotcom/sfdx-core/compare/8.26.1...8.26.2) (2026-02-17)
 
 
