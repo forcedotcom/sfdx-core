@@ -42,7 +42,7 @@ const PASSWORD_COMPLEXITY: { [index: number]: Complexity } = {
   '1': { LOWER: true, NUMBERS: true },
   '2': { LOWER: true, SYMBOLS: true },
   '3': { LOWER: true, UPPER: true, NUMBERS: true },
-  '4': { LOWER: true, NUMBERS: true, SYMBOLS: true },
+  '4': { LOWER: true, UPPER: true, SYMBOLS: true },
   '5': { LOWER: true, UPPER: true, NUMBERS: true, SYMBOLS: true },
 };
 
