@@ -7,10 +7,11 @@
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { expect } from 'chai';
+import { isString } from '@salesforce/ts-types';
 import { StateAggregator } from '../../../../src/stateAggregator/stateAggregator';
-import { FILENAME } from '../../../../src/stateAggregator/accessors/aliasAccessor';
+import { FILENAME, getFileLocation } from '../../../../src/stateAggregator/accessors/aliasAccessor';
 import { MockTestOrgData, TestContext } from '../../../../src/testSetup';
 import { Global } from '../../../../src/global';
 import { uniqid } from '../../../../src/util/uniqid';
@@ -241,3 +242,28 @@ describe('AliasAccessor', () => {
 });
 
 const getAliasFileLocation = (): string => join(tmpdir(), Global.SFDX_STATE_FOLDER, FILENAME);
+
+describe('getFileLocation', () => {
+  const originalSfdxHome = process.env.SFDX_HOME;
+
+  beforeEach(() => {
+    delete process.env.SFDX_HOME;
+  });
+
+  after(() => {
+    if (isString(originalSfdxHome)) {
+      process.env.SFDX_HOME = originalSfdxHome;
+    } else {
+      delete process.env.SFDX_HOME;
+    }
+  });
+
+  it('defaults to ~/.sfdx/alias.json', () => {
+    expect(getFileLocation()).to.equal(join(homedir(), Global.SFDX_STATE_FOLDER, FILENAME));
+  });
+
+  it('respects SFDX_HOME', () => {
+    process.env.SFDX_HOME = '/tmp/sfdx-test';
+    expect(getFileLocation()).to.equal(join('/tmp/sfdx-test', FILENAME));
+  });
+});

@@ -63,7 +63,7 @@ export class Global {
    * **See** {@link Global.SFDX_STATE_FOLDER}
    */
   public static get SFDX_DIR(): string {
-    return path.join(os.homedir(), Global.SFDX_STATE_FOLDER);
+    return env.getString('SFDX_HOME') ?? path.join(os.homedir(), Global.SFDX_STATE_FOLDER);
   }
 
   /**
@@ -72,14 +72,14 @@ export class Global {
    * **See**  {@link Global.SF_STATE_FOLDER}
    */
   public static get SF_DIR(): string {
-    return path.join(os.homedir(), Global.SF_STATE_FOLDER);
+    return env.getString('SF_HOME') ?? path.join(os.homedir(), Global.SF_STATE_FOLDER);
   }
 
   /**
    * The full system path to the preferred global state folder
    */
   public static get DIR(): string {
-    return path.join(os.homedir(), Global.SFDX_STATE_FOLDER);
+    return env.getString('SFDX_HOME') ?? path.join(os.homedir(), Global.SFDX_STATE_FOLDER);
   }
 
   /**

@@ -135,6 +135,10 @@ export class TestContext {
    * A record of stubs created during instantiation.
    */
   public stubs: Record<string, SinonStub> = {};
+  /** @internal saved SF_HOME env var value, cleared during tests to ensure config path isolation */
+  public savedSfHome: string | undefined;
+  /** @internal saved SFDX_HOME env var value, cleared during tests to ensure config path isolation */
+  public savedSfdxHome: string | undefined;
 
   public constructor(options: { sinon?: SinonStatic; sandbox?: SinonSandbox; setup?: boolean } = {}) {
     const opts = { setup: true, ...options };
@@ -509,6 +513,15 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
   // Turn off the interoperability feature so that we don't have to mock
   // the old .sfdx config files
   Global.SFDX_INTEROPERABILITY = false;
+
+  // Save and clear SF_HOME/SFDX_HOME so ConfigFile.getPath() uses the stubbed
+  // resolveRootFolderSync paths instead of env var overrides during tests.
+  // Tests that need env var behavior can set them explicitly.
+  testContext.savedSfHome = process.env.SF_HOME;
+  testContext.savedSfdxHome = process.env.SFDX_HOME;
+  delete process.env.SF_HOME;
+  delete process.env.SFDX_HOME;
+
   const stubs: Record<string, SinonStub> = {};
 
   // Most core files create a child logger so stub this to return our test logger.
@@ -664,7 +677,16 @@ export const restoreContext = (testContext: TestContext): void => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   Object.values(testContext.SANDBOXES).forEach((theSandbox) => theSandbox.restore());
   testContext.configStubs = {};
-  // Give each test run a clean StateAggregator
+  // Clear StateAggregator cache for the current Global.DIR (env vars still cleared)
+  StateAggregator.clearInstance();
+  // Restore SF_HOME/SFDX_HOME env vars
+  if (testContext.savedSfHome !== undefined) {
+    process.env.SF_HOME = testContext.savedSfHome;
+  }
+  if (testContext.savedSfdxHome !== undefined) {
+    process.env.SFDX_HOME = testContext.savedSfdxHome;
+  }
+  // Clear StateAggregator again for the restored Global.DIR (in case it differs)
   StateAggregator.clearInstance();
   SfProject.clearInstances();
   // Allow each test to have their own config aggregator

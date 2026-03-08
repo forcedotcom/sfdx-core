@@ -357,7 +357,16 @@ export class ConfigFile<
         : ConfigFile.resolveRootFolderSync(Boolean(this.options.isGlobal));
 
       if (this.options.isGlobal === true || this.options.isState === true) {
-        configRootFolder = pathJoin(configRootFolder, this.options.stateFolder ?? Global.SFDX_STATE_FOLDER);
+        const stateFolder = this.options.stateFolder ?? Global.SFDX_STATE_FOLDER;
+        // When isGlobal and no explicit rootFolder, check if env vars override the global directory.
+        // SF_HOME overrides .sf paths, SFDX_HOME overrides .sfdx paths.
+        // Unknown stateFolders fall through to SFDX_HOME, matching the default (Global.SFDX_STATE_FOLDER).
+        if (!this.options.rootFolder && this.options.isGlobal === true) {
+          const envDir = stateFolder === Global.SF_STATE_FOLDER ? process.env.SF_HOME : process.env.SFDX_HOME;
+          configRootFolder = envDir ?? pathJoin(configRootFolder, stateFolder);
+        } else {
+          configRootFolder = pathJoin(configRootFolder, stateFolder);
+        }
       }
 
       this.path = pathJoin(configRootFolder, this.options.filePath ? this.options.filePath : '', this.options.filename);

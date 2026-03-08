@@ -7,7 +7,6 @@
 
 import * as childProcess from 'node:child_process';
 import * as os from 'node:os';
-import { homedir } from 'node:os';
 import * as path from 'node:path';
 import { asString, ensureString, Nullable } from '@salesforce/ts-types';
 import { parseJsonMap } from '@salesforce/kit';
@@ -520,11 +519,7 @@ export class GenericKeychainAccess implements PasswordStore {
   // eslint-disable-next-line class-methods-use-this
   protected async isValidFileAccess(cb: (error: Nullable<NodeJS.ErrnoException>) => Promise<void>): Promise<void> {
     try {
-      const root = homedir();
-      await fs.promises.access(
-        path.join(root, Global.SFDX_STATE_FOLDER),
-        fs.constants.R_OK | fs.constants.X_OK | fs.constants.W_OK
-      );
+      await fs.promises.access(Global.DIR, fs.constants.R_OK | fs.constants.X_OK | fs.constants.W_OK);
       await cb(null);
     } catch (err) {
       await cb(err as Error);

@@ -6,7 +6,6 @@
  */
 
 import { join, dirname } from 'node:path';
-import { homedir } from 'node:os';
 
 import { AsyncOptionalCreatable, ensureArray } from '@salesforce/kit';
 import { Nullable } from '@salesforce/ts-types';
@@ -209,4 +208,4 @@ const aliasStoreToRawFileContents = (aliasStore: Map<string, string>): string =>
   JSON.stringify({ [DEFAULT_GROUP]: Object.fromEntries(Array.from(aliasStore.entries())) });
 
 // exported for testSetup mocking
-export const getFileLocation = (): string => join(homedir(), Global.SFDX_STATE_FOLDER, FILENAME);
+export const getFileLocation = (): string => join(Global.DIR, FILENAME);
