@@ -1,3 +1,12 @@
+# [8.27.0](https://github.com/forcedotcom/sfdx-core/compare/8.26.3...8.27.0) (2026-03-09)
+
+
+### Features
+
+* **fs:** add globSync and promises.glob to VirtualFs; bump memfs to 4.38.1 ([#1267](https://github.com/forcedotcom/sfdx-core/issues/1267)) ([8b0850f](https://github.com/forcedotcom/sfdx-core/commit/8b0850f06ffe9c1e2369390b4693bcc541b0bf7f))
+
+
+
 ## [8.26.3](https://github.com/forcedotcom/sfdx-core/compare/8.26.2...8.26.3) (2026-02-25)
 
 
