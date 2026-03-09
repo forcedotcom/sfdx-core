@@ -88,6 +88,7 @@
     "@types/benchmark": "^2.1.5",
     "@types/fast-levenshtein": "^0.0.4",
     "@types/jsonwebtoken": "9.0.10",
+    "@types/node": "^25",
     "@types/proper-lockfile": "^4.1.4",
     "@types/semver": "^7.5.8",
     "benchmark": "^2.1.4",
