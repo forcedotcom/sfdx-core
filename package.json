@@ -4,7 +4,7 @@
   "description": "Core libraries to interact with SFDX projects, orgs, and APIs.",
   "main": "lib/index",
   "types": "lib/index.d.ts",
-  "license": "BSD-3-Clause",
+  "license": "Apache-2.0",
   "engines": {
     "node": ">=18.0.0"
   },
@@ -33,6 +33,7 @@
     "clean-all": "sf-clean all",
     "compile": "wireit",
     "docs": "sf-docs",
+    "fix-license": "eslint src test --fix --rule \"header/header: [2]\"",
     "format": "wireit",
     "link-check": "wireit",
     "lint": "wireit",
@@ -82,7 +83,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@salesforce/dev-scripts": "^10.1.1",
+    "@salesforce/dev-scripts": "^11.0.4",
     "@salesforce/ts-sinon": "^1.4.31",
     "@types/benchmark": "^2.1.5",
     "@types/fast-levenshtein": "^0.0.4",
