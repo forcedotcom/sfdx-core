@@ -49,6 +49,7 @@ export type VirtualFs = Omit<
       (path: string): Promise<Buffer>;
       (path: string, options: BufferEncoding | { encoding: BufferEncoding }): Promise<string>;
     };
+    glob: MemFs['promises']['glob'];
   };
 
   // Override sync methods with specific types
@@ -63,6 +64,7 @@ export type VirtualFs = Omit<
   ) => void;
   /** there are some differences between node:fs and memfs for statSync around bigint stats.  Be careful if using those */
   statSync: typeof nodeFs.statSync;
+  globSync: MemFs['globSync'];
   mkdtempSync: typeof nodeFs.mkdtempSync;
   createWriteStream: typeof nodeFs.createWriteStream;
   mkdirSync: typeof nodeFs.mkdirSync;
