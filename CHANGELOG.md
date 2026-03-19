@@ -1,3 +1,12 @@
+## [8.27.1](https://github.com/forcedotcom/sfdx-core/compare/8.27.0...8.27.1) (2026-03-19)
+
+
+### Bug Fixes
+
+* password complexity 4 behavior matches documentation @W-21055675@ ([#1268](https://github.com/forcedotcom/sfdx-core/issues/1268)) ([c90db97](https://github.com/forcedotcom/sfdx-core/commit/c90db9774f3eea56f73b68c7275e514ae5be76ff))
+
+
+
 # [8.27.0](https://github.com/forcedotcom/sfdx-core/compare/8.26.3...8.27.0) (2026-03-09)
 
 
