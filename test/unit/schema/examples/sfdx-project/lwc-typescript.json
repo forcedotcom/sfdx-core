@@ -1,0 +1,13 @@
+{
+  "name": "lwc-typescript-project",
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true
+    }
+  ],
+  "namespace": "",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "62.0",
+  "defaultLWCLanguage": "typescript"
+}
