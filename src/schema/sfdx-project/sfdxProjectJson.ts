@@ -35,7 +35,7 @@ export const ProjectJsonSchema = z.strictObject({
     .optional()
     .meta({ title: 'Source API Version' })
     .describe('The API version that the source is compatible with. By default it matches the API version.'),
-  defaultLWCLanguage: z
+  defaultLwcLanguage: z
     .enum(['javascript', 'typescript'])
     .optional()
     .meta({ title: 'Default LWC Language' })
