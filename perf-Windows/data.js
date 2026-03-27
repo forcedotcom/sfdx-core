@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1774572875884,
+  "lastUpdate": 1774628900013,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -37482,6 +37482,72 @@ window.BENCHMARK_DATA = {
             "range": "±203.62%",
             "unit": "ops/sec",
             "extra": "21 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shubham.goyal@salesforce.com",
+            "name": "Shubham Goyal",
+            "username": "shugo111"
+          },
+          "committer": {
+            "email": "shubham.goyal@salesforce.com",
+            "name": "Shubham Goyal",
+            "username": "shugo111"
+          },
+          "distinct": true,
+          "id": "cb1fede2f0022cec98ec39ad1c18999812cd60b1",
+          "message": "fix: rename defaultLWCLanguage to defaultLwcLanguage @W-21523324@\n\nFollow Salesforce naming convention for acronyms in camelCase properties.\nConvention uses lowercase for acronyms (sfdcLoginUrl, sourceApiVersion).\n\nChanges:\n- src/schema/sfdx-project/sfdxProjectJson.ts: defaultLWCLanguage → defaultLwcLanguage\n- test examples: Update to use lowercase naming\n\nThis aligns with review feedback from wjhsf for the templates PR #758.",
+          "timestamp": "2026-03-26T15:15:21+05:30",
+          "tree_id": "3f633364291f77a7e13885d7a3e02810c346db19",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/cb1fede2f0022cec98ec39ad1c18999812cd60b1"
+        },
+        "date": 1774628882983,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 352893,
+            "range": "±0.82%",
+            "unit": "ops/sec",
+            "extra": "91 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1161061,
+            "range": "±12.19%",
+            "unit": "ops/sec",
+            "extra": "43 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 15809,
+            "range": "±205.93%",
+            "unit": "ops/sec",
+            "extra": "18 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 716107,
+            "range": "±12.24%",
+            "unit": "ops/sec",
+            "extra": "76 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 379155,
+            "range": "±11.80%",
+            "unit": "ops/sec",
+            "extra": "55 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 9100,
+            "range": "±200.97%",
+            "unit": "ops/sec",
+            "extra": "24 samples"
           }
         ]
       }
