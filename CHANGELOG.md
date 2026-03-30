@@ -1,3 +1,17 @@
+# [8.28.0](https://github.com/forcedotcom/sfdx-core/compare/8.27.1...8.28.0) (2026-03-30)
+
+
+### Bug Fixes
+
+* rename defaultLWCLanguage to defaultLwcLanguage @W-21523324@ ([cb1fede](https://github.com/forcedotcom/sfdx-core/commit/cb1fede2f0022cec98ec39ad1c18999812cd60b1)), closes [#758](https://github.com/forcedotcom/sfdx-core/issues/758)
+
+
+### Features
+
+* **schema:** add defaultLWCLanguage property to sfdx-project.json schema ([39aecce](https://github.com/forcedotcom/sfdx-core/commit/39aeccebdacb92dd8719f38e2f1af01050ba6cbf)), closes [#758](https://github.com/forcedotcom/sfdx-core/issues/758)
+
+
+
 ## [8.27.1](https://github.com/forcedotcom/sfdx-core/compare/8.27.0...8.27.1) (2026-03-19)
 
 
