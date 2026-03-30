@@ -35,6 +35,13 @@ export const ProjectJsonSchema = z.strictObject({
     .optional()
     .meta({ title: 'Source API Version' })
     .describe('The API version that the source is compatible with. By default it matches the API version.'),
+  defaultLwcLanguage: z
+    .enum(['javascript', 'typescript'])
+    .optional()
+    .meta({ title: 'Default LWC Language' })
+    .describe(
+      'Default language for Lightning Web Components in this project. When set to "typescript", generates TypeScript configuration files and TypeScript-aware ESLint config. Defaults to "javascript" if not specified.'
+    ),
   sfdcLoginUrl: z
     .string()
     .optional()
