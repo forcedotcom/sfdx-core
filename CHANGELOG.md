@@ -1,3 +1,12 @@
+## [8.28.1](https://github.com/forcedotcom/sfdx-core/compare/8.28.0...8.28.1) (2026-03-31)
+
+
+### Bug Fixes
+
+* update edition schema-W-21773402 ([#1271](https://github.com/forcedotcom/sfdx-core/issues/1271)) ([3361202](https://github.com/forcedotcom/sfdx-core/commit/336120257db584ea87a601eb9cbf9b47ddc7fb50))
+
+
+
 # [8.28.0](https://github.com/forcedotcom/sfdx-core/compare/8.27.1...8.28.0) (2026-03-30)
 
 
