@@ -16,16 +16,27 @@ export const ScratchOrgDefSchema = z
   .object({
     orgName: z.string().optional().describe('The name of the scratch org.').meta({ title: 'Organization Name' }),
     edition: z
-      .enum([
-        'developer',
-        'enterprise',
-        'group',
-        'partner-developer',
-        'partner-enterprise',
-        'partner-group',
-        'partner-professional',
-        'professional',
-      ])
+      .string()
+      .refine(
+        (val) => {
+          const validOptions = [
+            'developer',
+            'enterprise',
+            'group',
+            'partner developer',
+            'partner enterprise',
+            'partner group',
+            'partner professional',
+            'professional',
+          ];
+          // Check if the lowercase input matches any of our valid options
+          return validOptions.includes(val.toLowerCase());
+        },
+        {
+          message:
+            'Invalid Salesforce edition. Valid options are: developer, enterprise, group, partner developer, partner enterprise, partner group, partner professional, professional.',
+        }
+      )
       .describe('The Salesforce edition of the scratch org.'),
     country: z
       .string()
