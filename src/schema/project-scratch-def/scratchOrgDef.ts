@@ -37,6 +37,18 @@ export const ScratchOrgDefSchema = z
             'Invalid Salesforce edition. Valid options are: developer, enterprise, group, partner developer, partner enterprise, partner group, partner professional, professional.',
         }
       )
+      .meta({
+        enum: [
+          'developer',
+          'enterprise',
+          'group',
+          'partner developer',
+          'partner enterprise',
+          'partner group',
+          'partner professional',
+          'professional',
+        ],
+      })
       .describe('The Salesforce edition of the scratch org.'),
     country: z
       .string()
