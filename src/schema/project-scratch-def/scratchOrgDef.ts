@@ -39,14 +39,14 @@ export const ScratchOrgDefSchema = z
       )
       .meta({
         enum: [
-          'developer',
-          'enterprise',
-          'group',
-          'partner developer',
-          'partner enterprise',
-          'partner group',
-          'partner professional',
-          'professional',
+          'Developer',
+          'Enterprise',
+          'Group',
+          'Professional',
+          'Partner Developer',
+          'Partner Enterprise',
+          'Partner Group',
+          'Partner Professional',
         ],
       })
       .describe('The Salesforce edition of the scratch org.'),
