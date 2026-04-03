@@ -625,10 +625,15 @@ const translateToSf = (sfdxContents: ConfigProperties, SfConfig: Config): Config
 const buildSfdxPath = (options: ConfigFile.Options): string => {
   // Don't let users store config files in homedir without being in the state folder.
   const configRootFolder = options.rootFolder ?? ConfigFile.resolveRootFolderSync(!!options.isGlobal);
-  const rootWithState =
-    options.isGlobal === true || options.isState === true
-      ? pathJoin(configRootFolder, Global.SFDX_STATE_FOLDER)
-      : configRootFolder;
+  let rootWithState: string;
+  if (!options.rootFolder && options.isGlobal === true) {
+    // Use Global.SFDX_DIR which respects the SFDX_HOME env var
+    rootWithState = Global.SFDX_DIR;
+  } else if (options.isGlobal === true || options.isState === true) {
+    rootWithState = pathJoin(configRootFolder, Global.SFDX_STATE_FOLDER);
+  } else {
+    rootWithState = configRootFolder;
+  }
 
   return pathJoin(rootWithState, SFDX_CONFIG_FILE_NAME);
 };

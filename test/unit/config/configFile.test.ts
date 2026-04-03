@@ -14,6 +14,7 @@ import { expect } from 'chai';
 import { assert } from '@salesforce/ts-types';
 import lockfileLib from 'proper-lockfile';
 import { ConfigFile } from '../../../src/config/configFile';
+import { Global } from '../../../src/global';
 import { SfError } from '../../../src';
 import { shouldThrow, TestContext } from '../../../src/testSetup';
 
@@ -78,6 +79,61 @@ describe('Config', () => {
       expect(config.getPath()).to.contain(Path.join('my', 'path', 'test'));
     });
   });
+  describe('global path with env var overrides', () => {
+    let savedSfdxHome: string | undefined;
+    let savedSfHome: string | undefined;
+
+    beforeEach(() => {
+      savedSfdxHome = process.env.SFDX_HOME;
+      savedSfHome = process.env.SF_HOME;
+    });
+
+    afterEach(() => {
+      if (savedSfdxHome === undefined) {
+        delete process.env.SFDX_HOME;
+      } else {
+        process.env.SFDX_HOME = savedSfdxHome;
+      }
+      if (savedSfHome === undefined) {
+        delete process.env.SF_HOME;
+      } else {
+        process.env.SF_HOME = savedSfHome;
+      }
+    });
+
+    it('SFDX_HOME overrides global .sfdx path', () => {
+      process.env.SFDX_HOME = '/tmp/sfdx-test';
+      const config = new TestConfig({ filename: 'test.json', isGlobal: true, stateFolder: Global.SFDX_STATE_FOLDER });
+      expect(config.getPath()).to.equal(Path.join('/tmp/sfdx-test', 'test.json'));
+    });
+
+    it('SF_HOME overrides global .sf path', () => {
+      process.env.SF_HOME = '/tmp/sf-test';
+      const config = new TestConfig({ filename: 'test.json', isGlobal: true, stateFolder: Global.SF_STATE_FOLDER });
+      expect(config.getPath()).to.equal(Path.join('/tmp/sf-test', 'test.json'));
+    });
+
+    it('ignores env vars when rootFolder is explicitly set', () => {
+      process.env.SFDX_HOME = '/tmp/sfdx-test';
+      const config = new TestConfig({
+        filename: 'test.json',
+        isGlobal: true,
+        stateFolder: Global.SFDX_STATE_FOLDER,
+        rootFolder: '/tmp/custom-root',
+      });
+      expect(config.getPath()).to.equal(Path.join('/tmp/custom-root', '.sfdx', 'test.json'));
+    });
+
+    it('defaults to homedir/.sfdx when env vars not set', () => {
+      delete process.env.SFDX_HOME;
+      delete process.env.SF_HOME;
+      const config = new TestConfig({ filename: 'test.json', isGlobal: true });
+      // Without env vars, falls back to resolveRootFolderSync(true) + '.sfdx'
+      expect(config.getPath()).to.contain('.sfdx');
+      expect(config.getPath()).to.contain('test.json');
+    });
+  });
+
   describe('creation', () => {
     it('not using global has project dir', async () => {
       const config = await TestConfig.create(TestConfig.getOptions('test', false));

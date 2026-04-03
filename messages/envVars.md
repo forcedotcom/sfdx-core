@@ -319,3 +319,11 @@ Your environment has both variables populated, and with different values. The va
 # sfCapitalizeRecordTypes
 
 Whether record types are capitalized on scratch org creation.
+
+# sfdxHome
+
+Override the default ~/.sfdx directory path for global SFDX state. Use SF_HOME instead.
+
+# sfHome
+
+Override the default ~/.sf directory path for global SF CLI state (config, auth, logs, cache).

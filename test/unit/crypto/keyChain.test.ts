@@ -16,6 +16,7 @@ import {
   keyChainImpl,
 } from '../../../src/crypto/keyChainImpl';
 import { TestContext } from '../../../src/testSetup';
+import { Global } from '../../../src/global';
 
 describe('keyChain', () => {
   const $$ = new TestContext();
@@ -99,7 +100,7 @@ describe('keyChain', () => {
         expect(getPasswordError).have.property('name', 'PasswordNotFoundError');
         expect(accessSpy.called).to.be.true;
         const arg: string = accessSpy.args[0][0] as string;
-        expect(arg.endsWith('.sfdx')).to.be.true;
+        expect(arg).to.equal(Global.DIR);
         accessSpy.resetHistory();
       })
       .then(() =>
@@ -110,7 +111,7 @@ describe('keyChain', () => {
             expect(writeFileStub.called).to.be.true;
             expect(writeFileStub.args).to.have.length(1);
             expect(writeFileStub.args[0]).to.have.length(3);
-            expect(writeFileStub.args[0][0]).to.include(path.join('.sfdx', 'key.json'));
+            expect(writeFileStub.args[0][0]).to.include(path.join(Global.DIR, 'key.json'));
             expect(writeFileStub.args[0][1]).to.include(TEST_PASSWORD);
           }
         )

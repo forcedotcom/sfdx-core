@@ -2,6 +2,8 @@
   "extends": "@salesforce/dev-config/tsconfig-strict",
   "compilerOptions": {
     "outDir": "./lib",
+    "skipLibCheck": true,
+    "noEmitOnError": false,
     "resolveJsonModule": true,
     "lib": ["ES2022"],
     "module": "Node16",

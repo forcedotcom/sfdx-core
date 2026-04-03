@@ -57,6 +57,7 @@ export enum EnvironmentVariable {
   'SFDX_UPDATE_INSTRUCTIONS' = 'SFDX_UPDATE_INSTRUCTIONS',
   'SFDX_INSTALLER' = 'SFDX_INSTALLER',
   'SFDX_ENV' = 'SFDX_ENV',
+  'SFDX_HOME' = 'SFDX_HOME',
   'SF_TARGET_ORG' = 'SF_TARGET_ORG',
   'SF_TARGET_DEV_HUB' = 'SF_TARGET_DEV_HUB',
   'SF_ACCESS_TOKEN' = 'SF_ACCESS_TOKEN',
@@ -92,6 +93,7 @@ export enum EnvironmentVariable {
   'SF_INSTALLER' = 'SF_INSTALLER',
   'SF_ENV' = 'SF_ENV',
   'SF_CAPITALIZE_RECORD_TYPES' = 'SF_CAPITALIZE_RECORD_TYPES',
+  'SF_HOME' = 'SF_HOME',
 }
 type EnvMetaData = {
   description: string;
@@ -279,6 +281,10 @@ export const SUPPORTED_ENV_VARS: EnvType = {
     description: getMessage(EnvironmentVariable.SFDX_ENV),
     synonymOf: null,
   },
+  [EnvironmentVariable.SFDX_HOME]: {
+    description: getMessage(EnvironmentVariable.SFDX_HOME),
+    synonymOf: null,
+  },
   [EnvironmentVariable.SF_TARGET_ORG]: {
     description: getMessage(EnvironmentVariable.SF_TARGET_ORG),
     synonymOf: null,
@@ -420,6 +426,10 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SF_CAPITALIZE_RECORD_TYPES]: {
     description: getMessage(EnvironmentVariable.SF_CAPITALIZE_RECORD_TYPES),
+    synonymOf: null,
+  },
+  [EnvironmentVariable.SF_HOME]: {
+    description: getMessage(EnvironmentVariable.SF_HOME),
     synonymOf: null,
   },
 };
