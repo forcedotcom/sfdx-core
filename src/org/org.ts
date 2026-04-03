@@ -392,9 +392,17 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       singleAccessUrl.searchParams.append('redirect_uri', redirectUri);
     }
 
-    const response = await this.connection.requestGet<SingleAccessUrlRes>(singleAccessUrl.toString());
-    if (response.frontdoor_uri) return response.frontdoor_uri;
-    throw new SfError(messages.getMessage('FrontdoorURLError')).setData(response);
+    try {
+      const response = await this.connection.requestGet<SingleAccessUrlRes>(singleAccessUrl.toString());
+      if (response.frontdoor_uri) return response.frontdoor_uri;
+      throw new SfError(messages.getMessage('FrontdoorURLError')).setData(response);
+    } catch (err) {
+      // See: https://help.salesforce.com/s/articleView?id=xcloud.frontdoor_singleaccess.htm&type=5
+      if (err instanceof Error && err.message.includes('Bad_OAuth_Token')) {
+        throw messages.createError('FrontdoorURLBadOauthToken', undefined, [this.getUsername()]);
+      }
+      throw err;
+    }
   }
 
   /**

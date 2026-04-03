@@ -74,6 +74,14 @@ The sandbox %s cannot resume with status of %s.
 
 Failed to generate a frontdoor URL.
 
+# FrontdoorURLBadOauthToken
+
+Failed to generate a frontdoor URL.
+
+# FrontdoorURLBadOauthToken.actions
+
+- Check that the user "%s" does not have the "API Only User" permission assigned, it prevents browser access.
+
 # FlowIdNotFound
 
 ID not found for Flow %s.
