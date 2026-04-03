@@ -8,6 +8,16 @@
       "type": "string"
     },
     "edition": {
+      "enum": [
+        "Developer",
+        "Enterprise",
+        "Group",
+        "Professional",
+        "Partner Developer",
+        "Partner Enterprise",
+        "Partner Group",
+        "Partner Professional"
+      ],
       "description": "The Salesforce edition of the scratch org.",
       "type": "string"
     },
