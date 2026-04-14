@@ -1,3 +1,12 @@
+## [8.28.2](https://github.com/forcedotcom/sfdx-core/compare/8.28.1...8.28.2) (2026-04-14)
+
+
+### Bug Fixes
+
+* add .meta to generate schema-W-21858759 ([#1275](https://github.com/forcedotcom/sfdx-core/issues/1275)) ([bb3aee1](https://github.com/forcedotcom/sfdx-core/commit/bb3aee12b405bdf2ca5d729ebbf8c2aab715a7b6))
+
+
+
 ## [8.28.1](https://github.com/forcedotcom/sfdx-core/compare/8.28.0...8.28.1) (2026-03-31)
 
 
