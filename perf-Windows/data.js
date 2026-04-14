@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775150026737,
+  "lastUpdate": 1776186683749,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -38076,6 +38076,72 @@ window.BENCHMARK_DATA = {
             "range": "±187.03%",
             "unit": "ops/sec",
             "extra": "37 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a044a1c318a49963866b27832924a1c8a949ad11",
+          "message": "fix(deps): bump lodash from 4.17.21 to 4.18.1\n\nBumps [lodash](https://github.com/lodash/lodash) from 4.17.21 to 4.18.1.\n- [Release notes](https://github.com/lodash/lodash/releases)\n- [Commits](https://github.com/lodash/lodash/compare/4.17.21...4.18.1)\n\n---\nupdated-dependencies:\n- dependency-name: lodash\n  dependency-version: 4.18.1\n  dependency-type: indirect\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2026-04-14T17:06:18Z",
+          "tree_id": "4f8eaeaa98ef5aa9d128680eea635fa913b818a0",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/a044a1c318a49963866b27832924a1c8a949ad11"
+        },
+        "date": 1776186668427,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 365619,
+            "range": "±1.95%",
+            "unit": "ops/sec",
+            "extra": "89 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 821311,
+            "range": "±12.35%",
+            "unit": "ops/sec",
+            "extra": "35 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 520559,
+            "range": "±11.32%",
+            "unit": "ops/sec",
+            "extra": "43 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 25186,
+            "range": "±184.09%",
+            "unit": "ops/sec",
+            "extra": "44 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 306826,
+            "range": "±13.13%",
+            "unit": "ops/sec",
+            "extra": "49 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 272299,
+            "range": "±13.07%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
           }
         ]
       }
