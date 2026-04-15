@@ -1,3 +1,12 @@
+## [8.28.3](https://github.com/forcedotcom/sfdx-core/compare/8.28.2...8.28.3) (2026-04-15)
+
+
+### Bug Fixes
+
+* **deps:** bump lodash from 4.17.21 to 4.18.1 ([a044a1c](https://github.com/forcedotcom/sfdx-core/commit/a044a1c318a49963866b27832924a1c8a949ad11))
+
+
+
 ## [8.28.2](https://github.com/forcedotcom/sfdx-core/compare/8.28.1...8.28.2) (2026-04-14)
 
 
