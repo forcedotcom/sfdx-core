@@ -58,6 +58,14 @@ AuthInfo orgId is undefined.
 
 The sandbox creation has not completed.
 
+# sandboxAuthNotComplete
+
+The sandbox completed, but authentication failed: %s
+
+# sandboxAuthIncomplete
+
+Sandbox completed but the sandboxAuth API returned INVALID_STATUS: %s
+
 # SandboxProcessNotFoundBySandboxName
 
 We can't find a SandboxProcess with the SandboxName %s.

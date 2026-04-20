@@ -1211,9 +1211,7 @@ describe('Org Tests', () => {
         });
       });
 
-      it('will fail to auth sandbox user correctly - but will swallow the error', async () => {
-        // @ts-expect-error because private member
-        const logStub = stubMethod($$.SANDBOX, prod.logger, 'debug');
+      it('will throw SandboxAuthIncompleteError on INVALID_STATUS', async () => {
         const sandboxResponse = {
           SandboxName: 'test',
           EndDate: '2021-19-06T20:25:46.000+0000',
@@ -1223,11 +1221,15 @@ describe('Org Tests', () => {
         // @ts-expect-error - type not assignable
         stubMethod<SandboxUserAuthResponse>($$.SANDBOX, prod.getConnection().tooling, 'request').throws(err);
 
-        // @ts-expect-error because private method
-        await prod.sandboxSignupComplete(sandboxResponse);
-        expect(logStub.callCount).to.equal(3);
-        // error swallowed
-        expect(logStub.thirdCall.args[0]).to.equal('Error while authenticating the user:');
+        try {
+          // @ts-expect-error because private method
+          await shouldThrow(prod.sandboxSignupComplete(sandboxResponse));
+        } catch (e) {
+          const error = e as SfError;
+          expect(error.name).to.equal('SandboxAuthIncompleteError');
+          expect(error.message).to.include('could not auth');
+          expect(error.cause).to.equal(err);
+        }
       });
     });
 
@@ -1547,6 +1549,67 @@ describe('Org Tests', () => {
           expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_RESUME, statusResult.records[0])).to.be.true;
           expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_STATUS)).to.be.true;
         }
+      });
+
+      it('should throw SandboxAuthNotCompleteError when wait=0 and writeSandboxAuthFile fails', async () => {
+        const completedRecord = {
+          ...statusResult.records[0],
+          Status: 'Completed',
+          EndDate: '2023-09-28T20:50:26.000+0000',
+        };
+        queryStub.resolves({ records: [completedRecord] });
+
+        const sandboxAuthResponse = {
+          authUserName: 'test@sandbox.org',
+          authCode: 'code',
+          instanceUrl: 'https://test.salesforce.com',
+          loginUrl: 'https://login.salesforce.com',
+        } as SandboxUserAuthResponse;
+        stubMethod($$.SANDBOX, prod, 'sandboxSignupComplete').resolves(sandboxAuthResponse);
+
+        const writeError = new Error('JWT auth failed');
+        stubMethod($$.SANDBOX, prod, 'writeSandboxAuthFile').rejects(writeError);
+
+        try {
+          await shouldThrow(prod.resumeSandbox({ SandboxProcessObjId: completedRecord.Id }));
+        } catch (err) {
+          const error = err as SfError;
+          expect(error.name).to.equal('SandboxAuthNotCompleteError');
+          expect(error.message).to.include('JWT auth failed');
+          expect(error.cause).to.equal(writeError);
+          expect(pollStatusAndAuthSpy.called).to.be.false;
+          expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_AUTH, sandboxAuthResponse)).to.be.true;
+        }
+      });
+
+      it('should retry polling when sandboxSignupComplete throws SandboxAuthIncompleteError', async () => {
+        queryStub.resolves(statusResult);
+        const sbxProcessId = statusResult.records[0].Id;
+
+        const authIncompleteErr = new SfError('INVALID_STATUS response', 'SandboxAuthIncompleteError');
+        const sandboxAuthResponse = {
+          authUserName: 'test@sandbox.org',
+          authCode: 'code',
+          instanceUrl: 'https://test.salesforce.com',
+          loginUrl: 'https://login.salesforce.com',
+        } as SandboxUserAuthResponse;
+        const signupStub = stubMethod($$.SANDBOX, prod, 'sandboxSignupComplete')
+          .onFirstCall()
+          .rejects(authIncompleteErr)
+          .onSecondCall()
+          .resolves(sandboxAuthResponse);
+        const writeStub = stubMethod($$.SANDBOX, prod, 'writeSandboxAuthFile').resolves();
+
+        const result = await prod.resumeSandbox(
+          { SandboxProcessObjId: sbxProcessId },
+          { wait: Duration.milliseconds(500), interval: Duration.milliseconds(100) }
+        );
+
+        expect(signupStub.calledTwice).to.be.true;
+        expect(writeStub.calledOnce).to.be.true;
+        expect(result.Id).to.equal(sbxProcessId);
+        expect(pollStatusAndAuthSpy.called).to.be.true;
+        expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_AUTH, sandboxAuthResponse)).to.be.true;
       });
     });
 
