@@ -60,11 +60,11 @@ The sandbox creation has not completed.
 
 # sandboxAuthNotComplete
 
-The sandbox completed, but authentication failed: %s
+The sandbox org completed successfully, but the local authentication file could not be written: %s. Run "org resume sandbox" again to retry authentication.
 
 # sandboxAuthIncomplete
 
-Sandbox completed but the sandboxAuth API returned INVALID_STATUS: %s
+The sandbox org completed, but the authentication endpoint is not ready yet (INVALID_STATUS: %s). Run "org resume sandbox" to retry.
 
 # SandboxProcessNotFoundBySandboxName
 

@@ -1550,6 +1550,26 @@ describe('Org Tests', () => {
           expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_STATUS)).to.be.true;
         }
       });
+
+      it('will throw SandboxAuthNotCompleteError when writeSandboxAuthFile fails (wait=0, status=Completed)', async () => {
+        const completedSbxProcess = Object.assign({}, statusResult.records[0], { Status: 'Completed' });
+        queryStub.resolves({ records: [completedSbxProcess] });
+        const sandboxInfo = { authUserName: 'test@example.com' } as SandboxUserAuthResponse;
+        stubMethod($$.SANDBOX, prod, 'sandboxSignupComplete').resolves(sandboxInfo);
+        const writeErr = new Error('disk full');
+        stubMethod($$.SANDBOX, prod, 'writeSandboxAuthFile').throws(writeErr);
+
+        try {
+          await shouldThrow(
+            prod.resumeSandbox({ SandboxName: completedSbxProcess.SandboxName }, { wait: Duration.seconds(0) })
+          );
+        } catch (e) {
+          const error = e as SfError;
+          expect(error.name).to.equal('SandboxAuthNotCompleteError');
+          expect(error.message).to.include('disk full');
+          expect(error.cause).to.equal(writeErr);
+        }
+      });
     });
 
     describe('sandboxStatus', () => {
