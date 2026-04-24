@@ -1,3 +1,14 @@
+## [8.28.4](https://github.com/forcedotcom/sfdx-core/compare/8.28.3...8.28.4) (2026-04-24)
+
+
+### Bug Fixes
+
+* remove the response ([67ab727](https://github.com/forcedotcom/sfdx-core/commit/67ab727054ae195bf1c3c71b016121f461f244d9))
+* update response in catch block sandbox ([0ac5ba8](https://github.com/forcedotcom/sfdx-core/commit/0ac5ba874a68fa8b5a14062bcfaaba95690aea3c))
+* update the md file and test ([c453813](https://github.com/forcedotcom/sfdx-core/commit/c453813622ec98954d7a58a346eb5448f1cb3808))
+
+
+
 ## [8.28.3](https://github.com/forcedotcom/sfdx-core/compare/8.28.2...8.28.3) (2026-04-15)
 
 
