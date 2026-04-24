@@ -66,7 +66,7 @@ export class SfError<T extends ErrorDataProperties = ErrorDataProperties> extend
   public data?: T;
 
   /**
-   * Some errors support `error.code` instead of `error.name`. This keeps backwards compatability.
+   * Some errors support `error.code` instead of `error.name`. This keeps backwards compatibility.
    */
   #code?: string;
 
@@ -76,7 +76,7 @@ export class SfError<T extends ErrorDataProperties = ErrorDataProperties> extend
    * @param message The error message.
    * @param name The error name. Defaults to 'SfError'.
    * @param actions The action message(s).
-   * @param exitCodeOrCause The exit code which will be used by SfdxCommand or he underlying error that caused this error to be raised.
+   * @param exitCodeOrCause The exit code which will be used by SfdxCommand or the underlying error that caused this error to be raised.
    * @param cause The underlying error that caused this error to be raised.
    */
   public constructor(

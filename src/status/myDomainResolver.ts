@@ -71,7 +71,7 @@ export class MyDomainResolver extends AsyncOptionalCreatable<MyDomainResolver.Op
    * given the optional interval. Returns the resolved ip address.
    *
    * If SFDX_DISABLE_DNS_CHECK environment variable is set to true, it will immediately return the host without
-   * executing the dns loookup.
+   * executing the dns lookup.
    */
   public async resolve(): Promise<string> {
     const env = new Env();

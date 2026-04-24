@@ -675,7 +675,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     await this.removeSandboxConfig();
     await this.removeUsers(throwWhenRemoveFails);
     await this.removeUsersConfig();
-    // An attempt to remove this org's auth file occurs in this.removeUsersConfig. That's because this org's usersname is also
+    // An attempt to remove this org's auth file occurs in this.removeUsersConfig. That's because this org's username is also
     // included in the OrgUser config file.
     //
     // So, just in case no users are added to this org we will try the remove again.
@@ -1305,7 +1305,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   /**
    * Gets the sandboxProcessObject and then polls for it to complete.
    *
-   * @param sandboxProcessName sanbox process name
+   * @param sandboxProcessName sandbox process name
    * @param options { wait?: Duration; interval?: Duration }
    * @returns {SandboxProcessObject} The SandboxProcessObject for the sandbox
    */

@@ -869,7 +869,7 @@ export class StreamingMockCometClient extends CometClient {
   public setHeader(name: string, value: string): void {}
 
   /**
-   * Fake subscription that completed after the setTimout event phase.
+   * Fake subscription that completed after the setTimeout event phase.
    *
    * @param channel The streaming channel.
    * @param callback The function to invoke after the subscription completes.
