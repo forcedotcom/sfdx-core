@@ -1211,9 +1211,7 @@ describe('Org Tests', () => {
         });
       });
 
-      it('will fail to auth sandbox user correctly - but will swallow the error', async () => {
-        // @ts-expect-error because private member
-        const logStub = stubMethod($$.SANDBOX, prod.logger, 'debug');
+      it('will throw SandboxAuthIncompleteError on INVALID_STATUS', async () => {
         const sandboxResponse = {
           SandboxName: 'test',
           EndDate: '2021-19-06T20:25:46.000+0000',
@@ -1223,11 +1221,15 @@ describe('Org Tests', () => {
         // @ts-expect-error - type not assignable
         stubMethod<SandboxUserAuthResponse>($$.SANDBOX, prod.getConnection().tooling, 'request').throws(err);
 
-        // @ts-expect-error because private method
-        await prod.sandboxSignupComplete(sandboxResponse);
-        expect(logStub.callCount).to.equal(3);
-        // error swallowed
-        expect(logStub.thirdCall.args[0]).to.equal('Error while authenticating the user:');
+        try {
+          // @ts-expect-error because private method
+          await shouldThrow(prod.sandboxSignupComplete(sandboxResponse));
+        } catch (e) {
+          const error = e as SfError;
+          expect(error.name).to.equal('SandboxAuthIncompleteError');
+          expect(error.message).to.include('could not auth');
+          expect(error.cause).to.equal(err);
+        }
       });
     });
 
@@ -1546,6 +1548,26 @@ describe('Org Tests', () => {
           expect(querySbxProcessIdSpy.firstCall.firstArg).to.equal(statusResult.records[0].Id);
           expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_RESUME, statusResult.records[0])).to.be.true;
           expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_STATUS)).to.be.true;
+        }
+      });
+
+      it('will throw SandboxAuthNotCompleteError when writeSandboxAuthFile fails (wait=0, status=Completed)', async () => {
+        const completedSbxProcess = Object.assign({}, statusResult.records[0], { Status: 'Completed' });
+        queryStub.resolves({ records: [completedSbxProcess] });
+        const sandboxInfo = { authUserName: 'test@example.com' } as SandboxUserAuthResponse;
+        stubMethod($$.SANDBOX, prod, 'sandboxSignupComplete').resolves(sandboxInfo);
+        const writeErr = new Error('disk full');
+        stubMethod($$.SANDBOX, prod, 'writeSandboxAuthFile').throws(writeErr);
+
+        try {
+          await shouldThrow(
+            prod.resumeSandbox({ SandboxName: completedSbxProcess.SandboxName }, { wait: Duration.seconds(0) })
+          );
+        } catch (e) {
+          const error = e as SfError;
+          expect(error.name).to.equal('SandboxAuthNotCompleteError');
+          expect(error.message).to.include('disk full');
+          expect(error.cause).to.equal(writeErr);
         }
       });
     });

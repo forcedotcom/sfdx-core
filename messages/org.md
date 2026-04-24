@@ -58,6 +58,14 @@ AuthInfo orgId is undefined.
 
 The sandbox creation has not completed.
 
+# sandboxAuthNotComplete
+
+The sandbox org completed successfully, but the local authentication file could not be written: %s. Run "org resume sandbox" again to retry authentication.
+
+# sandboxAuthIncomplete
+
+The sandbox org completed, but the authentication endpoint is not ready yet (INVALID_STATUS: %s). Run "org resume sandbox" to retry.
+
 # SandboxProcessNotFoundBySandboxName
 
 We can't find a SandboxProcess with the SandboxName %s.

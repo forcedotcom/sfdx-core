@@ -584,7 +584,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
             await this.writeSandboxAuthFile(sandboxCreationProgress, sandboxInfo);
             return sandboxCreationProgress;
           } catch (err) {
-            // eat the error, we don't want to throw an error if we can't write the file
+            const authError = err instanceof Error ? err : new Error(String(err));
+            this.logger.debug('Failed to write sandbox auth file', authError.message);
+            const sfError = messages.createError('sandboxAuthNotComplete', [authError.message]);
+            sfError.cause = authError;
+            throw sfError;
           }
         }
       }
@@ -1670,8 +1674,20 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const pollingClient = await PollingClient.create({
       poll: async (): Promise<StatusResult> => {
         const sandboxProcessObj = await this.querySandboxProcessById(options.sandboxProcessObj.Id);
-        // check to see if sandbox can authenticate via sandboxAuth endpoint
-        const sandboxInfo = await this.sandboxSignupComplete(sandboxProcessObj);
+        let sandboxInfo: SandboxUserAuthResponse | undefined;
+        try {
+          // check to see if sandbox can authenticate via sandboxAuth endpoint
+          sandboxInfo = await this.sandboxSignupComplete(sandboxProcessObj);
+        } catch (err) {
+          const error = err instanceof Error ? err : SfError.wrap(isString(err) ? err : 'unknown');
+          if (error.name === 'SandboxAuthIncompleteError') {
+            this.logger.debug('Sandbox auth returned INVALID_STATUS, will retry', error.message);
+            waitingOnAuth = true;
+          } else {
+            throw error;
+          }
+        }
+
         if (sandboxInfo) {
           await Lifecycle.getInstance().emit(SandboxEvents.EVENT_AUTH, sandboxInfo);
           try {
@@ -1775,10 +1791,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       // In that case, the sandboxAuth call will throw a specific exception.
       if (error?.name === 'INVALID_STATUS') {
         this.logger.debug('Error while authenticating the user:', error.message);
-      } else {
-        // If it fails for any unexpected reason, rethrow
-        throw error;
+        const sfError = messages.createError('sandboxAuthIncomplete', [error.message]);
+        sfError.cause = error;
+        throw sfError;
       }
+      throw error;
     }
   }
 
