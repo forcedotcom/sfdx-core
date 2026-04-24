@@ -288,9 +288,9 @@ export class ConfigAggregator extends AsyncOptionalCreatable<ConfigAggregator.Op
    * Gets a resolved config property location.
    *
    * For example, `getLocation('logLevel')` will return:
-   * 1. `Location.GLOBAL` if resolved to an environment variable.
+   * 1. `Location.ENVIRONMENT` if resolved to an environment variable.
    * 1. `Location.LOCAL` if resolved to local project config.
-   * 1. `Location.ENVIRONMENT` if resolved to the global config.
+   * 1. `Location.GLOBAL` if resolved to the global config.
    *
    * @param key The key of the property.
    */

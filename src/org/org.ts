@@ -1865,7 +1865,7 @@ export namespace Org {
     NAME = 'name',
     NAMESPACE_PREFIX = 'namespacePrefix',
     INSTANCE_NAME = 'instanceName',
-    TRIAL_EXPIRATION_DATE = 'trailExpirationDate',
+    TRIAL_EXPIRATION_DATE = 'trialExpirationDate',
 
     /**
      * The Salesforce instance the org was created on. e.g. `cs42`.
