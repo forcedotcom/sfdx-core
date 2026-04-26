@@ -13,7 +13,14 @@ import type { VirtualFs } from './types';
 
 export let fs: VirtualFs;
 
-const isWeb = (): boolean => process.env.FORCE_MEMFS === 'true' || 'window' in globalThis || 'self' in globalThis;
+const isWeb = (): boolean => {
+  if (process.env.FORCE_MEMFS === 'true') return true;
+  // Server runtimes (Node, Bun) expose web-style globals like `self` for Web
+  // API compatibility but are not web environments. Detect them explicitly so
+  // we don't fall through to the `'self' in globalThis` check below.
+  if (process.versions?.node || process.versions?.bun) return false;
+  return 'window' in globalThis || 'self' in globalThis;
+};
 
 export const getVirtualFs = (memfsVolume?: memfs.Volume): VirtualFs => {
   if (isWeb()) {
