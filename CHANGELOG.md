@@ -1,3 +1,12 @@
+# [8.29.0](https://github.com/forcedotcom/sfdx-core/compare/8.28.4...8.29.0) (2026-04-29)
+
+
+### Features
+
+* update settings live doc ([#1282](https://github.com/forcedotcom/sfdx-core/issues/1282)) ([be77e82](https://github.com/forcedotcom/sfdx-core/commit/be77e82070a69fcd251814f717b00515d017a45f))
+
+
+
 ## [8.28.4](https://github.com/forcedotcom/sfdx-core/compare/8.28.3...8.28.4) (2026-04-24)
 
 
