@@ -294,6 +294,12 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailadministrationsettings.htm'
       ),
+    emailAuthorizationSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailauthorizationsettings.htm'
+      ),
     emailIntegrationSettings: z
       .record(z.string(), z.unknown())
       .optional()
@@ -872,3 +878,5 @@ export const SettingsSchema = z
       ),
   })
   .catchall(z.unknown());
+
+export type Settings = z.infer<typeof SettingsSchema>;

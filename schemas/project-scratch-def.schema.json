@@ -1004,6 +1004,14 @@
           },
           "additionalProperties": {}
         },
+        "emailAuthorizationSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailauthorizationsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
         "emailIntegrationSettings": {
           "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailintegrationsettings.htm",
           "type": "object",
