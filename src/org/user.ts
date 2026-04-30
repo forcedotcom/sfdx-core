@@ -244,7 +244,7 @@ export class User extends AsyncCreatable<User.Options> {
       }
     });
 
-    // Concatinating remaining length randomly with all lower characters
+    // Concatenating remaining length randomly with all lower characters
     password = password.concat(
       Array(Math.max(passwordCondition.length - password.length, 0))
         .fill('0')

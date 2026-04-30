@@ -1052,7 +1052,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const audienceUrl = await url.getJwtAudienceUrl(createdOrgInstance);
     let authFieldsBuilder: JsonMap | undefined;
     const authErrors = [];
-    // given that we can no longer depend on instance names or URls to determine audience, let's try them all
+    // given that we can no longer depend on instance names or URLs to determine audience, let's try them all
     const loginAndAudienceUrls = getLoginAudienceCombos(audienceUrl, loginUrl);
     for (const [login, audience] of loginAndAudienceUrls) {
       try {

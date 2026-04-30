@@ -42,7 +42,7 @@ const errorCodes = Messages.loadMessages('@salesforce/core', 'scratchOrgErrorCod
  * Returns the url to be used to authorize into the new scratch org
  *
  * @param scratchOrgInfoComplete The completed ScratchOrgInfo
- * @param hubOrgLoginUrl the hun org login url
+ * @param hubOrgLoginUrl the hub org login url
  * @param signupTargetLoginUrl the login url
  * @returns {string}
  */
