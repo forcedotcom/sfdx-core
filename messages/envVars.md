@@ -104,11 +104,11 @@ Level of messages that the CLI writes to the log file. Valid values are trace, d
 
 # sfdxLogRotationCount
 
-The default rotation period for logs. Example '1d' will rotate logs daily (at midnight).
+The number of backup rotated log files to keep. Example: '3' will have the base sf.log file, and the past 3 (period) log files.
 
 # sfdxLogRotationPeriod
 
-The number of backup rotated log files to keep. Example: '3' will have the base sf.log file, and the past 3 (period) log files.
+The default rotation period for logs. Example '1d' will rotate logs daily (at midnight).
 
 # sfdxMaxQueryLimit
 
@@ -244,11 +244,11 @@ Level of messages that the CLI writes to the log file. Valid values are trace, d
 
 # sfLogRotationCount
 
-The default rotation period for logs. Example '1d' will rotate logs daily (at midnight).
+The number of backup rotated log files to keep. Example: '3' will have the base sf.log file, and the past 3 (period) log files.
 
 # sfLogRotationPeriod
 
-The number of backup rotated log files to keep. Example: '3' will have the base sf.log file, and the past 3 (period) log files.
+The default rotation period for logs. Example '1d' will rotate logs daily (at midnight).
 
 # sfOrgMaxQueryLimit
 

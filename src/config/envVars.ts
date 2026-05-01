@@ -260,7 +260,7 @@ export const SUPPORTED_ENV_VARS: EnvType = {
     synonymOf: EnvironmentVariable.SF_USE_PROGRESS_BAR,
   },
   [EnvironmentVariable.SFDX_LAZY_LOAD_MODULES]: {
-    description: getMessage(EnvironmentVariable.SFDX_USE_PROGRESS_BAR),
+    description: getMessage(EnvironmentVariable.SFDX_LAZY_LOAD_MODULES),
     synonymOf: EnvironmentVariable.SF_LAZY_LOAD_MODULES,
   },
   [EnvironmentVariable.SFDX_S3_HOST]: {
