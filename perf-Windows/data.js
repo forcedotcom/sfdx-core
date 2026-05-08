@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778269885590,
+  "lastUpdate": 1778278562436,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -38472,6 +38472,72 @@ window.BENCHMARK_DATA = {
             "range": "±7.04%",
             "unit": "ops/sec",
             "extra": "71 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a5ae777781e72dedfc37f33a523ba7b73da15eed",
+          "message": "fix(deps): bump fast-uri from 3.0.6 to 3.1.2 in /examples\n\nBumps [fast-uri](https://github.com/fastify/fast-uri) from 3.0.6 to 3.1.2.\n- [Release notes](https://github.com/fastify/fast-uri/releases)\n- [Commits](https://github.com/fastify/fast-uri/compare/v3.0.6...v3.1.2)\n\n---\nupdated-dependencies:\n- dependency-name: fast-uri\n  dependency-version: 3.1.2\n  dependency-type: indirect\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2026-05-08T22:10:51Z",
+          "tree_id": "1d67519211efcf51ca04fc41394527e0368c373c",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/a5ae777781e72dedfc37f33a523ba7b73da15eed"
+        },
+        "date": 1778278550200,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 390704,
+            "range": "±0.48%",
+            "unit": "ops/sec",
+            "extra": "95 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1141323,
+            "range": "±10.88%",
+            "unit": "ops/sec",
+            "extra": "43 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 21402,
+            "range": "±204.19%",
+            "unit": "ops/sec",
+            "extra": "18 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 556309,
+            "range": "±13.08%",
+            "unit": "ops/sec",
+            "extra": "56 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 341016,
+            "range": "±13.28%",
+            "unit": "ops/sec",
+            "extra": "63 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 18387,
+            "range": "±182.92%",
+            "unit": "ops/sec",
+            "extra": "66 samples"
           }
         ]
       }
