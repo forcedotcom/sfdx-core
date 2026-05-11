@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778299335825,
+  "lastUpdate": 1778510110830,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -39594,6 +39594,72 @@ window.BENCHMARK_DATA = {
             "range": "±198.16%",
             "unit": "ops/sec",
             "extra": "26 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "peter.hale@salesforce.com",
+            "name": "peternhale",
+            "username": "peternhale"
+          },
+          "committer": {
+            "email": "peter.hale@salesforce.com",
+            "name": "peternhale",
+            "username": "peternhale"
+          },
+          "distinct": true,
+          "id": "30517ae9274e7a64c4236b80d04af21544770c0b",
+          "message": "feat: add org edition (OrganizationType) to auth info fields\n\nStore the Organization.OrganizationType field as orgEdition in the\nlocal auth info record, following the same pipeline as existing org\nmetadata fields (Name, InstanceName, etc.).\n\nCo-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-05-11T08:28:56-06:00",
+          "tree_id": "4caec4e42a7fc5ff9f6904b787347fa3bca5716e",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/30517ae9274e7a64c4236b80d04af21544770c0b"
+        },
+        "date": 1778510098289,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 518834,
+            "range": "±0.98%",
+            "unit": "ops/sec",
+            "extra": "94 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 107588,
+            "range": "±183.27%",
+            "unit": "ops/sec",
+            "extra": "49 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 793317,
+            "range": "±28.39%",
+            "unit": "ops/sec",
+            "extra": "48 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 30197,
+            "range": "±185.97%",
+            "unit": "ops/sec",
+            "extra": "36 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 571945,
+            "range": "±10.73%",
+            "unit": "ops/sec",
+            "extra": "62 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 399620,
+            "range": "±9.20%",
+            "unit": "ops/sec",
+            "extra": "66 samples"
           }
         ]
       }
