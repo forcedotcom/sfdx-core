@@ -1,3 +1,12 @@
+# [8.30.0](https://github.com/forcedotcom/sfdx-core/compare/8.29.1...8.30.0) (2026-05-11)
+
+
+### Features
+
+* add org edition (OrganizationType) to auth info fields ([#1285](https://github.com/forcedotcom/sfdx-core/issues/1285)) ([c19f05f](https://github.com/forcedotcom/sfdx-core/commit/c19f05f5188680290a26fc7a84e8a6f612d58e87))
+
+
+
 ## [8.29.1](https://github.com/forcedotcom/sfdx-core/compare/8.29.0...8.29.1) (2026-05-09)
 
 
