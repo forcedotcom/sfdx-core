@@ -52,6 +52,7 @@ export type OrganizationInformation = {
   IsSandbox: boolean;
   TrialExpirationDate: string | null;
   NamespacePrefix: string | null;
+  OrganizationType: string;
 };
 
 export enum OrgTypes {
@@ -940,7 +941,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public async retrieveOrganizationInformation(): Promise<OrganizationInformation> {
     return this.getConnection().singleRecordQuery<OrganizationInformation>(
-      'SELECT Name, InstanceName, IsSandbox, TrialExpirationDate, NamespacePrefix FROM Organization'
+      'SELECT Name, InstanceName, IsSandbox, TrialExpirationDate, NamespacePrefix, OrganizationType FROM Organization'
     );
   }
 
@@ -982,6 +983,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         | Org.Fields.IS_SANDBOX
         | Org.Fields.IS_SCRATCH
         | Org.Fields.TRIAL_EXPIRATION_DATE
+        | Org.Fields.ORG_EDITION
       >
     | undefined
   > {
@@ -998,6 +1000,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         [Org.Fields.IS_SANDBOX]: organization.IsSandbox && !organization.TrialExpirationDate,
         [Org.Fields.IS_SCRATCH]: organization.IsSandbox && Boolean(organization.TrialExpirationDate),
         [Org.Fields.TRIAL_EXPIRATION_DATE]: organization.TrialExpirationDate,
+        [Org.Fields.ORG_EDITION]: organization.OrganizationType,
       };
       stateAggregator.orgs.update(username, updateFields);
       await stateAggregator.orgs.write(username);
@@ -1883,6 +1886,10 @@ export namespace Org {
     NAMESPACE_PREFIX = 'namespacePrefix',
     INSTANCE_NAME = 'instanceName',
     TRIAL_EXPIRATION_DATE = 'trailExpirationDate',
+    /**
+     * The org edition. e.g. `Developer Edition`, `Enterprise Edition`.
+     */
+    ORG_EDITION = 'orgEdition',
 
     /**
      * The Salesforce instance the org was created on. e.g. `cs42`.
