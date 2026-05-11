@@ -105,6 +105,24 @@ describe('Org Tests', () => {
     });
   });
 
+  describe('updateLocalInformation', () => {
+    it('should persist orgEdition from Organization.OrganizationType', async () => {
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({
+        Name: 'My Org',
+        InstanceName: 'cs42',
+        IsSandbox: false,
+        TrialExpirationDate: null,
+        NamespacePrefix: null,
+        OrganizationType: 'Developer Edition',
+      });
+      const result = await org.updateLocalInformation();
+      expect(result).to.have.property('orgEdition', 'Developer Edition');
+      expect(result).to.have.property('name', 'My Org');
+      expect(result).to.have.property('instanceName', 'cs42');
+    });
+  });
+
   describe('org:create', () => {
     it('should create an org from a username', async () => {
       const org = await Org.create({ aliasOrUsername: testData.username });

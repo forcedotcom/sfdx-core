@@ -89,6 +89,7 @@ export type AuthFields = {
   [Org.Fields.IS_SANDBOX]?: boolean;
   [Org.Fields.IS_SCRATCH]?: boolean;
   [Org.Fields.TRIAL_EXPIRATION_DATE]?: Nullable<string>;
+  [Org.Fields.ORG_EDITION]?: string;
 };
 
 export type OrgAuthorization = {
