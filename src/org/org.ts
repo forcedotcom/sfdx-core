@@ -148,7 +148,16 @@ const sandboxInfoFields = [
   'SourceId',
   'ActivationUserGroupId',
   'Features',
+  'PostCopyConfig',
 ];
+
+export type PostCopyConfigEntry = {
+  ConfigurationName: string;
+  Label: string;
+  Fields: Record<string, string>;
+  IsActive: boolean;
+  ExecutionOrder: number;
+};
 
 export type SandboxRequest = {
   SandboxName: string;
@@ -159,6 +168,7 @@ export type SandboxRequest = {
   ApexClassId?: string;
   ActivationUserGroupId?: string;
   Features?: string[] | string;
+  PostCopyConfig?: PostCopyConfigEntry[] | string;
 };
 
 export type ResumeSandboxRequest = {
@@ -186,6 +196,7 @@ export type SandboxInfo = {
   ActivationUserGroupId?: string; // Support might be added back in API v61.0 (Summer '24)
   CopyArchivedActivities?: boolean; // only for full sandboxes; depends if a license was purchased
   Features?: string[];
+  PostCopyConfig?: PostCopyConfigEntry[] | string;
 };
 
 export type ScratchOrgRequest = Omit<ScratchOrgCreateOptions, 'hubOrg'>;
@@ -418,6 +429,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     if (sandboxReq.Features && Array.isArray(sandboxReq.Features)) {
       sandboxReq.Features = JSON.stringify(sandboxReq.Features);
     }
+    if (sandboxReq.PostCopyConfig && Array.isArray(sandboxReq.PostCopyConfig)) {
+      sandboxReq.PostCopyConfig = JSON.stringify(sandboxReq.PostCopyConfig);
+    }
     const createResult = await this.connection.tooling.create('SandboxInfo', sandboxReq);
     this.logger.debug(createResult, 'Return from calling tooling.create');
 
@@ -463,6 +477,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
   ): Promise<SandboxProcessObject> {
     this.logger.debug(sandboxInfo, 'RefreshSandbox called with SandboxInfo');
+    if (sandboxInfo.PostCopyConfig && Array.isArray(sandboxInfo.PostCopyConfig)) {
+      sandboxInfo.PostCopyConfig = JSON.stringify(sandboxInfo.PostCopyConfig);
+    }
     const refreshResult = await this.connection.tooling.update('SandboxInfo', sandboxInfo);
     this.logger.debug(refreshResult, 'Return from calling tooling.update');
 
