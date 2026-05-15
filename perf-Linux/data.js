@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778873530070,
+  "lastUpdate": 1778874910497,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -39858,6 +39858,72 @@ window.BENCHMARK_DATA = {
             "range": "±11.45%",
             "unit": "ops/sec",
             "extra": "62 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "adf63d621ca00990727abfefa29bedd809745990",
+          "message": "fix(deps): bump flatted from 3.3.1 to 3.4.2\n\nBumps [flatted](https://github.com/WebReflection/flatted) from 3.3.1 to 3.4.2.\n- [Commits](https://github.com/WebReflection/flatted/compare/v3.3.1...v3.4.2)\n\n---\nupdated-dependencies:\n- dependency-name: flatted\n  dependency-version: 3.4.2\n  dependency-type: indirect\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2026-05-15T19:50:31Z",
+          "tree_id": "778512e41fc1ff47ec10f0f88c2705865c86f1d5",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/adf63d621ca00990727abfefa29bedd809745990"
+        },
+        "date": 1778874899533,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 508380,
+            "range": "±0.84%",
+            "unit": "ops/sec",
+            "extra": "96 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 103650,
+            "range": "±181.36%",
+            "unit": "ops/sec",
+            "extra": "46 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 980987,
+            "range": "±7.10%",
+            "unit": "ops/sec",
+            "extra": "58 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 27166,
+            "range": "±186.42%",
+            "unit": "ops/sec",
+            "extra": "34 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 491610,
+            "range": "±11.19%",
+            "unit": "ops/sec",
+            "extra": "61 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 378386,
+            "range": "±10.06%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
           }
         ]
       }
