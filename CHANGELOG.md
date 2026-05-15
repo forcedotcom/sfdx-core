@@ -1,3 +1,12 @@
+## [8.30.1](https://github.com/forcedotcom/sfdx-core/compare/8.30.0...8.30.1) (2026-05-15)
+
+
+### Bug Fixes
+
+* **deps:** bump flatted from 3.3.1 to 3.4.2 ([adf63d6](https://github.com/forcedotcom/sfdx-core/commit/adf63d621ca00990727abfefa29bedd809745990))
+
+
+
 # [8.30.0](https://github.com/forcedotcom/sfdx-core/compare/8.29.1...8.30.0) (2026-05-11)
 
 
