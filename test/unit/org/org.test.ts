@@ -1406,6 +1406,22 @@ describe('Org Tests', () => {
           PostCopyConfig: JSON.stringify(postCopyConfig),
         });
       });
+
+      it('will refresh the SandboxInfo sObject correctly with PostCopyConfig as a string', async () => {
+        querySandboxProcessStub.resolves({ records: [sbxProcess] });
+        const postCopyConfig =
+          '[{"ConfigurationName":"OutboundMessages","Label":"R12 Endpoint","Fields":{"EndpointUrl":"Url"},"IsActive":true,"ExecutionOrder":1}]';
+        const sbxInfoWithPostCopy: SandboxInfo = { ...sbxInfo, PostCopyConfig: postCopyConfig };
+
+        await prod.refreshSandbox(sbxInfoWithPostCopy, { async: true });
+
+        expect(updateStub.calledOnce).to.be.true;
+        expect(updateStub.firstCall.args[0]).to.equal('SandboxInfo');
+        expect(updateStub.firstCall.args[1]).to.deep.include({
+          SandboxName: sbxInfo.SandboxName,
+          PostCopyConfig: postCopyConfig,
+        });
+      });
     });
 
     describe('cloneSandbox', () => {
