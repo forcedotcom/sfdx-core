@@ -1,3 +1,12 @@
+## [8.30.2](https://github.com/forcedotcom/sfdx-core/compare/8.30.1...8.30.2) (2026-05-16)
+
+
+### Bug Fixes
+
+* **deps:** bump form-data from 4.0.0 to 4.0.5 in /examples ([1a6d9ea](https://github.com/forcedotcom/sfdx-core/commit/1a6d9eaa1cc852589acf6a72c4a6f3fca1f1dcad))
+
+
+
 ## [8.30.1](https://github.com/forcedotcom/sfdx-core/compare/8.30.0...8.30.1) (2026-05-15)
 
 
