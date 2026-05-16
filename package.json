@@ -90,7 +90,7 @@
     "@types/proper-lockfile": "^4.1.4",
     "@types/semver": "^7.7.1",
     "benchmark": "^2.1.4",
-    "esbuild": "^0.25.11",
+    "esbuild": "^0.28.0",
     "mocha": "^11.7.5",
     "ts-node": "^10.9.2",
     "ts-patch": "^3.3.0",
