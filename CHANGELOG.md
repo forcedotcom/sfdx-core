@@ -1,3 +1,12 @@
+## [8.30.3](https://github.com/forcedotcom/sfdx-core/compare/8.30.2...8.30.3) (2026-05-16)
+
+
+### Bug Fixes
+
+* **deps:** bump semver and @types/semver ([8566551](https://github.com/forcedotcom/sfdx-core/commit/856655170288fb735b1c31d5f3b77bbe9cf4bf51))
+
+
+
 ## [8.30.2](https://github.com/forcedotcom/sfdx-core/compare/8.30.1...8.30.2) (2026-05-16)
 
 
