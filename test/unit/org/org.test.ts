@@ -1186,6 +1186,45 @@ describe('Org Tests', () => {
         });
       });
 
+      it('will create the SandboxInfo sObject correctly with PostCopyConfig as an array', async () => {
+        const postCopyConfig = [
+          {
+            ConfigurationName: 'OutboundMessages',
+            Label: 'R12 Endpoint',
+            Fields: { EndpointUrl: 'Url' },
+            IsActive: true,
+            ExecutionOrder: 1,
+          },
+        ];
+        await prod.createSandbox(
+          { SandboxName: 'testSandbox', PostCopyConfig: postCopyConfig },
+          { wait: Duration.seconds(30) }
+        );
+        expect(createStub.calledOnce).to.be.true;
+        const createCallArgs = createStub.firstCall.args;
+        expect(createCallArgs[0]).to.equal('SandboxInfo');
+        expect(createCallArgs[1]).to.deep.include({
+          SandboxName: 'testSandbox',
+          PostCopyConfig: JSON.stringify(postCopyConfig),
+        });
+      });
+
+      it('will create the SandboxInfo sObject correctly with PostCopyConfig as a string', async () => {
+        const postCopyConfig =
+          '[{"ConfigurationName":"OutboundMessages","Label":"R12 Endpoint","Fields":{"EndpointUrl":"Url"},"IsActive":true,"ExecutionOrder":1}]';
+        await prod.createSandbox(
+          { SandboxName: 'testSandbox', PostCopyConfig: postCopyConfig },
+          { wait: Duration.seconds(30) }
+        );
+        expect(createStub.calledOnce).to.be.true;
+        const createCallArgs = createStub.firstCall.args;
+        expect(createCallArgs[0]).to.equal('SandboxInfo');
+        expect(createCallArgs[1]).to.deep.include({
+          SandboxName: 'testSandbox',
+          PostCopyConfig: postCopyConfig,
+        });
+      });
+
       it('will throw an error if it fails to create SandboxInfo', async () => {
         createStub.restore();
         createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
@@ -1343,6 +1382,45 @@ describe('Org Tests', () => {
           expect((e as Error).message).to.include('duplicate value found');
           expect((e as SfError).exitCode).to.equal(1);
         }
+      });
+
+      it('will refresh the SandboxInfo sObject correctly with PostCopyConfig as an array', async () => {
+        querySandboxProcessStub.resolves({ records: [sbxProcess] });
+        const postCopyConfig = [
+          {
+            ConfigurationName: 'OutboundMessages',
+            Label: 'R12 Endpoint',
+            Fields: { EndpointUrl: 'Url' },
+            IsActive: true,
+            ExecutionOrder: 1,
+          },
+        ];
+        const sbxInfoWithPostCopy: SandboxInfo = { ...sbxInfo, PostCopyConfig: postCopyConfig };
+
+        await prod.refreshSandbox(sbxInfoWithPostCopy, { async: true });
+
+        expect(updateStub.calledOnce).to.be.true;
+        expect(updateStub.firstCall.args[0]).to.equal('SandboxInfo');
+        expect(updateStub.firstCall.args[1]).to.deep.include({
+          SandboxName: sbxInfo.SandboxName,
+          PostCopyConfig: JSON.stringify(postCopyConfig),
+        });
+      });
+
+      it('will refresh the SandboxInfo sObject correctly with PostCopyConfig as a string', async () => {
+        querySandboxProcessStub.resolves({ records: [sbxProcess] });
+        const postCopyConfig =
+          '[{"ConfigurationName":"OutboundMessages","Label":"R12 Endpoint","Fields":{"EndpointUrl":"Url"},"IsActive":true,"ExecutionOrder":1}]';
+        const sbxInfoWithPostCopy: SandboxInfo = { ...sbxInfo, PostCopyConfig: postCopyConfig };
+
+        await prod.refreshSandbox(sbxInfoWithPostCopy, { async: true });
+
+        expect(updateStub.calledOnce).to.be.true;
+        expect(updateStub.firstCall.args[0]).to.equal('SandboxInfo');
+        expect(updateStub.firstCall.args[1]).to.deep.include({
+          SandboxName: sbxInfo.SandboxName,
+          PostCopyConfig: postCopyConfig,
+        });
       });
     });
 
