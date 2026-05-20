@@ -1311,6 +1311,15 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       this.connection = this.options.connection;
     }
     this.orgId = this.getField(Org.Fields.ORG_ID);
+
+    // Lazily populate org metadata (including orgEdition) if not yet persisted.
+    if (this.getField(Org.Fields.ORG_EDITION) === undefined) {
+      try {
+        await this.updateLocalInformation();
+      } catch {
+        // best effort — org may not be reachable (e.g. expired scratch org)
+      }
+    }
   }
 
   /**

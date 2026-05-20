@@ -940,6 +940,7 @@ export class MockTestOrgData {
   public isExpired?: boolean | 'unknown';
   public password?: string;
   public namespacePrefix?: string;
+  public orgEdition?: string;
 
   public constructor(id: string = uniqid(), options?: { username: string }) {
     this.testId = id;
@@ -955,6 +956,7 @@ export class MockTestOrgData {
     this.refreshToken = `${this.testId}/refreshToken`;
     this.redirectUri = 'http://localhost:1717/OauthRedirect';
     this.namespacePrefix = `acme_${this.testId}`;
+    this.orgEdition = 'Developer Edition';
   }
 
   /**
@@ -1044,6 +1046,7 @@ export class MockTestOrgData {
     }
 
     config.isDevHub = this.isDevHub;
+    config.orgEdition = this.orgEdition;
 
     if (this.password) {
       config.password = crypto.encrypt(this.password);
