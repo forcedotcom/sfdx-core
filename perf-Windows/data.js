@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779123067209,
+  "lastUpdate": 1779304913246,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -39132,6 +39132,72 @@ window.BENCHMARK_DATA = {
             "range": "±9.75%",
             "unit": "ops/sec",
             "extra": "63 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "peter.hale@salesforce.com",
+            "name": "peternhale",
+            "username": "peternhale"
+          },
+          "committer": {
+            "email": "peter.hale@salesforce.com",
+            "name": "peternhale",
+            "username": "peternhale"
+          },
+          "distinct": true,
+          "id": "857ac1f50181ce27106128db458b643c330490ac",
+          "message": "feat: persist orgEdition during Org.create for all org types\n\nThe previous change added orgEdition to AuthFields and\nupdateLocalInformation, but it was never called for orgs that already\nhad isScratch/isSandbox cached. This meant orgEdition was not\npersisted for scratch, sandbox, or production orgs unless\nupdateLocalInformation was explicitly invoked by a consumer.\n\nNow Org.init() lazily calls updateLocalInformation() when orgEdition\nis missing from the auth file. This runs once per org (subsequent\nOrg.create calls see the cached value and skip), works for all org\nshapes, and is best-effort (failures are silently caught).",
+          "timestamp": "2026-05-20T13:15:03-06:00",
+          "tree_id": "efb91f70050bbc9d0dbfd3d4eeb69a7cb2614b54",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/857ac1f50181ce27106128db458b643c330490ac"
+        },
+        "date": 1779304899979,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 385131,
+            "range": "±0.86%",
+            "unit": "ops/sec",
+            "extra": "98 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1101092,
+            "range": "±14.24%",
+            "unit": "ops/sec",
+            "extra": "43 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 22910,
+            "range": "±200.37%",
+            "unit": "ops/sec",
+            "extra": "22 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 640194,
+            "range": "±13.19%",
+            "unit": "ops/sec",
+            "extra": "62 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 511164,
+            "range": "±12.95%",
+            "unit": "ops/sec",
+            "extra": "56 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 8852,
+            "range": "±203.27%",
+            "unit": "ops/sec",
+            "extra": "21 samples"
           }
         ]
       }
