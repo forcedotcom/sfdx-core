@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779377828543,
+  "lastUpdate": 1779383646699,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -40320,6 +40320,72 @@ window.BENCHMARK_DATA = {
             "range": "±8.57%",
             "unit": "ops/sec",
             "extra": "61 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "peter.hale@salesforce.com",
+            "name": "peternhale",
+            "username": "peternhale"
+          },
+          "committer": {
+            "email": "peter.hale@salesforce.com",
+            "name": "peternhale",
+            "username": "peternhale"
+          },
+          "distinct": true,
+          "id": "1e8cd5d7bb17ba9be3249a92e8de729a0e2582c0",
+          "message": "test: add namespace mutation tests for determineOrg memoization\n\nCover the case where orgEdition is already cached but namespacePrefix\nis undefined (not yet fetched), verifying that determineOrg queries and\npersists a non-null namespace without overwriting orgEdition.",
+          "timestamp": "2026-05-21T11:08:28-06:00",
+          "tree_id": "6a35e081625887d57f32b2a3941124badc1fe152",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/1e8cd5d7bb17ba9be3249a92e8de729a0e2582c0"
+        },
+        "date": 1779383634589,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 507669,
+            "range": "±0.56%",
+            "unit": "ops/sec",
+            "extra": "94 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 106129,
+            "range": "±182.29%",
+            "unit": "ops/sec",
+            "extra": "47 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 593004,
+            "range": "±80.62%",
+            "unit": "ops/sec",
+            "extra": "51 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 21826,
+            "range": "±198.12%",
+            "unit": "ops/sec",
+            "extra": "27 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 501154,
+            "range": "±9.19%",
+            "unit": "ops/sec",
+            "extra": "56 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 346928,
+            "range": "±46.32%",
+            "unit": "ops/sec",
+            "extra": "72 samples"
           }
         ]
       }
