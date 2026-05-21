@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779304913246,
+  "lastUpdate": 1779363510539,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -39198,6 +39198,72 @@ window.BENCHMARK_DATA = {
             "range": "±203.27%",
             "unit": "ops/sec",
             "extra": "21 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "peter.hale@salesforce.com",
+            "name": "peternhale",
+            "username": "peternhale"
+          },
+          "committer": {
+            "email": "peter.hale@salesforce.com",
+            "name": "peternhale",
+            "username": "peternhale"
+          },
+          "distinct": true,
+          "id": "7861c3ca10c764d144f023a8be73df33020e574e",
+          "message": "feat: consolidate Organization queries into AuthInfo.determineOrg\n\nReplace multiple redundant Organization table queries with a single\nshared method that fetches all fields in one API round trip and persists\nthem to the auth file. This ensures orgEdition, isScratch, isSandbox,\nnamespacePrefix, and other org metadata are captured at login time\n(via all auth commands) and during Org.create().\n\n- Remove getNamespacePrefix (raw Transport call) in favor of determineOrg\n- Call determineOrg in initAuthOptions after auth fields are populated\n- Call determineOrg in identifyPossibleScratchOrgs for login paths\n- Call determineOrg in Org.init() for Org.create() paths\n- Subsequent calls are no-ops (orgEdition sentinel check)\n\nW-22583951",
+          "timestamp": "2026-05-21T05:32:57-06:00",
+          "tree_id": "8babfc5cbac18bf0717a38b181fe59da8b61553c",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/7861c3ca10c764d144f023a8be73df33020e574e"
+        },
+        "date": 1779363498225,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 387636,
+            "range": "±0.22%",
+            "unit": "ops/sec",
+            "extra": "95 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1131956,
+            "range": "±12.60%",
+            "unit": "ops/sec",
+            "extra": "38 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 23266,
+            "range": "±208.35%",
+            "unit": "ops/sec",
+            "extra": "15 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 552971,
+            "range": "±4.83%",
+            "unit": "ops/sec",
+            "extra": "54 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 472925,
+            "range": "±14.95%",
+            "unit": "ops/sec",
+            "extra": "56 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 13144,
+            "range": "±197.14%",
+            "unit": "ops/sec",
+            "extra": "29 samples"
           }
         ]
       }
