@@ -317,7 +317,7 @@ describe('User Tests', () => {
           'auto-approve-user': '789101',
         },
       });
-      stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
+      stubMethod($$.SANDBOX, AuthInfo, 'determineOrg').resolves();
 
       const org = await Org.create({
         connection: await Connection.create({

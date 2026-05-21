@@ -9,7 +9,6 @@
 import { randomBytes } from 'node:crypto';
 import { resolve as pathResolve } from 'node:path';
 import * as os from 'node:os';
-import { Record as RecordType } from '@jsforce/jsforce-node';
 import { AsyncOptionalCreatable, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
   AnyJson,
@@ -40,7 +39,7 @@ import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
 import { findSuggestion } from '../util/findSuggestion';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
-import { Org, SandboxFields } from './org';
+import { Org, OrganizationInformation, SandboxFields } from './org';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
@@ -406,6 +405,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // authInfo before it is necessary.
     const logger = await Logger.child('Common', { tag: 'identifyPossibleScratchOrgs' });
 
+    await AuthInfo.determineOrg(orgAuthInfo);
+
     // return if we already know the hub org, we know it is a devhub or prod-like, or no orgId present
     if (Boolean(fields.isDevHub) || Boolean(fields.devHubUsername) || !fields.orgId) return;
 
@@ -460,6 +461,33 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         await AuthInfo.identifyPossibleSandbox(pOrgAuthInfo, fields, orgAuthInfo, logger);
       }),
     ]);
+  }
+
+  /**
+   * Query the Organization object and persist org metadata fields if not already populated.
+   * Best-effort: silently returns if the org is unreachable or the query fails.
+   */
+  public static async determineOrg(orgAuthInfo: AuthInfo): Promise<void> {
+    if (orgAuthInfo.getFields().orgEdition) return;
+
+    try {
+      const conn = await Connection.create({ authInfo: orgAuthInfo });
+      const result = await conn.singleRecordQuery<OrganizationInformation>(
+        'SELECT Name, InstanceName, IsSandbox, TrialExpirationDate, NamespacePrefix, OrganizationType FROM Organization'
+      );
+      await orgAuthInfo.save({
+        [Org.Fields.NAME]: result.Name,
+        [Org.Fields.INSTANCE_NAME]: result.InstanceName,
+        [Org.Fields.NAMESPACE_PREFIX]: result.NamespacePrefix,
+        [Org.Fields.IS_SANDBOX]: result.IsSandbox && !result.TrialExpirationDate,
+        [Org.Fields.IS_SCRATCH]: result.IsSandbox && Boolean(result.TrialExpirationDate),
+        [Org.Fields.TRIAL_EXPIRATION_DATE]: result.TrialExpirationDate,
+        [Org.Fields.ORG_EDITION]: result.OrganizationType,
+      });
+    } catch (err) {
+      const logger = await Logger.child('AuthInfo', { tag: 'determineOrg' });
+      logger.debug('determineOrg failed', err);
+    }
   }
 
   /**
@@ -967,19 +995,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         ensureString(authConfig.accessToken)
       );
 
-      const namespacePrefix = await this.getNamespacePrefix(
-        ensureString(authConfig.instanceUrl),
-        ensureString(authConfig.accessToken)
-      );
-
-      if (namespacePrefix) {
-        authConfig.namespacePrefix = namespacePrefix;
-      }
-
       if (authConfig.username) await this.stateAggregator.orgs.read(authConfig.username, false, false);
 
       // Update the auth fields WITH encryption
       this.update(authConfig);
+
+      // Populate Organization metadata (orgEdition, isScratch, isSandbox, etc.) in a single query.
+      await AuthInfo.determineOrg(this);
     }
 
     return this;
@@ -1281,32 +1303,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     throw new SfError(errorMsg);
   }
 
-  private async getNamespacePrefix(instanceUrl: string, accessToken: string): Promise<string | undefined> {
-    // Make a REST call for the Organization obj directly.  Normally this is done via a connection
-    // but we don't want to create circular dependencies or lots of snowflakes
-    // within this file to support it.
-    const apiVersion = 'v51.0'; // hardcoding to v51.0 just for this call is okay.
-    const instance = ensure(instanceUrl);
-    const baseUrl = new SfdcUrl(instance);
-    const namespacePrefixOrgUrl = `${baseUrl.toString()}/services/data/${apiVersion}/query?q=Select%20Namespaceprefix%20FROM%20Organization`;
-    const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
-
-    try {
-      const res = await new Transport().httpRequest({ url: namespacePrefixOrgUrl, method: 'GET', headers });
-      if (res.statusCode >= 400) {
-        return;
-      }
-
-      const namespacePrefix = JSON.parse(res.body) as {
-        records: RecordType[];
-      };
-
-      return ensureString(namespacePrefix.records[0]?.NamespacePrefix);
-    } catch (err) {
-      /* Doesn't have a namespace */
-      return;
-    }
-  }
   /**
    * Returns `true` if the org is a Dev Hub.
    *
