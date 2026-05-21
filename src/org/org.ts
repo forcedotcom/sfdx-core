@@ -37,6 +37,7 @@ import { StateAggregator } from '../stateAggregator/stateAggregator';
 import { PollingClient } from '../status/pollingClient';
 import { StatusResult } from '../status/types';
 import { Connection, SingleRecordQueryErrors } from './connection';
+import { determineOrg } from './determineOrg';
 import { AuthFields, AuthInfo } from './authInfo';
 import { scratchOrgCreate, ScratchOrgCreateOptions, ScratchOrgCreateResult } from './scratchOrgCreate';
 import { OrgConfigProperties } from './orgConfigProperties';
@@ -1313,7 +1314,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     this.orgId = this.getField(Org.Fields.ORG_ID);
 
     try {
-      await AuthInfo.determineOrg(this.getConnection().getAuthInfo());
+      await determineOrg(this.getConnection().getAuthInfo());
     } catch {
       // best effort — connection may not support getAuthInfo (e.g. passed-in mock)
     }

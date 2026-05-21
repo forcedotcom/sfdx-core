@@ -21,6 +21,7 @@ import { Transport } from '@jsforce/jsforce-node/lib/transport';
 import { OAuth2 } from '@jsforce/jsforce-node';
 import { SinonSpy, SinonStub } from 'sinon';
 import { Org } from '../../../src/org/org';
+import * as determineOrgModule from '../../../src/org/determineOrg';
 import { AuthFields, AuthInfo } from '../../../src/org/authInfo';
 import { JwtOAuth2Config } from '../../../src/org/authInfo';
 import { MockTestOrgData, shouldThrow, shouldThrowSync, TestContext } from '../../../src/testSetup';
@@ -293,7 +294,7 @@ describe('AuthInfo', () => {
 
     it('should return an AuthInfo instance when passed a parent username', async () => {
       stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
-      stubMethod($$.SANDBOX, AuthInfo, 'determineOrg').resolves();
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
 
       await $$.stubConfig({ [OrgConfigProperties.ORG_INSTANCE_URL]: testOrg.instanceUrl });
       // Stub the http request (OAuth2.refreshToken())
@@ -513,7 +514,7 @@ describe('AuthInfo', () => {
 
       it('should return a JWT AuthInfo instance when passed a username and JWT auth options despite failed DNS lookup', async () => {
         stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
-        stubMethod($$.SANDBOX, AuthInfo, 'determineOrg').resolves();
+        stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
 
         $$.setConfigStubContents('AuthInfoConfig', { contents: await testOrg.getConfig() });
 
@@ -585,7 +586,7 @@ describe('AuthInfo', () => {
     describe('Refresh Token', () => {
       it('should return a refresh token AuthInfo instance when passed a username and refresh token auth options', async () => {
         stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
-        stubMethod($$.SANDBOX, AuthInfo, 'determineOrg').resolves();
+        stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
 
         const refreshTokenConfig = {
           refreshToken: testOrg.refreshToken,
@@ -642,7 +643,7 @@ describe('AuthInfo', () => {
 
       it('should return a refresh token AuthInfo instance with username in auth options', async () => {
         stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
-        stubMethod($$.SANDBOX, AuthInfo, 'determineOrg').resolves();
+        stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
 
         const refreshTokenConfig = {
           refreshToken: testOrg.refreshToken,
@@ -765,7 +766,7 @@ describe('AuthInfo', () => {
 
       it('should return a refresh token AuthInfo instance with custom clientId and clientSecret', async () => {
         stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
-        stubMethod($$.SANDBOX, AuthInfo, 'determineOrg').resolves();
+        stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
 
         const refreshTokenConfig = {
           clientId: 'authInfoTest_clientId',
@@ -1049,7 +1050,7 @@ describe('AuthInfo', () => {
   describe('save', () => {
     it('should update the AuthInfo fields, and write to file', async () => {
       stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
-      stubMethod($$.SANDBOX, AuthInfo, 'determineOrg').resolves();
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
 
       const refreshTokenConfig = {
         refreshToken: testOrg.refreshToken,
@@ -1197,7 +1198,7 @@ describe('AuthInfo', () => {
         accessToken: '',
       });
       stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
-      stubMethod($$.SANDBOX, AuthInfo, 'determineOrg').resolves();
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
 
       await AuthInfo.create({
         username: testOrg.username,
@@ -1325,7 +1326,7 @@ describe('AuthInfo', () => {
   describe('getSfdxAuthUrl', () => {
     it('should return the correct sfdx auth url', async () => {
       stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
-      stubMethod($$.SANDBOX, AuthInfo, 'determineOrg').resolves();
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
 
       const authResponse = {
         access_token: testOrg.accessToken,
@@ -1352,7 +1353,7 @@ describe('AuthInfo', () => {
 
     it('should handle instance url with a port on it', async () => {
       stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
-      stubMethod($$.SANDBOX, AuthInfo, 'determineOrg').resolves();
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
 
       const url = new URL(`${testOrg.instanceUrl}:6101`);
 
@@ -1382,7 +1383,7 @@ describe('AuthInfo', () => {
 
     it('should handle undefined client secret', async () => {
       stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
-      stubMethod($$.SANDBOX, AuthInfo, 'determineOrg').resolves();
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
 
       const authResponse = {
         access_token: testOrg.accessToken,
@@ -1411,7 +1412,7 @@ describe('AuthInfo', () => {
     describe('error conditions', () => {
       it('should handle undefined refresh token', async () => {
         stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
-        stubMethod($$.SANDBOX, AuthInfo, 'determineOrg').resolves();
+        stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
 
         const authResponse = {
           access_token: testOrg.accessToken,
@@ -1438,7 +1439,7 @@ describe('AuthInfo', () => {
 
       it('should handle undefined instance url', async () => {
         stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
-        stubMethod($$.SANDBOX, AuthInfo, 'determineOrg').resolves();
+        stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
 
         const authResponse = {
           access_token: testOrg.accessToken,
@@ -1961,6 +1962,7 @@ describe('AuthInfo', () => {
         username: user1.username,
       });
 
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
       const getDevHubAuthInfosStub = stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves([]);
       stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations').resolves([]);
       const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg');
@@ -1984,6 +1986,7 @@ describe('AuthInfo', () => {
         username: user1.username,
       });
 
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
       const getDevHubAuthInfosStub = stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves([]);
       const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg');
       const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
@@ -2007,6 +2010,7 @@ describe('AuthInfo', () => {
         username: user1.username,
       });
 
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
       const getDevHubAuthInfosSpy = spyMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos');
       const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg');
       const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
@@ -2027,6 +2031,7 @@ describe('AuthInfo', () => {
         username: user1.username,
       });
 
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
       const devhubAuths = await AuthInfo.getDevHubAuthInfos();
       const getDevHubAuthInfosStub = stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves(devhubAuths);
       stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations').resolves([]);
@@ -2052,6 +2057,7 @@ describe('AuthInfo', () => {
         username: user1.username,
       });
 
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
       const stateAggregator = await StateAggregator.getInstance();
       const stateAggregatorStub = stubMethod($$.SANDBOX, StateAggregator, 'getInstance');
       const sandboxSetStub = stubMethod($$.SANDBOX, stateAggregator.sandboxes, 'set');

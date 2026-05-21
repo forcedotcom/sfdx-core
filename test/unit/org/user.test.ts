@@ -12,6 +12,7 @@ import { MockTestOrgData, shouldThrow, shouldThrowSync, TestContext } from '../.
 import { Org } from '../../../src/org/org';
 import { DefaultUserFields, User } from '../../../src/org/user';
 import { AuthInfo } from '../../../src/org/authInfo';
+import * as determineOrgModule from '../../../src/org/determineOrg';
 import { Connection } from '../../../src/org/connection';
 import { PermissionSetAssignment } from '../../../src/org/permissionSetAssignment';
 
@@ -317,7 +318,7 @@ describe('User Tests', () => {
           'auto-approve-user': '789101',
         },
       });
-      stubMethod($$.SANDBOX, AuthInfo, 'determineOrg').resolves();
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
 
       const org = await Org.create({
         connection: await Connection.create({

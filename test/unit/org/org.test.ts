@@ -1798,7 +1798,7 @@ describe('Org Tests', () => {
 
     it('does not call updateLocalInformation during Org.create when orgEdition is already present', async () => {
       $$.setConfigStubContents('AuthInfoConfig', {
-        contents: { tracksSource: true, orgEdition: 'Enterprise Edition' },
+        contents: { tracksSource: true, orgEdition: 'Enterprise Edition', namespacePrefix: null },
       });
       const querySpy = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({});
       const org = await Org.create({ aliasOrUsername: testData.username });

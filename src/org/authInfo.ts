@@ -39,7 +39,8 @@ import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
 import { findSuggestion } from '../util/findSuggestion';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
-import { Org, OrganizationInformation, SandboxFields } from './org';
+import { determineOrg } from './determineOrg';
+import { Org, SandboxFields } from './org';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
@@ -405,7 +406,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // authInfo before it is necessary.
     const logger = await Logger.child('Common', { tag: 'identifyPossibleScratchOrgs' });
 
-    await AuthInfo.determineOrg(orgAuthInfo);
+    await determineOrg(orgAuthInfo);
 
     // return if we already know the hub org, we know it is a devhub or prod-like, or no orgId present
     if (Boolean(fields.isDevHub) || Boolean(fields.devHubUsername) || !fields.orgId) return;
@@ -461,33 +462,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         await AuthInfo.identifyPossibleSandbox(pOrgAuthInfo, fields, orgAuthInfo, logger);
       }),
     ]);
-  }
-
-  /**
-   * Query the Organization object and persist org metadata fields if not already populated.
-   * Best-effort: silently returns if the org is unreachable or the query fails.
-   */
-  public static async determineOrg(orgAuthInfo: AuthInfo): Promise<void> {
-    if (orgAuthInfo.getFields().orgEdition) return;
-
-    try {
-      const conn = await Connection.create({ authInfo: orgAuthInfo });
-      const result = await conn.singleRecordQuery<OrganizationInformation>(
-        'SELECT Name, InstanceName, IsSandbox, TrialExpirationDate, NamespacePrefix, OrganizationType FROM Organization'
-      );
-      await orgAuthInfo.save({
-        [Org.Fields.NAME]: result.Name,
-        [Org.Fields.INSTANCE_NAME]: result.InstanceName,
-        [Org.Fields.NAMESPACE_PREFIX]: result.NamespacePrefix,
-        [Org.Fields.IS_SANDBOX]: result.IsSandbox && !result.TrialExpirationDate,
-        [Org.Fields.IS_SCRATCH]: result.IsSandbox && Boolean(result.TrialExpirationDate),
-        [Org.Fields.TRIAL_EXPIRATION_DATE]: result.TrialExpirationDate,
-        [Org.Fields.ORG_EDITION]: result.OrganizationType,
-      });
-    } catch (err) {
-      const logger = await Logger.child('AuthInfo', { tag: 'determineOrg' });
-      logger.debug('determineOrg failed', err);
-    }
   }
 
   /**
@@ -1001,7 +975,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       this.update(authConfig);
 
       // Populate Organization metadata (orgEdition, isScratch, isSandbox, etc.) in a single query.
-      await AuthInfo.determineOrg(this);
+      await determineOrg(this);
     }
 
     return this;
