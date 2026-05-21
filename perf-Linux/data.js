@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779363467389,
+  "lastUpdate": 1779377828543,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -40254,6 +40254,72 @@ window.BENCHMARK_DATA = {
             "range": "±210.57%",
             "unit": "ops/sec",
             "extra": "15 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "peter.hale@salesforce.com",
+            "name": "peternhale",
+            "username": "peternhale"
+          },
+          "committer": {
+            "email": "peter.hale@salesforce.com",
+            "name": "peternhale",
+            "username": "peternhale"
+          },
+          "distinct": true,
+          "id": "77acb66e08644cb07353a7400822df6acaf468ea",
+          "message": "refactor: extract determineOrg to standalone function, fix NamespacePrefix staleness\n\nAddress reviewer feedback:\n- Move determineOrg out of AuthInfo class into its own module to avoid\n  widening the public API surface.\n- Fix NamespacePrefix staleness: check both orgEdition and namespacePrefix\n  before skipping the query, since namespace can be added after org creation.",
+          "timestamp": "2026-05-21T09:31:16-06:00",
+          "tree_id": "dc0b7861c61fa045943dc198c24895eccfde3ab0",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/77acb66e08644cb07353a7400822df6acaf468ea"
+        },
+        "date": 1779377818135,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 499188,
+            "range": "±0.39%",
+            "unit": "ops/sec",
+            "extra": "92 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 105351,
+            "range": "±183.39%",
+            "unit": "ops/sec",
+            "extra": "47 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 963249,
+            "range": "±8.93%",
+            "unit": "ops/sec",
+            "extra": "50 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 22008,
+            "range": "±196.90%",
+            "unit": "ops/sec",
+            "extra": "28 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 551671,
+            "range": "±10.13%",
+            "unit": "ops/sec",
+            "extra": "62 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 363497,
+            "range": "±8.57%",
+            "unit": "ops/sec",
+            "extra": "61 samples"
           }
         ]
       }
