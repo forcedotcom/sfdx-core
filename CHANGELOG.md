@@ -1,3 +1,12 @@
+# [8.31.0](https://github.com/forcedotcom/sfdx-core/compare/8.30.4...8.31.0) (2026-05-21)
+
+
+### Features
+
+* persist orgEdition during Org.create for all org types - W-22583951 ([#1290](https://github.com/forcedotcom/sfdx-core/issues/1290)) ([1684b60](https://github.com/forcedotcom/sfdx-core/commit/1684b606d3510d44511e602336beac6fd9290eab))
+
+
+
 ## [8.30.4](https://github.com/forcedotcom/sfdx-core/compare/8.30.3...8.30.4) (2026-05-17)
 
 
