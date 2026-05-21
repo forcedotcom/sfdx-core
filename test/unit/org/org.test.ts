@@ -1780,6 +1780,86 @@ describe('Org Tests', () => {
     });
   });
 
+  describe('org edition detection', () => {
+    it('calls updateLocalInformation during Org.create when orgEdition is missing', async () => {
+      $$.setConfigStubContents('AuthInfoConfig', { contents: { tracksSource: true } });
+      const querySpy = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({
+        Name: 'Test Org',
+        InstanceName: 'NA999',
+        IsSandbox: false,
+        TrialExpirationDate: null,
+        NamespacePrefix: null,
+        OrganizationType: 'Developer Edition',
+      });
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      expect(querySpy.called).to.be.true;
+      expect(org.getField(Org.Fields.ORG_EDITION)).to.eq('Developer Edition');
+    });
+
+    it('does not call updateLocalInformation during Org.create when orgEdition is already present', async () => {
+      $$.setConfigStubContents('AuthInfoConfig', {
+        contents: { tracksSource: true, orgEdition: 'Enterprise Edition', namespacePrefix: null },
+      });
+      const querySpy = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({});
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      expect(querySpy.called).to.be.false;
+      expect(org.getField(Org.Fields.ORG_EDITION)).to.eq('Enterprise Edition');
+    });
+
+    it('fetches namespacePrefix when orgEdition is memoized but namespacePrefix is undefined', async () => {
+      $$.setConfigStubContents('AuthInfoConfig', {
+        contents: { tracksSource: true, orgEdition: 'Enterprise Edition' },
+      });
+      const querySpy = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({
+        Name: 'Test Org',
+        InstanceName: 'NA999',
+        IsSandbox: false,
+        TrialExpirationDate: null,
+        NamespacePrefix: 'myNs',
+        OrganizationType: 'Enterprise Edition',
+      });
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      expect(querySpy.called).to.be.true;
+      expect(org.getField(Org.Fields.NAMESPACE_PREFIX)).to.eq('myNs');
+      expect(org.getField(Org.Fields.ORG_EDITION)).to.eq('Enterprise Edition');
+    });
+
+    it('persists a non-null namespacePrefix without overwriting orgEdition', async () => {
+      $$.setConfigStubContents('AuthInfoConfig', {
+        contents: { tracksSource: true, orgEdition: 'Developer Edition' },
+      });
+      const querySpy = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({
+        Name: 'Test Org',
+        InstanceName: 'NA999',
+        IsSandbox: false,
+        TrialExpirationDate: null,
+        NamespacePrefix: 'pkg1',
+        OrganizationType: 'Developer Edition',
+      });
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      expect(querySpy.called).to.be.true;
+      expect(org.getField(Org.Fields.NAMESPACE_PREFIX)).to.eq('pkg1');
+      expect(org.getField(Org.Fields.ORG_EDITION)).to.eq('Developer Edition');
+    });
+
+    it('does not re-query once namespacePrefix is memoized with a non-null value', async () => {
+      $$.setConfigStubContents('AuthInfoConfig', {
+        contents: { tracksSource: true, orgEdition: 'Enterprise Edition', namespacePrefix: 'alreadySet' },
+      });
+      const querySpy = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({});
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      expect(querySpy.called).to.be.false;
+      expect(org.getField(Org.Fields.NAMESPACE_PREFIX)).to.eq('alreadySet');
+    });
+
+    it('Org.create succeeds even if updateLocalInformation throws', async () => {
+      $$.setConfigStubContents('AuthInfoConfig', { contents: { tracksSource: true } });
+      stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').rejects(new Error('org unreachable'));
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      expect(org.getField(Org.Fields.ORG_EDITION)).to.be.undefined;
+    });
+  });
+
   describe('source tracking detection', () => {
     it('orgs with property return the property', async () => {
       $$.setConfigStubContents('AuthInfoConfig', { contents: { tracksSource: false } });
