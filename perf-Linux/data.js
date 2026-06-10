@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779880185463,
+  "lastUpdate": 1781117942852,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -40518,6 +40518,72 @@ window.BENCHMARK_DATA = {
             "range": "±7.22%",
             "unit": "ops/sec",
             "extra": "63 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sameer.motwani@salesforce.com",
+            "name": "sameer-motwani",
+            "username": "smotwani11"
+          },
+          "committer": {
+            "email": "sameer.motwani@salesforce.com",
+            "name": "sameer-motwani",
+            "username": "smotwani11"
+          },
+          "distinct": true,
+          "id": "09548c40d310651c2fd3c7ca228dd59010acd0c9",
+          "message": "test: add Lead business process picklist value assertion\n\nEnsures the Lead picklist value stays as \"Open - Not Contacted\"\nto prevent regression.\n\n@W-22620566@",
+          "timestamp": "2026-06-10T12:43:07-04:00",
+          "tree_id": "a186728d7435ab36aeb1c051834bf03e9115aeb9",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/09548c40d310651c2fd3c7ca228dd59010acd0c9"
+        },
+        "date": 1781117932853,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 489286,
+            "range": "±0.55%",
+            "unit": "ops/sec",
+            "extra": "96 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1289974,
+            "range": "±10.23%",
+            "unit": "ops/sec",
+            "extra": "31 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 38574,
+            "range": "±186.21%",
+            "unit": "ops/sec",
+            "extra": "54 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 34598,
+            "range": "±184.42%",
+            "unit": "ops/sec",
+            "extra": "39 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 458770,
+            "range": "±9.25%",
+            "unit": "ops/sec",
+            "extra": "46 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 394754,
+            "range": "±8.46%",
+            "unit": "ops/sec",
+            "extra": "59 samples"
           }
         ]
       }
