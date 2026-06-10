@@ -1,3 +1,12 @@
+## [8.31.1](https://github.com/forcedotcom/sfdx-core/compare/8.31.0...8.31.1) (2026-06-10)
+
+
+### Bug Fixes
+
+* use correct Lead business process picklist value for Developer edition ([deb7efa](https://github.com/forcedotcom/sfdx-core/commit/deb7efa03664abe5a179eba80d504eb842a4ee1f))
+
+
+
 # [8.31.0](https://github.com/forcedotcom/sfdx-core/compare/8.30.4...8.31.0) (2026-05-21)
 
 
