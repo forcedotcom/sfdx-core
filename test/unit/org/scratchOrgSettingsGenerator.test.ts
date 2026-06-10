@@ -823,6 +823,37 @@ describe('scratchOrgSettingsGenerator', () => {
       expect(allRecordTypes).to.deep.equal(['Case.default']);
       expect(allbusinessProcesses).to.deep.equal(['Case.defaultProcess']);
     });
+
+    it('createRecordTypeAndBusinessProcessFileContent with lead values', () => {
+      const allRecordTypes: string[] = [];
+      const allbusinessProcesses: string[] = [];
+      const recordTypeAndBusinessProcessFileContent = createRecordTypeAndBusinessProcessFileContent(
+        'lead',
+        { defaultRecordType: 'default' },
+        allRecordTypes,
+        allbusinessProcesses,
+        true
+      );
+      expect(recordTypeAndBusinessProcessFileContent).to.deep.equal({
+        '@': { xmlns: 'http://soap.sforce.com/2006/04/metadata' },
+        recordTypes: {
+          fullName: 'Default',
+          label: 'Default',
+          active: true,
+          businessProcess: 'DefaultProcess',
+        },
+        businessProcesses: {
+          fullName: 'DefaultProcess',
+          isActive: true,
+          values: {
+            fullName: 'Open - Not Contacted',
+            default: true,
+          },
+        },
+      });
+      expect(allRecordTypes).to.deep.equal(['Lead.Default']);
+      expect(allbusinessProcesses).to.deep.equal(['Lead.DefaultProcess']);
+    });
   });
 
   describe('createObjectFileContent', () => {

@@ -104,7 +104,7 @@ const calculateBusinessProcess = (
         businessProcessPicklistVal = 'New';
         break;
       case 'Lead':
-        businessProcessPicklistVal = 'New - Not Contacted';
+        businessProcessPicklistVal = 'Open - Not Contacted';
         break;
       case 'Opportunity':
         businessProcessPicklistVal = 'Prospecting';
