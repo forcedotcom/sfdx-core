@@ -972,10 +972,30 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
 
     const whereClause = by.id ? `Id='${by.id}'` : `SandboxName='${by.name ?? '<undefined>'}'`;
-    const soql = `SELECT ${sandboxInfoFields.join(
-      ','
-    )} FROM SandboxInfo WHERE ${whereClause} ORDER BY CreatedDate DESC`;
-    const result = (await this.connection.tooling.query<SandboxInfo>(soql)).records.filter((item) => !item.IsDeleted);
+    const buildSoql = (fields: string[]): string =>
+      `SELECT ${fields.join(',')} FROM SandboxInfo WHERE ${whereClause} ORDER BY CreatedDate DESC`;
+
+    let soql = buildSoql(sandboxInfoFields);
+    let records: SandboxInfo[];
+    try {
+      records = (await this.connection.tooling.query<SandboxInfo>(soql)).records;
+    } catch (err) {
+      // PostCopyConfig is only available on orgs running a release that exposes the field on
+      // the Tooling API. Older orgs reject the SOQL with INVALID_FIELD ("No such column ...").
+      // Retry once without PostCopyConfig so existing customers aren't broken.
+      const message = err instanceof Error ? err.message : String(err);
+      const isInvalidField =
+        (err instanceof Error && err.name === 'INVALID_FIELD') || message.includes('No such column');
+      if (isInvalidField && message.includes('PostCopyConfig')) {
+        this.logger.debug('PostCopyConfig not supported on this org; retrying SandboxInfo query without it');
+        soql = buildSoql(sandboxInfoFields.filter((f) => f !== 'PostCopyConfig'));
+        records = (await this.connection.tooling.query<SandboxInfo>(soql)).records;
+      } else {
+        throw err;
+      }
+    }
+
+    const result = records.filter((item) => !item.IsDeleted);
 
     if (result.length === 0) {
       throw new SfError(`No record found for ${soql}`, SingleRecordQueryErrors.NoRecords);
