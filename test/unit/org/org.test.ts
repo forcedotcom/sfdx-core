@@ -1778,6 +1778,56 @@ describe('Org Tests', () => {
         }
       });
     });
+
+    describe('querySandboxInfo', () => {
+      const sandboxInfoRecord: SandboxInfo = {
+        Id: '0GQB0000000TVobOAG',
+        IsDeleted: false,
+        CreatedDate: '2023-06-16T18:35:47.000+0000',
+        CreatedById: '005B0000004TiUpIAK',
+        LastModifiedDate: '2023-09-27T20:50:26.000+0000',
+        LastModifiedById: '005B0000004TiUpIAK',
+        SandboxName: 'mySbx',
+        LicenseType: 'DEVELOPER',
+        HistoryDays: 0,
+        CopyChatter: false,
+        AutoActivate: true,
+      };
+
+      let queryStub: SinonStub;
+
+      beforeEach(() => {
+        queryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query');
+      });
+
+      it('queries SandboxInfo including PostCopyConfig on orgs that support the field', async () => {
+        queryStub.resolves({ records: [sandboxInfoRecord] });
+
+        const result = await prod.querySandboxInfo({ name: 'mySbx' });
+
+        expect(queryStub.calledOnce).to.be.true;
+        expect(queryStub.firstCall.firstArg).to.include('PostCopyConfig');
+        expect(queryStub.firstCall.firstArg).to.include("SandboxName='mySbx'");
+        expect(result).to.deep.equal(sandboxInfoRecord);
+      });
+
+      it('retries without PostCopyConfig when the org rejects the field with INVALID_FIELD', async () => {
+        const invalidFieldErr = Object.assign(
+          new Error("No such column 'PostCopyConfig' on entity 'SandboxInfo'."),
+          { name: 'INVALID_FIELD' }
+        );
+        queryStub.onFirstCall().rejects(invalidFieldErr);
+        queryStub.onSecondCall().resolves({ records: [sandboxInfoRecord] });
+
+        const result = await prod.querySandboxInfo({ name: 'mySbx' });
+
+        expect(queryStub.calledTwice).to.be.true;
+        expect(queryStub.firstCall.firstArg).to.include('PostCopyConfig');
+        expect(queryStub.secondCall.firstArg).to.not.include('PostCopyConfig');
+        expect(queryStub.secondCall.firstArg).to.include("SandboxName='mySbx'");
+        expect(result).to.deep.equal(sandboxInfoRecord);
+      });
+    });
   });
 
   describe('org edition detection', () => {
