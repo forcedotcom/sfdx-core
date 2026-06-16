@@ -1,3 +1,12 @@
+## [8.31.2](https://github.com/forcedotcom/sfdx-core/compare/8.31.1...8.31.2) (2026-06-16)
+
+
+### Bug Fixes
+
+* handling postcopyconfig sandboxinfo field for lower orgs too ([#1299](https://github.com/forcedotcom/sfdx-core/issues/1299)) ([521f256](https://github.com/forcedotcom/sfdx-core/commit/521f256b509a60fcc0fb8ef4cf7d6c7f7eed27a2))
+
+
+
 ## [8.31.1](https://github.com/forcedotcom/sfdx-core/compare/8.31.0...8.31.1) (2026-06-10)
 
 
