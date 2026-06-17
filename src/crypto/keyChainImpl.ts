@@ -171,9 +171,7 @@ export class KeychainAccess implements PasswordStore {
       try {
         return await this.osImpl.onGetCommandClose(code, stdout, stderr, opts, fn);
       } catch (e) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        if (e.retry) {
+        if ((e as { retry?: boolean }).retry) {
           if (retryCount >= GET_PASSWORD_RETRY_COUNT) {
             throw messages.createError('passwordRetryError', [GET_PASSWORD_RETRY_COUNT]);
           }
@@ -306,9 +304,7 @@ const linuxImpl: OsImpl = {
       // This is a workaround for linux.
       // Calling secret-tool too fast can cause it to return an unexpected error. (below)
       if (stderr?.includes('invalid or unencryptable secret')) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore TODO: make an error subclass with this field
-        error.retry = true;
+        (error as SfError & { retry: boolean }).retry = true;
 
         // Throwing here allows us to perform a retry in KeychainAccess
         throw error;
