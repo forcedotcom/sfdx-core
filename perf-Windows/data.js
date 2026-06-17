@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781635106669,
+  "lastUpdate": 1781727362391,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -39858,6 +39858,72 @@ window.BENCHMARK_DATA = {
             "range": "±7.59%",
             "unit": "ops/sec",
             "extra": "68 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "e05b18d247dfaa68f363138bb2af52cc172185c9",
+          "message": "chore: eliminate @ts-ignore pragmas in core @W-5414318@\n\nReplace all 13 @ts-ignore directives across 6 files with proper\ntype-safe alternatives (local casts, @ts-expect-error where no\ntype fix exists). No public API or runtime behavior changes.",
+          "timestamp": "2026-06-17T14:10:03-06:00",
+          "tree_id": "738560ac117ebd84c1b0ab6c77e3fd613fbfbc51",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/e05b18d247dfaa68f363138bb2af52cc172185c9"
+        },
+        "date": 1781727349697,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 392272,
+            "range": "±0.29%",
+            "unit": "ops/sec",
+            "extra": "95 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1263635,
+            "range": "±10.79%",
+            "unit": "ops/sec",
+            "extra": "46 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 13813,
+            "range": "±232.63%",
+            "unit": "ops/sec",
+            "extra": "8 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 805193,
+            "range": "±10.31%",
+            "unit": "ops/sec",
+            "extra": "76 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 507833,
+            "range": "±11.88%",
+            "unit": "ops/sec",
+            "extra": "59 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 29178,
+            "range": "±179.99%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
           }
         ]
       }
