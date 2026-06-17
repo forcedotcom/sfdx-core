@@ -227,6 +227,7 @@ export type SandboxInfoQueryFields = XOR<{ name: string }, { id: string }>;
  * **See** https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm
  */
 export class Org extends AsyncOptionalCreatable<Org.Options> {
+  // @ts-expect-error: read dynamically via getField(Org.Fields.STATUS)
   private status: Org.Status = Org.Status.UNKNOWN;
   private configAggregator!: ConfigAggregator;
 
@@ -1171,13 +1172,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Returns an org field. Returns undefined if the field is not set or invalid.
    */
   public getField<T = AnyJson>(key: Org.Fields): T {
-    /* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
-    // @ts-ignore Legacy. We really shouldn't be doing this.
-    const ownProp = this[key];
-    if (ownProp && typeof ownProp !== 'function') return ownProp;
-    // @ts-ignore
-    return this.getConnection().getAuthInfoFields()[key];
-    /* eslint-enable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
+    const ownProp = (this as unknown as Record<string, unknown>)[key];
+    if (ownProp && typeof ownProp !== 'function') return ownProp as T;
+    return (this.getConnection().getAuthInfoFields() as unknown as Record<string, unknown>)[key] as T;
   }
 
   /**
