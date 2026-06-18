@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1781727362391,
+  "lastUpdate": 1781815663539,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -39924,6 +39924,72 @@ window.BENCHMARK_DATA = {
             "range": "±179.99%",
             "unit": "ops/sec",
             "extra": "64 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "59f6873ca2ebe916caa06e2d7ddb36486bcdf766",
+          "message": "fix: isWeb() no longer misdetects Bun as a browser environment @W-21890292@\n\nBun exposes `self` in globalThis for Web API compatibility, which\ncaused `isWeb()` to return true and route all fs operations through\nmemfs. Replace the `'window' in globalThis || 'self' in globalThis`\ncheck with `'document' in globalThis && 'window' in globalThis` —\nboth must be present, which is only true in actual browsers.",
+          "timestamp": "2026-06-18T14:38:01-06:00",
+          "tree_id": "d57115b4e68ca61aa285e2cb1e5374bb23610e39",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/59f6873ca2ebe916caa06e2d7ddb36486bcdf766"
+        },
+        "date": 1781815650861,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 364826,
+            "range": "±2.06%",
+            "unit": "ops/sec",
+            "extra": "85 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1139339,
+            "range": "±14.37%",
+            "unit": "ops/sec",
+            "extra": "40 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 21151,
+            "range": "±200.37%",
+            "unit": "ops/sec",
+            "extra": "23 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 200051,
+            "range": "±109.83%",
+            "unit": "ops/sec",
+            "extra": "51 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 407673,
+            "range": "±10.67%",
+            "unit": "ops/sec",
+            "extra": "55 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 19619,
+            "range": "±183.29%",
+            "unit": "ops/sec",
+            "extra": "60 samples"
           }
         ]
       }
