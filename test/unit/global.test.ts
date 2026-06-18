@@ -9,6 +9,41 @@ import { isString } from '@salesforce/ts-types';
 import { Global, Mode } from '../../src/global';
 
 describe('Global', () => {
+  describe('isWeb', () => {
+    it('returns false in Node.js (no document/window)', () => {
+      expect(Global.isWeb).to.be.false;
+    });
+
+    it('returns false when only self is in globalThis (Bun-like)', () => {
+      (globalThis as Record<string, unknown>).self = globalThis;
+      try {
+        expect(Global.isWeb).to.be.false;
+      } finally {
+        delete (globalThis as Record<string, unknown>).self;
+      }
+    });
+
+    it('returns true when both window and document exist (browser-like)', () => {
+      (globalThis as Record<string, unknown>).window = {};
+      (globalThis as Record<string, unknown>).document = {};
+      try {
+        expect(Global.isWeb).to.be.true;
+      } finally {
+        delete (globalThis as Record<string, unknown>).window;
+        delete (globalThis as Record<string, unknown>).document;
+      }
+    });
+
+    it('returns false when only window exists without document', () => {
+      (globalThis as Record<string, unknown>).window = {};
+      try {
+        expect(Global.isWeb).to.be.false;
+      } finally {
+        delete (globalThis as Record<string, unknown>).window;
+      }
+    });
+  });
+
   describe('environmentMode', () => {
     const originalEnv = { SFDX_ENV: process.env.SFDX_ENV, SF_ENV: process.env.SF_ENV };
     const cleanEnv = () => Object.keys(originalEnv).map((key) => delete process.env[key]);
