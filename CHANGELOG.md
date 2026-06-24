@@ -1,3 +1,12 @@
+## [8.31.3](https://github.com/forcedotcom/sfdx-core/compare/8.31.2...8.31.3) (2026-06-24)
+
+
+### Bug Fixes
+
+* no edition warning when scratch org uses snapshot @W-22694430@ ([#1304](https://github.com/forcedotcom/sfdx-core/issues/1304)) ([2e0501d](https://github.com/forcedotcom/sfdx-core/commit/2e0501d3489797b45698c2c86c5edf85c7eef710))
+
+
+
 ## [8.31.2](https://github.com/forcedotcom/sfdx-core/compare/8.31.1...8.31.2) (2026-06-16)
 
 
