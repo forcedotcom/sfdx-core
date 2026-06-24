@@ -17,8 +17,10 @@ export const ScratchOrgDefSchema = z
     orgName: z.string().optional().describe('The name of the scratch org.').meta({ title: 'Organization Name' }),
     edition: z
       .string()
+      .optional()
       .refine(
         (val) => {
+          if (val === undefined) return true;
           const validOptions = [
             'developer',
             'enterprise',
@@ -29,7 +31,6 @@ export const ScratchOrgDefSchema = z
             'partner professional',
             'professional',
           ];
-          // Check if the lowercase input matches any of our valid options
           return validOptions.includes(val.toLowerCase());
         },
         {
@@ -98,6 +99,10 @@ export const ScratchOrgDefSchema = z
         'Same Salesforce release as the Dev Hub org. Options are preview or previous. Can use only during Salesforce release transition periods.'
       ),
   })
-  .catchall(z.unknown());
+  .catchall(z.unknown())
+  .refine((data) => data.edition !== undefined || 'snapshot' in data, {
+    message: 'edition is required unless creating from a snapshot',
+    path: ['edition'],
+  });
 
 export type ScratchOrgDef = z.infer<typeof ScratchOrgDefSchema>;
