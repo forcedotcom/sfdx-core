@@ -942,6 +942,7 @@ describe('scratchOrgInfoGenerator', () => {
           })
         ).to.deep.equal({
           scratchOrgInfoPayload: {
+            hasSampleData: false,
             snapshot: 1,
             durationDays: 1,
           },
