@@ -17,11 +17,11 @@ jobs:
 
   nuts:
     needs: linux-unit-tests
-    uses: salesforcecli/github-workflows/.github/workflows/nut.yml@main
+    uses: salesforcecli/github-workflows/.github/workflows/nut.yml@useDevTag
 
   xNuts:
     needs: linux-unit-tests
-    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
+    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@useDevTag
     strategy:
       fail-fast: false
       matrix:
@@ -53,7 +53,7 @@ jobs:
   # hidden until we fix source-testkit to better handle jwt
   pdrNuts:
     needs: linux-unit-tests
-    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@main
+    uses: salesforcecli/github-workflows/.github/workflows/externalNut.yml@useDevTag
     strategy:
       fail-fast: false
       matrix:
