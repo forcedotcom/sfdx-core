@@ -1,3 +1,14 @@
+## [8.31.4](https://github.com/forcedotcom/sfdx-core/compare/8.31.3...8.31.4) (2026-06-25)
+
+
+### Bug Fixes
+
+* bumped jsforce to fixed version @W-23121570@ ([09dfab0](https://github.com/forcedotcom/sfdx-core/commit/09dfab076f90e3a507a8e8c12a275dc1cbe8ff64))
+* temporarily using different workflows @W-23121570@ ([240e162](https://github.com/forcedotcom/sfdx-core/commit/240e162ff9e9c5ce52248f72b8c3c7afe2eb3a9e))
+* undoing custom workflow ([bd7d018](https://github.com/forcedotcom/sfdx-core/commit/bd7d018dc1c8e03ea3a4f369278d3f768fa7d899))
+
+
+
 ## [8.31.3](https://github.com/forcedotcom/sfdx-core/compare/8.31.2...8.31.3) (2026-06-24)
 
 
