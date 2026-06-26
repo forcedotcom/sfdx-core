@@ -32,7 +32,7 @@ import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
-import { matchesOpaqueAccessToken, trimTo15 } from '../util/sfdc';
+import { matchesOpaqueAccessToken, trimTo15, validateApiVersion } from '../util/sfdc';
 import { StateAggregator } from '../stateAggregator/stateAggregator';
 import { filterSecrets } from '../logger/filters';
 import { Messages } from '../messages';
@@ -615,6 +615,12 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public update(authData?: AuthFields): AuthInfo {
     if (authData && isPlainObject(authData)) {
+      if (authData.instanceApiVersion && !validateApiVersion(authData.instanceApiVersion)) {
+        this.logger.warn(
+          `Ignoring invalid instanceApiVersion "${authData.instanceApiVersion}" (expected format: "XX.0")`
+        );
+        delete authData.instanceApiVersion;
+      }
       this.username = authData.username ?? this.username;
       this.stateAggregator.orgs.update(this.username, authData);
       this.logger.info(`Updated auth info for username: ${this.username}`);
