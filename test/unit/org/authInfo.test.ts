@@ -1144,7 +1144,7 @@ describe('AuthInfo', () => {
       // Calling update with invalid instanceApiVersion should not persist it
       authInfo.update({ instanceApiVersion: 'latest' });
       const fields = authInfo.getFields();
-      expect(fields.instanceApiVersion).to.not.equal('latest');
+      expect(fields.instanceApiVersion).to.be.undefined;
     });
 
     it('should allow valid instanceApiVersion on update', async () => {

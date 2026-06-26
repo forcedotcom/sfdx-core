@@ -619,7 +619,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         this.logger.warn(
           `Ignoring invalid instanceApiVersion "${authData.instanceApiVersion}" (expected format: "XX.0")`
         );
-        delete authData.instanceApiVersion;
+        authData.instanceApiVersion = undefined;
       }
       this.username = authData.username ?? this.username;
       this.stateAggregator.orgs.update(this.username, authData);
