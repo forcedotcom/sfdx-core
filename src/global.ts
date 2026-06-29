@@ -54,6 +54,7 @@ export class Global {
    * Whether the code is running in a web browser.
    */
   public static get isWeb(): boolean {
+    if (typeof process.versions?.bun !== 'undefined') return false;
     return 'document' in globalThis && 'window' in globalThis;
   }
 

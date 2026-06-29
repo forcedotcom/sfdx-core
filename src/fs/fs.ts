@@ -13,7 +13,10 @@ import type { VirtualFs } from './types';
 
 export let fs: VirtualFs;
 
-const isWeb = (): boolean => process.env.FORCE_MEMFS === 'true' || ('document' in globalThis && 'window' in globalThis);
+const isWeb = (): boolean => {
+  if (typeof process.versions?.bun !== 'undefined') return false;
+  return process.env.FORCE_MEMFS === 'true' || 'window' in globalThis || 'self' in globalThis;
+};
 
 export const getVirtualFs = (memfsVolume?: memfs.Volume): VirtualFs => {
   if (isWeb()) {
