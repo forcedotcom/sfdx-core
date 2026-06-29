@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782741160060,
+  "lastUpdate": 1782741818167,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -40716,6 +40716,72 @@ window.BENCHMARK_DATA = {
             "range": "±12.95%",
             "unit": "ops/sec",
             "extra": "61 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "cf1a6b4d5b19d14c01fcd0c53fdca7a2cc209839",
+          "message": "refactor: consolidate isWeb() into a single definition in fs/fs.ts\n\nGlobal.isWeb now delegates to the exported isWeb() from fs/fs.ts,\neliminating the duplicate detection logic with different heuristics.",
+          "timestamp": "2026-06-29T07:57:33-06:00",
+          "tree_id": "1e1311924716c39d6b27d3951eefff23a97a054a",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/cf1a6b4d5b19d14c01fcd0c53fdca7a2cc209839"
+        },
+        "date": 1782741803958,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 388353,
+            "range": "±0.58%",
+            "unit": "ops/sec",
+            "extra": "93 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1250898,
+            "range": "±16.06%",
+            "unit": "ops/sec",
+            "extra": "45 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 8803,
+            "range": "±241.23%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 234767,
+            "range": "±132.69%",
+            "unit": "ops/sec",
+            "extra": "69 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 374789,
+            "range": "±13.44%",
+            "unit": "ops/sec",
+            "extra": "55 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 8089,
+            "range": "±202.55%",
+            "unit": "ops/sec",
+            "extra": "22 samples"
           }
         ]
       }
