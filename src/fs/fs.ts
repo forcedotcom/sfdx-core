@@ -13,8 +13,8 @@ import type { VirtualFs } from './types';
 
 export let fs: VirtualFs;
 
-const isWeb = (): boolean => {
-  if (typeof process.versions?.bun !== 'undefined') return false;
+export const isWeb = (): boolean => {
+  if (process.versions.bun) return false;
   return process.env.FORCE_MEMFS === 'true' || 'window' in globalThis || 'self' in globalThis;
 };
 

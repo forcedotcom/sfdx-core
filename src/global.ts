@@ -8,7 +8,7 @@
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { env } from '@salesforce/kit';
-import { fs } from './fs/fs';
+import { fs, isWeb } from './fs/fs';
 import { SfError } from './sfError';
 
 /**
@@ -54,8 +54,7 @@ export class Global {
    * Whether the code is running in a web browser.
    */
   public static get isWeb(): boolean {
-    if (typeof process.versions?.bun !== 'undefined') return false;
-    return 'document' in globalThis && 'window' in globalThis;
+    return isWeb();
   }
 
   /**
