@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782495100655,
+  "lastUpdate": 1782741045191,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -41640,6 +41640,72 @@ window.BENCHMARK_DATA = {
             "range": "±8.43%",
             "unit": "ops/sec",
             "extra": "64 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "db119c3bed65ff20df960c3bfdb5890003d7c8f6",
+          "message": "fix: use Bun-specific detection instead of changing browser heuristic @W-21890292@\n\nPer review feedback, revert the browser detection logic to the original\n('window' in globalThis || 'self' in globalThis) and instead use\nprocess.versions.bun to detect Bun and return false early.\n\nThis is the most conservative fix that avoids risking breakage in\nCodeBuilder/CodeBuilderWeb/VSCode extension environments.\n\nAlso adds the Bun guard to Global.isWeb for consistency.",
+          "timestamp": "2026-06-29T07:46:03-06:00",
+          "tree_id": "bb46d09f18d080441cc6f50515682d5e6a784636",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/db119c3bed65ff20df960c3bfdb5890003d7c8f6"
+        },
+        "date": 1782741035027,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 481796,
+            "range": "±0.29%",
+            "unit": "ops/sec",
+            "extra": "96 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1162369,
+            "range": "±9.82%",
+            "unit": "ops/sec",
+            "extra": "38 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 20816,
+            "range": "±215.43%",
+            "unit": "ops/sec",
+            "extra": "12 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 607563,
+            "range": "±7.11%",
+            "unit": "ops/sec",
+            "extra": "53 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 470495,
+            "range": "±8.23%",
+            "unit": "ops/sec",
+            "extra": "49 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 8042,
+            "range": "±211.30%",
+            "unit": "ops/sec",
+            "extra": "14 samples"
           }
         ]
       }
