@@ -9,6 +9,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { env } from '@salesforce/kit';
 import { fs } from './fs/fs';
+import { isWeb } from './util/isWeb';
 import { SfError } from './sfError';
 
 /**
@@ -54,7 +55,7 @@ export class Global {
    * Whether the code is running in a web browser.
    */
   public static get isWeb(): boolean {
-    return 'window' in globalThis || 'self' in globalThis;
+    return isWeb();
   }
 
   /**

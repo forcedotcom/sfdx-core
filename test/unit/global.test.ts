@@ -9,6 +9,48 @@ import { isString } from '@salesforce/ts-types';
 import { Global, Mode } from '../../src/global';
 
 describe('Global', () => {
+  describe('isWeb', () => {
+    it('returns false in Node.js (no window/self)', () => {
+      expect(Global.isWeb).to.be.false;
+    });
+
+    it('returns true when window is in globalThis', () => {
+      (globalThis as Record<string, unknown>).window = {};
+      try {
+        expect(Global.isWeb).to.be.true;
+      } finally {
+        delete (globalThis as Record<string, unknown>).window;
+      }
+    });
+
+    it('returns true when self is in globalThis', () => {
+      (globalThis as Record<string, unknown>).self = globalThis;
+      try {
+        expect(Global.isWeb).to.be.true;
+      } finally {
+        delete (globalThis as Record<string, unknown>).self;
+      }
+    });
+
+    it('returns false when running in Bun even with window/self', () => {
+      const originalBun = process.versions.bun;
+      Object.defineProperty(process.versions, 'bun', { value: '1.0.0', configurable: true });
+      (globalThis as Record<string, unknown>).window = {};
+      (globalThis as Record<string, unknown>).self = globalThis;
+      try {
+        expect(Global.isWeb).to.be.false;
+      } finally {
+        if (originalBun === undefined) {
+          delete (process.versions as Record<string, unknown>).bun;
+        } else {
+          Object.defineProperty(process.versions, 'bun', { value: originalBun, configurable: true });
+        }
+        delete (globalThis as Record<string, unknown>).window;
+        delete (globalThis as Record<string, unknown>).self;
+      }
+    });
+  });
+
   describe('environmentMode', () => {
     const originalEnv = { SFDX_ENV: process.env.SFDX_ENV, SF_ENV: process.env.SF_ENV };
     const cleanEnv = () => Object.keys(originalEnv).map((key) => delete process.env[key]);

@@ -9,14 +9,13 @@ import * as nodeFs from 'node:fs';
 // yes, we're going to import it even though it might not be used.
 // the alternatives were all worse without top-level await (iife, runtime errors from something trying to use it before it's initialized)
 import * as memfs from 'memfs';
+import { isWeb } from '../util/isWeb';
 import type { VirtualFs } from './types';
 
 export let fs: VirtualFs;
 
-const isWeb = (): boolean => process.env.FORCE_MEMFS === 'true' || 'window' in globalThis || 'self' in globalThis;
-
 export const getVirtualFs = (memfsVolume?: memfs.Volume): VirtualFs => {
-  if (isWeb()) {
+  if (process.env.FORCE_MEMFS === 'true' || isWeb()) {
     const memfsInstance = memfs.createFsFromVolume(memfsVolume ?? new memfs.Volume());
 
     // Start with memfs instance and only override problematic methods
