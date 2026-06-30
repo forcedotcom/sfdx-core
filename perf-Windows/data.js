@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782750729933,
+  "lastUpdate": 1782833335215,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -40848,6 +40848,72 @@ window.BENCHMARK_DATA = {
             "range": "±14.19%",
             "unit": "ops/sec",
             "extra": "67 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "2f1bacdcbe270debf718384c05a82bc7557b4790",
+          "message": "fix: keep FORCE_MEMFS scoped to fs layer, not global isWeb()\n\nFORCE_MEMFS is a testing concern for forcing memfs — it should not\ntrigger all web-mode behaviors (disabled file locking, skipped DNS,\nremoved user-agent headers). Check it only in getVirtualFs() where it\nbelongs, keeping isWeb() as a pure environment detector.",
+          "timestamp": "2026-06-30T09:18:09-06:00",
+          "tree_id": "ae521b91f3f85a78954be6b4d81813fce63fdf79",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/2f1bacdcbe270debf718384c05a82bc7557b4790"
+        },
+        "date": 1782833320591,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 426466,
+            "range": "±0.44%",
+            "unit": "ops/sec",
+            "extra": "94 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1163844,
+            "range": "±10.17%",
+            "unit": "ops/sec",
+            "extra": "38 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 16699,
+            "range": "±211.29%",
+            "unit": "ops/sec",
+            "extra": "14 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 616123,
+            "range": "±9.98%",
+            "unit": "ops/sec",
+            "extra": "56 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 452369,
+            "range": "±14.45%",
+            "unit": "ops/sec",
+            "extra": "56 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 12420,
+            "range": "±199.22%",
+            "unit": "ops/sec",
+            "extra": "26 samples"
           }
         ]
       }
