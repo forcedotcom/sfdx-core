@@ -79,7 +79,7 @@ export const traverse = {
   forFile: async (dir: string, file: string): Promise<Optional<string>> => {
     let foundProjectDir: Optional<string>;
     try {
-      fs.statSync(join(dir, file));
+      await fs.promises.stat(join(dir, file));
       foundProjectDir = dir;
     } catch (err) {
       if (err && (err as SfError).code === 'ENOENT') {
