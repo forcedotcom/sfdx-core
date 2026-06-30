@@ -1,3 +1,14 @@
+## [8.31.5](https://github.com/forcedotcom/sfdx-core/compare/8.31.4...8.31.5) (2026-06-30)
+
+
+### Bug Fixes
+
+* isWeb() no longer misdetects Bun as a browser environment @W-21890292@ ([59f6873](https://github.com/forcedotcom/sfdx-core/commit/59f6873ca2ebe916caa06e2d7ddb36486bcdf766))
+* keep FORCE_MEMFS scoped to fs layer, not global isWeb() ([2f1bacd](https://github.com/forcedotcom/sfdx-core/commit/2f1bacdcbe270debf718384c05a82bc7557b4790))
+* use Bun-specific detection instead of changing browser heuristic @W-21890292@ ([db119c3](https://github.com/forcedotcom/sfdx-core/commit/db119c3bed65ff20df960c3bfdb5890003d7c8f6))
+
+
+
 ## [8.31.4](https://github.com/forcedotcom/sfdx-core/compare/8.31.3...8.31.4) (2026-06-25)
 
 
