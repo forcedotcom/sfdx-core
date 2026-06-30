@@ -8,7 +8,8 @@
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { env } from '@salesforce/kit';
-import { fs, isWeb } from './fs/fs';
+import { fs } from './fs/fs';
+import { isWeb } from './util/isWeb';
 import { SfError } from './sfError';
 
 /**
