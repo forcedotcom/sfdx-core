@@ -7,5 +7,5 @@
 
 export const isWeb = (): boolean => {
   if (process.versions.bun) return false;
-  return process.env.FORCE_MEMFS === 'true' || 'window' in globalThis || 'self' in globalThis;
+  return 'window' in globalThis || 'self' in globalThis;
 };

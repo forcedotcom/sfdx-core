@@ -15,7 +15,7 @@ import type { VirtualFs } from './types';
 export let fs: VirtualFs;
 
 export const getVirtualFs = (memfsVolume?: memfs.Volume): VirtualFs => {
-  if (isWeb()) {
+  if (process.env.FORCE_MEMFS === 'true' || isWeb()) {
     const memfsInstance = memfs.createFsFromVolume(memfsVolume ?? new memfs.Volume());
 
     // Start with memfs instance and only override problematic methods
