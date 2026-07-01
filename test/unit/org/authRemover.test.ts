@@ -9,6 +9,7 @@ import { spyMethod } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
 import { AuthRemover } from '../../../src/org/authRemover';
 import { Config } from '../../../src/config/config';
+import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { AliasAccessor } from '../../../src/stateAggregator/accessors/aliasAccessor';
 import { MockTestOrgData, shouldThrow, TestContext } from '../../../src/testSetup';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
@@ -154,6 +155,41 @@ describe('AuthRemover', () => {
       // expect 2 calls: one for each alias
       expect(aliasesSpy.callCount).to.equal(2);
       expect(aliasesSpy.args).to.deep.equal([[alias1], [alias2]]);
+    });
+  });
+
+  describe('projectPath', () => {
+    it('should forward projectPath to ConfigAggregator.create', async () => {
+      const createSpy = spyMethod($$.SANDBOX, ConfigAggregator, 'create');
+      const projectPath = '/some/project/path';
+
+      await AuthRemover.create({ projectPath });
+
+      expect(createSpy.calledWith({ projectPath })).to.equal(true);
+    });
+
+    it('should call ConfigAggregator.create with no options when projectPath is omitted', async () => {
+      const createSpy = spyMethod($$.SANDBOX, ConfigAggregator, 'create');
+
+      await AuthRemover.create();
+
+      expect(createSpy.calledWith(undefined)).to.equal(true);
+    });
+
+    it('should reload the ConfigAggregator when skipCache is true', async () => {
+      const reloadSpy = spyMethod($$.SANDBOX, ConfigAggregator.prototype, 'reload');
+
+      await AuthRemover.create({ skipCache: true });
+
+      expect(reloadSpy.calledOnce).to.equal(true);
+    });
+
+    it('should not reload the ConfigAggregator by default', async () => {
+      const reloadSpy = spyMethod($$.SANDBOX, ConfigAggregator.prototype, 'reload');
+
+      await AuthRemover.create();
+
+      expect(reloadSpy.called).to.equal(false);
     });
   });
 });
