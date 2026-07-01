@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782833297418,
+  "lastUpdate": 1782918678020,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -41904,6 +41904,72 @@ window.BENCHMARK_DATA = {
             "range": "±8.82%",
             "unit": "ops/sec",
             "extra": "67 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shane.mclaughlin@salesforce.com",
+            "name": "mshanemc",
+            "username": "mshanemc"
+          },
+          "committer": {
+            "email": "shane.mclaughlin@salesforce.com",
+            "name": "mshanemc",
+            "username": "mshanemc"
+          },
+          "distinct": true,
+          "id": "dd42613740188f5559fec3333fec3d3f8d0cad3e",
+          "message": "feat: add optional projectPath to AuthRemover @W-23271398@\n\nAuthRemover.init calls ConfigAggregator.create() argless, resolving\nlocal config from process.cwd(). Consumers that cannot rely on cwd\n(e.g. salesforcedx-vscode) had no way to unset local config for a\nlogged-out org.\n\nAdd an optional projectPath option, forwarded to\nConfigAggregator.create({ projectPath }). Backward-compatible: falls\nback to cwd when omitted.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+          "timestamp": "2026-07-01T10:05:25-05:00",
+          "tree_id": "64112296899b09bb868b5fd58118282a5afebbe0",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/dd42613740188f5559fec3333fec3d3f8d0cad3e"
+        },
+        "date": 1782918666368,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 511471,
+            "range": "±0.74%",
+            "unit": "ops/sec",
+            "extra": "91 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1239083,
+            "range": "±7.32%",
+            "unit": "ops/sec",
+            "extra": "35 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 83347,
+            "range": "±181.71%",
+            "unit": "ops/sec",
+            "extra": "54 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 20085,
+            "range": "±198.71%",
+            "unit": "ops/sec",
+            "extra": "25 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 560520,
+            "range": "±10.44%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 389541,
+            "range": "±8.14%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
           }
         ]
       }
