@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782918685656,
+  "lastUpdate": 1782923261570,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -40980,6 +40980,72 @@ window.BENCHMARK_DATA = {
             "range": "±186.38%",
             "unit": "ops/sec",
             "extra": "40 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shane.mclaughlin@salesforce.com",
+            "name": "mshanemc",
+            "username": "mshanemc"
+          },
+          "committer": {
+            "email": "shane.mclaughlin@salesforce.com",
+            "name": "mshanemc",
+            "username": "mshanemc"
+          },
+          "distinct": true,
+          "id": "5aee1fbb3fd326881b55f80f9586a8958d743a3b",
+          "message": "feat: add projectPath and skipCache options to AuthRemover @W-23271398@\n\nAuthRemover.init calls ConfigAggregator.create() argless, resolving\nlocal config from process.cwd() and trusting the process-cached\naggregator. Consumers that cannot rely on cwd (e.g. salesforcedx-vscode)\nor that hold a long-lived cached aggregator (whose in-memory config\ngoes stale after out-of-process changes) had no way to make\nremoveAuth unset the current local config.\n\nAdd two optional, backward-compatible options:\n- projectPath: forwarded to ConfigAggregator.create({ projectPath }) so\n  local config resolves from the given project instead of cwd.\n- skipCache: when true, reload() the aggregator so config is re-read\n  from disk before unsetConfigValues runs. Defaults to false; existing\n  behavior (trust the cache) is unchanged.\n\nCo-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>",
+          "timestamp": "2026-07-01T11:20:21-05:00",
+          "tree_id": "f5a01be14b7a279877e54e37c468c40e5dc8afeb",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/5aee1fbb3fd326881b55f80f9586a8958d743a3b"
+        },
+        "date": 1782923248145,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 333633,
+            "range": "±4.24%",
+            "unit": "ops/sec",
+            "extra": "80 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1137815,
+            "range": "±11.12%",
+            "unit": "ops/sec",
+            "extra": "44 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 18421,
+            "range": "±209.75%",
+            "unit": "ops/sec",
+            "extra": "15 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 754696,
+            "range": "±9.79%",
+            "unit": "ops/sec",
+            "extra": "71 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 475294,
+            "range": "±12.58%",
+            "unit": "ops/sec",
+            "extra": "60 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 27215,
+            "range": "±182.16%",
+            "unit": "ops/sec",
+            "extra": "73 samples"
           }
         ]
       }
