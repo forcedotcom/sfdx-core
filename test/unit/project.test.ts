@@ -288,7 +288,7 @@ describe('SfProject', () => {
       const read = async function () {
         // @ts-expect-error this is any
         if (this.isGlobal()) {
-          return { sfdcLoginUrl: 'globalUrl' };
+          return { sfdcLoginUrl: 'https://global.my.salesforce.com' };
         } else {
           return {};
         }
@@ -296,56 +296,56 @@ describe('SfProject', () => {
       $$.configStubs.SfProjectJson = { retrieveContents: read };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
-      expect(config['sfdcLoginUrl']).to.equal('globalUrl');
+      expect(config['sfdcLoginUrl']).to.equal('https://global.my.salesforce.com');
     });
     it('gets local overrides global', async () => {
       const read = async function () {
         // @ts-expect-error this is any
         if (this.isGlobal()) {
-          return { sfdcLoginUrl: 'globalUrl' };
+          return { sfdcLoginUrl: 'https://global.my.salesforce.com' };
         } else {
-          return { sfdcLoginUrl: 'localUrl' };
+          return { sfdcLoginUrl: 'https://local.my.salesforce.com' };
         }
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
-      expect(config['sfdcLoginUrl']).to.equal('localUrl');
+      expect(config['sfdcLoginUrl']).to.equal('https://local.my.salesforce.com');
     });
     it('gets env overrides local and config', async () => {
-      process.env.FORCE_SFDC_LOGIN_URL = 'envarUrl';
+      process.env.FORCE_SFDC_LOGIN_URL = 'https://envvar.my.salesforce.com';
       const read = async function () {
         // @ts-expect-error this is any
         if (this.isGlobal()) {
-          return { sfdcLoginUrl: 'globalUrl' };
+          return { sfdcLoginUrl: 'https://global.my.salesforce.com' };
         } else {
-          return { sfdcLoginUrl: 'localUrl' };
+          return { sfdcLoginUrl: 'https://local.my.salesforce.com' };
         }
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
       $$.configStubs.Config = { contents: { instanceUrl: 'https://dontusethis.my.salesforce.com' } };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
-      expect(config['sfdcLoginUrl']).to.equal('envarUrl');
+      expect(config['sfdcLoginUrl']).to.equal('https://envvar.my.salesforce.com');
     });
     it('gets signupTargetLoginUrl local', async () => {
       const read = async function () {
-        return { signupTargetLoginUrl: 'localUrl' };
+        return { signupTargetLoginUrl: 'https://signup.my.salesforce.com' };
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
-      expect(config['signupTargetLoginUrl']).to.equal('localUrl');
+      expect(config['signupTargetLoginUrl']).to.equal('https://signup.my.salesforce.com');
     });
     it('gets SFDX_SCRATCH_ORG_CREATION_LOGIN_URL env overrides config', async () => {
-      process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL = 'envarUrl';
+      process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL = 'https://envvar-signup.my.salesforce.com';
       const read = async function () {
-        return { signupTargetLoginUrl: 'localUrl' };
+        return { signupTargetLoginUrl: 'https://signup.my.salesforce.com' };
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
-      expect(config['signupTargetLoginUrl']).to.equal('envarUrl');
+      expect(config['signupTargetLoginUrl']).to.equal('https://envvar-signup.my.salesforce.com');
     });
     it('gets config org-instance-url sets sfdcLoginUrl when there is none elsewhere', async () => {
       const read = async function () {
@@ -368,9 +368,9 @@ describe('SfProject', () => {
       const read = async function () {
         // @ts-expect-error this is any
         if (this.isGlobal()) {
-          return { 'org-api-version': '38.0', sfdcLoginUrl: 'https://fromfiles.com' };
+          return { 'org-api-version': '38.0', sfdcLoginUrl: 'https://fromfiles.my.salesforce.com' };
         } else {
-          return { 'org-api-version': '39.0', sfdcLoginUrl: 'https://fromfiles.com' };
+          return { 'org-api-version': '39.0', sfdcLoginUrl: 'https://fromfiles.my.salesforce.com' };
         }
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
@@ -379,7 +379,7 @@ describe('SfProject', () => {
       };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
-      expect(config['sfdcLoginUrl']).to.equal('https://fromfiles.com');
+      expect(config['sfdcLoginUrl']).to.equal('https://fromfiles.my.salesforce.com');
     });
     it('gets config overrides local', async () => {
       const read = async function () {
@@ -395,6 +395,79 @@ describe('SfProject', () => {
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
       expect(config['org-api-version']).to.equal('40.0');
+    });
+    it('rejects sfdcLoginUrl that is not a Salesforce domain', async () => {
+      const read = async function () {
+        return { sfdcLoginUrl: 'https://attacker.example.com' };
+      };
+      $$.configStubs.SfProjectJson = { retrieveContents: read };
+      const project = await SfProject.resolve();
+      try {
+        await project.resolveProjectConfig();
+        assert.fail('Expected an error to be thrown');
+      } catch (e) {
+        expect(e).to.be.instanceOf(SfError);
+        expect((e as SfError).message).to.include('https://attacker.example.com');
+        expect((e as SfError).message).to.include('not a valid Salesforce domain');
+      }
+    });
+    it('rejects non-Salesforce FORCE_SFDC_LOGIN_URL env var', async () => {
+      process.env.FORCE_SFDC_LOGIN_URL = 'https://evil.example.com';
+      $$.configStubs.SfProjectJson = { contents: {} };
+      const project = await SfProject.resolve();
+      try {
+        await project.resolveProjectConfig();
+        assert.fail('Expected an error to be thrown');
+      } catch (e) {
+        expect(e).to.be.instanceOf(SfError);
+        expect((e as SfError).message).to.include('https://evil.example.com');
+      }
+    });
+    it('allows valid Salesforce custom domain in sfdcLoginUrl', async () => {
+      const read = async function () {
+        return { sfdcLoginUrl: 'https://mycompany.my.salesforce.com' };
+      };
+      $$.configStubs.SfProjectJson = { retrieveContents: read };
+      const project = await SfProject.resolve();
+      const config = await project.resolveProjectConfig();
+      expect(config['sfdcLoginUrl']).to.equal('https://mycompany.my.salesforce.com');
+    });
+    it('allows internal URLs in sfdcLoginUrl', async () => {
+      const read = async function () {
+        return { sfdcLoginUrl: 'https://myorg.stm.salesforce.com' };
+      };
+      $$.configStubs.SfProjectJson = { retrieveContents: read };
+      const project = await SfProject.resolve();
+      const config = await project.resolveProjectConfig();
+      expect(config['sfdcLoginUrl']).to.equal('https://myorg.stm.salesforce.com');
+    });
+    it('rejects malformed (non-URL) sfdcLoginUrl', async () => {
+      const read = async function () {
+        return { sfdcLoginUrl: 'not-a-valid-url' };
+      };
+      $$.configStubs.SfProjectJson = { retrieveContents: read };
+      const project = await SfProject.resolve();
+      try {
+        await project.resolveProjectConfig();
+        assert.fail('Expected an error to be thrown');
+      } catch (e) {
+        expect(e).to.be.instanceOf(SfError);
+        expect((e as SfError).message).to.include('not-a-valid-url');
+      }
+    });
+    it('rejects non-Salesforce signupTargetLoginUrl', async () => {
+      const read = async function () {
+        return { signupTargetLoginUrl: 'https://attacker.example.com' };
+      };
+      $$.configStubs.SfProjectJson = { retrieveContents: read };
+      const project = await SfProject.resolve();
+      try {
+        await project.resolveProjectConfig();
+        assert.fail('Expected an error to be thrown');
+      } catch (e) {
+        expect(e).to.be.instanceOf(SfError);
+        expect((e as SfError).message).to.include('https://attacker.example.com');
+      }
     });
   });
 

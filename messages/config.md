@@ -155,6 +155,10 @@ A valid repository URL or directory for the custom org metadata templates.
 
 Whether record types are capitalized on scratch org creation.
 
+# invalidProjectLoginUrl
+
+The sfdcLoginUrl "%s" is not a valid Salesforce domain. Only Salesforce or internal URLs are allowed as the OAuth login endpoint.
+
 # invalidId
 
 The given id %s is not a valid 15 or 18 character Salesforce ID.
