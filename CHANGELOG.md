@@ -1,3 +1,12 @@
+## [8.32.2](https://github.com/forcedotcom/sfdx-core/compare/8.32.1...8.32.2) (2026-07-06)
+
+
+### Bug Fixes
+
+* remove double slash in determineIfDevHub request URL @W-23299190@ ([#1310](https://github.com/forcedotcom/sfdx-core/issues/1310)) ([a62de2f](https://github.com/forcedotcom/sfdx-core/commit/a62de2f16a10375c1bb3eb7e111585afdd5a3833))
+
+
+
 ## [8.32.1](https://github.com/forcedotcom/sfdx-core/compare/8.32.0...8.32.1) (2026-07-06)
 
 
