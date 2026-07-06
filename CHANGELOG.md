@@ -1,3 +1,12 @@
+# [8.32.0](https://github.com/forcedotcom/sfdx-core/compare/8.31.5...8.32.0) (2026-07-06)
+
+
+### Features
+
+* add projectPath and skipCache options to AuthRemover @W-23271398@ ([#1309](https://github.com/forcedotcom/sfdx-core/issues/1309)) ([813aefd](https://github.com/forcedotcom/sfdx-core/commit/813aefd8bd5fb948ebac7103b960764dd98e120a))
+
+
+
 ## [8.31.5](https://github.com/forcedotcom/sfdx-core/compare/8.31.4...8.31.5) (2026-06-30)
 
 
