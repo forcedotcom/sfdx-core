@@ -1295,7 +1295,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const apiVersion = 'v51.0'; // hardcoding to v51.0 just for this call is okay.
     const instance = ensure(instanceUrl);
     const baseUrl = new SfdcUrl(instance);
-    const scratchOrgInfoUrl = `${baseUrl.toString()}/services/data/${apiVersion}/query?q=SELECT%20Id%20FROM%20ScratchOrgInfo%20limit%201`;
+    const scratchOrgInfoUrl = `${baseUrl.toString()}services/data/${apiVersion}/query?q=SELECT%20Id%20FROM%20ScratchOrgInfo%20limit%201`;
     const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
 
     try {
