@@ -1,3 +1,12 @@
+## [8.32.1](https://github.com/forcedotcom/sfdx-core/compare/8.32.0...8.32.1) (2026-07-06)
+
+
+### Bug Fixes
+
+* validate cached instanceApiVersion before use @W-23157155@ ([#1307](https://github.com/forcedotcom/sfdx-core/issues/1307)) ([27bd8ef](https://github.com/forcedotcom/sfdx-core/commit/27bd8ef35702a60bb42616cb75310dee1f70853a))
+
+
+
 # [8.32.0](https://github.com/forcedotcom/sfdx-core/compare/8.31.5...8.32.0) (2026-07-06)
 
 
