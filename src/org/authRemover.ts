@@ -39,11 +39,27 @@ const messages = Messages.loadMessages('@salesforce/core', 'auth');
  * );
  * await remover.removeAuth(auth.username);
  * ```
+ *
+ * Pass a `projectPath` to resolve local config from a specific project instead of `process.cwd()`,
+ * and `skipCache` to re-read config from disk when the process-cached aggregator can't be trusted:
+ *
+ * ```
+ * const remover = await AuthRemover.create({ projectPath: '/path/to/project', skipCache: true });
+ * await remover.removeAuth('example@mycompany.com');
+ * ```
  */
-export class AuthRemover extends AsyncOptionalCreatable {
+export class AuthRemover extends AsyncOptionalCreatable<AuthRemoverOptions> {
   private config!: ConfigAggregator;
   private stateAggregator!: StateAggregator;
   private logger!: Logger;
+  private readonly projectPath?: string;
+  private readonly skipCache?: boolean;
+
+  public constructor(options?: AuthRemoverOptions) {
+    super(options);
+    this.projectPath = options?.projectPath;
+    this.skipCache = options?.skipCache;
+  }
 
   /**
    * Removes the authentication and any configs or aliases associated with it
@@ -101,7 +117,13 @@ export class AuthRemover extends AsyncOptionalCreatable {
 
   protected async init(): Promise<void> {
     this.logger = await Logger.child(this.constructor.name);
-    this.config = await ConfigAggregator.create();
+    this.config = await ConfigAggregator.create(this.projectPath ? { projectPath: this.projectPath } : undefined);
+    // ConfigAggregator.create returns a process-cached instance keyed by projectPath, so its
+    // in-memory config may be stale (set out of process, or before this call). When the caller
+    // can't trust the cache, skipCache re-reads from disk so unsetConfigValues sees current values.
+    if (this.skipCache) {
+      await this.config.reload();
+    }
     this.stateAggregator = await StateAggregator.getInstance();
     await this.stateAggregator.orgs.readAll();
   }
@@ -190,3 +212,13 @@ export class AuthRemover extends AsyncOptionalCreatable {
     }
   }
 }
+
+export type AuthRemoverOptions = {
+  /** an absolute path to the project root, used to resolve local config; defaults to `process.cwd()` */
+  projectPath?: string;
+  /**
+   * re-read config from disk instead of trusting the process-cached ConfigAggregator. Set `true`
+   * when the config may have changed out of process or before this call. Defaults to `false`.
+   */
+  skipCache?: boolean;
+};
