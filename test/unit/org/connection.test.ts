@@ -172,6 +172,37 @@ describe('Connection', () => {
     expect(conn.maxApiVersion).to.equal('51.0');
   });
 
+  it('getCachedApiVersion should ignore invalid cached version and re-fetch', async () => {
+    $$.SANDBOX.stub(Connection.prototype, 'isResolvable').resolves(true);
+
+    // Set up getFields to return an invalid cached version BEFORE create
+    testAuthInfo.getFields.returns({
+      instanceApiVersionLastRetrieved: new Date(Date.now() - Duration.hours(10).milliseconds).toLocaleString(),
+      instanceApiVersion: 'latest',
+    });
+
+    // The request mock (first call) returns the version list when cache is invalid
+    const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+    // 'latest' is invalid, so cache is ignored and server is hit → returns '50.0'
+    expect(conn.getApiVersion()).to.equal('50.0');
+    expect(requestMock.calledOnce).to.be.true;
+  });
+
+  it('getCachedApiVersion should accept valid cached version', async () => {
+    $$.SANDBOX.stub(Connection.prototype, 'isResolvable').resolves(true);
+
+    // Set up getFields to return a valid cached version BEFORE create
+    testAuthInfo.getFields.returns({
+      instanceApiVersionLastRetrieved: new Date(Date.now() - Duration.hours(10).milliseconds).toLocaleString(),
+      instanceApiVersion: '59.0',
+    });
+
+    const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+    // Valid cache is used directly, no server request needed
+    expect(conn.getApiVersion()).to.equal('59.0');
+    expect(requestMock.called).to.be.false;
+  });
+
   it('setApiVersion() should throw with invalid version', async () => {
     const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
 

@@ -252,8 +252,9 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       if (error.name === DNS_ERROR_NAME) {
         throw error; // throws on DNS connection errors
       }
-      // Don't fail if we can't use the latest, just use the default
-      this.logger.warn('Failed to set the latest API version:', error);
+      this.logger.warn(
+        `Failed to set the latest API version (${error.name}: ${error.message}). Using default: v${this.version}`
+      );
     }
   }
 
@@ -468,7 +469,12 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       );
 
       if (!has24HoursPastSinceLastCheck && version) {
-        // return cached API version
+        if (!validateApiVersion(version)) {
+          this.logger.warn(
+            `Cached instanceApiVersion "${version}" is invalid (expected format: "XX.0"). Ignoring cache and re-fetching.`
+          );
+          return;
+        }
         this.logger.debug(`Using cached API version: ${version}`);
         return version;
       } else {

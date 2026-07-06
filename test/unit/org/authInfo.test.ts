@@ -1117,6 +1117,66 @@ describe('AuthInfo', () => {
       expect(decryptedActualFields).to.deep.equal(expectedFields);
     });
 
+    it('should strip invalid instanceApiVersion on update', async () => {
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+
+      const refreshTokenConfig = {
+        refreshToken: testOrg.refreshToken,
+        loginUrl: testOrg.loginUrl,
+      };
+      const authResponse = {
+        access_token: testOrg.accessToken,
+        instance_url: testOrg.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        expirationDate: testOrg.expirationDate,
+      };
+
+      postParamsStub.resolves(authResponse);
+
+      const authInfo = await AuthInfo.create({
+        username: testOrg.username,
+        oauth2Options: refreshTokenConfig,
+      });
+
+      authInfoStubs.update.resetHistory();
+
+      // Calling update with invalid instanceApiVersion should not persist it
+      authInfo.update({ instanceApiVersion: 'latest' });
+      const fields = authInfo.getFields();
+      expect(fields.instanceApiVersion).to.be.undefined;
+    });
+
+    it('should allow valid instanceApiVersion on update', async () => {
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+
+      const refreshTokenConfig = {
+        refreshToken: testOrg.refreshToken,
+        loginUrl: testOrg.loginUrl,
+      };
+      const authResponse = {
+        access_token: testOrg.accessToken,
+        instance_url: testOrg.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        expirationDate: testOrg.expirationDate,
+      };
+
+      postParamsStub.resolves(authResponse);
+
+      const authInfo = await AuthInfo.create({
+        username: testOrg.username,
+        oauth2Options: refreshTokenConfig,
+      });
+
+      authInfoStubs.update.resetHistory();
+
+      // Calling update with valid instanceApiVersion should persist it
+      authInfo.update({ instanceApiVersion: '61.0' });
+      const fields = authInfo.getFields();
+      expect(fields.instanceApiVersion).to.equal('61.0');
+    });
+
     it('should not save accesstoken files', async () => {
       // invalid access token
       const username =
