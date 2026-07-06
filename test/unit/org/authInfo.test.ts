@@ -2096,13 +2096,15 @@ describe('AuthInfo', () => {
 
   describe('determineIfDevHub', () => {
     it('should return true if request succeeds', async () => {
-      stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').resolves({
+      const httpRequestStub = stubMethod($$.SANDBOX, Transport.prototype, 'httpRequest').resolves({
         statusCode: 200,
         body: JSON.stringify([]),
       });
       const authInfo = await AuthInfo.create({ username: testOrg.username });
       // @ts-expect-error because private method
       expect(await authInfo.determineIfDevHub(testOrg.instanceUrl, testOrg.accessToken)).to.be.true;
+      const requestedUrl = httpRequestStub.firstCall.args[0].url as string;
+      expect(requestedUrl.startsWith(`${testOrg.instanceUrl}/services/data/`)).to.be.true;
     });
 
     it('should return false if request returns 400', async () => {
