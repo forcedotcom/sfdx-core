@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1782923261570,
+  "lastUpdate": 1783355624910,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -41046,6 +41046,72 @@ window.BENCHMARK_DATA = {
             "range": "±182.16%",
             "unit": "ops/sec",
             "extra": "73 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jhork@salesforce.com",
+            "name": "jhork",
+            "username": "jonnyhork"
+          },
+          "committer": {
+            "email": "jhork@salesforce.com",
+            "name": "jhork",
+            "username": "jonnyhork"
+          },
+          "distinct": true,
+          "id": "c55b553af5857260b75b82c6befa0b42b00da1fe",
+          "message": "fix: remove double slash in determineIfDevHub request URL @W-23299190@\n\nSfdcUrl (WHATWG URL) toString() always includes a trailing slash on a\nbare origin, so appending a leading slash to build the ScratchOrgInfo\nquery URL produced a double slash. Match the sibling retrieveUserInfo\npattern, which concatenates without a leading slash.",
+          "timestamp": "2026-07-06T10:28:06-06:00",
+          "tree_id": "69362f83843d17b54ed6adaaa8e26b99ebb5db9c",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/c55b553af5857260b75b82c6befa0b42b00da1fe"
+        },
+        "date": 1783355611029,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 361134,
+            "range": "±0.42%",
+            "unit": "ops/sec",
+            "extra": "97 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1226072,
+            "range": "±8.22%",
+            "unit": "ops/sec",
+            "extra": "35 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 10466,
+            "range": "±223.04%",
+            "unit": "ops/sec",
+            "extra": "10 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 536088,
+            "range": "±6.77%",
+            "unit": "ops/sec",
+            "extra": "53 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 421607,
+            "range": "±12.91%",
+            "unit": "ops/sec",
+            "extra": "60 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 17345,
+            "range": "±185.77%",
+            "unit": "ops/sec",
+            "extra": "42 samples"
           }
         ]
       }
