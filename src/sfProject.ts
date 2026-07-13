@@ -770,6 +770,28 @@ export class SfProject {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this.projectConfig.signupTargetLoginUrl = process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL;
       }
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const loginUrl = this.projectConfig.sfdcLoginUrl as string;
+      if (loginUrl) {
+        if (
+          !SfdcUrl.isValidUrl(loginUrl) ||
+          (!new SfdcUrl(loginUrl).isSalesforceDomain() && !new SfdcUrl(loginUrl).isInternalUrl())
+        ) {
+          throw messages.createError('invalidProjectLoginUrl', [loginUrl]);
+        }
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const signupUrl = this.projectConfig.signupTargetLoginUrl as string;
+      if (signupUrl) {
+        if (
+          !SfdcUrl.isValidUrl(signupUrl) ||
+          (!new SfdcUrl(signupUrl).isSalesforceDomain() && !new SfdcUrl(signupUrl).isInternalUrl())
+        ) {
+          throw messages.createError('invalidProjectLoginUrl', [signupUrl]);
+        }
+      }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
