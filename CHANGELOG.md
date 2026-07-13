@@ -1,3 +1,12 @@
+## [8.32.3](https://github.com/forcedotcom/sfdx-core/compare/8.32.2...8.32.3) (2026-07-13)
+
+
+### Bug Fixes
+
+* validate sfdcLoginUrl domain before use as OAuth endpoint @W-22835124@ ([652a692](https://github.com/forcedotcom/sfdx-core/commit/652a6920f5f2bd7d57d63321aebdf5bb48eea5a7))
+
+
+
 ## [8.32.2](https://github.com/forcedotcom/sfdx-core/compare/8.32.1...8.32.2) (2026-07-06)
 
 
