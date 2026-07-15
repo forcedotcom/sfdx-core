@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784045508024,
+  "lastUpdate": 1784154775347,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -41244,6 +41244,72 @@ window.BENCHMARK_DATA = {
             "range": "±210.22%",
             "unit": "ops/sec",
             "extra": "15 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9fd28dd2046da06c54340868e34dc8cf589e7557",
+          "message": "fix(deps): bump websocket-driver from 0.7.4 to 0.7.5\n\nBumps [websocket-driver](https://github.com/faye/websocket-driver-node) from 0.7.4 to 0.7.5.\n- [Changelog](https://github.com/faye/websocket-driver-node/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/faye/websocket-driver-node/compare/0.7.4...0.7.5)\n\n---\nupdated-dependencies:\n- dependency-name: websocket-driver\n  dependency-version: 0.7.5\n  dependency-type: indirect\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2026-07-15T22:28:07Z",
+          "tree_id": "2b5ed33cefec4f7e3c67722a13637b8f26d584d5",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/9fd28dd2046da06c54340868e34dc8cf589e7557"
+        },
+        "date": 1784154762549,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 385352,
+            "range": "±0.25%",
+            "unit": "ops/sec",
+            "extra": "94 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1213398,
+            "range": "±11.21%",
+            "unit": "ops/sec",
+            "extra": "46 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 11842,
+            "range": "±226.66%",
+            "unit": "ops/sec",
+            "extra": "9 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 289630,
+            "range": "±118.22%",
+            "unit": "ops/sec",
+            "extra": "65 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 397743,
+            "range": "±9.21%",
+            "unit": "ops/sec",
+            "extra": "56 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 12023,
+            "range": "±197.31%",
+            "unit": "ops/sec",
+            "extra": "28 samples"
           }
         ]
       }
