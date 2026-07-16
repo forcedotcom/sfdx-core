@@ -1,3 +1,12 @@
+## [8.32.4](https://github.com/forcedotcom/sfdx-core/compare/8.32.3...8.32.4) (2026-07-16)
+
+
+### Bug Fixes
+
+* **deps:** bump websocket-driver from 0.7.4 to 0.7.5 ([9fd28dd](https://github.com/forcedotcom/sfdx-core/commit/9fd28dd2046da06c54340868e34dc8cf589e7557))
+
+
+
 ## [8.32.3](https://github.com/forcedotcom/sfdx-core/compare/8.32.2...8.32.3) (2026-07-13)
 
 
