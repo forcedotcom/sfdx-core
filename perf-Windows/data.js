@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784154775347,
+  "lastUpdate": 1784174118396,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -41310,6 +41310,72 @@ window.BENCHMARK_DATA = {
             "range": "±197.31%",
             "unit": "ops/sec",
             "extra": "28 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "99609f05413c9f2a3a01706c4cd768196b6b3d94",
+          "message": "chore(deps): bump form-data from 4.0.5 to 4.0.6 in /examples\n\nBumps [form-data](https://github.com/form-data/form-data) from 4.0.5 to 4.0.6.\n- [Changelog](https://github.com/form-data/form-data/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/form-data/form-data/compare/v4.0.5...v4.0.6)\n\n---\nupdated-dependencies:\n- dependency-name: form-data\n  dependency-version: 4.0.6\n  dependency-type: indirect\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2026-07-16T03:50:37Z",
+          "tree_id": "10ce00fb35f2d724cce04a0f62b2240401f485a3",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/99609f05413c9f2a3a01706c4cd768196b6b3d94"
+        },
+        "date": 1784174106199,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 400810,
+            "range": "±0.28%",
+            "unit": "ops/sec",
+            "extra": "97 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1278698,
+            "range": "±9.51%",
+            "unit": "ops/sec",
+            "extra": "46 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 8569,
+            "range": "±242.13%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 690277,
+            "range": "±10.37%",
+            "unit": "ops/sec",
+            "extra": "67 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 484637,
+            "range": "±13.13%",
+            "unit": "ops/sec",
+            "extra": "61 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 2498,
+            "range": "±255.55%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
           }
         ]
       }
