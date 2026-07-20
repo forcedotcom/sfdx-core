@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784566534611,
+  "lastUpdate": 1784575800441,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -42498,6 +42498,72 @@ window.BENCHMARK_DATA = {
             "range": "±198.45%",
             "unit": "ops/sec",
             "extra": "25 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "afced8181b920916277ea55d4472debb2876419f",
+          "message": "fix: update getWriteStream tests to intercept process.emitWarning\n\nThe tests were intercepting process.stderr.write but the implementation\nuses Lifecycle.emitWarning() which calls process.emitWarning() — a\ndifferent API that doesn't route through stderr.write.",
+          "timestamp": "2026-07-20T13:25:05-06:00",
+          "tree_id": "cd20e45ba4ee2e5025ad01708be19f7c920c36ba",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/afced8181b920916277ea55d4472debb2876419f"
+        },
+        "date": 1784575790607,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 634033,
+            "range": "±0.65%",
+            "unit": "ops/sec",
+            "extra": "97 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 140511,
+            "range": "±183.74%",
+            "unit": "ops/sec",
+            "extra": "31 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 1339311,
+            "range": "±8.29%",
+            "unit": "ops/sec",
+            "extra": "59 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 7266,
+            "range": "±274.78%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 589969,
+            "range": "±5.00%",
+            "unit": "ops/sec",
+            "extra": "58 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 62676,
+            "range": "±175.07%",
+            "unit": "ops/sec",
+            "extra": "67 samples"
           }
         ]
       }
