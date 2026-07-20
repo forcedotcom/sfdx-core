@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784575800441,
+  "lastUpdate": 1784578119649,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -42564,6 +42564,72 @@ window.BENCHMARK_DATA = {
             "range": "±175.07%",
             "unit": "ops/sec",
             "extra": "67 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "ec11960879ef955340c68d786caf7771f8f55686",
+          "message": "fix: use Lifecycle.emitWarning for unrecognized SF_LOG_ROTATION_PERIOD\n\nSwitch from process.stderr.write to Lifecycle.getInstance().emitWarning\nfor the rotation period warning, consistent with how other warnings are\nemitted throughout the codebase. Update tests to stub Lifecycle\ndirectly.",
+          "timestamp": "2026-07-20T14:02:44-06:00",
+          "tree_id": "7cd9422ce14cd463420e13832d2be86d34ba324c",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/ec11960879ef955340c68d786caf7771f8f55686"
+        },
+        "date": 1784578107274,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 497826,
+            "range": "±1.25%",
+            "unit": "ops/sec",
+            "extra": "94 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 107828,
+            "range": "±182.57%",
+            "unit": "ops/sec",
+            "extra": "49 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 953478,
+            "range": "±7.13%",
+            "unit": "ops/sec",
+            "extra": "50 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 26057,
+            "range": "±188.63%",
+            "unit": "ops/sec",
+            "extra": "33 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 557837,
+            "range": "±10.43%",
+            "unit": "ops/sec",
+            "extra": "65 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 401976,
+            "range": "±8.01%",
+            "unit": "ops/sec",
+            "extra": "65 samples"
           }
         ]
       }
