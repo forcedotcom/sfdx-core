@@ -9,7 +9,7 @@ import * as path from 'node:path';
 
 import { type Logger as PinoLogger, pino } from 'pino';
 import { Env } from '@salesforce/kit';
-import { ensureString, isKeyOf, isString } from '@salesforce/ts-types';
+import { isKeyOf, isString } from '@salesforce/ts-types';
 import { Global, Mode } from '../global';
 import { SfError } from '../sfError';
 import { unwrapArray } from '../util/unwrapArray';
@@ -451,7 +451,7 @@ export class Logger {
 }
 
 /** return various streams that the logger could send data to, depending on the options and env  */
-const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
+export const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
   const env = new Env();
   // used when debug mode, writes to stdout (colorized)
   if (process.env.DEBUG) {
@@ -474,14 +474,17 @@ const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
   ]);
   const logRotationPeriod = env.getString('SF_LOG_ROTATION_PERIOD') ?? '1d';
 
+  if (logRotationPeriod && !rotator.has(logRotationPeriod)) {
+    process.stderr.write(
+      `Warning: Unrecognized SF_LOG_ROTATION_PERIOD value "${logRotationPeriod}". Expected 1m, 1h, or 1d. Falling back to 1d.\n`
+    );
+  }
+
   return {
     // write to a rotating file
     target: 'pino/file',
     options: {
-      destination: path.join(
-        Global.SF_DIR,
-        `sf-${ensureString(rotator.get(logRotationPeriod)) ?? rotator.get('1d')}.log`
-      ),
+      destination: path.join(Global.SF_DIR, `sf-${rotator.get(logRotationPeriod) ?? rotator.get('1d')}.log`),
       mkdir: true,
       level,
     },
