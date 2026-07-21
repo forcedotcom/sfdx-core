@@ -1,3 +1,12 @@
+## [8.32.5](https://github.com/forcedotcom/sfdx-core/compare/8.32.4...8.32.5) (2026-07-21)
+
+
+### Bug Fixes
+
+* fall back to 1d for unrecognized SF_LOG_ROTATION_PERIOD values @W-23050508@ ([#1314](https://github.com/forcedotcom/sfdx-core/issues/1314)) ([26cfc6a](https://github.com/forcedotcom/sfdx-core/commit/26cfc6ae0046ee17d3e6e122cc9fbfec7c243419))
+
+
+
 ## [8.32.4](https://github.com/forcedotcom/sfdx-core/compare/8.32.3...8.32.4) (2026-07-16)
 
 
