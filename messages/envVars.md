@@ -72,7 +72,7 @@ Number of source-tracked file updates to batch after a deploy or retrieve. The d
 
 # sfdxDisableTelemetry
 
-Set to true to disable Salesforce CLI from collecting usage information, user environment information, and crash reports. Default value is false. Overrides the disableTelemetry configration variable.
+Set to true to disable Salesforce CLI from collecting usage information, user environment information, and crash reports. Default value is false. Overrides the disableTelemetry configuration variable.
 
 # sfdxDnsTimeout
 
@@ -192,7 +192,7 @@ URL that overrides the aud (audience) field used for JWT authentication so that 
 
 # sfCodeCoverageRequirement
 
-Code coverage percentages that are displayed in green when you run the Apex test CLIcommands with the --code-coverage flag.
+Code coverage percentages that are displayed in green when you run the Apex test CLI commands with the --code-coverage flag.
 
 # sfContentType
 
@@ -212,7 +212,7 @@ Set to true to disable polling of your org’s SourceMember object when you run 
 
 # sfDisableTelemetry
 
-Set to true to disable Salesforce CLI from collecting usage information, user environment information, and crash reports. Default value is false. Overrides the disableTelemetry configration variable.
+Set to true to disable Salesforce CLI from collecting usage information, user environment information, and crash reports. Default value is false. Overrides the disableTelemetry configuration variable.
 
 # sfDnsTimeout
 
