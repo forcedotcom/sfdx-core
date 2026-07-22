@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784735583218,
+  "lastUpdate": 1784746147220,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -42762,6 +42762,72 @@ window.BENCHMARK_DATA = {
             "range": "±46.10%",
             "unit": "ops/sec",
             "extra": "67 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "deffe8dee52e7f9f2a858361d0dff4bc7ee11503",
+          "message": "fix: use auth code exchange when signup app is overridden via env var\n\nWhen SF_SCRATCH_SIGNUP_CONNECTED_APP overrides the signup Connected App\n(e.g. to PlatformCLI), the scratch org auth step must use the auth code\nexchange flow rather than JWT. The hub's private key isn't registered with\nthe overridden app, so JWT auth against the scratch org fails with\nNamedOrgNotFoundError.\n\n@W-23543471@",
+          "timestamp": "2026-07-22T12:44:22-06:00",
+          "tree_id": "3621e195027f35f6f3e2041bef180d20293cbec6",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/deffe8dee52e7f9f2a858361d0dff4bc7ee11503"
+        },
+        "date": 1784746136154,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 490776,
+            "range": "±0.42%",
+            "unit": "ops/sec",
+            "extra": "95 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 103035,
+            "range": "±182.68%",
+            "unit": "ops/sec",
+            "extra": "46 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 702393,
+            "range": "±35.72%",
+            "unit": "ops/sec",
+            "extra": "49 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 29376,
+            "range": "±187.60%",
+            "unit": "ops/sec",
+            "extra": "38 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 402826,
+            "range": "±52.05%",
+            "unit": "ops/sec",
+            "extra": "61 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 374007,
+            "range": "±7.60%",
+            "unit": "ops/sec",
+            "extra": "61 samples"
           }
         ]
       }
