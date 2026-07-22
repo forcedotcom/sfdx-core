@@ -938,11 +938,17 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         if (this.options.parentUsername) {
           const parentFields = await this.loadDecryptedAuthFromConfig(this.options.parentUsername);
 
-          options.clientId = parentFields.clientId;
+          if (process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP) {
+            // When the signup app is overridden, use it as the clientId for the auth code exchange
+            // and skip copying the parent's privateKey so we don't fall into the JWT flow.
+            options.clientId = process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP;
+          } else {
+            options.clientId = parentFields.clientId;
+          }
 
           if (process.env.SFDX_CLIENT_SECRET) {
             options.clientSecret = process.env.SFDX_CLIENT_SECRET;
-          } else {
+          } else if (!process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP) {
             // Grab whatever flow is defined
             Object.assign(options, {
               clientSecret: parentFields.clientSecret,
