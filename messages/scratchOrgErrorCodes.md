@@ -113,3 +113,10 @@ The template specified in the Scratch Definition isn’t supported. Specify a ge
 # C-9999
 
 A fatal signup error occurred. Please try again. If you still see this error, contact Salesforce Support for assistance
+
+# action.C-1016
+
+If your Dev Hub is authenticated via an External Client App (ECA), the signup service cannot replicate it into the new scratch org. As a workaround, set these environment variables to use Salesforce's built-in Connected App for signup instead:
+
+SF_SCRATCH_SIGNUP_CONNECTED_APP=PlatformCLI
+SF_SCRATCH_SIGNUP_CALLBACK_URL=http://localhost:1717/OauthRedirect

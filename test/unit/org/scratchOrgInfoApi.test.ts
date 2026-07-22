@@ -463,7 +463,29 @@ describe('authorizeScratchOrg', () => {
 
   afterEach(() => {
     env.unset('SFDX_CLIENT_SECRET');
+    delete process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP;
     sandbox.restore();
+  });
+
+  it('authorizeScratchOrg uses auth code exchange when SF_SCRATCH_SIGNUP_CONNECTED_APP is set', async () => {
+    hubOrgStub.isDevHubOrg.returns(true);
+    process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP = 'PlatformCLI';
+
+    const result = await authorizeScratchOrg({
+      scratchOrgInfoComplete: TEMPLATE_SCRATCH_ORG_INFO,
+      hubOrg: hubOrgStub,
+    });
+
+    expect(result).to.be.equal(authInfo);
+    expect(authInfoStub.firstCall.args[0]).to.deep.equal({
+      username: TEMPLATE_SCRATCH_ORG_INFO.SignupUsername,
+      parentUsername: username,
+      oauth2Options: {
+        loginUrl: `https://${TEMPLATE_SCRATCH_ORG_INFO.SignupInstance}.salesforce.com`,
+        redirectUri: undefined,
+        authCode: TEMPLATE_SCRATCH_ORG_INFO.AuthCode,
+      },
+    });
   });
 
   it('authorizeScratchOrg basic', async () => {

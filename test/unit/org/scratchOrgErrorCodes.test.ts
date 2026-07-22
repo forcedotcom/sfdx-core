@@ -256,4 +256,20 @@ describe('getHumanErrorMessage', () => {
     const successOrgInfo: ScratchOrgInfo = { ...baseOrgInfo, Status: 'Active' };
     expect(await checkScratchOrgInfoForErrors(successOrgInfo, testUsername)).to.deep.equal(successOrgInfo);
   });
+
+  it('C-1016 includes env var workaround in actions', async () => {
+    const ErrorCode = 'C-1016';
+    try {
+      await shouldThrow(checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername));
+    } catch (err) {
+      if (!(err instanceof SfError)) {
+        expect.fail('should have thrown SfError');
+      }
+      expect(err.name).to.equal('RemoteOrgSignupFailed');
+      expect(err.message).to.include('Connected App');
+      expect(err.actions).to.have.lengthOf(2);
+      expect(err.actions![0]).to.include('information on error code');
+      expect(err.actions![1]).to.include('SF_SCRATCH_SIGNUP_CONNECTED_APP');
+    }
+  });
 });

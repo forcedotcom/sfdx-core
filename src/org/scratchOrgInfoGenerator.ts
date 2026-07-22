@@ -226,12 +226,13 @@ export const generateScratchOrgInfo = async ({
   return {
     ...payload,
     orgName: scratchOrgInfoPayload.orgName ?? 'Company',
-    // we already have the info, and want to get rid of configApi, so this doesn't use that
-    connectedAppCallbackUrl: `http://localhost:${await WebOAuthServer.determineOauthPort()}/OauthRedirect`,
+    connectedAppCallbackUrl:
+      process.env.SF_SCRATCH_SIGNUP_CALLBACK_URL ??
+      `http://localhost:${await WebOAuthServer.determineOauthPort()}/OauthRedirect`,
     ...(!nonamespace && namespace ? { namespace } : {}),
-    // Use the Hub org's client ID value, if one wasn't provided to us, or the default
     connectedAppConsumerKey:
       scratchOrgInfoPayload.connectedAppConsumerKey ??
+      process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP ??
       hubOrg.getConnection().getAuthInfoFields().clientId ??
       DEFAULT_CONNECTED_APP_INFO.clientId,
     package2AncestorIds:

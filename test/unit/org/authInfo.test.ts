@@ -2197,6 +2197,36 @@ describe('AuthInfo', () => {
       }
     });
   });
+
+  describe('SF_SCRATCH_SIGNUP_CONNECTED_APP bypasses parent auth loading', () => {
+    it('should not throw NamedOrgNotFoundError when parent is not in cache', async () => {
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+
+      process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP = 'PlatformCLI';
+
+      postParamsStub.callsFake(() => ({
+        access_token: testOrg.accessToken,
+        instance_url: testOrg.instanceUrl,
+        refresh_token: testOrg.refreshToken,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      }));
+
+      try {
+        const authInfo = await AuthInfo.create({
+          username: testOrg.username,
+          parentUsername: 'nonexistent-parent@hub.org',
+          oauth2Options: {
+            loginUrl: testOrg.instanceUrl,
+            authCode: testOrg.authcode,
+          },
+        });
+        expect(authInfo.isRefreshTokenFlow()).to.be.true;
+      } finally {
+        delete process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP;
+      }
+    });
+  });
 });
 
 describe('AuthInfo No fs mock', () => {
