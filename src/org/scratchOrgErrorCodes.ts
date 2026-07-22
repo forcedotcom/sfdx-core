@@ -133,10 +133,12 @@ export const checkScratchOrgInfoForErrors = async (
   if (orgInfo.Status === 'Error' && orgInfo.ErrorCode) {
     await ScratchOrgCache.unset(orgInfo.Id);
     const message = optionalErrorCodeMessage(orgInfo.ErrorCode, [WORKSPACE_CONFIG_FILENAME]);
+    const actions = [namedMessages.getMessage('SignupFailedActionError', [orgInfo.ErrorCode])];
+    if (orgInfo.ErrorCode === 'C-1016') {
+      actions.push(namedMessages.getMessage('action.C-1016'));
+    }
     if (message) {
-      throw new SfError(message, 'RemoteOrgSignupFailed', [
-        namedMessages.getMessage('SignupFailedActionError', [orgInfo.ErrorCode]),
-      ]);
+      throw new SfError(message, 'RemoteOrgSignupFailed', actions);
     }
     throw new SfError(namedMessages.getMessage('SignupFailedError', [orgInfo.ErrorCode]));
   }
