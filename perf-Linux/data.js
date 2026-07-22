@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784747702116,
+  "lastUpdate": 1784750643241,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -42894,6 +42894,72 @@ window.BENCHMARK_DATA = {
             "range": "±8.92%",
             "unit": "ops/sec",
             "extra": "64 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "4ee5085be0f9671f82b3a41600948188576a5b47",
+          "message": "fix: skip parent auth lookup when SF_SCRATCH_SIGNUP_CONNECTED_APP is set\n\nWhen the signup app is overridden via env var, we don't need the\nparent (hub) org's auth fields. The previous code unconditionally\ncalled loadDecryptedAuthFromConfig(parentUsername) before checking\nthe env var, which threw NamedOrgNotFoundError if the hub org wasn't\nin the StateAggregator cache.\n\nRestructure so the env var check comes first — when set, use it\ndirectly as clientId and skip loading parent fields entirely.\n\nW-23543471",
+          "timestamp": "2026-07-22T13:58:52-06:00",
+          "tree_id": "ba28b5e151b386c68429567763684d028fd3f96c",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/4ee5085be0f9671f82b3a41600948188576a5b47"
+        },
+        "date": 1784750632476,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 492905,
+            "range": "±0.89%",
+            "unit": "ops/sec",
+            "extra": "95 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1339890,
+            "range": "±9.09%",
+            "unit": "ops/sec",
+            "extra": "53 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 66861,
+            "range": "±181.23%",
+            "unit": "ops/sec",
+            "extra": "47 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 31407,
+            "range": "±186.28%",
+            "unit": "ops/sec",
+            "extra": "42 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 551906,
+            "range": "±7.87%",
+            "unit": "ops/sec",
+            "extra": "65 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 393331,
+            "range": "±8.57%",
+            "unit": "ops/sec",
+            "extra": "63 samples"
           }
         ]
       }
