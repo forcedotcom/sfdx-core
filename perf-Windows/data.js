@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784753242610,
+  "lastUpdate": 1784756042417,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -42036,6 +42036,72 @@ window.BENCHMARK_DATA = {
             "range": "±8.26%",
             "unit": "ops/sec",
             "extra": "67 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "b166baa066af47c8d628fde40ee4a93dae018061",
+          "message": "feat: add env var workaround hint to C-1016 error message\n\nWhen scratch org creation fails with C-1016 (Connected App configuration\nerror), append an action suggesting SF_SCRATCH_SIGNUP_CONNECTED_APP=PlatformCLI\nas a workaround for Dev Hubs authenticated via External Client Apps.\n\nW-23543471",
+          "timestamp": "2026-07-22T15:27:45-06:00",
+          "tree_id": "2c2d7f6f20e1437a0cdc9d95cd54e1a00da58bb8",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/b166baa066af47c8d628fde40ee4a93dae018061"
+        },
+        "date": 1784756025916,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 387352,
+            "range": "±0.89%",
+            "unit": "ops/sec",
+            "extra": "92 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1363454,
+            "range": "±10.37%",
+            "unit": "ops/sec",
+            "extra": "51 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 63167,
+            "range": "±181.67%",
+            "unit": "ops/sec",
+            "extra": "49 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 30343,
+            "range": "±186.96%",
+            "unit": "ops/sec",
+            "extra": "43 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 494028,
+            "range": "±9.50%",
+            "unit": "ops/sec",
+            "extra": "59 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 348314,
+            "range": "±7.75%",
+            "unit": "ops/sec",
+            "extra": "68 samples"
           }
         ]
       }
