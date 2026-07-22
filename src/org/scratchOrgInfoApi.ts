@@ -87,7 +87,8 @@ const buildOAuth2Options = async (options: {
   delay?: number;
 }> => {
   const logger = await Logger.child('buildOAuth2Options');
-  const isJwtFlow = !!options.hubOrg.getConnection().getAuthInfoFields().privateKey;
+  const signupAppOverridden = !!process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP;
+  const isJwtFlow = !signupAppOverridden && !!options.hubOrg.getConnection().getAuthInfoFields().privateKey;
   const oauth2Options: JwtOAuth2Config = {
     loginUrl: getOrgInstanceAuthority(
       options.scratchOrgInfoComplete,
@@ -97,6 +98,7 @@ const buildOAuth2Options = async (options: {
   };
 
   logger.debug(`isJwtFlow: ${isJwtFlow}`);
+  logger.debug(`signupAppOverridden: ${signupAppOverridden}`);
   logger.debug(`using resolved loginUrl: ${oauth2Options.loginUrl ?? '<undefined>'}`);
 
   if (isJwtFlow && !process.env.SFDX_CLIENT_SECRET) {
