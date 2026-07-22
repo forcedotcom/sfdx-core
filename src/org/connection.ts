@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-
 import { URL } from 'node:url';
 import { AsyncResult, DeployOptions, DeployResultLocator } from '@jsforce/jsforce-node/lib/api/metadata';
 import { Duration, env, maxBy } from '@salesforce/kit';
@@ -530,6 +528,5 @@ const getOptionsVersion = async <S extends Schema>(options: Connection.Options<S
 // jsforce does some interesting proxy loading on lib classes.
 // Setting this in the Connection.tooling getter will not work, it
 // must be set on the prototype.
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-JSForceTooling.prototype.autoFetchQuery = Connection.prototype.autoFetchQuery; // eslint-disable-line @typescript-eslint/unbound-method
+(JSForceTooling.prototype as unknown as { autoFetchQuery: Connection['autoFetchQuery'] }).autoFetchQuery =
+  Connection.prototype.autoFetchQuery; // eslint-disable-line @typescript-eslint/unbound-method

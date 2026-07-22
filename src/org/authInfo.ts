@@ -1150,8 +1150,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       throw messages.createError('refreshTokenAuthError', [cause.message], undefined, cause);
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     const { orgId } = parseIdUrl(authFieldsBuilder.id);
 
     let username = this.getUsername();
@@ -1211,8 +1209,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // Only need to query for the username if it isn't known. For example, a new auth code exchange
     // rather than refreshing a token on an existing connection.
     if (!username) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       const userInfo = await this.retrieveUserInfo(authFields.instance_url, authFields.access_token);
       username = userInfo?.username;
     }

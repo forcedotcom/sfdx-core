@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-
 import { resolve as resolveUrl } from 'node:url';
 import { AsyncOptionalCreatable, Duration, Env, env, set } from '@salesforce/kit';
 import { AnyFunction, AnyJson, ensure, ensureString, JsonMap } from '@salesforce/ts-types';
@@ -343,18 +341,13 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
     // and will prevent the timeout from disconnecting. Here for example we will detect there is no client id but
     // unauthenticated connections are being made to salesforce. Let's close the dispatcher if it exists and
     // has no clientId.
-    // @ts-ignore
+    const client = this.cometClient as unknown as { _dispatcher?: { clientId?: string; close(): void } };
     // eslint-disable-next-line no-underscore-dangle
-    if (this.cometClient._dispatcher) {
+    const dispatcher = client._dispatcher;
+    if (dispatcher) {
       this.log('Closing the faye dispatcher');
-      // @ts-ignore
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, no-underscore-dangle
-      const dispatcher = this.cometClient._dispatcher;
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access
       this.log(`dispatcher.clientId: ${dispatcher.clientId}`);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (!dispatcher.clientId) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         dispatcher.close();
       } else {
         this.disconnectClient();
@@ -472,15 +465,12 @@ export namespace StreamingClient {
       this.subscribeTimeout = StreamingClient.DefaultOptions.DEFAULT_SUBSCRIBE_TIMEOUT;
       this.handshakeTimeout = StreamingClient.DefaultOptions.DEFAULT_HANDSHAKE_TIMEOUT;
       this.streamingImpl = {
-        getCometClient: (url: string): CometClient =>
-          // @ts-ignore
-          new Faye.Client(url),
+        getCometClient: (url: string): CometClient => new Faye.Client(url) as unknown as CometClient,
         setLogger: (logLine: (message: string) => void): void => {
-          // @ts-ignore
-          Faye.logger = {};
+          const faye = Faye as unknown as { logger: Record<string, (message: string) => void> };
+          faye.logger = {};
           ['info', 'error', 'fatal', 'warn', 'debug'].forEach((element) => {
-            // @ts-ignore
-            set(Faye.logger, element, logLine);
+            set(faye.logger, element, logLine);
           });
         },
       };
