@@ -936,24 +936,27 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         this.update({ username: userInfo?.username, orgId: userInfo?.organizationId });
       } else {
         if (this.options.parentUsername) {
-          const parentFields = await this.loadDecryptedAuthFromConfig(this.options.parentUsername);
-
           if (process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP) {
-            // When the signup app is overridden, use it as the clientId for the auth code exchange
-            // and skip copying the parent's privateKey so we don't fall into the JWT flow.
+            // When the signup app is overridden, use it as the clientId for the auth code exchange.
+            // Skip loading parent fields entirely — we don't need the parent's privateKey/clientSecret
+            // and the parent org may not be in the StateAggregator cache.
             options.clientId = process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP;
+            if (process.env.SFDX_CLIENT_SECRET) {
+              options.clientSecret = process.env.SFDX_CLIENT_SECRET;
+            }
           } else {
+            const parentFields = await this.loadDecryptedAuthFromConfig(this.options.parentUsername);
             options.clientId = parentFields.clientId;
-          }
 
-          if (process.env.SFDX_CLIENT_SECRET) {
-            options.clientSecret = process.env.SFDX_CLIENT_SECRET;
-          } else if (!process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP) {
-            // Grab whatever flow is defined
-            Object.assign(options, {
-              clientSecret: parentFields.clientSecret,
-              privateKey: parentFields.privateKey ? pathResolve(parentFields.privateKey) : parentFields.privateKey,
-            });
+            if (process.env.SFDX_CLIENT_SECRET) {
+              options.clientSecret = process.env.SFDX_CLIENT_SECRET;
+            } else {
+              // Grab whatever flow is defined
+              Object.assign(options, {
+                clientSecret: parentFields.clientSecret,
+                privateKey: parentFields.privateKey ? pathResolve(parentFields.privateKey) : parentFields.privateKey,
+              });
+            }
           }
         }
 
