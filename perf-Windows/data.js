@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784578903673,
+  "lastUpdate": 1784735660842,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -41706,6 +41706,72 @@ window.BENCHMARK_DATA = {
             "range": "±199.73%",
             "unit": "ops/sec",
             "extra": "25 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "168a7186aebbae93aec335f1c0af67ab594028a8",
+          "message": "feat: add env vars to override scratch org signup Connected App\n\nAdd SF_SCRATCH_SIGNUP_CONNECTED_APP and SF_SCRATCH_SIGNUP_CALLBACK_URL\nenvironment variables that allow overriding the Connected App used during\nscratch org signup. This unblocks CI workflows using External Client Apps\n(ECA) + JWT for Dev Hub authentication, which otherwise fail with C-1016\nbecause Proxy Signup cannot replicate ECAs into the new scratch org.\n\nThe env vars slot into the existing fallback chain:\n- connectedAppConsumerKey: flag > env var > hub clientId > PlatformCLI\n- connectedAppCallbackUrl: env var > default (localhost:port/OauthRedirect)\n\n@W-23543471@",
+          "timestamp": "2026-07-22T09:47:43-06:00",
+          "tree_id": "fd0a6e3124e804ac9c97594eab4100f0bf8f4b1e",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/168a7186aebbae93aec335f1c0af67ab594028a8"
+        },
+        "date": 1784735648291,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 387222,
+            "range": "±0.23%",
+            "unit": "ops/sec",
+            "extra": "98 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1398357,
+            "range": "±10.75%",
+            "unit": "ops/sec",
+            "extra": "49 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 51423,
+            "range": "±184.11%",
+            "unit": "ops/sec",
+            "extra": "54 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 33422,
+            "range": "±185.82%",
+            "unit": "ops/sec",
+            "extra": "45 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 298306,
+            "range": "±65.14%",
+            "unit": "ops/sec",
+            "extra": "59 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 383220,
+            "range": "±7.58%",
+            "unit": "ops/sec",
+            "extra": "68 samples"
           }
         ]
       }
