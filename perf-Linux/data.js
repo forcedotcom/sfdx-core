@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1784746147220,
+  "lastUpdate": 1784747702116,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -42828,6 +42828,72 @@ window.BENCHMARK_DATA = {
             "range": "±7.60%",
             "unit": "ops/sec",
             "extra": "61 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "7d237b60b089234f9bac62376020bbadd45a1f57",
+          "message": "fix: prevent parent ECA credentials from overriding auth code exchange\n\nWhen SF_SCRATCH_SIGNUP_CONNECTED_APP is set, initAuthOptions must not\ncopy the parent hub org's clientId or privateKey into the OAuth options.\nOtherwise the parent's privateKey triggers the JWT flow (which fails\nbecause PlatformCLI doesn't have the hub's certificate), and the parent's\nECA clientId is used as client_id in the token request (mismatching the\nauth code issuer).\n\nWith this fix, the full auth code exchange uses:\n- clientId = SF_SCRATCH_SIGNUP_CONNECTED_APP (e.g. PlatformCLI)\n- authCode from the ScratchOrgInfo record\n- redirectUri from ConnectedAppCallbackUrl on the ScratchOrgInfo record\n\n@W-23543471@",
+          "timestamp": "2026-07-22T13:09:16-06:00",
+          "tree_id": "747970ef83e448bb7ea8d4540c4ac461ec69ae58",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/7d237b60b089234f9bac62376020bbadd45a1f57"
+        },
+        "date": 1784747691214,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 491267,
+            "range": "±0.32%",
+            "unit": "ops/sec",
+            "extra": "95 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 103681,
+            "range": "±182.04%",
+            "unit": "ops/sec",
+            "extra": "49 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 368243,
+            "range": "±114.67%",
+            "unit": "ops/sec",
+            "extra": "60 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 26529,
+            "range": "±188.31%",
+            "unit": "ops/sec",
+            "extra": "35 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 433271,
+            "range": "±42.62%",
+            "unit": "ops/sec",
+            "extra": "63 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 387441,
+            "range": "±8.92%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
           }
         ]
       }
