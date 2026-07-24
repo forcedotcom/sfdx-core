@@ -1,3 +1,12 @@
+## [8.32.6](https://github.com/forcedotcom/sfdx-core/compare/8.32.5...8.32.6) (2026-07-24)
+
+
+### Bug Fixes
+
+* **deps:** bump fast-uri from 3.0.1 to 3.1.4 ([e0d01fb](https://github.com/forcedotcom/sfdx-core/commit/e0d01fb76b39b6003f88fc77fe080b6c7b4930a0))
+
+
+
 ## [8.32.5](https://github.com/forcedotcom/sfdx-core/compare/8.32.4...8.32.5) (2026-07-21)
 
 
