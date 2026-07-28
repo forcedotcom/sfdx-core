@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785248491452,
+  "lastUpdate": 1785271713371,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -42300,6 +42300,72 @@ window.BENCHMARK_DATA = {
             "range": "±198.17%",
             "unit": "ops/sec",
             "extra": "29 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "b26a7037c3c876682485d4a712398cb1c6e6a121",
+          "message": "feat!: sfdx-core v9 breaking changes\n\nBREAKING CHANGES:\n- Node.js engine requirement bumped from >=18 to >=22\n- Removed DeviceOauthService (entire module deleted)\n- Removed AuthInfo.getOrgFrontDoorUrl()\n- Removed access-token-only authentication (AccessTokenOptions type, isUsingAccessToken)\n- Removed Connection.isUsingAccessToken()\n- PollingClient retryLimit default changed from INFINITELY to 10,000\n- @types/node bumped to ^22 via resolution",
+          "timestamp": "2026-07-28T14:41:40-06:00",
+          "tree_id": "ff8525bffa71d649f3cd01905f12a60640771d49",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/b26a7037c3c876682485d4a712398cb1c6e6a121"
+        },
+        "date": 1785271700287,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 373968,
+            "range": "±0.23%",
+            "unit": "ops/sec",
+            "extra": "93 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 102892,
+            "range": "±181.92%",
+            "unit": "ops/sec",
+            "extra": "49 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 880177,
+            "range": "±16.01%",
+            "unit": "ops/sec",
+            "extra": "61 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 25643,
+            "range": "±188.67%",
+            "unit": "ops/sec",
+            "extra": "33 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 588926,
+            "range": "±11.84%",
+            "unit": "ops/sec",
+            "extra": "73 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 386121,
+            "range": "±10.91%",
+            "unit": "ops/sec",
+            "extra": "67 samples"
           }
         ]
       }
