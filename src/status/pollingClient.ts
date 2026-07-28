@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 import { AsyncOptionalCreatable, Duration } from '@salesforce/kit';
 import { AnyJson, ensure } from '@salesforce/ts-types';
@@ -86,7 +95,7 @@ export class PollingClient extends AsyncOptionalCreatable<PollingClient.Options>
       return await retryDecorator(doPoll, {
         timeout: this.options.timeout.milliseconds,
         delay: this.options.frequency.milliseconds,
-        retries: this.options.retryLimit ?? 'INFINITELY',
+        retries: this.options.retryLimit ?? 10_000,
       })();
     } catch (error) {
       if (errorInPollingFunction) {
@@ -126,7 +135,7 @@ export namespace PollingClient {
     timeoutErrorName?: string;
     /**
      * Maximum number of retries. Use 'INFINITELY' for unlimited retries until timeout is reached.
-     * If not specified, defaults to 'INFINITELY'.
+     * If not specified, defaults to 10,000.
      */
     retryLimit?: number | 'INFINITELY';
   };

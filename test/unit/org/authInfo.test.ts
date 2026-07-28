@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 /* eslint-disable camelcase */
@@ -167,16 +176,6 @@ describe('AuthInfo', () => {
       });
     });
 
-    describe('getOrgFrontDoorUrl', () => {
-      it('return front door url', () => {
-        const url = authInfo.getOrgFrontDoorUrl();
-        const fields = authInfo.getFields(true);
-        expect(url).include(fields.accessToken);
-        expect(url).include(fields.instanceUrl);
-        expect(url).include('/secur/frontdoor');
-      });
-    });
-
     describe('getConnectionOptions', () => {
       it('return value should not have a client secret or decrypted refresh token', () => {
         const fields = authInfo.getConnectionOptions();
@@ -273,25 +272,6 @@ describe('AuthInfo', () => {
       expect(authInfo.isOauth(), 'authInfo.isOauth() should be true').to.be.true;
     };
 
-    it('should return an AuthInfo instance when passed an access token as username', async () => {
-      await $$.stubConfig({ [OrgConfigProperties.ORG_INSTANCE_URL]: testOrg.instanceUrl });
-
-      const username =
-        '00Dxx0000000001!AQEAQI3AIbublfW11ATFJl9T122vVPj5QaInBp6h9nPsUK8oW4rW5Os0ZjtsUU.DG9rXytUCh3RZvc_XYoRULiHeTMjyi6T1';
-      const authInfo = await AuthInfo.create({ username });
-
-      const expectedFields = {
-        accessToken: username,
-        instanceUrl: testOrg.instanceUrl,
-        loginUrl: testOrg.instanceUrl,
-      };
-      expect(authInfo.getConnectionOptions()).to.deep.equal(expectedFields);
-      expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be true').to.be.true;
-      expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
-      expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
-      expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
-    });
-
     it('should return an AuthInfo instance when passed a parent username', async () => {
       stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
       stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
@@ -348,34 +328,6 @@ describe('AuthInfo', () => {
         isDevHub: false,
       };
       expect(authInfoStubs.update.secondCall.args[0]).to.deep.equal(expectedAuthConfig);
-    });
-
-    it('should return an AuthInfo instance when passed an access token and instanceUrl for the access token flow', async () => {
-      await $$.stubConfig({ [OrgConfigProperties.ORG_INSTANCE_URL]: testOrg.instanceUrl });
-
-      stubUserRequest();
-
-      const accessToken =
-        '00Dxx0000000001!AQEAQI3AIbublfW11ATFJl9T122vVPj5QaInBp6h9nPsUK8oW4rW5Os0ZjtsUU.DG9rXytUCh3RZvc_XYoRULiHeTMjyi6T1';
-      const authInfo = await AuthInfo.create({
-        username: 'test',
-        accessTokenOptions: {
-          accessToken,
-          instanceUrl: testOrg.instanceUrl,
-          loginUrl: testOrg.instanceUrl,
-        },
-      });
-
-      const expectedFields = {
-        accessToken,
-        instanceUrl: testOrg.instanceUrl,
-        loginUrl: testOrg.instanceUrl,
-      };
-      expect(authInfo.getConnectionOptions()).to.deep.equal(expectedFields);
-      expect(authInfo.isAccessTokenFlow(), 'authInfo.isAccessTokenFlow() should be true').to.be.true;
-      expect(authInfo.isRefreshTokenFlow(), 'authInfo.isRefreshTokenFlow() should be false').to.be.false;
-      expect(authInfo.isJwt(), 'authInfo.isJwt() should be false').to.be.false;
-      expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
     });
 
     describe('JWT', () => {
@@ -1175,27 +1127,6 @@ describe('AuthInfo', () => {
       authInfo.update({ instanceApiVersion: '61.0' });
       const fields = authInfo.getFields();
       expect(fields.instanceApiVersion).to.equal('61.0');
-    });
-
-    it('should not save accesstoken files', async () => {
-      // invalid access token
-      const username =
-        '00DB0000000H3bm!AQcAQFpuHljRg_fn_n.0g_3GJTXeCI_sQEucmwq2o5yd3.mwof3ODbsfWrJ4MCro8DOjpaloqoRFzAJ8w8f.TrjRiSaFSpvo';
-
-      // Create the AuthInfo instance
-      const authInfo = await AuthInfo.create({
-        username,
-        accessTokenOptions: {
-          accessToken: username,
-          instanceUrl: testOrg.instanceUrl,
-        },
-      });
-
-      expect(authInfo.getUsername()).to.equal(username);
-
-      $$.stubs.configWrite.rejects(new Error('Should not call save'));
-      await authInfo.save();
-      // If the test doesn't blow up, it is a success because the write (reject) never happened
     });
   });
 

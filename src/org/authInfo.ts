@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 /* eslint-disable class-methods-use-this */
 
@@ -18,7 +27,6 @@ import {
   ensureString,
   isArray,
   isPlainObject,
-  isString,
   JsonMap,
   Many,
   Nullable,
@@ -32,7 +40,7 @@ import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
-import { matchesOpaqueAccessToken, trimTo15, validateApiVersion } from '../util/sfdc';
+import { trimTo15, validateApiVersion } from '../util/sfdc';
 import { StateAggregator } from '../stateAggregator/stateAggregator';
 import { filterSecrets } from '../logger/filters';
 import { Messages } from '../messages';
@@ -107,9 +115,6 @@ export type OrgAuthorization = {
   isExpired: boolean | 'unknown';
 };
 
-/**
- * Options for access token flow.
- */
 export type AccessTokenOptions = {
   accessToken?: string;
   loginUrl?: string;
@@ -200,8 +205,7 @@ export const CODE_BUILDER_CONNECTED_APP_INFO = {
 /**
  * Handles persistence and fetching of user authentication information using
  * JWT, OAuth, or refresh tokens. Sets up the refresh flows that jsForce will
- * use to keep tokens active. An AuthInfo can also be created with an access
- * token, but AuthInfos created with access tokens can't be persisted to disk.
+ * use to keep tokens active.
  *
  * **See** [Authorization](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth.htm)
  *
@@ -217,11 +221,6 @@ export const CODE_BUILDER_CONNECTED_APP_INFO = {
  * );
  * authInfo.save();
  *
- * // Creating an authorization info with an access token.
- * const authInfo = await AuthInfo.create({
- *   username: accessToken
- * });
- *
  * // Using an existing authentication file.
  * const authInfo = await AuthInfo.create({
  *   username: myAdminUsername
@@ -233,9 +232,6 @@ export const CODE_BUILDER_CONNECTED_APP_INFO = {
  */
 
 export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
-  // Possibly overridden in create
-  private usingAccessToken = false;
-
   // Initialized in init
   private logger!: Logger;
   private stateAggregator!: StateAggregator;
@@ -597,11 +593,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     this.update(authData);
     const username = ensure(this.getUsername());
 
-    if (matchesOpaqueAccessToken(username)) {
-      this.logger.debug('Username is an accesstoken. Skip saving authinfo to disk.');
-      return this;
-    }
-
     await this.stateAggregator.orgs.write(username);
     this.logger.info(`Saved auth info for username: ${username}`);
     return this;
@@ -741,25 +732,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   /**
-   * Get the org front door (used for web based oauth flows)
-   *
-   * @deprecated Will be removed in the next major version. Use the `Org.getFrontDoorUrl()` method instead.
-   */
-  public getOrgFrontDoorUrl(): string {
-    const authFields = this.getFields(true);
-    const base = ensureString(authFields.instanceUrl).replace(/\/+$/, '');
-    const accessToken = ensureString(authFields.accessToken);
-    return `${base}/secur/frontdoor.jsp?sid=${accessToken}`;
-  }
-
-  /**
-   * Returns true if this org is using access token auth.
-   */
-  public isUsingAccessToken(): boolean {
-    return this.usingAccessToken;
-  }
-
-  /**
    * Get the SFDX Auth URL.
    *
    * **See** [SFDX Authorization](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_force_auth.htm#cli_reference_force_auth)
@@ -866,25 +838,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       await this.stateAggregator.orgs.read(oauthUsername, false, false);
     } // Else it will be set in initAuthOptions below.
 
-    // If the username is an access token, use that for auth and don't persist
-    if (isString(oauthUsername) && matchesOpaqueAccessToken(oauthUsername)) {
-      // Need to initAuthOptions the logger and authInfoCrypto since we don't call init()
-      this.logger = await Logger.child('AuthInfo');
-
-      const aggregator = await ConfigAggregator.create();
-      const instanceUrl = this.getInstanceUrl(aggregator, authOptions);
-
-      this.update({
-        accessToken: oauthUsername,
-        instanceUrl,
-        orgId: oauthUsername.split('!')[0],
-        loginUrl: instanceUrl,
-      });
-
-      this.usingAccessToken = true;
-    }
     // If a username with NO oauth options, ensure authorization already exist.
-    else if (username && !authOptions && !(await this.stateAggregator.orgs.exists(username))) {
+    if (username && !authOptions && !(await this.stateAggregator.orgs.exists(username))) {
       const likeName = findSuggestion(username, [
         ...(await this.stateAggregator.orgs.list()).map((f) => f.split('.json')[0]),
         ...Object.keys(this.stateAggregator.aliases.getAll()),
@@ -901,12 +856,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     } else {
       await this.initAuthOptions(authOptions);
     }
-  }
-
-  private getInstanceUrl(aggregator: ConfigAggregator, options?: AuthOptions): string {
-    const instanceUrl =
-      options?.instanceUrl ?? (aggregator.getPropertyValue(OrgConfigProperties.ORG_INSTANCE_URL) as string);
-    return instanceUrl ?? SfdcUrl.PRODUCTION;
   }
 
   /**
@@ -995,18 +944,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       throw messages.createError('namedOrgNotFound', [username]);
     }
     return authInfo;
-  }
-
-  private isTokenOptions(options: JwtOAuth2Config | AccessTokenOptions): options is AccessTokenOptions {
-    // Although OAuth2Config does not contain refreshToken, privateKey, or privateKeyFile, a JS consumer could still pass those in
-    // which WILL have an access token as well, but it should be considered an OAuth2Config at that point.
-    return (
-      'accessToken' in options &&
-      !('refreshToken' in options) &&
-      !('privateKey' in options) &&
-      !('privateKeyFile' in options) &&
-      !('authCode' in options)
-    );
   }
 
   // A callback function for a connection to refresh an access token.  This is used
@@ -1227,6 +1164,18 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       clientId: options.clientId,
       clientSecret: options.clientSecret,
     };
+  }
+
+  private isTokenOptions(options: JwtOAuth2Config | AccessTokenOptions): options is AccessTokenOptions {
+    // Although OAuth2Config does not contain refreshToken, privateKey, or privateKeyFile, a JS consumer could still pass those in
+    // which WILL have an access token as well, but it should be considered an OAuth2Config at that point.
+    return (
+      'accessToken' in options &&
+      !('refreshToken' in options) &&
+      !('privateKey' in options) &&
+      !('privateKeyFile' in options) &&
+      !('authCode' in options)
+    );
   }
 
   private async retrieveUserInfo(instanceUrl: string, accessToken: string): Promise<Optional<UserInfo>> {
