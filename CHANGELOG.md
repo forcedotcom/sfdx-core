@@ -1,3 +1,15 @@
+# [9.0.0](https://github.com/forcedotcom/sfdx-core/compare/8.32.6...9.0.0) (2026-07-29)
+
+
+* feat!: require Node >=22.0.0, drop EOL Node versions @W-00000000@ ([60d9fe6](https://github.com/forcedotcom/sfdx-core/commit/60d9fe61dcd0181e9c48270080fd68d7263c7c4d))
+
+
+### BREAKING CHANGES
+
+* raises minimum Node to >=22.0.0
+
+
+
 ## [8.32.6](https://github.com/forcedotcom/sfdx-core/compare/8.32.5...8.32.6) (2026-07-24)
 
 
