@@ -1,3 +1,12 @@
+# [9.1.0](https://github.com/forcedotcom/sfdx-core/compare/9.0.0...9.1.0) (2026-07-31)
+
+
+### Features
+
+* env vars to override scratch org signup Connected App @W-23543471@ ([#1315](https://github.com/forcedotcom/sfdx-core/issues/1315)) ([78321c7](https://github.com/forcedotcom/sfdx-core/commit/78321c700c5a419da391f0596ed7337f7a5ec765))
+
+
+
 # [9.0.0](https://github.com/forcedotcom/sfdx-core/compare/8.32.6...9.0.0) (2026-07-29)
 
 
