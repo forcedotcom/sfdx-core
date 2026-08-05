@@ -68,6 +68,7 @@ export const patternFeaturesList = [
   'NumPlatformEvents',
   'PlatformConnect',
   'PlatformEventsPerDay',
+  'ServiceCloudVoicePartnerTelephony',
   'StreamingEventsPerDay',
   'SubPerStreamingChannel',
   'SubPerStreamingTopic',
