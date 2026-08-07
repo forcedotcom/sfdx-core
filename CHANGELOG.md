@@ -1,3 +1,12 @@
+## [9.1.1](https://github.com/forcedotcom/sfdx-core/compare/9.1.0...9.1.1) (2026-08-07)
+
+
+### Bug Fixes
+
+* resolve TS2694 pino.TransportSingleOptions type error in emitted .d.ts @W-23751214@ ([#1324](https://github.com/forcedotcom/sfdx-core/issues/1324)) ([19b05bc](https://github.com/forcedotcom/sfdx-core/commit/19b05bc6d485b63aca6d232fc2b724edcd4d3e8b))
+
+
+
 # [9.1.0](https://github.com/forcedotcom/sfdx-core/compare/9.0.0...9.1.0) (2026-07-31)
 
 
