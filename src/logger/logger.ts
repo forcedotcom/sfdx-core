@@ -16,7 +16,7 @@
 import * as os from 'node:os';
 import * as path from 'node:path';
 
-import { type Logger as PinoLogger, pino } from 'pino';
+import { type Logger as PinoLogger, type TransportSingleOptions, pino, levels as pinoLevels } from 'pino';
 import { Env } from '@salesforce/kit';
 import { isKeyOf, isString } from '@salesforce/ts-types';
 import { Global, Mode } from '../global';
@@ -460,7 +460,7 @@ export class Logger {
 }
 
 /** return various streams that the logger could send data to, depending on the options and env  */
-export const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
+export const getWriteStream = (level = 'warn'): TransportSingleOptions => {
   const env = new Env();
   // used when debug mode, writes to stdout (colorized)
   if (process.env.DEBUG) {
@@ -519,13 +519,13 @@ const levelFromOption = (value?: string | number): string => {
     case 'string':
       return value;
     default:
-      return pino.levels.labels[Logger.DEFAULT_LEVEL];
+      return pinoLevels.labels[Logger.DEFAULT_LEVEL];
   }
 };
 // /** match a number to a pino level, or if a match isn't found, the next highest level */
 const numberToLevel = (level: number): string =>
-  pino.levels.labels[level] ??
-  Object.entries(pino.levels.labels).find(([value]) => Number(value) > level)?.[1] ??
+  pinoLevels.labels[level] ??
+  Object.entries(pinoLevels.labels).find(([value]) => Number(value) > level)?.[1] ??
   'warn';
 
 const getDefaultLevel = (): LoggerLevel => {
