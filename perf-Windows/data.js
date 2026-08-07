@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1785964244352,
+  "lastUpdate": 1786121729042,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -42894,6 +42894,72 @@ window.BENCHMARK_DATA = {
             "range": "±200.57%",
             "unit": "ops/sec",
             "extra": "25 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "240e4a0ef97d2c8872e4d9112202b1fd54afc8b2",
+          "message": "fix: resolve TS2694 pino.TransportSingleOptions type error in emitted .d.ts @W-23751214@",
+          "timestamp": "2026-08-07T10:49:17-06:00",
+          "tree_id": "18c1b84df0ec81118748f0ea37d94289e591d4a3",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/240e4a0ef97d2c8872e4d9112202b1fd54afc8b2"
+        },
+        "date": 1786121716553,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 393246,
+            "range": "±0.90%",
+            "unit": "ops/sec",
+            "extra": "93 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 99967,
+            "range": "±182.40%",
+            "unit": "ops/sec",
+            "extra": "50 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 861591,
+            "range": "±7.02%",
+            "unit": "ops/sec",
+            "extra": "53 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 29358,
+            "range": "±187.28%",
+            "unit": "ops/sec",
+            "extra": "44 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 443450,
+            "range": "±10.12%",
+            "unit": "ops/sec",
+            "extra": "58 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 355316,
+            "range": "±7.87%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
           }
         ]
       }
