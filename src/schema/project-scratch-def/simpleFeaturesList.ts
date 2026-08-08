@@ -252,7 +252,6 @@ export const simpleFeaturesList = [
   'SentimentInsightsFeature',
   'ServiceCatalog',
   'ServiceCloud',
-  'ServiceCloudVoicePartnerTelephony',
   'ServiceUser',
   'SessionIdInLogEnabled',
   'SharedActivities',

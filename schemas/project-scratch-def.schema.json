@@ -330,6 +330,11 @@
                 "pattern": "^PlatformEventsPerDay:[0-9]+$"
               },
               {
+                "title": "ServiceCloudVoicePartnerTelephony:<value>",
+                "type": "string",
+                "pattern": "^ServiceCloudVoicePartnerTelephony:[0-9]+$"
+              },
+              {
                 "title": "StreamingEventsPerDay:<value>",
                 "type": "string",
                 "pattern": "^StreamingEventsPerDay:[0-9]+$"
@@ -586,7 +591,6 @@
               "SentimentInsightsFeature",
               "ServiceCatalog",
               "ServiceCloud",
-              "ServiceCloudVoicePartnerTelephony",
               "ServiceUser",
               "SessionIdInLogEnabled",
               "SharedActivities",
