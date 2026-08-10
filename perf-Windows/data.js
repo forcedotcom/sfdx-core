@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786121729042,
+  "lastUpdate": 1786375564183,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -42960,6 +42960,72 @@ window.BENCHMARK_DATA = {
             "range": "±7.87%",
             "unit": "ops/sec",
             "extra": "64 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "bc4e2b2789ce6cc6bde70c66ec02548eabed9290",
+          "message": "fix: tighten sfdcLoginUrl validation to prevent OAuth relay attacks @W-23791599@\n\nisLocalUrl() and isInternalUrl() used substring matching (String.includes)\nto validate internal URLs, allowing attacker-controlled domains containing\n'.internal.' or '.crm.dev' to bypass the sfdcLoginUrl allowlist.\n\nSwitch to hostname suffix matching (String.endsWith) against known\nSalesforce-owned domain suffixes. This blocks malicious sfdx-project.json\nvalues like 'https://capture.internal.test.attacker.com' that could relay\nOAuth token exchanges through an attacker's server.",
+          "timestamp": "2026-08-10T09:19:33-06:00",
+          "tree_id": "e45bce2ffcb6d8a35f8ae4666161554c2a921168",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/bc4e2b2789ce6cc6bde70c66ec02548eabed9290"
+        },
+        "date": 1786375545407,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 387217,
+            "range": "±0.85%",
+            "unit": "ops/sec",
+            "extra": "94 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1310873,
+            "range": "±10.84%",
+            "unit": "ops/sec",
+            "extra": "46 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 59488,
+            "range": "±170.42%",
+            "unit": "ops/sec",
+            "extra": "56 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 34327,
+            "range": "±184.26%",
+            "unit": "ops/sec",
+            "extra": "50 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 373941,
+            "range": "±12.50%",
+            "unit": "ops/sec",
+            "extra": "58 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 308426,
+            "range": "±9.27%",
+            "unit": "ops/sec",
+            "extra": "63 samples"
           }
         ]
       }
