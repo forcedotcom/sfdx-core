@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1786375564183,
+  "lastUpdate": 1786477951492,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -43024,6 +43024,72 @@ window.BENCHMARK_DATA = {
             "name": "Logging a nested 3-level object on root logger",
             "value": 308426,
             "range": "±9.27%",
+            "unit": "ops/sec",
+            "extra": "63 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "893234d78aaca4dd0ca0ea2545031a0fb16eb1fb",
+          "message": "fix: prevent poisoned sfdcLoginUrl from surviving in cache after validation failure\n\nresolveProjectConfig() assigned to this.projectConfig before running URL\nvalidation. If validation threw, subsequent callers would skip the guard\n(cache already populated) and return the malicious URL.\n\nBuild the config in a local variable and only assign to the cache after\nall validation passes.",
+          "timestamp": "2026-08-11T13:43:57-06:00",
+          "tree_id": "a46d302174633b56196b0f64ea7aca83b225ea4b",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/893234d78aaca4dd0ca0ea2545031a0fb16eb1fb"
+        },
+        "date": 1786477899708,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 466868,
+            "range": "±1.21%",
+            "unit": "ops/sec",
+            "extra": "92 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 125525,
+            "range": "±180.54%",
+            "unit": "ops/sec",
+            "extra": "47 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 792640,
+            "range": "±24.90%",
+            "unit": "ops/sec",
+            "extra": "59 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 36940,
+            "range": "±182.71%",
+            "unit": "ops/sec",
+            "extra": "34 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 623312,
+            "range": "±10.34%",
+            "unit": "ops/sec",
+            "extra": "68 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 447189,
+            "range": "±10.46%",
             "unit": "ops/sec",
             "extra": "63 samples"
           }
