@@ -1,3 +1,12 @@
+## [9.1.2](https://github.com/forcedotcom/sfdx-core/compare/9.1.1...9.1.2) (2026-08-11)
+
+
+### Bug Fixes
+
+* tighten sfdcLoginUrl validation to prevent OAuth relay attacks @W-23791599@ ([#1325](https://github.com/forcedotcom/sfdx-core/issues/1325)) ([1e3c8fa](https://github.com/forcedotcom/sfdx-core/commit/1e3c8fa8364b592de32ef08435c30dd00c8ea453))
+
+
+
 ## [9.1.1](https://github.com/forcedotcom/sfdx-core/compare/9.1.0...9.1.1) (2026-08-07)
 
 
