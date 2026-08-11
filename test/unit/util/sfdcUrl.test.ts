@@ -200,6 +200,25 @@ describe('util/sfdcUrl', () => {
         expect(url.isLocalUrl()).to.equal(false);
       });
     });
+    it('rejects attacker-controlled domains containing .internal. substring', () => {
+      const url = new SfdcUrl('https://capture.internal.test.attacker.com');
+      expect(url.isInternalUrl()).to.equal(false);
+      expect(url.isLocalUrl()).to.equal(false);
+    });
+    it('rejects attacker-controlled domains with internal-like substrings', () => {
+      const urls = [
+        'https://evil.internal.example.com',
+        'https://x.localhost.sfdcdev.evil.com',
+        'https://stm.force.com.attacker.com',
+        'https://blitz.salesforce.com.evil.dev',
+        'https://gs1.attacker.com',
+      ].map((u) => new SfdcUrl(u));
+
+      urls.map((url) => {
+        expect(url.isInternalUrl()).to.equal(false);
+        expect(url.isLocalUrl()).to.equal(false);
+      });
+    });
   });
 
   describe('checkLightningDomain', () => {

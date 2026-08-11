@@ -119,7 +119,7 @@ export class SfdcUrl extends URL {
       '.salesforce.com',
       '.salesforceliveagent.com',
       '.secure.force.com',
-      'crmforce.mil',
+      '.crmforce.mil',
       '.sfcrmproducts.cn',
     ];
 
@@ -136,20 +136,21 @@ export class SfdcUrl extends URL {
    * @returns {boolean} true if this is an internal domain
    */
   public isInternalUrl(): boolean {
-    const INTERNAL_URL_PARTS = [
-      '.vpod.',
-      'stm.salesforce.com',
-      'stm.force.com',
+    const INTERNAL_SFDC_SUFFIXES = [
+      '.vpod.salesforce.com',
+      '.vpod.force.com',
+      '.stm.salesforce.com',
+      '.stm.force.com',
       '.blitz.salesforce.com',
       '.stm.salesforce.ms',
       '.pc-rnd.force.com',
       '.pc-rnd.salesforce.com',
-      '.crm.dev', // workspaces container
+      '.crm.dev',
     ];
     return (
-      this.origin.startsWith('https://gs1.') ||
+      this.hostname === 'gs1.salesforce.com' ||
       this.isLocalUrl() ||
-      INTERNAL_URL_PARTS.some((part) => this.origin.includes(part))
+      INTERNAL_SFDC_SUFFIXES.some((suffix) => this.hostname.endsWith(suffix))
     );
   }
 
@@ -159,8 +160,8 @@ export class SfdcUrl extends URL {
    * @returns {boolean} true if this is a local machine
    */
   public isLocalUrl(): boolean {
-    const LOCAL_PARTS = ['localhost.sfdcdev.', '.internal.'];
-    return LOCAL_PARTS.some((part) => this.origin.includes(part));
+    const LOCAL_SFDC_SUFFIXES = ['.localhost.sfdcdev.salesforce.com', '.internal.salesforce.com'];
+    return LOCAL_SFDC_SUFFIXES.some((suffix) => this.hostname.endsWith(suffix));
   }
 
   public toLightningDomain(): string {
