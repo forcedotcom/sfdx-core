@@ -757,31 +757,31 @@ export class SfProject {
       ]);
       await Promise.all([global.read(), local.read()]);
 
-      this.projectConfig = defaults(local.toObject(), global.toObject());
+      const config = defaults(local.toObject(), global.toObject());
 
       // Add fields in sfdx-config.json
-      Object.assign(this.projectConfig, configAggregator.getConfig());
+      Object.assign(config, configAggregator.getConfig());
 
       // we don't have a login url yet, so use instanceUrl from config or default
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (!this.projectConfig.sfdcLoginUrl) {
+      if (!config.sfdcLoginUrl) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        this.projectConfig.sfdcLoginUrl = configAggregator.getConfig()['org-instance-url'] ?? SfdcUrl.PRODUCTION;
+        config.sfdcLoginUrl = configAggregator.getConfig()['org-instance-url'] ?? SfdcUrl.PRODUCTION;
       }
       // LEGACY - Allow override of sfdcLoginUrl via env var FORCE_SFDC_LOGIN_URL
       if (process.env.FORCE_SFDC_LOGIN_URL) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        this.projectConfig.sfdcLoginUrl = process.env.FORCE_SFDC_LOGIN_URL;
+        config.sfdcLoginUrl = process.env.FORCE_SFDC_LOGIN_URL;
       }
 
       // Allow override of signupTargetLoginUrl via env var SFDX_SCRATCH_ORG_CREATION_LOGIN_URL
       if (process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        this.projectConfig.signupTargetLoginUrl = process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL;
+        config.signupTargetLoginUrl = process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL;
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const loginUrl = this.projectConfig.sfdcLoginUrl as string;
+      const loginUrl = config.sfdcLoginUrl as string;
       if (loginUrl) {
         if (
           !SfdcUrl.isValidUrl(loginUrl) ||
@@ -792,7 +792,7 @@ export class SfProject {
       }
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const signupUrl = this.projectConfig.signupTargetLoginUrl as string;
+      const signupUrl = config.signupTargetLoginUrl as string;
       if (signupUrl) {
         if (
           !SfdcUrl.isValidUrl(signupUrl) ||
@@ -801,6 +801,9 @@ export class SfProject {
           throw messages.createError('invalidProjectLoginUrl', [signupUrl]);
         }
       }
+
+      // Only cache after validation passes
+      this.projectConfig = config;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
