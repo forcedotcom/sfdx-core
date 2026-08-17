@@ -155,6 +155,6 @@ const main = async (): Promise<void> => {
 };
 
 main().catch((err: unknown) => {
-  console.warn('Warning: could not update settings list:', err instanceof Error ? err.message : err);
-  console.warn('This is expected when the Salesforce docs site is unreachable from CI runners.');
+  console.error('Error:', err instanceof Error ? err.message : err);
+  process.exit(1);
 });
