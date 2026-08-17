@@ -53,7 +53,9 @@ const generateFileContent = (varName: string, features: readonly string[]): stri
 
 const fetchJson = async (url: string): Promise<DocsResponse> => {
   // @ts-expect-error fetch is globally available in Node 18+ but tsconfig targets ES2022
-  const res: Response = await fetch(url);
+  const res: Response = await fetch(url, {
+    headers: { 'User-Agent': 'sfdx-core/schema-update' },
+  });
   if (!res.ok) {
     throw new Error(`HTTP ${res.status} from ${url}`);
   }
