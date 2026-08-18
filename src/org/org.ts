@@ -415,7 +415,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
 
     const response = await this.connection.requestGet<SingleAccessUrlRes>(singleAccessUrl.toString());
-    if (response.frontdoor_uri) return response.frontdoor_uri;
+    if (response.frontdoor_uri) {
+      return validateFrontdoorUri(response.frontdoor_uri, response);
+    }
     throw new SfError(messages.getMessage('FrontdoorURLError')).setData(response);
   }
 
@@ -1887,6 +1889,20 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
   }
 }
+
+const validateFrontdoorUri = (frontdoorUri: string, response: AnyJson): string => {
+  let url: URL;
+  try {
+    url = new URL(frontdoorUri);
+  } catch {
+    throw new SfError(messages.getMessage('FrontdoorURLError'), 'FrontdoorURLError').setData(response);
+  }
+  const hostnameIsSafe = /^[a-zA-Z0-9.-]+$/.test(url.hostname);
+  if (url.protocol !== 'https:' || !hostnameIsSafe) {
+    throw new SfError(messages.getMessage('FrontdoorURLError'), 'FrontdoorURLError').setData(response);
+  }
+  return url.href;
+};
 
 export namespace Org {
   /**
