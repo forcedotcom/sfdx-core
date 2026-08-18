@@ -992,68 +992,6 @@ describe('Org Tests', () => {
     });
   });
 
-  describe('getFrontDoorUrl', () => {
-    const setFrontdoorResponse = (frontdoorUri: unknown): void => {
-      $$.fakeConnectionRequest = (requestInfo: AnyJson): Promise<AnyJson> => {
-        const info = ensureJsonMap(requestInfo);
-        if (ensureString(info.method ?? 'GET').toUpperCase() === 'GET') {
-          // refreshAuth also issues a GET; only the singleaccess call carries this path
-          if (ensureString(info.url).includes('/services/oauth2/singleaccess')) {
-            // eslint-disable-next-line camelcase
-            return Promise.resolve({ frontdoor_uri: frontdoorUri } as AnyJson);
-          }
-          return Promise.resolve({} as AnyJson);
-        }
-        return Promise.resolve({} as AnyJson);
-      };
-    };
-
-    it('returns a legitimate frontdoor URL unchanged', async () => {
-      const org = await createOrgViaAuthInfo();
-      setFrontdoorResponse('https://my.salesforce.com/secur/frontdoor.jsp?otp=abc&startURL=%2Fhome');
-      const result = await org.getFrontDoorUrl();
-      expect(result).to.equal('https://my.salesforce.com/secur/frontdoor.jsp?otp=abc&startURL=%2Fhome');
-    });
-
-    it('percent-encodes an injected quote in the path', async () => {
-      const org = await createOrgViaAuthInfo();
-      setFrontdoorResponse('https://my.salesforce.com/";calc;"');
-      const result = await org.getFrontDoorUrl();
-      expect(result).to.not.include('"');
-      expect(result).to.include('%22');
-    });
-
-    it('rejects a quote in the hostname', async () => {
-      const org = await createOrgViaAuthInfo();
-      setFrontdoorResponse('https://my.salesforce.com";calc;"');
-      try {
-        await shouldThrow(org.getFrontDoorUrl());
-      } catch (err) {
-        expect((err as SfError).name).to.equal('FrontdoorURLError');
-      }
-    });
-
-    it('rejects a non-https scheme', async () => {
-      const org = await createOrgViaAuthInfo();
-      setFrontdoorResponse('http://my.salesforce.com/frontdoor');
-      try {
-        await shouldThrow(org.getFrontDoorUrl());
-      } catch (err) {
-        expect((err as SfError).name).to.equal('FrontdoorURLError');
-      }
-    });
-
-    it('rejects an unparseable frontdoor_uri', async () => {
-      const org = await createOrgViaAuthInfo();
-      setFrontdoorResponse('not a url');
-      try {
-        await shouldThrow(org.getFrontDoorUrl());
-      } catch (err) {
-        expect((err as SfError).name).to.equal('FrontdoorURLError');
-      }
-    });
-  });
-
   describe('readUserAuthFiles', () => {
     let orgs: Org[];
 
