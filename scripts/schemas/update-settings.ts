@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { readFileSync, writeFileSync } from 'node:fs';
-import { get } from 'node:https';
 
 const DOCS_URL = 'https://developer.salesforce.com/docs/get_document/atlas.en-us.api_meta.meta';
 const DOCS_BASE_URL = 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta';
@@ -83,19 +82,20 @@ export type Settings = z.infer<typeof SettingsSchema>;
 `;
 };
 
-// Fetch JSON from URL using node:https
-const fetchJson = (url: string): Promise<DocsResponse> =>
-  new Promise((resolve, reject) => {
-    get(url, (res) => {
-      let data = '';
-      res.on('data', (chunk: string) => {
-        data += chunk;
-      });
-      res.on('end', () => {
-        resolve(JSON.parse(data) as DocsResponse);
-      });
-    }).on('error', reject);
+const fetchJson = async (url: string): Promise<DocsResponse> => {
+  // @ts-expect-error fetch is globally available in Node 18+ but tsconfig targets ES2022
+  const res: Response = await fetch(url, {
+    headers: { 'User-Agent': 'sfdx-core/schema-update' },
   });
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} from ${url}`);
+  }
+  const text = await res.text();
+  if (!text.startsWith('{') && !text.startsWith('[')) {
+    throw new Error(`Expected JSON but got: ${text.slice(0, 200)}`);
+  }
+  return JSON.parse(text) as DocsResponse;
+};
 
 const main = async (): Promise<void> => {
   console.log('Fetching settings from Salesforce Metadata API documentation...');
@@ -155,6 +155,6 @@ const main = async (): Promise<void> => {
 };
 
 main().catch((err: unknown) => {
-  console.error('Error:', err);
+  console.error('Error:', err instanceof Error ? err.message : err);
   process.exit(1);
 });

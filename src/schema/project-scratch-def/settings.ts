@@ -69,6 +69,12 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_addresssettings.htm'
       ),
+    agentforceAccountManagementSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_agentforceaccountmanagementsettings.htm'
+      ),
     agentforceForDevelopersSettings: z
       .record(z.string(), z.unknown())
       .optional()
