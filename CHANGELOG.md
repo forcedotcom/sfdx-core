@@ -1,3 +1,12 @@
+## [9.1.4](https://github.com/forcedotcom/sfdx-core/compare/9.1.3...9.1.4) (2026-08-18)
+
+
+### Bug Fixes
+
+* update to jsforce-node 3.10.22 to pick up bug fix ([c2f31a5](https://github.com/forcedotcom/sfdx-core/commit/c2f31a54c2a0d46b957118b78e30d7c0a1e77a83))
+
+
+
 ## [9.1.3](https://github.com/forcedotcom/sfdx-core/compare/9.1.2...9.1.3) (2026-08-18)
 
 
