@@ -1,3 +1,15 @@
+## [9.1.3](https://github.com/forcedotcom/sfdx-core/compare/9.1.2...9.1.3) (2026-08-18)
+
+
+### Bug Fixes
+
+* testing the script for res ([bcfbf98](https://github.com/forcedotcom/sfdx-core/commit/bcfbf98c55bd0251702441131bc0e701a472b326))
+* update clear error ([89a374b](https://github.com/forcedotcom/sfdx-core/commit/89a374b0e7a734654b8261992adfd86f111c11ec))
+* update features ([ddad141](https://github.com/forcedotcom/sfdx-core/commit/ddad14102218d7f22f682674b2a9b65012b78c9a))
+* update the fetchJson ([43ccfb5](https://github.com/forcedotcom/sfdx-core/commit/43ccfb52d095c0c8c1ce3418b970b9a35108cb5a))
+
+
+
 ## [9.1.2](https://github.com/forcedotcom/sfdx-core/compare/9.1.1...9.1.2) (2026-08-11)
 
 
