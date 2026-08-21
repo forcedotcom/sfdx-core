@@ -46,6 +46,10 @@ const KEY_SIZE = {
 const ALGO = 'aes-256-gcm';
 
 const AUTH_TAG_LENGTH = 32;
+// The GCM authentication tag length in bytes. AUTH_TAG_LENGTH is the hex-encoded
+// string length, so the byte length is half of that. Pinning this on decryption
+// prevents forged ciphertexts that use shorter-than-expected tags.
+const AUTH_TAG_BYTE_LENGTH = AUTH_TAG_LENGTH / 2;
 const ENCRYPTED_CHARS = /[a-f0-9]/;
 
 const KEY_NAME = 'sfdx';
@@ -390,7 +394,9 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     const secret = tokens[0].substring(IV_BYTES.v1 * 2, tokens[0].length);
 
     return this.key.value((buffer: Buffer) => {
-      const decipher = crypto.createDecipheriv(ALGO, buffer.toString('utf8'), iv);
+      const decipher = crypto.createDecipheriv(ALGO, buffer.toString('utf8'), iv, {
+        authTagLength: AUTH_TAG_BYTE_LENGTH,
+      });
 
       try {
         decipher.setAuthTag(Buffer.from(tag, 'hex'));
@@ -413,7 +419,9 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     const secret = tokens[0].substring(IV_BYTES.v2 * 2, tokens[0].length);
 
     return this.key.value((buffer: Buffer) => {
-      const decipher = crypto.createDecipheriv(ALGO, buffer, Buffer.from(iv, 'hex'));
+      const decipher = crypto.createDecipheriv(ALGO, buffer, Buffer.from(iv, 'hex'), {
+        authTagLength: AUTH_TAG_BYTE_LENGTH,
+      });
 
       try {
         decipher.setAuthTag(Buffer.from(tag, 'hex'));
