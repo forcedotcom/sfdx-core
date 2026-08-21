@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 /* eslint-disable camelcase */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import { Transport } from '@jsforce/jsforce-node/lib/transport';
 import { StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import childProcess from 'node:child_process';
 import _crypto from 'node:crypto';

@@ -261,7 +261,6 @@ describe('Config', () => {
     const testFileContentsJson = { foo: 'bar' };
 
     describe('read()', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let readFileStub: any;
       let config: TestConfig;
 
@@ -345,7 +344,6 @@ describe('Config', () => {
     });
 
     describe('readSync()', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let readFileStub: any;
       let config: TestConfig;
 

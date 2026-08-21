@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 export class Cache extends Map {
-  /* eslint-disable @typescript-eslint/explicit-member-accessibility */
   static #instance: Cache;
   static #enabled = true;
   #hits: number;
   #lookups: number;
-  /* eslint-enable @typescript-eslint/explicit-member-accessibility */
 
   private constructor() {
     super();

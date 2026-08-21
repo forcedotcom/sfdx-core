@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import * as http from 'node:http';
 import { expect } from 'chai';
@@ -191,9 +190,9 @@ describe('WebOauthServer', () => {
       const origOn = webServer.server.on;
       let requestListener: http.RequestListener;
       stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-argument
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         if (event !== 'request') return origOn.call(webServer.server, event, callback);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         requestListener = callback;
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         callback(
@@ -249,9 +248,9 @@ describe('WebOauthServer', () => {
       const origOn = webServer.server.on;
       let requestListener: http.RequestListener;
       stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-argument
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         if (event !== 'request') return origOn.call(webServer.server, event, callback);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         requestListener = callback;
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         callback(
@@ -310,9 +309,9 @@ describe('WebOauthServer', () => {
       const origOn = webServer.server.on;
       let requestListener: http.RequestListener;
       stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-argument
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         if (event !== 'request') return origOn.call(webServer.server, event, callback);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         requestListener = callback;
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         callback(
@@ -377,9 +376,9 @@ describe('WebOauthServer', () => {
     const origOn = webServer.server.on;
     let requestListener: http.RequestListener;
     stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-argument
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       if (event !== 'request') return origOn.call(webServer.server, event, callback);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
       requestListener = callback;
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       callback(

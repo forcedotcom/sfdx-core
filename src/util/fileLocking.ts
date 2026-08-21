@@ -42,7 +42,7 @@ export const lockInit = async (filePath: string): Promise<LockInitResponse> => {
   try {
     await fs.promises.mkdir(dirname(filePath), { recursive: true });
   } catch (err) {
-    throw SfError.wrap(err as Error);
+    throw SfError.wrap(err);
   }
 
   const unlock = Global.isWeb ? asyncNoop : await lock(filePath, { ...lockRetryOptions, realpath: false, fs });
@@ -68,7 +68,7 @@ export const lockInitSync = (filePath: string): LockInitSyncResponse => {
   try {
     fs.mkdirSync(dirname(filePath), { recursive: true });
   } catch (err) {
-    throw SfError.wrap(err as Error);
+    throw SfError.wrap(err);
   }
 
   const unlock = Global.isWeb ? noop : lockSync(filePath, { ...lockOptions, realpath: false, fs });

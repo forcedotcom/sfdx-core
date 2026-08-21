@@ -56,7 +56,7 @@ export const DNS_ERROR_NAME = 'DomainNotFoundError';
 export type DeployOptionsWithRest = Partial<DeployOptions> & { rest?: boolean };
 
 // preserving interface since it extends a class
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+
 export interface Tooling<S extends Schema = Schema> extends JSForceTooling<S> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _logger: any;
@@ -415,8 +415,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     if (result.totalSize > 1) {
       throw new SfError(
         options.returnChoicesOnMultiple
-          ? // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-            `Multiple records found. ${result.records.map((item) => item[options.choiceField as keyof T]).join(',')}`
+          ? `Multiple records found. ${result.records.map((item) => item[options.choiceField as keyof T]).join(',')}`
           : 'The query returned more than 1 record',
         SingleRecordQueryErrors.MultipleRecords
       );
@@ -539,6 +538,6 @@ const getOptionsVersion = async <S extends Schema>(options: Connection.Options<S
 // jsforce does some interesting proxy loading on lib classes.
 // Setting this in the Connection.tooling getter will not work, it
 // must be set on the prototype.
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
 // @ts-ignore
 JSForceTooling.prototype.autoFetchQuery = Connection.prototype.autoFetchQuery; // eslint-disable-line @typescript-eslint/unbound-method

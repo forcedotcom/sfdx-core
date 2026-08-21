@@ -31,15 +31,12 @@ import { isPlainObject } from '@salesforce/ts-types';
  */
 
 export default function mapKeys<T>(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
   obj: T,
   converter: (key: string) => string,
   deep?: boolean
 ): Record<string, unknown> {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const target = Object.assign({}, obj);
   return Object.fromEntries(
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     Object.entries(target).map(([key, value]) => {
       const k = converter.call(null, key);
       if (deep) {

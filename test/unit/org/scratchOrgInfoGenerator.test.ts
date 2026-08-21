@@ -245,7 +245,7 @@ describe('scratchOrgInfoGenerator', () => {
           );
         } catch (err) {
           expect(err).to.exist;
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
           expect((err as Error).message).to.equal(messages.getMessage('Package2AncestorsIdsKeyNotSupportedError'));
         }
       });
@@ -372,7 +372,7 @@ describe('scratchOrgInfoGenerator', () => {
           );
         } catch (err) {
           expect(err).to.exist;
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
           expect((err as Error).message).to.equal(messages.getMessage('InvalidAncestorVersionFormatError', ['5.0']));
         }
       });

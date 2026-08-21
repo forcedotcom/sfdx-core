@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable no-param-reassign */ // mutate ALL the THINGS!
+// mutate ALL the THINGS!
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 import { EventEmitter } from 'node:events';
 import { tmpdir as osTmpdir } from 'node:os';
 import { basename, join as pathJoin, dirname } from 'node:path';
@@ -436,7 +435,7 @@ export class TestContext {
 const requireSinon = (sinon: Nullable<SinonStatic>): SinonStatic => {
   if (sinon) return sinon;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
+    // eslint-disable-next-line import/no-extraneous-dependencies
     const newSinon = require('sinon');
     return newSinon as SinonStatic;
   } catch (e) {
@@ -670,7 +669,7 @@ export const restoreContext = (testContext: TestContext): void => {
   // Restore the default value for this setting on restore.
   Global.SFDX_INTEROPERABILITY = true;
   testContext.SANDBOX.restore();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
   Object.values(testContext.SANDBOXES).forEach((theSandbox) => theSandbox.restore());
   testContext.configStubs = {};
   // Give each test run a clean StateAggregator
@@ -851,13 +850,13 @@ export class StreamingMockCometClient extends CometClient {
   /**
    * Fake addExtension. Does nothing.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public addExtension(extension: StreamingExtension): void {}
 
   /**
    * Fake disable. Does nothing.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public disable(label: string): void {}
 
   /**
@@ -874,7 +873,7 @@ export class StreamingMockCometClient extends CometClient {
   /**
    * Fake setHeader. Does nothing,
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public setHeader(name: string, value: string): void {}
 
   /**
@@ -1062,7 +1061,7 @@ export class MockTestOrgData {
     }
 
     // remove "undefined" properties that don't exist in actual files
-    return Object.fromEntries(Object.entries(config).filter(([, v]) => v !== undefined)) as AuthFields;
+    return Object.fromEntries(Object.entries(config).filter(([, v]) => v !== undefined));
   }
 
   /**

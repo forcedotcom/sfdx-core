@@ -37,7 +37,7 @@ import { ScratchOrgInfo } from './scratchOrgTypes';
 import { emit } from './scratchOrgLifecycleEvents';
 
 // preserving because it extends a class
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+
 export interface JsForceError extends Error {
   errorCode: string;
   fields: string[];
@@ -302,7 +302,7 @@ const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Pro
     try {
       await AuthInfo.create({ username: username.toLowerCase() });
     } catch (error) {
-      const sfError = SfError.wrap(error as Error);
+      const sfError = SfError.wrap(error);
       // if an AuthInfo couldn't be created that means no AuthFile exists.
       if (sfError.name === 'NamedOrgNotFoundError') {
         return;
@@ -465,7 +465,7 @@ export const deploySettings = async (
       await updateRevisionCounterToZero(scratchOrg);
       logger.trace('Settings deployed to org');
     } catch (error) {
-      throw SfError.wrap(error as Error);
+      throw SfError.wrap(error);
     }
   }
 };
@@ -500,7 +500,7 @@ export const resolveUrl = async (scratchOrgAuthInfo: AuthInfo): Promise<AuthInfo
     await resolver.resolve();
     return scratchOrgAuthInfo;
   } catch (error) {
-    const sfError = SfError.wrap(error as Error);
+    const sfError = SfError.wrap(error);
     logger.debug('processScratchOrgInfoResult - err: %s', error);
     if (sfError.name === 'MyDomainResolverTimeoutError') {
       sfError.setData({

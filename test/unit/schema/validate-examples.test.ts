@@ -27,13 +27,12 @@ const schemas = fs.readdirSync(libDir).filter((filename) => filename.endsWith('s
 const testFile =
   (filePath: string, validate: ValidateFunction, shouldValidate: boolean): (() => Promise<void>) =>
   async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const data: unknown = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+
     const result = validate(data);
 
     if (shouldValidate && !result) {
-      // eslint-disable-next-line no-console, @typescript-eslint/no-unsafe-member-access
+      // eslint-disable-next-line no-console
       console.log(validate.errors);
     }
     expect(result).to.equal(shouldValidate);

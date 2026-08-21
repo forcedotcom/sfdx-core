@@ -23,7 +23,6 @@ import { env } from '@salesforce/kit';
 import { SfError } from '../../src/sfError';
 import { Messages } from '../../src/messages';
 import { SfProject, SfProjectJson, NamedPackageDir } from '../../src/sfProject';
-import { BundleEntry } from '../../src/schema/sfdx-project/bundleEntry';
 import { shouldThrow, shouldThrowSync, TestContext } from '../../src/testSetup';
 import { Lifecycle } from '../../src/lifecycleEvents';
 
@@ -779,9 +778,7 @@ describe('SfProject', () => {
         });
 
         const project = SfProject.getInstance();
-        project
-          .getSfProjectJson()
-          .addPackageDirectory({ path: './force-app', package: 'p1', default: true } as NamedPackageDir);
+        project.getSfProjectJson().addPackageDirectory({ path: './force-app', package: 'p1', default: true });
 
         expect(SfProject.getInstance().hasMultiplePackages()).to.equal(false);
       });
@@ -812,7 +809,7 @@ describe('SfProject', () => {
           package: 'p1',
           default: true,
           ancestorId: '04txxxxxxxxxxxxxxx',
-        } as NamedPackageDir);
+        });
 
         expect(project.hasMultiplePackages()).to.equal(false);
         expect(project.getSfProjectJson().getPackageDirectoriesSync()[0]).to.have.property(
@@ -955,7 +952,7 @@ describe('SfProject', () => {
         versionName: 'testBundle',
         versionNumber: '1.0.0.0',
         versionDescription: 'testBundle',
-      } as BundleEntry);
+      });
 
       expect(SfProject.getInstance().hasMultiplePackageBundles()).to.equal(false);
     });
@@ -970,7 +967,7 @@ describe('SfProject', () => {
         versionName: 'testBundle',
         versionNumber: '1.0.0.0',
         versionDescription: 'testBundle',
-      } as BundleEntry);
+      });
 
       expect(SfProject.getInstance().hasMultiplePackageBundles()).to.equal(false);
       expect(project.getSfProjectJson().getPackageBundles()).to.have.lengthOf(1);
@@ -984,7 +981,7 @@ describe('SfProject', () => {
               versionName: 'testBundle',
               versionNumber: '1.0.0.0',
               versionDescription: 'testBundle',
-            } as BundleEntry,
+            },
           ],
         },
       });
@@ -995,7 +992,7 @@ describe('SfProject', () => {
         versionName: 'testBundle2',
         versionNumber: '1.0.0.0',
         versionDescription: 'testBundle2',
-      } as BundleEntry);
+      });
 
       expect(SfProject.getInstance().hasMultiplePackageBundles()).to.equal(true);
     });
@@ -1008,7 +1005,7 @@ describe('SfProject', () => {
               versionName: 'testBundle',
               versionNumber: '1.0.0.0',
               versionDescription: 'testBundle',
-            } as BundleEntry,
+            },
           ],
         },
       });
@@ -1019,7 +1016,7 @@ describe('SfProject', () => {
         versionName: 'testBundle2',
         versionNumber: '1.0.0.0',
         versionDescription: 'testBundle2',
-      } as BundleEntry);
+      });
 
       expect(SfProject.getInstance().hasMultiplePackageBundles()).to.equal(true);
     });
@@ -1032,7 +1029,7 @@ describe('SfProject', () => {
               versionName: 'testBundle',
               versionNumber: '1.0.0.0',
               versionDescription: 'testBundle',
-            } as BundleEntry,
+            },
           ],
         },
       });
@@ -1043,7 +1040,7 @@ describe('SfProject', () => {
         versionName: 'testBundle',
         versionNumber: '1.0.0.0',
         versionDescription: 'testBundle',
-      } as BundleEntry);
+      });
 
       expect(project.hasMultiplePackageBundles()).to.equal(false);
       expect(project.getSfProjectJson().getPackageBundles()[0]).to.have.property('versionNumber', '1.0.0.0');

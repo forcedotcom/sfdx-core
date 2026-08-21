@@ -17,7 +17,7 @@ import { pipeline, Transform } from 'node:stream';
 import { unwrapArray } from '../util/unwrapArray';
 import { filterSecrets } from './filters';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const build = require('pino-abstract-transport');
 
 export default function (): Transform {

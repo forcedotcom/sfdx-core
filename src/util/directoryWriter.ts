@@ -38,7 +38,6 @@ export class DirectoryWriter implements StructuredWriter {
   }
 
   public async addToStore(contents: string | Readable | Buffer, targetPath: string): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const destPath = path.join(this.rootDestination!, targetPath);
     fs.mkdirSync(path.dirname(destPath), { recursive: true });
     if (contents instanceof Readable) {

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 /* eslint-disable class-methods-use-this */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import * as http from 'node:http';
 import { parse as parseQueryString } from 'node:querystring';
@@ -270,7 +269,6 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
           this.logger.debug(`processing request for uri: ${url.pathname ?? 'null'}`);
           if (request.method === 'GET') {
             if (url.pathname?.startsWith('/OauthRedirect') && url.query) {
-              // eslint-disable-next-line no-param-reassign
               request.query = parseQueryString(url.query) as {
                 code: string;
                 state: string;
@@ -505,9 +503,8 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
    * @param response the response to write the error to.
    */
   public sendError(status: number, message: string, response: http.ServerResponse): void {
-    // eslint-disable-next-line no-param-reassign
     response.statusMessage = message;
-    // eslint-disable-next-line no-param-reassign
+
     response.statusCode = status;
     response.end();
   }
@@ -572,7 +569,7 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
     // We don't validate the origin here because:
     // 1. The default login URL (login.salesforce.com) will not match after a redirect or if user choose a custom domain in login.
     // 2. There's no fixed list of auth URLs we could check against.
-    // eslint-disable-next-line no-param-reassign
+
     response.statusCode = 204; // No Content response
     response.setHeader('Access-Control-Allow-Methods', 'GET');
     response.setHeader('Access-Control-Request-Headers', 'GET');
@@ -631,7 +628,6 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
 
       // An error means that no existing connection exists, which is what we want
       socket.on('error', () => {
-        // eslint-disable-next-line no-console
         socket.destroy();
         resolve(this.port);
       });

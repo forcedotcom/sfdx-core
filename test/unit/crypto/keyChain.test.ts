@@ -59,9 +59,9 @@ describe('keyChain', () => {
     keyChains.map((kc) => {
       expect(kc).to.have.property('osImpl');
       // @ts-expect-error osImpl is a private member
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       const program = kc['osImpl'].getProgram();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       const testArrayMeta = testArray.find((elem) => program.includes(elem.validateString));
       expect(testArrayMeta == null).to.be.false;
     });

@@ -519,8 +519,7 @@ export class User extends AsyncCreatable<User.Options> {
   // eslint-disable-next-line class-methods-use-this
   private async rawRequest(conn: Connection, options: HttpRequest): Promise<HttpResponse> {
     return new Promise<HttpResponse>((resolve, reject) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-      const httpApi = new HttpApi(conn as any, options);
+      const httpApi = new HttpApi(conn, options);
       httpApi.on('response', (response: HttpResponse) => resolve(response));
       httpApi.request(options).catch(reject);
     });

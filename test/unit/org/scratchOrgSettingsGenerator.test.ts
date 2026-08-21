@@ -350,7 +350,7 @@ describe('scratchOrgSettingsGenerator', () => {
         await shouldThrow(settings.deploySettingsViaFolder(scratchOrg, '53.0'));
       } catch (error) {
         expect(error).to.have.property('name', 'ProblemDeployingSettings');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         expect((error as Error).message).to.include(
           'settings/True.settings is not a valid metadata object. Check the name and casing of the file'
         );
@@ -413,7 +413,7 @@ describe('scratchOrgSettingsGenerator', () => {
         await shouldThrow(settings.deploySettingsViaFolder(scratchOrg, '53.0'));
       } catch (error) {
         expect(error).to.have.property('name', 'ProblemDeployingSettings');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
         expect((error as Error).message).to.include(
           'settings/True.settings is not a valid metadata object. Check the name and casing of the file'
         );

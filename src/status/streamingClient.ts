@@ -208,7 +208,6 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
       outgoing: (message: JsonMap, callback: AnyFunction): void => {
         if (message.channel === '/meta/subscribe') {
           if (!message.ext) {
-            // eslint-disable-next-line no-param-reassign
             message.ext = {};
           }
           const replayFromMap: JsonMap = {};
@@ -359,7 +358,7 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
       // @ts-ignore
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, no-underscore-dangle
       const dispatcher = this.cometClient._dispatcher;
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-member-access
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       this.log(`dispatcher.clientId: ${dispatcher.clientId}`);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (!dispatcher.clientId) {

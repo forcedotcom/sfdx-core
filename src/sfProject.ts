@@ -763,24 +763,20 @@ export class SfProject {
       Object.assign(config, configAggregator.getConfig());
 
       // we don't have a login url yet, so use instanceUrl from config or default
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
       if (!config.sfdcLoginUrl) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         config.sfdcLoginUrl = configAggregator.getConfig()['org-instance-url'] ?? SfdcUrl.PRODUCTION;
       }
       // LEGACY - Allow override of sfdcLoginUrl via env var FORCE_SFDC_LOGIN_URL
       if (process.env.FORCE_SFDC_LOGIN_URL) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         config.sfdcLoginUrl = process.env.FORCE_SFDC_LOGIN_URL;
       }
 
       // Allow override of signupTargetLoginUrl via env var SFDX_SCRATCH_ORG_CREATION_LOGIN_URL
       if (process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         config.signupTargetLoginUrl = process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       const loginUrl = config.sfdcLoginUrl as string;
       if (loginUrl) {
         if (
@@ -791,7 +787,6 @@ export class SfProject {
         }
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       const signupUrl = config.signupTargetLoginUrl as string;
       if (signupUrl) {
         if (

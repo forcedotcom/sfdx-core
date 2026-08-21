@@ -136,7 +136,6 @@ describe('myDomainResolver', () => {
     try {
       await shouldThrow(resolver.resolve());
     } catch (e) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect((e as Error).name).to.equal('MyDomainResolverTimeoutError');
     }
   });

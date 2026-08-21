@@ -218,7 +218,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
   }
 
   // @ts-expect-error only for test access
-  // eslint-disable-next-line class-methods-use-this
+
   private static unsetCryptoVersion(): void {
     cryptoVersion = undefined;
   }

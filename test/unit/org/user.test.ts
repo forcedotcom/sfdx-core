@@ -80,7 +80,7 @@ describe('User Tests', () => {
     it('refresh auth called', async () => {
       stubMethod($$.SANDBOX, User.prototype, 'rawRequest').resolves({
         statusCode: 201,
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+
         body: `{"id": "${user1.getMockUserInfo()['Id']}"}`,
         headers: {
           'auto-approve-user': user1.refreshToken,
@@ -300,7 +300,6 @@ describe('User Tests', () => {
         const passwordCondition = { length: 14, complexity: 9 };
         shouldThrowSync(() => User.generatePasswordUtf8(passwordCondition));
       } catch (err) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect((err as Error).message).to.equal(
           'Invalid complexity value. Specify a value between 0 and 5, inclusive.'
         );
@@ -312,7 +311,6 @@ describe('User Tests', () => {
         const passwordCondition = { length: 7, complexity: 2 };
         shouldThrowSync(() => User.generatePasswordUtf8(passwordCondition));
       } catch (err) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect((err as Error).message).to.equal('Invalid length value. Specify a value between 8 and 1000, inclusive.');
       }
     });

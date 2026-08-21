@@ -245,7 +245,6 @@ describe('streaming client tests', () => {
     try {
       await shouldThrow(asyncStatusClient.handshake());
     } catch (e) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect((e as Error).name).to.equal(StreamingClient.TimeoutErrorType.HANDSHAKE);
     }
   });

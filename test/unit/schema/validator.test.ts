@@ -47,7 +47,6 @@ describe('schemaValidator', () => {
       errorMsg: string
     ) => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         await shouldThrow(validate(schema, data));
       } catch (err) {
         if (!(err instanceof Error)) {

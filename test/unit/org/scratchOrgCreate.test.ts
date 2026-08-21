@@ -59,7 +59,7 @@ describe('scratchOrgCreate', () => {
     sfProjectResolveStub = sandbox.stub(SfProject, 'resolve');
     sfProjectResolveStub.resolves({
       resolveProjectConfig: sandbox.stub().resolves({ signupTargetLoginUrl }),
-    } as unknown as SfProject);
+    });
     hubOrgStub.isDevHubOrg.returns(true);
     hubOrgStub.determineIfDevHubOrg.withArgs(true).resolves();
     // @ts-expect-error - type not complete
