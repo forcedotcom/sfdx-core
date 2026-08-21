@@ -1,3 +1,13 @@
+## [9.1.5](https://github.com/forcedotcom/sfdx-core/compare/9.1.4...9.1.5) (2026-08-21)
+
+
+### Bug Fixes
+
+* mitigated SAST findings ([15dc4f8](https://github.com/forcedotcom/sfdx-core/commit/15dc4f822f00b49794a85d6e127513c81be403ce))
+* rejiggered eslint.config.mjs (W-23928423) ([b88b99f](https://github.com/forcedotcom/sfdx-core/commit/b88b99f534264b01b272652bb6da9b93d791f607))
+
+
+
 ## [9.1.4](https://github.com/forcedotcom/sfdx-core/compare/9.1.3...9.1.4) (2026-08-18)
 
 
