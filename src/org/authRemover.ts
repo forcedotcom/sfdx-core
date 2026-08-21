@@ -116,12 +116,7 @@ export class AuthRemover extends AsyncOptionalCreatable<AuthRemoverOptions> {
    */
   public findAllAuths(): Record<string, AuthFields & JsonMap> {
     const orgs = this.stateAggregator.orgs.getAll();
-    return orgs.reduce<Record<string, AuthFields & JsonMap>>(
-      (x, y) =>
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        ({ ...x, [y.username!]: y }),
-      {}
-    );
+    return orgs.reduce<Record<string, AuthFields & JsonMap>>((x, y) => ({ ...x, [y.username!]: y }), {});
   }
 
   protected async init(): Promise<void> {

@@ -1225,13 +1225,13 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Returns an org field. Returns undefined if the field is not set or invalid.
    */
   public getField<T = AnyJson>(key: Org.Fields): T {
-    /* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
+    /* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment */
     // @ts-ignore Legacy. We really shouldn't be doing this.
     const ownProp = this[key];
     if (ownProp && typeof ownProp !== 'function') return ownProp;
     // @ts-ignore
     return this.getConnection().getAuthInfoFields()[key];
-    /* eslint-enable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
+    /* eslint-enable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment */
   }
 
   /**
@@ -1352,7 +1352,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   /**
    * **Throws** *{@link SfError}{ name: 'NotSupportedError' }* Throws an unsupported error.
    */
-  // eslint-disable-next-line class-methods-use-this
+
   protected getDefaultOptions(): Org.Options {
     throw new SfError('Not Supported', 'NotSupportedError');
   }
@@ -1423,7 +1423,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
   }
 
-  // eslint-disable-next-line class-methods-use-this
   private async queryProduction(org: Org, field: string, value: string): Promise<{ SandboxInfoId: string }> {
     return org.connection.singleRecordQuery<{ SandboxInfoId: string }>(
       `SELECT SandboxInfoId FROM SandboxProcess WHERE ${field} ='${value}' AND Status NOT IN ('D', 'E')`,
@@ -1712,7 +1711,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       await Lifecycle.getInstance().emit(SandboxEvents.EVENT_RESULT, {
         sandboxProcessObj,
         sandboxRes,
-      } as ResultEvent);
+      });
     } else {
       // no authed sandbox user, error
       throw messages.createError('missingAuthUsername', [sandboxProcessObj.SandboxName]);
@@ -1766,7 +1765,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
           remainingWait: remainingWait.seconds,
           interval: options.pollInterval.seconds,
           waitingOnAuth,
-        } as StatusEvent);
+        });
         remainingWait = Duration.seconds(remainingWait.seconds - options.pollInterval.seconds);
         return { completed: false, payload: sandboxProcessObj };
       },
@@ -1881,7 +1880,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         force: true,
       });
     } catch (e) {
-      const err = SfError.wrap(e as string | Error);
+      const err = SfError.wrap(e);
       // consume the error in case something  went wrong
       this.logger.debug(`error deleting source tracking information for ${this.getOrgId()} error: ${err.message}`);
     }

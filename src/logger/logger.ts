@@ -410,7 +410,7 @@ export class Logger {
    *
    * @param cb A callback that returns on array objects to be logged.
    */
-  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
+  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
   public debugCallback(cb: () => unknown[] | string): void {}
 
   /**
@@ -524,9 +524,7 @@ const levelFromOption = (value?: string | number): string => {
 };
 // /** match a number to a pino level, or if a match isn't found, the next highest level */
 const numberToLevel = (level: number): string =>
-  pinoLevels.labels[level] ??
-  Object.entries(pinoLevels.labels).find(([value]) => Number(value) > level)?.[1] ??
-  'warn';
+  pinoLevels.labels[level] ?? Object.entries(pinoLevels.labels).find(([value]) => Number(value) > level)?.[1] ?? 'warn';
 
 const getDefaultLevel = (): LoggerLevel => {
   const logLevelFromEnvVar = new Env().getString('SF_LOG_LEVEL');

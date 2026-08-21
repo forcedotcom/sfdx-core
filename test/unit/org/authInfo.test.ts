@@ -1298,7 +1298,7 @@ describe('AuthInfo', () => {
       // @ts-expect-error: null connection
       await AuthInfo.prototype['refreshFn'].call(context, null, testCallback);
       expect(testCallback.called).to.be.true;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
       const sfError = testCallback.firstCall.args[0];
       expect(sfError.name).to.equal('OrgDataNotAvailableError', sfError.message as string);
     });

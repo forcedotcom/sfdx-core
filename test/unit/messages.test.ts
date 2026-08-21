@@ -146,10 +146,10 @@ describe('Messages', () => {
     beforeEach(() => {
       importMessageFileStub = $$.SANDBOX.stub(Messages, 'importMessageFile');
       readdirSyncStub = $$.SANDBOX.stub(fs, 'readdirSync');
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
       readdirSyncStub.returns(msgFiles);
       statSyncStub = $$.SANDBOX.stub(fs, 'statSync');
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
       statSyncStub.callsFake((statPath) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         if (!statPath.match(/messages/) && statPath !== `${truncatePath}${path.sep}package.json`) {

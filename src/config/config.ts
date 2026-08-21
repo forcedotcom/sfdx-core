@@ -437,7 +437,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
       await super.read(false, force);
       if (Global.SFDX_INTEROPERABILITY) {
         // will exist if Global.SFDX_INTEROPERABILITY is enabled
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
         this.contents.merge(stateFromSfdxFileSync(this.sfdxPath!, this));
       }
       await this.cryptProperties(false);
@@ -451,7 +451,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
     super.readSync(false, force);
     if (Global.SFDX_INTEROPERABILITY) {
       // will exist if Global.SFDX_INTEROPERABILITY is enabled
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
       this.contents.merge(stateFromSfdxFileSync(this.sfdxPath!, this));
     }
 
@@ -471,7 +471,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
 
     if (Global.SFDX_INTEROPERABILITY) {
       // will exist if Global.SFDX_INTEROPERABILITY is enabled
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
       await writeToSfdx(this.sfdxPath!, this.getContents());
     }
     await this.cryptProperties(false);
@@ -562,7 +562,7 @@ export class Config extends ConfigFile<ConfigFile.Options, ConfigProperties> {
    *
    * @param propertyName The name of the property.
    */
-  // eslint-disable-next-line class-methods-use-this
+
   public getPropertyConfig(propertyName: string): ConfigPropertyMeta {
     const prop = Config.propertyConfigMap()[propertyName];
 

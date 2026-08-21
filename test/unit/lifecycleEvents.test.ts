@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import { Duration, sleep } from '@salesforce/kit/lib/duration';
 import { spyMethod } from '@salesforce/ts-sinon';
@@ -208,7 +207,6 @@ describe('lifecycleEvents', () => {
 
   it('getListeners works, including uniqueListeners', async () => {
     const x = async (result: Record<string, unknown>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       fake.bar('test6', result);
     };
     Lifecycle.getInstance().on('test6', x);
@@ -221,7 +219,6 @@ describe('lifecycleEvents', () => {
 
   it('getListeners works (unique Listeners)', async () => {
     const x = async (result: Record<string, unknown>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       fake.bar('test6', result);
     };
     Lifecycle.getInstance().on('test6', x, 'id000');
@@ -235,7 +232,6 @@ describe('lifecycleEvents', () => {
 
   it('getListeners works (mixed unique and non-unique)', async () => {
     const x = async (result: Record<string, unknown>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       fake.bar('test6', result);
     };
     Lifecycle.getInstance().on('test6', x);

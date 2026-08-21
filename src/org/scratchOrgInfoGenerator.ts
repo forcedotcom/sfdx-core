@@ -282,7 +282,7 @@ export const getScratchOrgInfoPayload = async (options: {
   let warnings: string[] = [];
 
   // Merge after all validations complete
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
   const scratchOrgInfoPayload: ScratchOrgInfoPayload = {
     ...(options.definitionfile ? await parseDefinitionFile(options.definitionfile) : {}),
     ...(options.definitionjson

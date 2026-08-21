@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
@@ -29,7 +28,6 @@ import * as mockForStandaloneFunctions from '../../../src/org/scratchOrgInfoApi'
 import {
   authorizeScratchOrg,
   deploySettings,
-  JsForceError,
   pollForScratchOrgInfo,
   requestScratchOrgCreation,
   resolveUrl,
@@ -162,7 +160,7 @@ describe('requestScratchOrgCreation', () => {
       ...new Error('JsForce-Error'),
       errorCode: 'REQUIRED_FIELD_MISSING',
       fields: ['error-field'],
-    } as JsForceError;
+    };
 
     // @ts-expect-error - type partial mismatch
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({

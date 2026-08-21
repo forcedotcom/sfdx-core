@@ -205,7 +205,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
    */
   public update(username: string, org: Partial<P>): void {
     const existing = this.get(username) || {};
-    const merged = Object.assign({}, existing, org) as P;
+    const merged = Object.assign({}, existing, org);
     return this.set(username, merged);
   }
 

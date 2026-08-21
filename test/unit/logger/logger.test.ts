@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 
 import { expect, config as chaiConfig } from 'chai';
 import { isString } from '@salesforce/ts-types';
@@ -253,10 +252,10 @@ describe('Logger', () => {
     beforeEach(() => {
       stderrOutput = '';
       originalWrite = process.stderr.write;
-      process.stderr.write = ((chunk: string) => {
+      process.stderr.write = (chunk: string) => {
         stderrOutput += chunk;
         return true;
-      }) as typeof process.stderr.write;
+      };
     });
 
     afterEach(() => {

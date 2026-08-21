@@ -256,7 +256,6 @@ describe('util/sfdcUrl', () => {
       try {
         await shouldThrow(url.checkLightningDomain());
       } catch (e) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect((e as Error).name).to.equal('Error');
       }
     });
@@ -351,7 +350,6 @@ describe('util/sfdcUrl', () => {
       try {
         await shouldThrow(url.lookup());
       } catch (e) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect((e as Error).name).to.equal('Error');
       }
     });

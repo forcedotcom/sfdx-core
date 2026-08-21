@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import * as fs from 'node:fs';
@@ -358,7 +356,6 @@ describe('Config', () => {
       expect(originalAllowedProperties.length).to.be.greaterThan(0);
 
       expect(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         originalAllowedProperties.some((meta: ConfigPropertyMeta) => meta.key === 'instanceUrl'),
         'it has one of the default allowed properties'
       ).to.be.true;

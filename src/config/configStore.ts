@@ -156,8 +156,8 @@ export abstract class BaseConfigStore<
     let resolvedValue = value;
     if (this.hasEncryption()) {
       if (isJsonMap(resolvedValue)) {
-        resolvedValue = this.recursiveEncrypt(resolvedValue, key as string) as P[K];
-      } else if (this.isCryptoKey(key as string)) {
+        resolvedValue = this.recursiveEncrypt(resolvedValue, key);
+      } else if (this.isCryptoKey(key)) {
         resolvedValue = this.encrypt(resolvedValue) as P[K];
       }
     }
@@ -180,7 +180,7 @@ export abstract class BaseConfigStore<
     const existingValue = this.get(key, true);
     if (isPlainObject(existingValue) && isPlainObject(value)) {
       const mergedValue = Object.assign({}, existingValue, value);
-      this.set(key, mergedValue as P[K]);
+      this.set(key, mergedValue);
     } else {
       this.set(key, value as P[K]);
     }
@@ -429,7 +429,7 @@ export abstract class BaseConfigStore<
       }
     } else if (this.isCryptoKey(key)) {
       // I think this side effect is intentional
-      // eslint-disable-next-line no-param-reassign
+
       data[key] = method(value);
     }
   }

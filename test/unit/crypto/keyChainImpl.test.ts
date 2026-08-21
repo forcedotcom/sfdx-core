@@ -18,7 +18,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable no-underscore-dangle */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import fs from 'node:fs';
 import { assert, expect } from 'chai';

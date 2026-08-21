@@ -146,13 +146,11 @@ type UserInfo = AnyJson & {
   organizationId: string;
 };
 
-/* eslint-disable camelcase */
 type UserInfoResult = AnyJson & {
   preferred_username: string;
   organization_id: string;
   user_id: string;
 };
-/* eslint-enable camelcase */
 
 type User = AnyJson & {
   Username: string;
@@ -913,8 +911,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   private getInstanceUrl(aggregator: ConfigAggregator, options?: AuthOptions): string {
-    const instanceUrl =
-      options?.instanceUrl ?? (aggregator.getPropertyValue(OrgConfigProperties.ORG_INSTANCE_URL) as string);
+    const instanceUrl = options?.instanceUrl ?? aggregator.getPropertyValue(OrgConfigProperties.ORG_INSTANCE_URL);
     return instanceUrl ?? SfdcUrl.PRODUCTION;
   }
 
@@ -1051,9 +1048,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       const error = err as Error;
       if (error?.message?.includes('Data Not Available')) {
         // Set cause to keep original stacktrace
-        return await callback(messages.createError('orgDataNotAvailableError', [this.getUsername()], [], error));
+        return callback(messages.createError('orgDataNotAvailableError', [this.getUsername()], [], error));
       }
-      return await callback(error);
+      return callback(error);
     }
   }
 
@@ -1197,11 +1194,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   private async exchangeToken(options: JwtOAuth2Config, oauth2: OAuth2 = new OAuth2(options)): Promise<AuthFields> {
     if (!oauth2.redirectUri) {
-      // eslint-disable-next-line no-param-reassign
       oauth2.redirectUri = this.getRedirectUri();
     }
     if (!oauth2.clientId) {
-      // eslint-disable-next-line no-param-reassign
       oauth2.clientId = this.getClientId();
     }
 
