@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 // mutate ALL the THINGS!
+/// <reference types="mocha" />
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
