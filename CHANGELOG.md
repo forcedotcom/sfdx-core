@@ -1,3 +1,12 @@
+## [9.1.6](https://github.com/forcedotcom/sfdx-core/compare/9.1.5...9.1.6) (2026-08-24)
+
+
+### Bug Fixes
+
+* add mocha types to testSetup.ts ([b109e6e](https://github.com/forcedotcom/sfdx-core/commit/b109e6e9296af8e278a7c5d89cb37ed2de677ba2))
+
+
+
 ## [9.1.5](https://github.com/forcedotcom/sfdx-core/compare/9.1.4...9.1.5) (2026-08-21)
 
 
