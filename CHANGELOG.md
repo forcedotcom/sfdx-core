@@ -1,3 +1,7 @@
+## [9.1.7](https://github.com/forcedotcom/sfdx-core/compare/9.1.6...9.1.7) (2026-08-25)
+
+
+
 ## [9.1.6](https://github.com/forcedotcom/sfdx-core/compare/9.1.5...9.1.6) (2026-08-24)
 
 
