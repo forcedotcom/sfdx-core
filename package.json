@@ -6,7 +6,7 @@
   "types": "lib/index.d.ts",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.19.0"
   },
   "exports": {
     ".": "./lib/index.js",
@@ -65,6 +65,7 @@
     "@jsforce/jsforce-node": "^3.10.22",
     "@salesforce/kit": "^4.0.0",
     "@salesforce/ts-types": "^3.0.0",
+    "@streamparser/json": "^0.0.26",
     "ajv": "^8.18.0",
     "change-case": "^4.1.2",
     "fast-levenshtein": "^3.0.0",
@@ -80,6 +81,7 @@
     "proper-lockfile": "^4.1.2",
     "semver": "^7.8.0",
     "ts-retry-promise": "^0.8.1",
+    "undici": "^8.9.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

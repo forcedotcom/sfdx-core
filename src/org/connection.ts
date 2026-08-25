@@ -40,6 +40,27 @@ import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
 import { Global } from '../global';
 import { AuthFields, AuthInfo } from './authInfo';
+import {
+  ApexSymbolsMaterializedControls,
+  ApexSymbolsRequest,
+  ApexSymbolsRequestControls,
+  ApexSymbolsStreamControls,
+  ApexSymbolsStreamResponse,
+  ApexTypeStubResponse,
+  ApexTypeStubSymbolsRequest,
+  buildApexSymbolsUrl,
+} from './apexSymbols';
+import { throwIfApexSymbolsErrorResponse } from './apexSymbolsErrors';
+import {
+  DEFAULT_APEX_SYMBOLS_MATERIALIZED_MAX_RESPONSE_BYTES,
+  materializeApexSymbolsResponse,
+} from './apexSymbolsMaterializer';
+import {
+  DEFAULT_APEX_SYMBOLS_IDLE_TIMEOUT_MS,
+  DEFAULT_APEX_SYMBOLS_MAX_RESPONSE_BYTES,
+  DEFAULT_APEX_SYMBOLS_TIMEOUT_MS,
+  requestApexSymbolsStream,
+} from './apexSymbolsTransport';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
@@ -207,6 +228,100 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     };
     this.logger.getRawLogger().debug(httpRequest, 'request');
     return super.request(httpRequest, options);
+  }
+
+  /**
+   * Retrieve a bounded materialized response or unbuffered stream from the Tooling Apex Symbols endpoint.
+   *
+   * The endpoint is available on org core release 264 and later. The server's maximum REST API version is selected
+   * internally without changing the version configured on this connection.
+   *
+   * `BUILTIN` retrieves standard Apex types, `DATABASE` retrieves org-defined and installed-package Apex types, and
+   * `DYNAMIC` retrieves dynamic Apex types. Core sends exactly one category per invocation and does not retry, queue,
+   * merge, or fall back across categories.
+   *
+   * @example Exact standard Apex class lookup
+   * ```ts
+   * const result = await connection.retrieveApexSymbols({
+   *   category: 'BUILTIN',
+   *   namespace: 'System',
+   *   name: 'String',
+   *   format: 'TYPE_STUB',
+   * });
+   * ```
+   *
+   * @example Broad incremental lookup
+   * ```ts
+   * const response = await connection.retrieveApexSymbols(
+   *   { category: 'DATABASE', format: 'TYPE_STUB' },
+   *   { mode: 'stream' }
+   * );
+   * for await (const stub of iterateApexTypeStubs(response.body)) {
+   *   // Process one stub at a time.
+   * }
+   * ```
+   *
+   * @param request Apex symbol category, format, and optional exact lookup filters.
+   * @param controls Response mode, limits, and cancellation controls. Omitted controls select bounded materialization.
+   */
+  public retrieveApexSymbols(
+    request: ApexTypeStubSymbolsRequest,
+    controls?: ApexSymbolsMaterializedControls
+  ): Promise<ApexTypeStubResponse>;
+  public retrieveApexSymbols(request: ApexSymbolsRequest, controls?: ApexSymbolsMaterializedControls): Promise<unknown>;
+  public retrieveApexSymbols(
+    request: ApexSymbolsRequest,
+    controls: ApexSymbolsStreamControls
+  ): Promise<ApexSymbolsStreamResponse>;
+  public retrieveApexSymbols(request: ApexSymbolsRequest, controls: ApexSymbolsRequestControls): Promise<unknown>;
+  public async retrieveApexSymbols(
+    request: ApexSymbolsRequest,
+    controls?: ApexSymbolsRequestControls
+  ): Promise<unknown> {
+    const apiVersion = await this.retrieveMaxApiVersion();
+    // JSforce stores the public Connection callOptions configuration on this inherited field.
+    // eslint-disable-next-line no-underscore-dangle
+    const callOptions = Object.entries(this._callOptions ?? {})
+      .map(([name, value]) => `${name}=${value}`)
+      .join(', ');
+
+    const mode = controls?.mode ?? 'materialized';
+    const response = await requestApexSymbolsStream({
+      url: buildApexSymbolsUrl(this.instanceUrl, apiVersion, request),
+      apiVersion,
+      headers: {
+        ...SFDX_HTTP_HEADERS,
+        ...(this.accessToken ? { authorization: `Bearer ${this.accessToken}` } : {}),
+        ...(callOptions ? { 'sforce-call-options': callOptions } : {}),
+      },
+      timeoutMs: controls?.timeoutMs ?? DEFAULT_APEX_SYMBOLS_TIMEOUT_MS,
+      idleTimeoutMs: controls?.idleTimeoutMs ?? DEFAULT_APEX_SYMBOLS_IDLE_TIMEOUT_MS,
+      maxResponseBytes:
+        controls?.maxResponseBytes ??
+        (mode === 'stream'
+          ? DEFAULT_APEX_SYMBOLS_MAX_RESPONSE_BYTES
+          : DEFAULT_APEX_SYMBOLS_MATERIALIZED_MAX_RESPONSE_BYTES),
+      signal: controls?.signal,
+      httpProxy: this.options.connectionOptions?.httpProxy,
+      onComplete: (metrics): void => {
+        this.logger.getRawLogger().debug(
+          {
+            event: 'apexSymbolsRequest',
+            category: request.category,
+            format: request.format ?? 'TYPE_STUB',
+            hasNamespaceFilter: request.namespace !== undefined,
+            hasNameFilter: request.name !== undefined,
+            ...metrics,
+          },
+          'Apex Symbols request completed'
+        );
+      },
+    });
+    await throwIfApexSymbolsErrorResponse(response);
+    if (controls?.mode === 'stream') {
+      return response;
+    }
+    return materializeApexSymbolsResponse(request, response, controls);
   }
 
   /**
