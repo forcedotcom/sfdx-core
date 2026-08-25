@@ -167,7 +167,7 @@ const trackEnvelopeToken = (state: EnvelopeTrackingState, tokenInfo: ParsedToken
  * @example
  * ```ts
  * const response = await connection.retrieveApexSymbols(
- *   { category: 'DATABASE', format: 'TYPE_STUB' },
+ *   { category: 'DATABASE' },
  *   { mode: 'stream' }
  * );
  * for await (const stub of iterateApexTypeStubs(response.body)) {

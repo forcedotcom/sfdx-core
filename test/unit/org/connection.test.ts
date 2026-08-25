@@ -20,7 +20,7 @@ import { fromStub, StubbedType, stubInterface, stubMethod } from '@salesforce/ts
 import { Duration } from '@salesforce/kit';
 import { Connection as JSForceConnection, HttpRequest } from '@jsforce/jsforce-node';
 import { AuthInfo } from '../../../src/org/authInfo';
-import { ApexSymbolsStreamResponse } from '../../../src/org/apexSymbols';
+import { ApexSymbolsStreamResponse, ApexTypeStubResponse } from '../../../src/org/apexSymbols';
 import * as apexSymbolsTransport from '../../../src/org/apexSymbolsTransport';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { Connection, DNS_ERROR_NAME, SFDX_HTTP_HEADERS, SingleRecordQueryErrors } from '../../../src/org/connection';
@@ -272,7 +272,7 @@ describe('Connection', () => {
     const debugStub = $$.SANDBOX.stub(conn['logger'].getRawLogger(), 'debug');
 
     const result = await conn.retrieveApexSymbols(
-      { category: 'DYNAMIC', format: 'TYPE_STUB', namespace: 'Example', name: 'DynamicClass' },
+      { category: 'DYNAMIC', namespace: 'Example', name: 'DynamicClass' },
       { mode: 'stream', timeoutMs: 100, idleTimeoutMs: 50, maxResponseBytes: 1_000 }
     );
 
@@ -280,7 +280,7 @@ describe('Connection', () => {
     expect(conn.getApiVersion()).to.equal('42.0');
     expect(transportStub.calledOnce).to.be.true;
     expect(transportStub.firstCall.args[0]).to.deep.include({
-      url: 'https://connectiontest/services/data/v50.0/tooling/symbols?category=DYNAMIC&format=TYPE_STUB&namespace=Example&name=DynamicClass',
+      url: 'https://connectiontest/services/data/v50.0/tooling/symbols?category=DYNAMIC&namespace=Example&name=DynamicClass',
       apiVersion: '50.0',
       timeoutMs: 100,
       idleTimeoutMs: 50,
@@ -302,7 +302,6 @@ describe('Connection', () => {
     expect(debugStub.lastCall.args[0]).to.deep.include({
       event: 'apexSymbolsRequest',
       category: 'DYNAMIC',
-      format: 'TYPE_STUB',
       hasNamespaceFilter: true,
       hasNameFilter: true,
       apiVersion: '50.0',
@@ -328,7 +327,11 @@ describe('Connection', () => {
       connectionOptions: { version: '42.0' },
     });
 
-    const result = await conn.retrieveApexSymbols({ category: 'BUILTIN', namespace: 'System', name: 'String' });
+    const result: ApexTypeStubResponse = await conn.retrieveApexSymbols({
+      category: 'BUILTIN',
+      namespace: 'System',
+      name: 'String',
+    });
 
     expect(result).to.deep.equal({ typeStubs: [] });
     expect(conn.getApiVersion()).to.equal('42.0');

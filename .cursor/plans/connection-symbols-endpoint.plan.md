@@ -6,7 +6,8 @@ Expose the Salesforce Tooling Apex Symbols endpoint through `@salesforce/core` a
 capability. Consumers must be able to retrieve symbol data for standard Apex classes, org-defined Apex classes, and
 installed-package Apex classes, and dynamic Apex classes without constructing authenticated URLs themselves. Support
 exact, namespace-qualified class lookups as well as broad Apex type discovery across every shipping category, with
-optional filters and explicit result formats. Provide a bounded materialized API for exact and ordinary requests and
+optional filters. Treat the endpoint's sole current `TYPE_STUB` response shape as the fixed contract rather than
+exposing its ineffective `format` query parameter. Provide a bounded materialized API for exact and ordinary requests and
 a genuinely streaming API for broad responses.
 
 The implementation must not introduce a new class. It should adapt the existing `Connection` and use plain TypeScript
@@ -36,12 +37,12 @@ types, functions, async iterators, and the existing `SfError` where local errors
 - Broad Apex type discovery through requests that omit `namespace` and/or `name`.
 - Dynamic Apex class lookup and discovery through the same request, response, materialization, and streaming APIs as
   the other categories.
-- Explicit `format` pass-through, with strong typing for the documented `TYPE_STUB` format.
+- A single strongly typed `TYPE_STUB` response contract; `format` is not part of the public request.
 - Internal selection of the server's maximum REST API version without exposing a caller override or mutating the
   shared `Connection`.
 - Bounded buffering, timeout, cancellation, backpressure, and true response streaming.
 - Incremental consumption of `TYPE_STUB` responses.
-- Raw streaming for undocumented or future result formats.
+- Raw streaming of the `TYPE_STUB` response for low-memory incremental consumption.
 - Endpoint-owned enforcement of the cross-session single-in-flight-request limit.
 - Exactly one HTTP attempt for each transport-eligible symbols API invocation, with no client-side retry, queueing,
   coalescing, or preflight concurrency check.
@@ -81,10 +82,9 @@ Live probes were run on 2026-08-25.
 - A valid miss is HTTP 200 with `{ "typeStubs": [] }`.
 - A returned stub can contain `compileError`. This means the type was identified but a usable symbol projection was
   not produced. It is not equivalent to a miss.
-- `format=TYPE_STUB` and an omitted `format` produced identical responses. An invalid format was silently ignored by
-  the v264 endpoint. Core must therefore pass formats through rather than claim the server validates them.
-- `TYPE_STUB` is the only result format described by the available documentation. Other formats must remain raw and
-  `unknown` until their contracts are supplied.
+- `format=TYPE_STUB`, an omitted `format`, and an invalid format produced the same response on the v264 endpoint.
+  `TYPE_STUB` is the only shape returned by the current endpoint, so Core omits the parameter and exposes that shape
+  directly. A future server capability with a different response shape requires an intentional API revision.
 - The live `ApexTypeStub` includes top-level `typeParameters`; this field is absent from `symbols.md` and must be
   represented in the raw contract.
 - Endpoint availability is a core-train capability, not a REST-version capability. A non-v264 org advertising v67.0
@@ -208,14 +208,11 @@ Add `src/org/apexSymbols.ts` containing no classes:
 export const apexSymbolCategories = ['BUILTIN', 'DATABASE', 'DYNAMIC'] as const;
 export type ApexSymbolCategory = (typeof apexSymbolCategories)[number];
 
-export type ApexSymbolsRequest<F extends string = string> = {
+export type ApexSymbolsRequest = {
   readonly category: ApexSymbolCategory;
-  readonly format?: F;
   readonly namespace?: string;
   readonly name?: string;
 };
-
-export type ApexTypeStubSymbolsRequest = ApexSymbolsRequest<'TYPE_STUB'>;
 ```
 
 `undefined` omits an optional query parameter. Do not trim, split, case-fold, or reinterpret `namespace` or `name` in
@@ -225,27 +222,27 @@ The API is intentionally Apex-specific. Representative request shapes are:
 
 ```ts
 // Standard Apex class.
-{ category: 'BUILTIN', namespace: 'System', name: 'String', format: 'TYPE_STUB' }
+{ category: 'BUILTIN', namespace: 'System', name: 'String' }
 
 // An org-defined Apex class in the org's default namespace.
-{ category: 'DATABASE', name: 'MyClass', format: 'TYPE_STUB' }
+{ category: 'DATABASE', name: 'MyClass' }
 
 // An installed-package Apex class.
-{ category: 'DATABASE', namespace: 'MyPackage', name: 'MyClass', format: 'TYPE_STUB' }
+{ category: 'DATABASE', namespace: 'MyPackage', name: 'MyClass' }
 
 // An exact dynamic Apex class lookup.
-{ category: 'DYNAMIC', name: 'MyDynamicClass', format: 'TYPE_STUB' }
+{ category: 'DYNAMIC', name: 'MyDynamicClass' }
 
 // Broad discovery of org-defined and installed-package Apex types.
-{ category: 'DATABASE', format: 'TYPE_STUB' }
+{ category: 'DATABASE' }
 
 // Broad discovery of dynamic Apex types.
-{ category: 'DYNAMIC', format: 'TYPE_STUB' }
+{ category: 'DYNAMIC' }
 ```
 
 The response describes Apex symbols, signatures, type relationships, and available documentation. It does not imply
-that Apex source is available. `DYNAMIC` uses the same typed `TYPE_STUB` envelope and raw-format escape hatch; it does
-not require a separate method or response model.
+that Apex source is available. `DYNAMIC` uses the same typed `TYPE_STUB` envelope and streaming representation; it
+does not require a separate method or response model.
 
 ### Request controls
 
@@ -311,14 +308,9 @@ Add overloads to the existing `Connection`:
 
 ```ts
 public retrieveApexSymbols(
-  request: ApexTypeStubSymbolsRequest,
-  controls?: ApexSymbolsMaterializedControls
-): Promise<ApexTypeStubResponse>;
-
-public retrieveApexSymbols(
   request: ApexSymbolsRequest,
   controls?: ApexSymbolsMaterializedControls
-): Promise<unknown>;
+): Promise<ApexTypeStubResponse>;
 
 public retrieveApexSymbols(
   request: ApexSymbolsRequest,
@@ -328,16 +320,15 @@ public retrieveApexSymbols(
 public retrieveApexSymbols(
   request: ApexSymbolsRequest,
   controls: ApexSymbolsRequestControls
-): Promise<unknown>;
+): Promise<ApexTypeStubResponse | ApexSymbolsStreamResponse>;
 ```
 
-- An omitted format and the literal `TYPE_STUB` select the known typed response.
-- An undocumented format is allowed but returns `unknown`.
+- `TYPE_STUB` is implicit and is the sole response contract. The request does not expose `format`.
 - `mode: 'materialized'` and omitted controls return the bounded materialized response; `mode: 'stream'` returns the
   raw streaming response. The overloads must preserve that return-type distinction.
 - The union overload supports callers whose control value is itself typed as `ApexSymbolsRequestControls`. Callers
   passing a literal or narrowed union member resolve through the earlier precise overload; an unnarrowed union
-  returns `unknown` because the materialized unknown-format result is itself `unknown`.
+  returns `ApexTypeStubResponse | ApexSymbolsStreamResponse`.
 - Materialization must be built on the bounded streaming path, not `Connection.request()`.
 - Abort and throw an existing `SfError` with a stable name when the decompressed-byte limit is crossed.
 - Do not silently truncate or return partial JSON.
@@ -359,7 +350,8 @@ export type ApexSymbolsStreamResponse = {
 
 - `ApexSymbolsStreamResponse` is returned by `retrieveApexSymbols(..., { mode: 'stream' })`; do not add a separate
   `streamApexSymbols()` method.
-- This is the full-format escape hatch. Core does not need a schema to stream a future format.
+- The stream contains the JSON encoding of the same `TYPE_STUB` contract. It exists to support incremental,
+  low-memory consumption rather than to expose alternate response formats.
 - Apply byte limits, total timeout, idle timeout, caller abort, and backpressure while streaming.
 - Stopping iteration early must abort the HTTP request and release sockets/listeners.
 - Do not log response bodies or authorization headers.
@@ -460,8 +452,8 @@ Use the existing `SfError` rather than defining error classes. Assign stable nam
 - Represent top-level generic type parameters observed on `System.List`.
 - Export the public types and constants from `src/index.ts`.
 - Add unit tests for all categories; standard `System.String`; an unnamespaced org-defined class; a
-  namespace-qualified installed-package class; exact and broad dynamic Apex class requests; omitted filters; format
-  pass-through; URL encoding; and internal server-maximum version selection.
+  namespace-qualified installed-package class; exact and broad dynamic Apex class requests; omitted filters; URL
+  encoding; and internal server-maximum version selection.
 
 ### 2. Non-buffering transport spike and decision
 
@@ -483,7 +475,7 @@ Use the existing `SfError` rather than defining error classes. Assign stable nam
 - Abort transport work promptly on every terminal path so an abandoned stream does not unnecessarily retain the
   endpoint-owned in-flight request.
 - Bound error bodies separately so a failed HTTP response cannot become another unbounded allocation.
-- Add diagnostic summary logging: category, whether filters are present, selected format, API version, status, time to
+- Add diagnostic summary logging: category, whether filters are present, API version, status, time to
   first byte, total time, decompressed bytes, and request ID. Never log names, response bodies, or credentials by
   default.
 
@@ -500,8 +492,7 @@ Use the existing `SfError` rather than defining error classes. Assign stable nam
 
 - Implement the omitted-controls and `mode: 'materialized'` branches of `Connection.retrieveApexSymbols()` by
   consuming the bounded internal stream.
-- Return `ApexTypeStubResponse` for omitted/`TYPE_STUB` format.
-- Return `unknown` for other formats.
+- Return `ApexTypeStubResponse`; no materialized path returns `unknown`.
 - Choose and document finite defaults based on benchmarks.
 - Verify the method never changes `connection.version`.
 - Map route-level 404 to the stable v264 minimum-release availability error without misclassifying other failures.
@@ -522,7 +513,7 @@ Use the existing `SfError` rather than defining error classes. Assign stable nam
 
 ### Unit tests
 
-- Every category and `TYPE_STUB`/omitted/unknown format.
+- Every category under the implicit `TYPE_STUB` contract, and absence of a `format` query parameter.
 - Discriminated-control typing and runtime behavior: omitted controls and `mode: 'materialized'` return materialized
   values; `mode: 'stream'` returns `ApexSymbolsStreamResponse`; fields belonging to the other branch are rejected.
 - Exact standard-class lookup for `System.String`, an unnamespaced org-defined Apex class lookup, and a
@@ -586,12 +577,13 @@ recommended broad-query path.
   API version identifies the org core release.
 - Consumers can retrieve symbols for standard Apex classes, org-defined Apex classes, namespace-qualified
   installed-package Apex classes, and dynamic Apex classes through one Apex-specific API.
-- Consumers can request every Apex category, omit or provide namespace/name filters, and pass any result format.
+- Consumers can request every Apex category and omit or provide namespace/name filters without selecting a format.
 - Exact and broad `DYNAMIC` requests use the same public API and typed `TYPE_STUB` response as the other Apex
   categories, without implicit fallback, fan-out, or merging.
 - The API clearly represents returned data as Apex type stubs/symbols and never as Apex source code.
 - `TYPE_STUB` requests have complete public TypeScript wire types, including top-level generic parameters.
-- Unknown formats are exposed as raw `unknown`/byte streams rather than falsely typed.
+- Materialized requests always return `ApexTypeStubResponse`; explicit streaming returns the raw bytes for that same
+  response contract.
 - Exact requests have a convenient bounded materialized API.
 - Broad responses can be consumed incrementally with backpressure and without whole-response buffering.
 - `ApexSymbolsRequestControls` is a discriminated union with only `mode: 'materialized'` and `mode: 'stream'`; the
@@ -612,7 +604,7 @@ recommended broad-query path.
 
 ## Open contract items
 
-- Authoritative names and response schemas for result formats other than `TYPE_STUB`.
+- Whether a future endpoint version will introduce another response shape that warrants a separate API revision.
 - Whether the endpoint will add server-side pagination, cursoring, limits, or record framing.
 - Whether an empty `namespace` has distinct semantics from an omitted namespace.
 - Whether the server can expose a more specific reason than the current generic `compileError` string.

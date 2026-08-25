@@ -19,6 +19,7 @@ import {
   apexSymbolCategories,
   apexTypeKinds,
   ApexSymbolsMaterializedControls,
+  ApexSymbolsRequest,
   ApexSymbolsRequestControls,
   ApexSymbolsStreamControls,
   ApexTypeStubResponse,
@@ -47,6 +48,15 @@ describe('Apex Symbols', () => {
 
       expect(controls.map(({ mode }) => mode)).to.deep.equal(['materialized', 'stream']);
     });
+
+    it('does not expose a result format selector', () => {
+      const request: ApexSymbolsRequest = { category: 'DATABASE' };
+      // @ts-expect-error TYPE_STUB is implicit and format is intentionally not part of the request.
+      const invalidRequest: ApexSymbolsRequest = { category: 'DATABASE', format: 'TYPE_STUB' };
+
+      expect(request).to.deep.equal({ category: 'DATABASE' });
+      expect(invalidRequest).to.have.property('format', 'TYPE_STUB');
+    });
   });
 
   describe('buildApexSymbolsUrl', () => {
@@ -62,16 +72,15 @@ describe('Apex Symbols', () => {
       ]);
     });
 
-    it('preserves and encodes exact lookup filters and result format', () => {
+    it('preserves and encodes exact lookup filters', () => {
       const url = buildApexSymbolsUrl('https://example.my.salesforce.com/path', '68.0', {
         category: 'DATABASE',
-        format: 'TYPE_STUB',
         namespace: 'My Package/Name',
         name: 'Outer.Inner?',
       });
 
       expect(url).to.equal(
-        'https://example.my.salesforce.com/services/data/v68.0/tooling/symbols?category=DATABASE&format=TYPE_STUB&namespace=My+Package%2FName&name=Outer.Inner%3F'
+        'https://example.my.salesforce.com/services/data/v68.0/tooling/symbols?category=DATABASE&namespace=My+Package%2FName&name=Outer.Inner%3F'
       );
     });
 

@@ -76,7 +76,6 @@ export {
   ApexTypeStub,
   ApexTypeStubIterationOptions,
   ApexTypeStubResponse,
-  ApexTypeStubSymbolsRequest,
 } from './org/apexSymbols';
 
 export { iterateApexTypeStubs } from './org/apexTypeStubIterator';

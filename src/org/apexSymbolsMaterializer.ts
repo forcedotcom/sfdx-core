@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-import { SfError } from '../sfError';
 import {
   ApexSymbolsMaterializedControls,
-  ApexSymbolsRequest,
   ApexSymbolsStreamResponse,
   ApexTypeStub,
   ApexTypeStubResponse,
 } from './apexSymbols';
-import { APEX_SYMBOLS_MALFORMED_RESPONSE_ERROR } from './apexSymbolsErrors';
 import {
   DEFAULT_APEX_SYMBOLS_MAX_STUB_BYTES,
   DEFAULT_APEX_SYMBOLS_MAX_TYPE_STUBS,
@@ -34,35 +31,10 @@ export { DEFAULT_APEX_SYMBOLS_MAX_STUB_BYTES, DEFAULT_APEX_SYMBOLS_MAX_TYPE_STUB
 
 export const DEFAULT_APEX_SYMBOLS_MATERIALIZED_MAX_RESPONSE_BYTES = 64 * 1024 * 1024;
 
-const readBody = async (response: ApexSymbolsStreamResponse): Promise<Buffer> => {
-  const chunks: Uint8Array[] = [];
-  for await (const chunk of response.body) {
-    chunks.push(chunk);
-  }
-  return Buffer.concat(chunks);
-};
-
-const parseJson = (body: Buffer): unknown => {
-  try {
-    return JSON.parse(body.toString('utf8')) as unknown;
-  } catch (error) {
-    throw SfError.create({
-      message: 'The Apex Symbols endpoint returned malformed JSON.',
-      name: APEX_SYMBOLS_MALFORMED_RESPONSE_ERROR,
-      ...(error instanceof Error ? { cause: error } : {}),
-    });
-  }
-};
-
 export const materializeApexSymbolsResponse = async (
-  request: ApexSymbolsRequest,
   response: ApexSymbolsStreamResponse,
   controls?: ApexSymbolsMaterializedControls
-): Promise<unknown> => {
-  if (request.format !== undefined && request.format !== 'TYPE_STUB') {
-    return parseJson(await readBody(response));
-  }
-
+): Promise<ApexTypeStubResponse> => {
   const typeStubs: ApexTypeStub[] = [];
   for await (const typeStub of iterateApexTypeStubs(response.body, {
     maxResponseBytes: controls?.maxResponseBytes ?? DEFAULT_APEX_SYMBOLS_MATERIALIZED_MAX_RESPONSE_BYTES,

@@ -37,33 +37,20 @@ const responseFor = (body: string): ApexSymbolsStreamResponse => ({
 
 describe('Apex Symbols materializer', () => {
   it('materializes a typed response split across chunks', async () => {
-    const result = await materializeApexSymbolsResponse(
-      { category: 'BUILTIN', namespace: 'System', name: 'String', format: 'TYPE_STUB' },
-      responseFor('{"typeStubs":[]}'),
-      { mode: 'materialized' }
-    );
+    const result = await materializeApexSymbolsResponse(responseFor('{"typeStubs":[]}'), { mode: 'materialized' });
 
     expect(result).to.deep.equal({ typeStubs: [] });
   });
 
-  it('treats omitted format as TYPE_STUB', async () => {
-    const result = await materializeApexSymbolsResponse({ category: 'DYNAMIC' }, responseFor('{"typeStubs":[]}'));
+  it('uses TYPE_STUB as the sole materialized response contract', async () => {
+    const result = await materializeApexSymbolsResponse(responseFor('{"typeStubs":[]}'));
 
     expect(result).to.deep.equal({ typeStubs: [] });
-  });
-
-  it('returns parsed unknown formats without imposing the TYPE_STUB envelope', async () => {
-    const result = await materializeApexSymbolsResponse(
-      { category: 'DATABASE', format: 'FUTURE_FORMAT' },
-      responseFor('{"future":true}')
-    );
-
-    expect(result).to.deep.equal({ future: true });
   });
 
   it('rejects malformed JSON', async () => {
     try {
-      await shouldThrow(materializeApexSymbolsResponse({ category: 'BUILTIN', format: 'TYPE_STUB' }, responseFor('{')));
+      await shouldThrow(materializeApexSymbolsResponse(responseFor('{')));
     } catch (error) {
       expect(error).to.have.property('name', APEX_SYMBOLS_MALFORMED_RESPONSE_ERROR);
     }
@@ -71,9 +58,7 @@ describe('Apex Symbols materializer', () => {
 
   it('rejects an invalid TYPE_STUB envelope', async () => {
     try {
-      await shouldThrow(
-        materializeApexSymbolsResponse({ category: 'BUILTIN', format: 'TYPE_STUB' }, responseFor('{"typeStubs":{}}'))
-      );
+      await shouldThrow(materializeApexSymbolsResponse(responseFor('{"typeStubs":{}}')));
     } catch (error) {
       expect(error).to.have.property('name', APEX_SYMBOLS_MALFORMED_RESPONSE_ERROR);
     }
@@ -82,11 +67,7 @@ describe('Apex Symbols materializer', () => {
   it('enforces the type-stub count limit', async () => {
     try {
       await shouldThrow(
-        materializeApexSymbolsResponse(
-          { category: 'DATABASE', format: 'TYPE_STUB' },
-          responseFor('{"typeStubs":[{},{}]}'),
-          { mode: 'materialized', maxTypeStubs: 1 }
-        )
+        materializeApexSymbolsResponse(responseFor('{"typeStubs":[{},{}]}'), { mode: 'materialized', maxTypeStubs: 1 })
       );
     } catch (error) {
       expect(error).to.have.property('name', APEX_SYMBOLS_RESPONSE_TOO_LARGE_ERROR);
@@ -96,11 +77,10 @@ describe('Apex Symbols materializer', () => {
   it('enforces the per-stub byte limit', async () => {
     try {
       await shouldThrow(
-        materializeApexSymbolsResponse(
-          { category: 'DATABASE', format: 'TYPE_STUB' },
-          responseFor('{"typeStubs":[{"name":"LongClassName"}]}'),
-          { mode: 'materialized', maxStubBytes: 5 }
-        )
+        materializeApexSymbolsResponse(responseFor('{"typeStubs":[{"name":"LongClassName"}]}'), {
+          mode: 'materialized',
+          maxStubBytes: 5,
+        })
       );
     } catch (error) {
       expect(error).to.have.property('name', APEX_SYMBOLS_RESPONSE_TOO_LARGE_ERROR);

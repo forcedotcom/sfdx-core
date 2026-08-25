@@ -47,7 +47,6 @@ import {
   ApexSymbolsStreamControls,
   ApexSymbolsStreamResponse,
   ApexTypeStubResponse,
-  ApexTypeStubSymbolsRequest,
   buildApexSymbolsUrl,
 } from './apexSymbols';
 import { throwIfApexSymbolsErrorResponse } from './apexSymbolsErrors';
@@ -246,14 +245,13 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    *   category: 'BUILTIN',
    *   namespace: 'System',
    *   name: 'String',
-   *   format: 'TYPE_STUB',
    * });
    * ```
    *
    * @example Broad incremental lookup
    * ```ts
    * const response = await connection.retrieveApexSymbols(
-   *   { category: 'DATABASE', format: 'TYPE_STUB' },
+   *   { category: 'DATABASE' },
    *   { mode: 'stream' }
    * );
    * for await (const stub of iterateApexTypeStubs(response.body)) {
@@ -261,23 +259,25 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
    * }
    * ```
    *
-   * @param request Apex symbol category, format, and optional exact lookup filters.
+   * @param request Apex symbol category and optional exact lookup filters. The endpoint's TYPE_STUB format is implicit.
    * @param controls Response mode, limits, and cancellation controls. Omitted controls select bounded materialization.
    */
   public retrieveApexSymbols(
-    request: ApexTypeStubSymbolsRequest,
+    request: ApexSymbolsRequest,
     controls?: ApexSymbolsMaterializedControls
   ): Promise<ApexTypeStubResponse>;
-  public retrieveApexSymbols(request: ApexSymbolsRequest, controls?: ApexSymbolsMaterializedControls): Promise<unknown>;
   public retrieveApexSymbols(
     request: ApexSymbolsRequest,
     controls: ApexSymbolsStreamControls
   ): Promise<ApexSymbolsStreamResponse>;
-  public retrieveApexSymbols(request: ApexSymbolsRequest, controls: ApexSymbolsRequestControls): Promise<unknown>;
+  public retrieveApexSymbols(
+    request: ApexSymbolsRequest,
+    controls: ApexSymbolsRequestControls
+  ): Promise<ApexTypeStubResponse | ApexSymbolsStreamResponse>;
   public async retrieveApexSymbols(
     request: ApexSymbolsRequest,
     controls?: ApexSymbolsRequestControls
-  ): Promise<unknown> {
+  ): Promise<ApexTypeStubResponse | ApexSymbolsStreamResponse> {
     const apiVersion = await this.retrieveMaxApiVersion();
     // JSforce stores the public Connection callOptions configuration on this inherited field.
     // eslint-disable-next-line no-underscore-dangle
@@ -308,7 +308,6 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
           {
             event: 'apexSymbolsRequest',
             category: request.category,
-            format: request.format ?? 'TYPE_STUB',
             hasNamespaceFilter: request.namespace !== undefined,
             hasNameFilter: request.name !== undefined,
             ...metrics,
@@ -321,7 +320,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     if (controls?.mode === 'stream') {
       return response;
     }
-    return materializeApexSymbolsResponse(request, response, controls);
+    return materializeApexSymbolsResponse(response, controls);
   }
 
   /**

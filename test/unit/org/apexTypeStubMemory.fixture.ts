@@ -56,7 +56,7 @@ const run = async (): Promise<void> => {
 
   let materializedError: string | undefined;
   try {
-    await materializeApexSymbolsResponse({ category: 'DATABASE', format: 'TYPE_STUB' }, streamResponse(), {
+    await materializeApexSymbolsResponse(streamResponse(), {
       mode: 'materialized',
       maxResponseBytes: 4 * 1024 * 1024,
       maxTypeStubs: stubCount,

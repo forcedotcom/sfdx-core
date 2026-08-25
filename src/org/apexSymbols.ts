@@ -20,14 +20,11 @@ export type ApexSymbolCategory = (typeof apexSymbolCategories)[number];
 export const apexTypeKinds = ['CLASS', 'INTERFACE', 'ENUM', 'TRIGGER'] as const;
 export type ApexTypeKind = (typeof apexTypeKinds)[number];
 
-export type ApexSymbolsRequest<F extends string = string> = {
+export type ApexSymbolsRequest = {
   readonly category: ApexSymbolCategory;
-  readonly format?: F;
   readonly namespace?: string;
   readonly name?: string;
 };
-
-export type ApexTypeStubSymbolsRequest = ApexSymbolsRequest<'TYPE_STUB'>;
 
 export type ApexSymbolsTransportControls = {
   readonly timeoutMs?: number;
@@ -171,9 +168,6 @@ export const buildApexSymbolsUrl = (instanceUrl: string, apiVersion: string, req
   const url = new URL(`/services/data/v${apiVersion}/tooling/symbols`, instanceUrl);
   url.searchParams.set('category', request.category);
 
-  if (request.format !== undefined) {
-    url.searchParams.set('format', request.format);
-  }
   if (request.namespace !== undefined) {
     url.searchParams.set('namespace', request.namespace);
   }
