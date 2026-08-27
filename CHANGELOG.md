@@ -1,3 +1,12 @@
+## [9.1.8](https://github.com/forcedotcom/sfdx-core/compare/9.1.7...9.1.8) (2026-08-27)
+
+
+### Bug Fixes
+
+* bump jsforce ([f677107](https://github.com/forcedotcom/sfdx-core/commit/f67710763077b77742b3e41802de504be6ff0668))
+
+
+
 ## [9.1.7](https://github.com/forcedotcom/sfdx-core/compare/9.1.6...9.1.7) (2026-08-25)
 
 
