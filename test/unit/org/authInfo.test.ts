@@ -2024,6 +2024,28 @@ describe('AuthInfo', () => {
       user1 = new MockTestOrgData();
     });
 
+    it('should skip entirely when SF_SKIP_SCRATCH_ORG_CHECK is set', async () => {
+      try {
+        process.env.SF_SKIP_SCRATCH_ORG_CHECK = 'true';
+        await $$.stubAuths(adminTestData, user1);
+
+        const authInfo = await AuthInfo.create({
+          username: user1.username,
+        });
+
+        const determineOrgStub = stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+        const getDevHubAuthInfosStub = stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos');
+        const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+
+        await AuthInfo.identifyPossibleScratchOrgs({ orgId: user1.orgId }, authInfo);
+        expect(determineOrgStub.callCount).to.be.equal(0);
+        expect(getDevHubAuthInfosStub.callCount).to.be.equal(0);
+        expect(authInfoSaveStub.callCount).to.be.equal(0);
+      } finally {
+        delete process.env.SF_SKIP_SCRATCH_ORG_CHECK;
+      }
+    });
+
     it('should not update auth file - no dev hubs', async () => {
       await $$.stubAuths(adminTestData, user1);
 

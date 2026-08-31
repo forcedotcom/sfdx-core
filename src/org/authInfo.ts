@@ -408,6 +408,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param orgAuthInfo
    */
   public static async identifyPossibleScratchOrgs(fields: AuthFields, orgAuthInfo: AuthInfo): Promise<void> {
+    if (env.getBoolean('SF_SKIP_SCRATCH_ORG_CHECK')) {
+      (await Logger.child('Common', { tag: 'identifyPossibleScratchOrgs' })).debug(
+        'Skipping scratch org identification due to SF_SKIP_SCRATCH_ORG_CHECK'
+      );
+      return;
+    }
+
     // fields property is passed in because the consumers of this method have performed the decrypt.
     // This is so we don't have to call authInfo.getFields(true) and decrypt again OR accidentally save an
     // authInfo before it is necessary.
