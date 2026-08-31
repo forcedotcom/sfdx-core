@@ -2317,6 +2317,44 @@ describe('AuthInfo', () => {
       expect(sbxQueryStub.callCount).to.be.equal(0);
       expect(authInfoSaveStub.callCount).to.be.equal(0);
     });
+
+    it('should detect pre-enhanced-domain sandbox URLs via -- separator', async () => {
+      await $$.stubAuths(adminTestData, user1);
+
+      const authInfo = await AuthInfo.create({
+        username: user1.username,
+      });
+
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+      const prodOrg = {
+        orgId: adminTestData.orgId,
+        username: adminTestData.username,
+        oauthMethod: 'jwt' as const,
+        aliases: null,
+        configs: null,
+        isDevHub: false,
+        isScratchOrg: false,
+        isSandbox: false,
+        isExpired: false,
+      };
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations').resolves([prodOrg]);
+      const sbxQueryStub = stubMethod($$.SANDBOX, Org.prototype, 'querySandboxProcessByOrgId');
+      sbxQueryStub.resolves({
+        Id: '0GRB0000000L0ZVOA0',
+        Status: 'Completed',
+        SandboxName: 'TestSandbox',
+        SandboxInfoId: '0GQB0000000PCOdOAO',
+        LicenseType: 'DEVELOPER',
+        CreatedDate: '2021-01-22T22:49:52.000+0000',
+      });
+
+      // pre-enhanced-domain sandbox URL (contains -- but no .sandbox.)
+      const fields = { ...authInfo.getFields(), instanceUrl: 'https://myorg--dev.my.salesforce.com' };
+      await AuthInfo.identifyPossibleScratchOrgs(fields, authInfo);
+
+      // sandbox identification path should run (sbxQueryStub called)
+      expect(sbxQueryStub.callCount).to.be.equal(1);
+    });
   });
 
   describe('determineIfDevHub', () => {

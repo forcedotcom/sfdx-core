@@ -433,7 +433,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const hubAuthInfos = allOrgs.filter((org) => org.isDevHub);
 
     // skip sandbox identification if the instance URL is not sandbox-like
-    const isSandboxLikeUrl = fields.instanceUrl?.includes('.sandbox.');
+    // enhanced domains: *.sandbox.my.salesforce.com; pre-enhanced My Domain: company--sbxname.my.salesforce.com
+    const isSandboxLikeUrl =
+      fields.instanceUrl != null && (fields.instanceUrl.includes('.sandbox.') || fields.instanceUrl.includes('--'));
     const possibleProdOrgs = isSandboxLikeUrl ? allOrgs.filter((org) => !org.isScratchOrg && !org.isSandbox) : [];
     if (!isSandboxLikeUrl) {
       logger.debug('instance URL is not sandbox-like, skipping sandbox identification');
