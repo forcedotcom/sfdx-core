@@ -1,3 +1,12 @@
+## [9.1.9](https://github.com/forcedotcom/sfdx-core/compare/9.1.8...9.1.9) (2026-08-31)
+
+
+### Bug Fixes
+
+* add salesforce.mil to allowlisted Salesforce domains ([1cab4b9](https://github.com/forcedotcom/sfdx-core/commit/1cab4b98a91fb13c5fce0206a04e07d3e170bf3f))
+
+
+
 ## [9.1.8](https://github.com/forcedotcom/sfdx-core/compare/9.1.7...9.1.8) (2026-08-27)
 
 
