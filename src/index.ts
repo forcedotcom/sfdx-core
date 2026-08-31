@@ -52,6 +52,34 @@ export { AuthFields, AuthInfo, AuthSideEffects, OrgAuthorization } from './org/a
 
 export { AuthRemover } from './org/authRemover';
 
+export {
+  apexSymbolCategories,
+  apexTypeKinds,
+  ApexAccessorStub,
+  ApexAnnotationParameterStub,
+  ApexAnnotationStub,
+  ApexCompileErrorTypeStub,
+  ApexFieldStub,
+  ApexMethodStub,
+  ApexParameterStub,
+  ApexPropertyStub,
+  ApexResolvedTypeStub,
+  ApexSymbolCategory,
+  ApexSymbolsMaterializedControls,
+  ApexSymbolsRequest,
+  ApexSymbolsRequestControls,
+  ApexSymbolsStreamControls,
+  ApexSymbolsStreamResponse,
+  ApexSymbolsTransportControls,
+  ApexTypeKind,
+  ApexTypeReference,
+  ApexTypeStub,
+  ApexTypeStubIterationOptions,
+  ApexTypeStubResponse,
+} from './org/apexSymbols';
+
+export { iterateApexTypeStubs } from './org/apexTypeStubIterator';
+
 export { Connection, SFDX_HTTP_HEADERS } from './org/connection';
 
 export { Mode, Global } from './global';

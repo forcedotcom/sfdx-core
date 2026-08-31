@@ -20,6 +20,8 @@ import { fromStub, StubbedType, stubInterface, stubMethod } from '@salesforce/ts
 import { Duration } from '@salesforce/kit';
 import { Connection as JSForceConnection, HttpRequest } from '@jsforce/jsforce-node';
 import { AuthInfo } from '../../../src/org/authInfo';
+import { ApexSymbolsStreamResponse, ApexTypeStubResponse } from '../../../src/org/apexSymbols';
+import * as apexSymbolsTransport from '../../../src/org/apexSymbolsTransport';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { Connection, DNS_ERROR_NAME, SFDX_HTTP_HEADERS, SingleRecordQueryErrors } from '../../../src/org/connection';
 import { shouldThrow, shouldThrowSync, TestContext } from '../../../src/testSetup';
@@ -244,6 +246,97 @@ describe('Connection', () => {
     expect(requestMock.secondCall.args[0]).to.deep.equal(expectedRequestInfo);
     expect(requestMock.secondCall.args[1]).to.be.undefined;
     expect(response1).to.deep.equal(testResponse);
+  });
+
+  it('retrieveApexSymbols() streams with the server maximum version without mutating the connection version', async () => {
+    testAuthInfoWithDomain.getConnectionOptions.returns({
+      ...testConnectionOptions,
+      instanceUrl: 'https://connectionTest/instanceUrl',
+      accessToken: 'test-access-token',
+      httpProxy: 'http://localhost:8080',
+    });
+    const streamResponse: ApexSymbolsStreamResponse = {
+      apiVersion: '50.0',
+      statusCode: 200,
+      headers: {},
+      body: (async function* (): AsyncIterable<Uint8Array> {
+        yield Buffer.from('{"typeStubs":[]}');
+      })(),
+      cancel: () => undefined,
+    };
+    const transportStub = $$.SANDBOX.stub(apexSymbolsTransport, 'requestApexSymbolsStream').resolves(streamResponse);
+    const conn = await Connection.create({
+      authInfo: fromStub(testAuthInfoWithDomain),
+      connectionOptions: { version: '42.0' },
+    });
+    const debugStub = $$.SANDBOX.stub(conn['logger'].getRawLogger(), 'debug');
+
+    const result = await conn.retrieveApexSymbols(
+      { category: 'DYNAMIC', namespace: 'Example', name: 'DynamicClass' },
+      { mode: 'stream', timeoutMs: 100, idleTimeoutMs: 50, maxResponseBytes: 1_000 }
+    );
+
+    expect(result).to.equal(streamResponse);
+    expect(conn.getApiVersion()).to.equal('42.0');
+    expect(transportStub.calledOnce).to.be.true;
+    expect(transportStub.firstCall.args[0]).to.deep.include({
+      url: 'https://connectiontest/services/data/v50.0/tooling/symbols?category=DYNAMIC&namespace=Example&name=DynamicClass',
+      apiVersion: '50.0',
+      timeoutMs: 100,
+      idleTimeoutMs: 50,
+      maxResponseBytes: 1_000,
+      httpProxy: 'http://localhost:8080',
+    });
+    expect(transportStub.firstCall.args[0].headers).to.include({
+      authorization: 'Bearer test-access-token',
+    });
+    expect(transportStub.firstCall.args[0].headers['sforce-call-options']).to.contain('client=sfdx toolbelt:');
+    transportStub.firstCall.args[0].onComplete?.({
+      apiVersion: '50.0',
+      statusCode: 200,
+      timeToFirstByteMs: 10,
+      totalTimeMs: 20,
+      responseBytes: 100,
+      requestId: 'request-123',
+    });
+    expect(debugStub.lastCall.args[0]).to.deep.include({
+      event: 'apexSymbolsRequest',
+      category: 'DYNAMIC',
+      hasNamespaceFilter: true,
+      hasNameFilter: true,
+      apiVersion: '50.0',
+      requestId: 'request-123',
+    });
+    expect(JSON.stringify(debugStub.lastCall.args[0])).not.to.contain('Example');
+    expect(JSON.stringify(debugStub.lastCall.args[0])).not.to.contain('DynamicClass');
+  });
+
+  it('retrieveApexSymbols() defaults to bounded TYPE_STUB materialization', async () => {
+    const streamResponse: ApexSymbolsStreamResponse = {
+      apiVersion: '50.0',
+      statusCode: 200,
+      headers: { 'content-type': 'application/json' },
+      body: (async function* (): AsyncIterable<Uint8Array> {
+        yield Buffer.from('{"typeStubs":[]}');
+      })(),
+      cancel: () => undefined,
+    };
+    const transportStub = $$.SANDBOX.stub(apexSymbolsTransport, 'requestApexSymbolsStream').resolves(streamResponse);
+    const conn = await Connection.create({
+      authInfo: fromStub(testAuthInfoWithDomain),
+      connectionOptions: { version: '42.0' },
+    });
+
+    const result: ApexTypeStubResponse = await conn.retrieveApexSymbols({
+      category: 'BUILTIN',
+      namespace: 'System',
+      name: 'String',
+    });
+
+    expect(result).to.deep.equal({ typeStubs: [] });
+    expect(conn.getApiVersion()).to.equal('42.0');
+    expect(transportStub.calledOnce).to.be.true;
+    expect(transportStub.firstCall.args[0].maxResponseBytes).to.equal(64 * 1024 * 1024);
   });
 
   it('request() should add SFDX headers and call super() for a RequestInfo and options arg', async () => {
