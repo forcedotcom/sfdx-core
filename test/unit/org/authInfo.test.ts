@@ -2034,12 +2034,12 @@ describe('AuthInfo', () => {
         });
 
         const determineOrgStub = stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
-        const getDevHubAuthInfosStub = stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos');
+        const listAllAuthsStub = stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations');
         const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
 
         await AuthInfo.identifyPossibleScratchOrgs({ orgId: user1.orgId }, authInfo);
         expect(determineOrgStub.callCount).to.be.equal(0);
-        expect(getDevHubAuthInfosStub.callCount).to.be.equal(0);
+        expect(listAllAuthsStub.callCount).to.be.equal(0);
         expect(authInfoSaveStub.callCount).to.be.equal(0);
       } finally {
         delete process.env.SF_SKIP_SCRATCH_ORG_CHECK;
@@ -2054,14 +2054,13 @@ describe('AuthInfo', () => {
       });
 
       stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
-      const getDevHubAuthInfosStub = stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves([]);
-      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations').resolves([]);
+      const listAllAuthsStub = stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations').resolves([]);
       const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg');
       const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
       stubMethod($$.SANDBOX, Org.prototype, 'querySandboxProcessByOrgId').throws();
 
       await AuthInfo.identifyPossibleScratchOrgs({ orgId: user1.orgId }, authInfo);
-      expect(getDevHubAuthInfosStub.callCount).to.be.equal(1);
+      expect(listAllAuthsStub.callCount).to.be.equal(1);
       expect(queryScratchOrgStub.callCount).to.be.equal(0);
       expect(authInfoSaveStub.callCount).to.be.equal(0);
     });
@@ -2078,13 +2077,13 @@ describe('AuthInfo', () => {
       });
 
       stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
-      const getDevHubAuthInfosStub = stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves([]);
+      const listAllAuthsStub = stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations');
       const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg');
       const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
       stubMethod($$.SANDBOX, Org.prototype, 'querySandboxProcessByOrgId').throws();
 
       await AuthInfo.identifyPossibleScratchOrgs(authInfo.getFields(), authInfo);
-      expect(getDevHubAuthInfosStub.callCount).to.be.equal(0);
+      expect(listAllAuthsStub.callCount).to.be.equal(0);
       expect(queryScratchOrgStub.callCount).to.be.equal(0);
       expect(authInfoSaveStub.callCount).to.be.equal(0);
     });
@@ -2102,13 +2101,13 @@ describe('AuthInfo', () => {
       });
 
       stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
-      const getDevHubAuthInfosSpy = spyMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos');
+      const listAllAuthsSpy = spyMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations');
       const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg');
       const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
       stubMethod($$.SANDBOX, Org.prototype, 'querySandboxProcessByOrgId').throws();
 
       await AuthInfo.identifyPossibleScratchOrgs(authInfo.getFields(), authInfo);
-      expect(getDevHubAuthInfosSpy.callCount).to.be.equal(0);
+      expect(listAllAuthsSpy.callCount).to.be.equal(0);
       expect(queryScratchOrgStub.callCount).to.be.equal(0);
       expect(authInfoSaveStub.callCount).to.be.equal(0);
     });
@@ -2123,20 +2122,58 @@ describe('AuthInfo', () => {
       });
 
       stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
-      const devhubAuths = await AuthInfo.getDevHubAuthInfos();
-      const getDevHubAuthInfosStub = stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves(devhubAuths);
-      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations').resolves([]);
+      // provide a DevHub entry marked as scratch so it only appears in hubAuthInfos, not possibleProdOrgs
+      const hubEntry = {
+        orgId: adminTestData.orgId,
+        username: adminTestData.username,
+        oauthMethod: 'jwt' as const,
+        aliases: null,
+        configs: null,
+        isDevHub: true,
+        isScratchOrg: true,
+        isExpired: false,
+      };
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations').resolves([hubEntry]);
       const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg').resolves({
         Id: '123',
         ExpirationDate: '2020-01-01',
       });
       const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
-      stubMethod($$.SANDBOX, Org.prototype, 'querySandboxProcessByOrgId').throws();
 
       await AuthInfo.identifyPossibleScratchOrgs(authInfo.getFields(), authInfo);
-      expect(getDevHubAuthInfosStub.callCount).to.be.equal(1);
       expect(queryScratchOrgStub.callCount).to.be.equal(1);
       expect(authInfoSaveStub.callCount).to.be.equal(1);
+    });
+
+    it('should call listAllAuthorizations only once (single-pass)', async () => {
+      adminTestData.makeDevHub();
+
+      await $$.stubAuths(adminTestData, user1);
+
+      const authInfo = await AuthInfo.create({
+        username: user1.username,
+      });
+
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+      const hubEntry = {
+        orgId: adminTestData.orgId,
+        username: adminTestData.username,
+        oauthMethod: 'jwt' as const,
+        aliases: null,
+        configs: null,
+        isDevHub: true,
+        isScratchOrg: true,
+        isExpired: false,
+      };
+      const listAllAuthsStub = stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations').resolves([hubEntry]);
+      stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg').resolves({
+        Id: '123',
+        ExpirationDate: '2020-01-01',
+      });
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+
+      await AuthInfo.identifyPossibleScratchOrgs(authInfo.getFields(), authInfo);
+      expect(listAllAuthsStub.callCount).to.be.equal(1);
     });
 
     it('should stop querying after first DevHub match', async () => {
@@ -2157,6 +2194,7 @@ describe('AuthInfo', () => {
           aliases: null,
           configs: null,
           isDevHub: true,
+          isScratchOrg: true,
           isExpired: false,
         },
         {
@@ -2166,6 +2204,7 @@ describe('AuthInfo', () => {
           aliases: null,
           configs: null,
           isDevHub: true,
+          isScratchOrg: true,
           isExpired: false,
         },
         {
@@ -2175,11 +2214,11 @@ describe('AuthInfo', () => {
           aliases: null,
           configs: null,
           isDevHub: true,
+          isScratchOrg: true,
           isExpired: false,
         },
       ];
-      stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves(multipleHubs);
-      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations').resolves([]);
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations').resolves(multipleHubs);
       const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg').resolves({
         Id: '123',
         ExpirationDate: '2020-01-01',
@@ -2207,9 +2246,19 @@ describe('AuthInfo', () => {
       const sandboxSetStub = stubMethod($$.SANDBOX, stateAggregator.sandboxes, 'set');
       const sandboxWriteStub = stubMethod($$.SANDBOX, stateAggregator.sandboxes, 'write');
       stateAggregatorStub.resolves(stateAggregator);
-      const devhubAuths = await AuthInfo.getDevHubAuthInfos();
-      stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves([]);
-      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations').resolves(devhubAuths);
+      // return a prod-like org (not a DevHub) so it only appears in possibleProdOrgs
+      const prodOrg = {
+        orgId: adminTestData.orgId,
+        username: adminTestData.username,
+        oauthMethod: 'jwt' as const,
+        aliases: null,
+        configs: null,
+        isDevHub: false,
+        isScratchOrg: false,
+        isSandbox: false,
+        isExpired: false,
+      };
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations').resolves([prodOrg]);
       const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save').resolves();
       const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg');
       const queryScratchOrgError = new Error('not a scratch org');

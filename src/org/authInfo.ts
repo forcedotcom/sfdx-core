@@ -430,11 +430,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // TODO: return if url is not sandbox-like to avoid constantly asking about production orgs
     // TODO: someday we make this easier by asking the org if it is a scratch org
 
-    const hubAuthInfos = await AuthInfo.getDevHubAuthInfos();
-    // Get a list of org auths that are known not to be scratch orgs or sandboxes.
-    const possibleProdOrgs = await AuthInfo.listAllAuthorizations(
-      (orgAuth) => orgAuth && !orgAuth.isScratchOrg && !orgAuth.isSandbox
-    );
+    const allOrgs = await AuthInfo.listAllAuthorizations();
+    const hubAuthInfos = allOrgs.filter((org) => org.isDevHub);
+    const possibleProdOrgs = allOrgs.filter((org) => !org.isScratchOrg && !org.isSandbox);
 
     logger.debug(`found ${hubAuthInfos.length} DevHubs`);
     logger.debug(`found ${possibleProdOrgs.length} possible prod orgs`);
