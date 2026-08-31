@@ -161,6 +161,11 @@ describe('util/sfdcUrl', () => {
       expect(url.isSalesforceDomain()).to.be.true;
     });
 
+    it('is allowlist mil domain', () => {
+      const url = new SfdcUrl('https://foo.my.salesforce.mil');
+      expect(url.isSalesforceDomain()).to.be.true;
+    });
+
     it('cnEdition', () => {
       const url = new SfdcUrl('https://foo.my.sfcrmproducts.cn');
       expect(url.isSalesforceDomain()).to.be.true;

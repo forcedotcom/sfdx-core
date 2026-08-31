@@ -118,6 +118,7 @@ export class SfdcUrl extends URL {
       '.force.com',
       '.salesforce.com',
       '.salesforceliveagent.com',
+      '.salesforce.mil',
       '.secure.force.com',
       '.crmforce.mil',
       '.sfcrmproducts.cn',
