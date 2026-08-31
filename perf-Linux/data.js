@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788192239733,
+  "lastUpdate": 1788193105925,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -45402,6 +45402,72 @@ window.BENCHMARK_DATA = {
             "range": "±10.07%",
             "unit": "ops/sec",
             "extra": "63 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "accbd6d10bab222612fc826162e80e8b5008f319",
+          "message": "perf: skip sandbox identification for non-sandbox URLs\n\nIf the newly authenticated org's instance URL doesn't contain '.sandbox.',\nskip the entire sandbox identification loop. This eliminates expensive\nOrg.create + querySandboxProcessByOrgId calls for the common case of\nauthenticating production orgs, which is the vast majority of CI/CD usage.",
+          "timestamp": "2026-08-31T10:12:44-06:00",
+          "tree_id": "7be1603a507343624b887b18d94c062f1c98f0d3",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/accbd6d10bab222612fc826162e80e8b5008f319"
+        },
+        "date": 1788193093858,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 518408,
+            "range": "±0.36%",
+            "unit": "ops/sec",
+            "extra": "98 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1292169,
+            "range": "±8.12%",
+            "unit": "ops/sec",
+            "extra": "40 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 77939,
+            "range": "±181.03%",
+            "unit": "ops/sec",
+            "extra": "61 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 27033,
+            "range": "±188.33%",
+            "unit": "ops/sec",
+            "extra": "35 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 411218,
+            "range": "±59.11%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 398054,
+            "range": "±6.89%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
           }
         ]
       }
