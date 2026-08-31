@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788193105925,
+  "lastUpdate": 1788193631293,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -45468,6 +45468,72 @@ window.BENCHMARK_DATA = {
             "range": "±6.89%",
             "unit": "ops/sec",
             "extra": "64 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "388e9ad9d62475404b4e577fa848ad7c1f9f0a75",
+          "message": "fix: broaden sandbox URL heuristic to catch pre-enhanced-domain URLs\n\nThe .sandbox. check only matched enhanced-domain sandbox URLs.\nPre-enhanced My Domain sandboxes use company--sbxname.my.salesforce.com\n(no .sandbox. segment). Now also checks for -- in the instance URL.",
+          "timestamp": "2026-08-31T10:21:54-06:00",
+          "tree_id": "32234f470b53b44b3b5ca57d57abc544ba255c3b",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/388e9ad9d62475404b4e577fa848ad7c1f9f0a75"
+        },
+        "date": 1788193620424,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 678060,
+            "range": "±0.62%",
+            "unit": "ops/sec",
+            "extra": "93 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 125318,
+            "range": "±179.54%",
+            "unit": "ops/sec",
+            "extra": "36 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 910391,
+            "range": "±8.91%",
+            "unit": "ops/sec",
+            "extra": "54 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 40843,
+            "range": "±183.54%",
+            "unit": "ops/sec",
+            "extra": "35 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 596952,
+            "range": "±9.65%",
+            "unit": "ops/sec",
+            "extra": "67 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 423635,
+            "range": "±9.01%",
+            "unit": "ops/sec",
+            "extra": "60 samples"
           }
         ]
       }
