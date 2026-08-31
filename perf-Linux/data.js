@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788185353253,
+  "lastUpdate": 1788191897315,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -45270,6 +45270,72 @@ window.BENCHMARK_DATA = {
             "range": "±5.79%",
             "unit": "ops/sec",
             "extra": "57 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "cefc1becea65f1c63187a59a6bf5e472ee3e8c76",
+          "message": "fix: add SF_SKIP_SCRATCH_ORG_CHECK env var to skip slow org identification @W-23969733@\n\nAfter `sf org login jwt` authenticates, `identifyPossibleScratchOrgs()` queries\nevery cached org authorization to determine if the new org is a scratch org or\nsandbox. This scales linearly with cache size — 3,000+ cached orgs can turn a\n4-second login into 30+ seconds. Setting SF_SKIP_SCRATCH_ORG_CHECK=true skips\nthis check entirely, which is ideal for CI/CD environments where org type\nidentification is unnecessary.",
+          "timestamp": "2026-08-31T09:52:18-06:00",
+          "tree_id": "ef45079204b6c6fad74ab91a9dcce3e5c9da6b07",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/cefc1becea65f1c63187a59a6bf5e472ee3e8c76"
+        },
+        "date": 1788191886747,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 494838,
+            "range": "±0.35%",
+            "unit": "ops/sec",
+            "extra": "96 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 112309,
+            "range": "±181.21%",
+            "unit": "ops/sec",
+            "extra": "48 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 916088,
+            "range": "±9.29%",
+            "unit": "ops/sec",
+            "extra": "56 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 30573,
+            "range": "±185.69%",
+            "unit": "ops/sec",
+            "extra": "34 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 508971,
+            "range": "±7.33%",
+            "unit": "ops/sec",
+            "extra": "53 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 391235,
+            "range": "±11.51%",
+            "unit": "ops/sec",
+            "extra": "59 samples"
           }
         ]
       }
