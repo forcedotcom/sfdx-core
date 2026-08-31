@@ -2246,7 +2246,6 @@ describe('AuthInfo', () => {
       const sandboxSetStub = stubMethod($$.SANDBOX, stateAggregator.sandboxes, 'set');
       const sandboxWriteStub = stubMethod($$.SANDBOX, stateAggregator.sandboxes, 'write');
       stateAggregatorStub.resolves(stateAggregator);
-      // return a prod-like org (not a DevHub) so it only appears in possibleProdOrgs
       const prodOrg = {
         orgId: adminTestData.orgId,
         username: adminTestData.username,
@@ -2274,7 +2273,9 @@ describe('AuthInfo', () => {
         CreatedDate: '2021-01-22T22:49:52.000+0000',
       });
 
-      await AuthInfo.identifyPossibleScratchOrgs(authInfo.getFields(), authInfo);
+      // pass a sandbox-like instanceUrl so the sandbox identification path runs
+      const fields = { ...authInfo.getFields(), instanceUrl: 'https://myorg--dev.sandbox.my.salesforce.com' };
+      await AuthInfo.identifyPossibleScratchOrgs(fields, authInfo);
 
       expect(authInfoSaveStub.callCount).to.be.equal(2);
       expect(authInfoSaveStub.secondCall.args[0]).to.have.property('isSandbox', true);
@@ -2284,6 +2285,37 @@ describe('AuthInfo', () => {
       expect(sandboxSetStub.firstCall.args[1]).to.have.property('prodOrgUsername', adminTestData.username);
       expect(sandboxWriteStub.calledOnce).to.be.true;
       expect(sandboxWriteStub.firstCall.args[0]).to.equal(authInfo.getFields().orgId);
+    });
+
+    it('should skip sandbox identification for non-sandbox URLs', async () => {
+      await $$.stubAuths(adminTestData, user1);
+
+      const authInfo = await AuthInfo.create({
+        username: user1.username,
+      });
+
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+      const prodOrg = {
+        orgId: adminTestData.orgId,
+        username: adminTestData.username,
+        oauthMethod: 'jwt' as const,
+        aliases: null,
+        configs: null,
+        isDevHub: false,
+        isScratchOrg: false,
+        isSandbox: false,
+        isExpired: false,
+      };
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations').resolves([prodOrg]);
+      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+      const sbxQueryStub = stubMethod($$.SANDBOX, Org.prototype, 'querySandboxProcessByOrgId');
+
+      // non-sandbox URL: sandbox identification should be skipped
+      const fields = { ...authInfo.getFields(), instanceUrl: 'https://myorg.my.salesforce.com' };
+      await AuthInfo.identifyPossibleScratchOrgs(fields, authInfo);
+
+      expect(sbxQueryStub.callCount).to.be.equal(0);
+      expect(authInfoSaveStub.callCount).to.be.equal(0);
     });
   });
 
