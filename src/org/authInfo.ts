@@ -442,12 +442,16 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       return;
     }
 
-    // ask all those orgs if they know this orgId
+    let identified = false;
+
+    // ask all those orgs if they know this orgId, but stop once one claims it
     await Promise.all([
       ...hubAuthInfos.map(async (hubAuthInfo) => {
+        if (identified) return;
         try {
           const soi = await AuthInfo.queryScratchOrg(hubAuthInfo.username, fields.orgId as string);
-          // if any return a result
+          if (identified) return;
+          identified = true;
           logger.debug(`found orgId ${fields.orgId ?? '<undefined>'} in devhub ${hubAuthInfo.username}`);
           try {
             await orgAuthInfo.save({
@@ -473,7 +477,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         }
       }),
       ...possibleProdOrgs.map(async (pOrgAuthInfo) => {
-        await AuthInfo.identifyPossibleSandbox(pOrgAuthInfo, fields, orgAuthInfo, logger);
+        if (identified) return;
+        const found = await AuthInfo.identifyPossibleSandbox(pOrgAuthInfo, fields, orgAuthInfo, logger);
+        if (found) identified = true;
       }),
     ]);
   }
@@ -490,16 +496,16 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     fields: AuthFields,
     orgAuthInfo: AuthInfo,
     logger: Logger
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (!fields.orgId) {
-      return;
+      return false;
     }
 
     try {
       const prodOrg = await Org.create({ aliasOrUsername: possibleProdOrg.username });
       const sbxProcess = await prodOrg.querySandboxProcessByOrgId(fields.orgId);
       if (!sbxProcess?.SandboxInfoId) {
-        return;
+        return false;
       }
       logger.debug(`${fields.orgId} is a sandbox of ${possibleProdOrg.username}`);
 
@@ -533,8 +539,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       } catch (e) {
         logger.debug(`error writing sandbox auth file for: ${orgAuthInfo.getUsername()}`, e);
       }
+      return true;
     } catch (err) {
       logger.debug(`${fields.orgId} is not a sandbox of ${possibleProdOrg.username}`);
+      return false;
     }
   }
 

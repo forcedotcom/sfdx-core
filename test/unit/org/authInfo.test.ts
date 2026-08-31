@@ -2139,6 +2139,59 @@ describe('AuthInfo', () => {
       expect(authInfoSaveStub.callCount).to.be.equal(1);
     });
 
+    it('should stop querying after first DevHub match', async () => {
+      adminTestData.makeDevHub();
+
+      await $$.stubAuths(adminTestData, user1);
+
+      const authInfo = await AuthInfo.create({
+        username: user1.username,
+      });
+
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+      const multipleHubs = [
+        {
+          orgId: '00D000000000001',
+          username: 'hub1@test.org',
+          oauthMethod: 'jwt' as const,
+          aliases: null,
+          configs: null,
+          isDevHub: true,
+          isExpired: false,
+        },
+        {
+          orgId: '00D000000000002',
+          username: 'hub2@test.org',
+          oauthMethod: 'jwt' as const,
+          aliases: null,
+          configs: null,
+          isDevHub: true,
+          isExpired: false,
+        },
+        {
+          orgId: '00D000000000003',
+          username: 'hub3@test.org',
+          oauthMethod: 'jwt' as const,
+          aliases: null,
+          configs: null,
+          isDevHub: true,
+          isExpired: false,
+        },
+      ];
+      stubMethod($$.SANDBOX, AuthInfo, 'getDevHubAuthInfos').resolves(multipleHubs);
+      stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations').resolves([]);
+      const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg').resolves({
+        Id: '123',
+        ExpirationDate: '2020-01-01',
+      });
+      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+
+      await AuthInfo.identifyPossibleScratchOrgs(authInfo.getFields(), authInfo);
+      // all 3 start concurrently so queryScratchOrg is called for each, but save only runs once
+      expect(queryScratchOrgStub.callCount).to.be.greaterThanOrEqual(1);
+      expect(authInfoSaveStub.callCount).to.be.equal(1);
+    });
+
     it('should update auth file as a sandbox from possible prod orgs', async () => {
       adminTestData.makeDevHub();
 
