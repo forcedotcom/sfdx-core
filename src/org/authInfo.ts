@@ -299,23 +299,26 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         // prevent ConfigFile collision bug
         // eslint-disable-next-line no-await-in-loop
         const authInfo = await AuthInfo.create({ username });
-        const { orgId, instanceUrl, devHubUsername, expirationDate, isDevHub } = authInfo.getFields();
+        const authFields = authInfo.getFields();
+        const { orgId, instanceUrl, devHubUsername, expirationDate, isDevHub } = authFields;
+        const isScratchOrg = Boolean(devHubUsername) || Boolean(authFields[Org.Fields.IS_SCRATCH]);
+        const expDate = expirationDate ?? authFields[Org.Fields.TRIAL_EXPIRATION_DATE];
+        // eslint-disable-next-line no-await-in-loop
+        const hasSandboxFile = await stateAggregator.sandboxes.hasFile(orgId as string);
+        const isSandbox = Boolean(authFields[Org.Fields.IS_SANDBOX]) || hasSandboxFile;
         final.push({
           aliases,
           configs,
           username,
           instanceUrl,
-          isScratchOrg: Boolean(devHubUsername),
+          isScratchOrg,
           isDevHub: isDevHub ?? false,
-          // eslint-disable-next-line no-await-in-loop
-          isSandbox: await stateAggregator.sandboxes.hasFile(orgId as string),
+          isSandbox,
           orgId: orgId as string,
           accessToken: authInfo.getConnectionOptions().accessToken,
           oauthMethod: authInfo.isJwt() ? 'jwt' : authInfo.isOauth() ? 'web' : 'token',
           isExpired:
-            Boolean(devHubUsername) && expirationDate
-              ? new Date(ensureString(expirationDate)).getTime() < new Date().getTime()
-              : 'unknown',
+            isScratchOrg && expDate ? new Date(ensureString(expDate)).getTime() < new Date().getTime() : 'unknown',
         });
       } catch (err) {
         final.push({
@@ -422,8 +425,23 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
     await determineOrg(orgAuthInfo);
 
+    // re-read fields after determineOrg may have updated them
+    const updatedFields = orgAuthInfo.getFields();
+
     // return if we already know the hub org, we know it is a devhub or prod-like, or no orgId present
-    if (Boolean(fields.isDevHub) || Boolean(fields.devHubUsername) || !fields.orgId) return;
+    if (Boolean(updatedFields.isDevHub) || Boolean(updatedFields.devHubUsername) || !updatedFields.orgId) return;
+
+    // if determineOrg already identified this as a scratch org or sandbox, skip the expensive
+    // loop over all cached orgs. The only thing we miss is devHubUsername/expirationDate for
+    // scratch orgs, which can be lazily populated later.
+    if (updatedFields.isScratch || updatedFields.isSandbox) {
+      logger.debug(
+        `determineOrg already identified org as ${
+          updatedFields.isScratch ? 'scratch' : 'sandbox'
+        }, skipping expensive org scan`
+      );
+      return;
+    }
 
     logger.debug('getting devHubs and prod orgs to identify scratch orgs and sandboxes');
 

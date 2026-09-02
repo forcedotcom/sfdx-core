@@ -2112,6 +2112,42 @@ describe('AuthInfo', () => {
       expect(authInfoSaveStub.callCount).to.be.equal(0);
     });
 
+    it('should skip expensive scan when determineOrg identifies a scratch org', async () => {
+      await $$.stubAuths(adminTestData, user1);
+
+      const authInfo = await AuthInfo.create({
+        username: user1.username,
+      });
+
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').callsFake(async (ai: AuthInfo) => {
+        ai.update({ isScratch: true });
+      });
+      const listAllAuthsStub = stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations');
+      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+
+      await AuthInfo.identifyPossibleScratchOrgs({ orgId: user1.orgId }, authInfo);
+      expect(listAllAuthsStub.callCount).to.be.equal(0);
+      expect(authInfoSaveStub.callCount).to.be.equal(0);
+    });
+
+    it('should skip expensive scan when determineOrg identifies a sandbox', async () => {
+      await $$.stubAuths(adminTestData, user1);
+
+      const authInfo = await AuthInfo.create({
+        username: user1.username,
+      });
+
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').callsFake(async (ai: AuthInfo) => {
+        ai.update({ isSandbox: true });
+      });
+      const listAllAuthsStub = stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations');
+      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+
+      await AuthInfo.identifyPossibleScratchOrgs({ orgId: user1.orgId }, authInfo);
+      expect(listAllAuthsStub.callCount).to.be.equal(0);
+      expect(authInfoSaveStub.callCount).to.be.equal(0);
+    });
+
     it('should update auth file as a scratch org', async () => {
       adminTestData.makeDevHub();
 
