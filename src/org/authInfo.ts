@@ -431,15 +431,40 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // return if we already know the hub org, we know it is a devhub or prod-like, or no orgId present
     if (Boolean(updatedFields.isDevHub) || Boolean(updatedFields.devHubUsername) || !updatedFields.orgId) return;
 
-    // if determineOrg already identified this as a scratch org or sandbox, skip the expensive
-    // loop over all cached orgs. The only thing we miss is devHubUsername/expirationDate for
-    // scratch orgs, which can be lazily populated later.
-    if (updatedFields.isScratch || updatedFields.isSandbox) {
-      logger.debug(
-        `determineOrg already identified org as ${
-          updatedFields.isScratch ? 'scratch' : 'sandbox'
-        }, skipping expensive org scan`
-      );
+    if (updatedFields.isSandbox) {
+      logger.debug('determineOrg already identified org as sandbox, skipping expensive org scan');
+      return;
+    }
+
+    // for scratch orgs, skip the full listAllAuthorizations + sandbox identification and
+    // instead do a lightweight DevHub lookup using raw configs (no AuthInfo creation/decryption)
+    if (updatedFields.isScratch) {
+      logger.debug('determineOrg identified org as scratch, doing lightweight DevHub lookup');
+      const stateAggregator = await StateAggregator.getInstance();
+      const allConfigs = await stateAggregator.orgs.readAll();
+      const devHubUsernames = allConfigs.filter((c) => c.isDevHub).map((c) => ensureString(c.username));
+
+      for (const hubUsername of devHubUsernames) {
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          const soi = await AuthInfo.queryScratchOrg(hubUsername, updatedFields.orgId);
+          // eslint-disable-next-line no-await-in-loop
+          await orgAuthInfo.save({
+            ...fields,
+            devHubUsername: hubUsername,
+            expirationDate: soi.ExpirationDate,
+            isScratch: true,
+          });
+          logger.debug(`set ${hubUsername} as devhub for scratch org ${orgAuthInfo.getUsername()}`);
+          return;
+        } catch (error) {
+          if (error instanceof Error && error.name === 'NoActiveScratchOrgFound') {
+            logger.debug(`devhub ${hubUsername} does not own this scratch org`);
+          } else {
+            logger.debug(`Error connecting to devhub ${hubUsername}`, error);
+          }
+        }
+      }
       return;
     }
 

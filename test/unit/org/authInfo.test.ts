@@ -2112,7 +2112,8 @@ describe('AuthInfo', () => {
       expect(authInfoSaveStub.callCount).to.be.equal(0);
     });
 
-    it('should skip expensive scan when determineOrg identifies a scratch org', async () => {
+    it('should use lightweight DevHub lookup when determineOrg identifies a scratch org', async () => {
+      adminTestData.makeDevHub();
       await $$.stubAuths(adminTestData, user1);
 
       const authInfo = await AuthInfo.create({
@@ -2123,11 +2124,14 @@ describe('AuthInfo', () => {
         ai.update({ isScratch: true });
       });
       const listAllAuthsStub = stubMethod($$.SANDBOX, AuthInfo, 'listAllAuthorizations');
-      const authInfoSaveStub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'save');
+      const queryScratchOrgStub = stubMethod($$.SANDBOX, AuthInfo, 'queryScratchOrg').resolves({
+        ExpirationDate: '2026-12-01',
+      });
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'save').resolves();
 
       await AuthInfo.identifyPossibleScratchOrgs({ orgId: user1.orgId }, authInfo);
       expect(listAllAuthsStub.callCount).to.be.equal(0);
-      expect(authInfoSaveStub.callCount).to.be.equal(0);
+      expect(queryScratchOrgStub.callCount).to.be.greaterThan(0);
     });
 
     it('should skip expensive scan when determineOrg identifies a sandbox', async () => {
