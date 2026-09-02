@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788193631293,
+  "lastUpdate": 1788374807847,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -45534,6 +45534,72 @@ window.BENCHMARK_DATA = {
             "range": "±9.01%",
             "unit": "ops/sec",
             "extra": "60 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "63032843d5d14fe10626b5dcd370acd06a0f0ec9",
+          "message": "perf: skip expensive org scan when determineOrg already identifies org type\n\nAfter determineOrg() queries the Organization object and sets isScratch\nor isSandbox, return early instead of falling through to\nlistAllAuthorizations() which reads every cached auth file and makes\nAPI calls per DevHub. Also update listAllAuthorizations to check the\nisScratch/isSandbox fields directly so sf org list correctly classifies\norgs that went through the fast path.",
+          "timestamp": "2026-09-02T12:41:07-06:00",
+          "tree_id": "4b352682966d76e2b686288944de6850f7f5106b",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/63032843d5d14fe10626b5dcd370acd06a0f0ec9"
+        },
+        "date": 1788374797439,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 490520,
+            "range": "±0.85%",
+            "unit": "ops/sec",
+            "extra": "96 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1411270,
+            "range": "±13.81%",
+            "unit": "ops/sec",
+            "extra": "46 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 71161,
+            "range": "±181.27%",
+            "unit": "ops/sec",
+            "extra": "56 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 31686,
+            "range": "±184.99%",
+            "unit": "ops/sec",
+            "extra": "35 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 411379,
+            "range": "±8.89%",
+            "unit": "ops/sec",
+            "extra": "46 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 392790,
+            "range": "±9.40%",
+            "unit": "ops/sec",
+            "extra": "59 samples"
           }
         ]
       }
