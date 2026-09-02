@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788374807847,
+  "lastUpdate": 1788378722782,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -45600,6 +45600,72 @@ window.BENCHMARK_DATA = {
             "range": "±9.40%",
             "unit": "ops/sec",
             "extra": "59 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "d99d6943b0b96465e1b8cf058f16b27510d38e72",
+          "message": "fix: use lightweight DevHub lookup for scratch orgs instead of early return\n\nThe early return skipped devHubUsername population, breaking the\nplugin-auth NUT assertion. Now scratch orgs use stateAggregator.readAll\nto find DevHubs (no AuthInfo creation/decryption per file) and query\nthem directly, still skipping the expensive listAllAuthorizations +\nsandbox identification path. Sandboxes still return early.",
+          "timestamp": "2026-09-02T13:46:30-06:00",
+          "tree_id": "fccf83d5ac319661a280105dced1bfb67efac66c",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/d99d6943b0b96465e1b8cf058f16b27510d38e72"
+        },
+        "date": 1788378710318,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 495639,
+            "range": "±0.65%",
+            "unit": "ops/sec",
+            "extra": "96 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 104994,
+            "range": "±179.93%",
+            "unit": "ops/sec",
+            "extra": "32 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 517240,
+            "range": "±93.05%",
+            "unit": "ops/sec",
+            "extra": "48 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 26109,
+            "range": "±195.25%",
+            "unit": "ops/sec",
+            "extra": "29 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 421481,
+            "range": "±8.07%",
+            "unit": "ops/sec",
+            "extra": "48 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 384552,
+            "range": "±10.71%",
+            "unit": "ops/sec",
+            "extra": "60 samples"
           }
         ]
       }
