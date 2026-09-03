@@ -64,7 +64,7 @@
   "dependencies": {
     "@jsforce/jsforce-node": "^3.10.24",
     "@salesforce/kit": "^4.0.0",
-    "@salesforce/ts-types": "^3.0.0",
+    "@salesforce/ts-types": "^3.2.0",
     "ajv": "^8.18.0",
     "change-case": "^4.1.2",
     "fast-levenshtein": "^3.0.0",
@@ -83,14 +83,14 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@salesforce/dev-scripts": "^13.0.2",
-    "@salesforce/ts-sinon": "^1.4.31",
+    "@salesforce/dev-scripts": "^14.0.0",
+    "@salesforce/ts-sinon": "^1.4.36",
     "@types/benchmark": "^2.1.5",
     "@types/chai": "^4.3.17",
     "@types/fast-levenshtein": "^0.0.4",
     "@types/jsonwebtoken": "9.0.10",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^18",
+    "@types/node": "^26.4.0",
     "@types/proper-lockfile": "^4.1.4",
     "@types/semver": "^7.7.1",
     "@types/sinon": "^10.0.20",
@@ -100,8 +100,8 @@
     "eslint-config-salesforce-typescript": "^6.0.0",
     "mocha": "^11.7.5",
     "ts-node": "^10.9.2",
-    "ts-patch": "^3.3.0",
-    "typescript": "^5.5.4"
+    "ts-patch": "^4.0.1",
+    "typescript": "^6.0.3"
   },
   "resolutions": {
     "@jsforce/jsforce-node/node-fetch/whatwg-url": "^14.0.0"
@@ -121,7 +121,7 @@
       ]
     },
     "compile": {
-      "command": "tspc -p . --pretty --incremental",
+      "command": " -p . --pretty --incremental",
       "dependencies": [
         "build:schema:project",
         "build:schema:scratch"

@@ -5,6 +5,8 @@
     "noEmit": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext"
   }
 }

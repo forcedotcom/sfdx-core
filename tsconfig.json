@@ -4,12 +4,13 @@
     "outDir": "./lib",
     "resolveJsonModule": true,
     "lib": ["ES2022"],
-    "module": "Node16",
-    "moduleResolution": "Node16",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "target": "ES2022",
     "rootDir": "./src",
     "plugins": [{ "transform": "./src/messageTransformer.ts" }],
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "types": ["node"]
   },
   "include": ["./src/**/*.ts"]
 }
