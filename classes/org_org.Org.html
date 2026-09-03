@@ -1,0 +1,807 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Org | @salesforce/core</title><meta name="description" content="Documentation for @salesforce/core"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">@salesforce/core</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb" aria-label="Breadcrumb">
+<li><a href="../modules/org_org.html">org/org</a></li>
+<li><a href="" aria-current="page">Org</a></li></ul>
+<h1>Class Org</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>Provides a way to manage a locally authenticated Org.</p>
+<p><strong>See</strong> <a href="org_authInfo.AuthInfo.html" class="tsd-kind-class">AuthInfo</a></p>
+<p><strong>See</strong> <a href="org_connection.Connection.html" class="tsd-kind-class">Connection</a></p>
+<p><strong>See</strong> Aliases</p>
+<p><strong>See</strong> <a href="config_config.Config.html" class="tsd-kind-class">Config</a></p>
+<pre><code><span class="hl-0">// Email username</span><br/><span class="hl-5">const</span><span class="hl-2"> </span><span class="hl-6">org1</span><span class="hl-2">: </span><span class="hl-10">Org</span><span class="hl-2"> = </span><span class="hl-1">await</span><span class="hl-2"> </span><span class="hl-3">Org</span><span class="hl-2">.</span><span class="hl-7">create</span><span class="hl-2">({ </span><span class="hl-3">aliasOrUsername:</span><span class="hl-2"> </span><span class="hl-4">&#39;foo@example.com&#39;</span><span class="hl-2"> });</span><br/><span class="hl-0">// The target-org config property</span><br/><span class="hl-5">const</span><span class="hl-2"> </span><span class="hl-6">org2</span><span class="hl-2">: </span><span class="hl-10">Org</span><span class="hl-2"> = </span><span class="hl-1">await</span><span class="hl-2"> </span><span class="hl-3">Org</span><span class="hl-2">.</span><span class="hl-7">create</span><span class="hl-2">();</span><br/><span class="hl-0">// Full Connection</span><br/><span class="hl-5">const</span><span class="hl-2"> </span><span class="hl-6">org3</span><span class="hl-2">: </span><span class="hl-10">Org</span><span class="hl-2"> = </span><span class="hl-1">await</span><span class="hl-2"> </span><span class="hl-3">Org</span><span class="hl-2">.</span><span class="hl-7">create</span><span class="hl-2">({</span><br/><span class="hl-2">  </span><span class="hl-3">connection:</span><span class="hl-2"> </span><span class="hl-1">await</span><span class="hl-2"> </span><span class="hl-3">Connection</span><span class="hl-2">.</span><span class="hl-7">create</span><span class="hl-2">({</span><br/><span class="hl-2">    </span><span class="hl-3">authInfo:</span><span class="hl-2"> </span><span class="hl-1">await</span><span class="hl-2"> </span><span class="hl-3">AuthInfo</span><span class="hl-2">.</span><span class="hl-7">create</span><span class="hl-2">({ </span><span class="hl-3">username:</span><span class="hl-2"> </span><span class="hl-4">&#39;username&#39;</span><span class="hl-2"> })</span><br/><span class="hl-2">  })</span><br/><span class="hl-2">});</span>
+</code><button>Copy</button></pre>
+
+<p><strong>See</strong> <a href="https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm">https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_cli_usernames_orgs.htm</a></p>
+</div></section>
+<section class="tsd-panel tsd-hierarchy" data-refl="2924">
+<h4>Hierarchy</h4>
+<ul class="tsd-hierarchy">
+<li class="tsd-hierarchy-item"><span class="tsd-signature-type">AsyncOptionalCreatable</span><span class="tsd-signature-symbol">&lt;</span><a href="../modules/org_org.Org.html" class="tsd-signature-type tsd-kind-namespace">Org</a><span class="tsd-signature-symbol">.</span><a href="../types/org_org.Org.Options.html" class="tsd-signature-type tsd-kind-type-alias">Options</a><span class="tsd-signature-symbol">&gt;</span>
+<ul class="tsd-hierarchy">
+<li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">Org</span></li></ul></li></ul></section><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L252">src/org/org.ts:252</a></li>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1890">src/org/org.ts:1890</a></li></ul></aside>
+<section class="tsd-panel-group tsd-index-group">
+<section class="tsd-panel tsd-index-panel">
+<details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h5 class="tsd-index-heading uppercase">Index</h5></summary>
+<div class="tsd-accordion-details">
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#addusername" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Username</span></a>
+<a href="#checkscratchorg" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>check<wbr/>Scratch<wbr/>Org</span></a>
+<a href="#cleanlocalorgdata" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>clean<wbr/>Local<wbr/>Org<wbr/>Data</span></a>
+<a href="#clonesandbox" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>clone<wbr/>Sandbox</span></a>
+<a href="#createsandbox" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create<wbr/>Sandbox</span></a>
+<a href="#delete" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>delete</span></a>
+<a href="#deletefrom" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>delete<wbr/>From</span></a>
+<a href="#determineifdevhuborg" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>determine<wbr/>If<wbr/>Dev<wbr/>Hub<wbr/>Org</span></a>
+<a href="#determineifsandbox" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>determine<wbr/>If<wbr/>Sandbox</span></a>
+<a href="#determineifscratch" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>determine<wbr/>If<wbr/>Scratch</span></a>
+<a href="#getconfigaggregator" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Config<wbr/>Aggregator</span></a>
+<a href="#getconnection" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Connection</span></a>
+<a href="#getdevhuborg" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Dev<wbr/>Hub<wbr/>Org</span></a>
+<a href="#getfield" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Field</span></a>
+<a href="#getfields" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Fields</span></a>
+<a href="#getfrontdoorurl" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Front<wbr/>Door<wbr/>Url</span></a>
+<a href="#getmetadatauiurl" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Metadata<wbr/>UIURL</span></a>
+<a href="#getorgid" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Org<wbr/>Id</span></a>
+<a href="#getsandboxconfig" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Sandbox<wbr/>Config</span></a>
+<a href="#getusername" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Username</span></a>
+<a href="#isdevhuborg" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Dev<wbr/>Hub<wbr/>Org</span></a>
+<a href="#issandbox" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Sandbox</span></a>
+<a href="#isscratch" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Scratch</span></a>
+<a href="#querysandboxinfo" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query<wbr/>Sandbox<wbr/>Info</span></a>
+<a href="#querysandboxprocessbyid" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query<wbr/>Sandbox<wbr/>Process<wbr/>By<wbr/>Id</span></a>
+<a href="#querysandboxprocessbyorgid" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query<wbr/>Sandbox<wbr/>Process<wbr/>By<wbr/>Org<wbr/>Id</span></a>
+<a href="#querysandboxprocessbysandboxinfoid" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query<wbr/>Sandbox<wbr/>Process<wbr/>By<wbr/>Sandbox<wbr/>Info<wbr/>Id</span></a>
+<a href="#querysandboxprocessbysandboxname" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query<wbr/>Sandbox<wbr/>Process<wbr/>By<wbr/>Sandbox<wbr/>Name</span></a>
+<a href="#readuserauthfiles" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>read<wbr/>User<wbr/>Auth<wbr/>Files</span></a>
+<a href="#refreshauth" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>refresh<wbr/>Auth</span></a>
+<a href="#refreshsandbox" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>refresh<wbr/>Sandbox</span></a>
+<a href="#remove" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>remove</span></a>
+<a href="#removeusername" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>remove<wbr/>Username</span></a>
+<a href="#resumesandbox" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>resume<wbr/>Sandbox</span></a>
+<a href="#retrievemaxapiversion" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>retrieve<wbr/>Max<wbr/>Api<wbr/>Version</span></a>
+<a href="#retrieveorganizationinformation" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>retrieve<wbr/>Organization<wbr/>Information</span></a>
+<a href="#sandboxstatus" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>sandbox<wbr/>Status</span></a>
+<a href="#scratchorgcreate" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>scratch<wbr/>Org<wbr/>Create</span></a>
+<a href="#setsandboxconfig" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Sandbox<wbr/>Config</span></a>
+<a href="#settrackssource" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Tracks<wbr/>Source</span></a>
+<a href="#supportssourcetracking" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>supports<wbr/>Source<wbr/>Tracking</span></a>
+<a href="#trackssource" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>tracks<wbr/>Source</span></a>
+<a href="#updatelocalinformation" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>update<wbr/>Local<wbr/>Information</span></a>
+</div></section></div></details></section></section>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="addusername"><span>add<wbr/>Username</span><a href="#addusername" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="addusername-1"><span class="tsd-kind-call-signature">addUsername</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">auth</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <a href="org_authInfo.AuthInfo.html" class="tsd-signature-type tsd-kind-class">AuthInfo</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="" class="tsd-signature-type tsd-kind-class">Org</a><span class="tsd-signature-symbol">&gt;</span><a href="#addusername-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Adds a username to the user config for this org. For convenience <code>this</code> object is returned.</p>
+<pre><code><span class="hl-5">const</span><span class="hl-2"> </span><span class="hl-6">org</span><span class="hl-2">: </span><span class="hl-10">Org</span><span class="hl-2"> = </span><span class="hl-1">await</span><span class="hl-2"> </span><span class="hl-3">Org</span><span class="hl-2">.</span><span class="hl-7">create</span><span class="hl-2">({</span><br/><span class="hl-2">  </span><span class="hl-3">connection:</span><span class="hl-2"> </span><span class="hl-1">await</span><span class="hl-2"> </span><span class="hl-3">Connection</span><span class="hl-2">.</span><span class="hl-7">create</span><span class="hl-2">({</span><br/><span class="hl-2">    </span><span class="hl-3">authInfo:</span><span class="hl-2"> </span><span class="hl-1">await</span><span class="hl-2"> </span><span class="hl-3">AuthInfo</span><span class="hl-2">.</span><span class="hl-7">create</span><span class="hl-2">(</span><span class="hl-4">&#39;foo@example.com&#39;</span><span class="hl-2">)</span><br/><span class="hl-2">  })</span><br/><span class="hl-2">});</span><br/><span class="hl-5">const</span><span class="hl-2"> </span><span class="hl-6">userAuth</span><span class="hl-2">: </span><span class="hl-10">AuthInfo</span><span class="hl-2"> = </span><span class="hl-1">await</span><span class="hl-2"> </span><span class="hl-3">AuthInfo</span><span class="hl-2">.</span><span class="hl-7">create</span><span class="hl-2">({</span><br/><span class="hl-2">  </span><span class="hl-3">username:</span><span class="hl-2"> </span><span class="hl-4">&#39;bar@example.com&#39;</span><br/><span class="hl-2">});</span><br/><span class="hl-1">await</span><span class="hl-2"> </span><span class="hl-3">org</span><span class="hl-2">.</span><span class="hl-7">addUsername</span><span class="hl-2">(</span><span class="hl-3">userAuth</span><span class="hl-2">);</span>
+</code><button>Copy</button></pre>
+
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">auth</span>: <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <a href="org_authInfo.AuthInfo.html" class="tsd-signature-type tsd-kind-class">AuthInfo</a></span>
+<div class="tsd-comment tsd-typography"><p>The AuthInfo for the username to add.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="" class="tsd-signature-type tsd-kind-class">Org</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1105">src/org/org.ts:1105</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="checkscratchorg"><span>check<wbr/>Scratch<wbr/>Org</span><a href="#checkscratchorg" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="checkscratchorg-1"><span class="tsd-kind-call-signature">checkScratchOrg</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">devHubUsernameOrAlias</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_authInfo.AuthFields.html" class="tsd-signature-type tsd-kind-type-alias">AuthFields</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#checkscratchorg-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Check that this org is a scratch org by asking the dev hub if it knows about it.</p>
+<p><strong>Throws</strong> <em><a href="sfError.SfError.html" class="tsd-kind-class">SfError</a>{ name: 'NotADevHubError' }</em> Not a Dev Hub.</p>
+<p><strong>Throws</strong> <em><a href="sfError.SfError.html" class="tsd-kind-class">SfError</a>{ name: 'NoResultsError' }</em> No results.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">devHubUsernameOrAlias</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>The username or alias of the dev hub org.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_authInfo.AuthFields.html" class="tsd-signature-type tsd-kind-type-alias">AuthFields</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L734">src/org/org.ts:734</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="cleanlocalorgdata"><span>clean<wbr/>Local<wbr/>Org<wbr/>Data</span><a href="#cleanlocalorgdata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="cleanlocalorgdata-1"><span class="tsd-kind-call-signature">cleanLocalOrgData</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">orgDataPath</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">throwWhenRemoveFails</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#cleanlocalorgdata-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Clean all data files in the org's data path. Usually <workspace>/.sfdx/orgs/<username>.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">orgDataPath</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>A relative path other than &quot;orgs/&quot;.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">throwWhenRemoveFails</span>: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></span>
+<div class="tsd-comment tsd-typography"><p>Should the remove org operations throw an error on failure?</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L671">src/org/org.ts:671</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="clonesandbox"><span>clone<wbr/>Sandbox</span><a href="#clonesandbox" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="clonesandbox-1"><span class="tsd-kind-call-signature">cloneSandbox</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">sandboxReq</span><span class="tsd-signature-symbol">:</span> <a href="../types/org_org.SandboxRequest.html" class="tsd-signature-type tsd-kind-type-alias">SandboxRequest</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">sourceSandboxName</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">interval</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">wait</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span><a href="#clonesandbox-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">sandboxReq</span>: <a href="../types/org_org.SandboxRequest.html" class="tsd-signature-type tsd-kind-type-alias">SandboxRequest</a></span>
+<div class="tsd-comment tsd-typography"><p>SandboxRequest options to create the sandbox with</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">sourceSandboxName</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>the name of the sandbox that your new sandbox will be based on</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">interval</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">wait</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span> <span class="tsd-signature-symbol">}</span></span>
+<div class="tsd-comment tsd-typography"><p>Wait: The amount of time to wait before timing out, defaults to 0, Interval: The time interval between polling defaults to 30 seconds</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span></h4><p>the newly created sandbox process object</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L540">src/org/org.ts:540</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="createsandbox"><span>create<wbr/>Sandbox</span><a href="#createsandbox" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="createsandbox-1"><span class="tsd-kind-call-signature">createSandbox</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">sandboxReq</span><span class="tsd-signature-symbol">:</span> <a href="../types/org_org.SandboxRequest.html" class="tsd-signature-type tsd-kind-type-alias">SandboxRequest</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">async</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">interval</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">wait</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span><a href="#createsandbox-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>create a sandbox from a production org
+'this' needs to be a production org with sandbox licenses available</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">sandboxReq</span>: <a href="../types/org_org.SandboxRequest.html" class="tsd-signature-type tsd-kind-type-alias">SandboxRequest</a></span>
+<div class="tsd-comment tsd-typography"><p>SandboxRequest options to create the sandbox with</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">async</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">interval</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">wait</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol"> = ...</span></span>
+<div class="tsd-comment tsd-typography"><p>Wait: The amount of time to wait before timing out, Interval: The time interval between polling</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L429">src/org/org.ts:429</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="delete"><span>delete</span><a href="#delete" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="delete-1"><span class="tsd-kind-call-signature">delete</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#delete-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Will delete 'this' instance remotely and any files locally</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L820">src/org/org.ts:820</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="deletefrom"><span>delete<wbr/>From</span><a href="#deletefrom" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="deletefrom-1"><span class="tsd-kind-call-signature">deleteFrom</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">controllingOrg</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <a href="" class="tsd-signature-type tsd-kind-class">Org</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#deletefrom-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Will delete 'this' instance remotely and any files locally</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">controllingOrg</span>: <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <a href="" class="tsd-signature-type tsd-kind-class">Org</a></span>
+<div class="tsd-comment tsd-typography"><p>username or Org that 'this.devhub' or 'this.production' refers to. AKA a DevHub for a scratch org, or a Production Org for a sandbox</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L802">src/org/org.ts:802</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="determineifdevhuborg"><span>determine<wbr/>If<wbr/>Dev<wbr/>Hub<wbr/>Org</span><a href="#determineifdevhuborg" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="determineifdevhuborg-1"><span class="tsd-kind-call-signature">determineIfDevHubOrg</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">forceServerCheck</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><a href="#determineifdevhuborg-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns <code>true</code> if the org is a Dev Hub.</p>
+<p>Use a cached value. If the cached value is not set, then check access to the
+ScratchOrgInfo object to determine if the org is a dev hub.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">forceServerCheck</span>: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></span>
+<div class="tsd-comment tsd-typography"><p>Ignore the cached value and go straight to the server
+which will be required if the org flips on the dev hub after the value is already
+cached locally.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L848">src/org/org.ts:848</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="determineifsandbox"><span>determine<wbr/>If<wbr/>Sandbox</span><a href="#determineifsandbox" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="determineifsandbox-1"><span class="tsd-kind-call-signature">determineIfSandbox</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><a href="#determineifsandbox-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns <code>true</code> if the org is a sandbox.</p>
+<p>Use a cached value. If the cached value is not set, then check
+<code>Organization.IsSandbox == true &amp;&amp; Organization.TrialExpirationDate == null</code>
+using <a href="#retrieveorganizationinformation" class="tsd-kind-method">Org.retrieveOrganizationInformation</a>.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L954">src/org/org.ts:954</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="determineifscratch"><span>determine<wbr/>If<wbr/>Scratch</span><a href="#determineifscratch" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="determineifscratch-1"><span class="tsd-kind-call-signature">determineIfScratch</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><a href="#determineifscratch-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns <code>true</code> if the org is a scratch org.</p>
+<p>Use a cached value. If the cached value is not set, then check
+<code>Organization.IsSandbox == true &amp;&amp; Organization.TrialExpirationDate != null</code>
+using <a href="#retrieveorganizationinformation" class="tsd-kind-method">Org.retrieveOrganizationInformation</a>.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L938">src/org/org.ts:938</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getconfigaggregator"><span>get<wbr/>Config<wbr/>Aggregator</span><a href="#getconfigaggregator" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getconfigaggregator-1"><span class="tsd-kind-call-signature">getConfigAggregator</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="config_configAggregator.ConfigAggregator.html" class="tsd-signature-type tsd-kind-class">ConfigAggregator</a><a href="#getconfigaggregator-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns for the config aggregator.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a href="config_configAggregator.ConfigAggregator.html" class="tsd-signature-type tsd-kind-class">ConfigAggregator</a></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1220">src/org/org.ts:1220</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getconnection"><span>get<wbr/>Connection</span><a href="#getconnection" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getconnection-1"><span class="tsd-kind-call-signature">getConnection</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">apiVersion</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="org_connection.Connection.html" class="tsd-signature-type tsd-kind-class">Connection</a><a href="#getconnection-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns the JSForce connection for the org.
+side effect: If you pass it an apiVersion, it will set it on the Org
+so that future calls to getConnection() will also use that version.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">apiVersion</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>The API version to use for the connection.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="org_connection.Connection.html" class="tsd-signature-type tsd-kind-class">Connection</a></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1251">src/org/org.ts:1251</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getdevhuborg"><span>get<wbr/>Dev<wbr/>Hub<wbr/>Org</span><a href="#getdevhuborg" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getdevhuborg-1"><span class="tsd-kind-call-signature">getDevHubOrg</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="" class="tsd-signature-type tsd-kind-class">Org</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">&gt;</span><a href="#getdevhuborg-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns the Org object or null if this org is not affiliated with a Dev Hub (according to the local config).</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="" class="tsd-signature-type tsd-kind-class">Org</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L768">src/org/org.ts:768</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getfield"><span>get<wbr/>Field</span><a href="#getfield" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getfield-1"><span class="tsd-kind-call-signature">getField</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#getfieldt">T</a> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-type">AnyJson</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">key</span><span class="tsd-signature-symbol">:</span> <a href="../modules/org_org.Org.html" class="tsd-signature-type tsd-kind-namespace">Org</a><span class="tsd-signature-symbol">.</span><a href="../enums/org_org.Org.Fields.html" class="tsd-signature-type tsd-kind-enum">Fields</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#getfieldt">T</a><a href="#getfield-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns an org field. Returns undefined if the field is not set or invalid.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="getfieldt"><span class="tsd-kind-type-parameter">T</span> = <span class="tsd-signature-type">AnyJson</span></span></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">key</span>: <a href="../modules/org_org.Org.html" class="tsd-signature-type tsd-kind-namespace">Org</a><span class="tsd-signature-symbol">.</span><a href="../enums/org_org.Org.Fields.html" class="tsd-signature-type tsd-kind-enum">Fields</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#getfieldt">T</a></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1227">src/org/org.ts:1227</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getfields"><span>get<wbr/>Fields</span><a href="#getfields" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getfields-1"><span class="tsd-kind-call-signature">getFields</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">keys</span><span class="tsd-signature-symbol">:</span> <a href="../modules/org_org.Org.html" class="tsd-signature-type tsd-kind-namespace">Org</a><span class="tsd-signature-symbol">.</span><a href="../enums/org_org.Org.Fields.html" class="tsd-signature-type tsd-kind-enum">Fields</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">JsonMap</span><a href="#getfields-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns a map of requested fields.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">keys</span>: <a href="../modules/org_org.Org.html" class="tsd-signature-type tsd-kind-namespace">Org</a><span class="tsd-signature-symbol">.</span><a href="../enums/org_org.Org.Fields.html" class="tsd-signature-type tsd-kind-enum">Fields</a><span class="tsd-signature-symbol">[]</span></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">JsonMap</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1240">src/org/org.ts:1240</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getfrontdoorurl"><span>get<wbr/>Front<wbr/>Door<wbr/>Url</span><a href="#getfrontdoorurl" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getfrontdoorurl-1"><span class="tsd-kind-call-signature">getFrontDoorUrl</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">redirectUri</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><a href="#getfrontdoorurl-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Get a Frontdoor URL</p>
+<p>This uses the UI Bridge API to generate a single-use Frontdoor URL:
+<a href="https://help.salesforce.com/s/articleView?id=xcloud.frontdoor_singleaccess.htm&amp;type=5">https://help.salesforce.com/s/articleView?id=xcloud.frontdoor_singleaccess.htm&amp;type=5</a></p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">redirectUri</span>: <span class="tsd-signature-type">string</span></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L406">src/org/org.ts:406</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getmetadatauiurl"><span>get<wbr/>Metadata<wbr/>UIURL</span><a href="#getmetadatauiurl" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getmetadatauiurl-1"><span class="tsd-kind-call-signature">getMetadataUIURL</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">typeName</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">file</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><a href="#getmetadatauiurl-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Generate a URL to a metadata UI builder/setup section in an org.</p>
+<p>Bot: open in Agentforce Builder
+ApexPage: opens page
+Flow: open in Flow Builder
+FlexiPage: open in Lightning App Builder
+CustomObject: open in Object Manager
+ApexClass: open in Setup -&gt; Apex Classes UI</p>
+<p>if you pass any other metadata type you'll get a path to Lightning App Builder</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">typeName</span>: <span class="tsd-signature-type">string</span></span></li>
+<li><span><span class="tsd-kind-parameter">file</span>: <span class="tsd-signature-type">string</span></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-example">
+<h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="ts"><span class="hl-0">// use SDR resolver:</span><br/><span class="hl-1">import</span><span class="hl-2"> { </span><span class="hl-3">MetadataResolver</span><span class="hl-2"> } </span><span class="hl-1">from</span><span class="hl-2"> </span><span class="hl-4">&#39;@salesforce/source-deploy-retrieve&#39;</span><span class="hl-2">;</span><br/><br/><span class="hl-5">const</span><span class="hl-2"> </span><span class="hl-6">metadataResolver</span><span class="hl-2"> = </span><span class="hl-5">new</span><span class="hl-2"> </span><span class="hl-7">MetadataResolver</span><span class="hl-2">();</span><br/><span class="hl-5">const</span><span class="hl-2"> </span><span class="hl-6">components</span><span class="hl-2"> = </span><span class="hl-3">metadataResolver</span><span class="hl-2">.</span><span class="hl-7">getComponentsFromPath</span><span class="hl-2">(</span><span class="hl-3">filePath</span><span class="hl-2">);</span><br/><span class="hl-5">const</span><span class="hl-2"> </span><span class="hl-6">typeName</span><span class="hl-2"> = </span><span class="hl-3">components</span><span class="hl-2">[</span><span class="hl-11">0</span><span class="hl-2">]?.</span><span class="hl-3">type</span><span class="hl-2">?.</span><span class="hl-3">name</span><span class="hl-2">;</span><br/><br/><span class="hl-5">const</span><span class="hl-2"> </span><span class="hl-6">metadataBuilderUrl</span><span class="hl-2"> = </span><span class="hl-1">await</span><span class="hl-2"> </span><span class="hl-3">org</span><span class="hl-2">.</span><span class="hl-7">getMetadataUIURL</span><span class="hl-2">(</span><span class="hl-3">typeName</span><span class="hl-2">, </span><span class="hl-3">filePath</span><span class="hl-2">);</span>
+</code><button type="button">Copy</button></pre>
+
+</div>
+<div class="tsd-tag-typeName">
+<h4 class="tsd-anchor-link" id="type-name">Type Name<a href="#type-name" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Bot | ApexPage | Flow | FlexiPage | CustomObject | ApexClass</p>
+</div>
+<div class="tsd-tag-file">
+<h4 class="tsd-anchor-link" id="file">File<a href="#file" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Absolute file path to the metadata file</p>
+</div></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L297">src/org/org.ts:297</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getorgid"><span>get<wbr/>Org<wbr/>Id</span><a href="#getorgid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getorgid-1"><span class="tsd-kind-call-signature">getOrgId</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><a href="#getorgid-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns the orgId for this org.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1213">src/org/org.ts:1213</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getsandboxconfig"><span>get<wbr/>Sandbox<wbr/>Config</span><a href="#getsandboxconfig" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getsandboxconfig-1"><span class="tsd-kind-call-signature">getSandboxConfig</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">orgId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Nullable</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxFields.html" class="tsd-signature-type tsd-kind-type-alias">SandboxFields</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#getsandboxconfig-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>get the sandbox config for the given orgId</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">orgId</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>{string} orgId of the sandbox</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Nullable</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxFields.html" class="tsd-signature-type tsd-kind-type-alias">SandboxFields</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1190">src/org/org.ts:1190</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getusername"><span>get<wbr/>Username</span><a href="#getusername" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getusername-1"><span class="tsd-kind-call-signature">getUsername</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span><a href="#getusername-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns the admin username used to create the org.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1206">src/org/org.ts:1206</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="isdevhuborg"><span>is<wbr/>Dev<wbr/>Hub<wbr/>Org</span><a href="#isdevhuborg" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="isdevhuborg-1"><span class="tsd-kind-call-signature">isDevHubOrg</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#isdevhuborg-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns <code>true</code> if the org is a Dev Hub.</p>
+<p><strong>Note</strong> This relies on a cached value in the auth file. If that property
+is not cached, this method will <strong>always return false even if the org is a
+dev hub</strong>. If you need accuracy, use the <a href="#determineifdevhuborg" class="tsd-kind-method">Org.determineIfDevHubOrg</a> method.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L788">src/org/org.ts:788</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="issandbox"><span>is<wbr/>Sandbox</span><a href="#issandbox" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="issandbox-1"><span class="tsd-kind-call-signature">isSandbox</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><a href="#issandbox-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Check if org is a sandbox org by checking its SandboxOrgConfig.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L722">src/org/org.ts:722</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="isscratch"><span>is<wbr/>Scratch</span><a href="#isscratch" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="isscratch-1"><span class="tsd-kind-call-signature">isScratch</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#isscratch-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns <code>true</code> if the org is a scratch org.</p>
+<p><strong>Note</strong> This relies on a cached value in the auth file. If that property
+is not cached, this method will <strong>always return false even if the org is a
+scratch org</strong>. If you need accuracy, use the <a href="#determineifscratch" class="tsd-kind-method">Org.determineIfScratch</a> method.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L881">src/org/org.ts:881</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="querysandboxinfo"><span>query<wbr/>Sandbox<wbr/>Info</span><a href="#querysandboxinfo" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="querysandboxinfo-1"><span class="tsd-kind-call-signature">querySandboxInfo</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">by</span><span class="tsd-signature-symbol">:</span> <a href="../types/org_org.SandboxInfoQueryFields.html" class="tsd-signature-type tsd-kind-type-alias">SandboxInfoQueryFields</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxInfo.html" class="tsd-signature-type tsd-kind-type-alias">SandboxInfo</a><span class="tsd-signature-symbol">&gt;</span><a href="#querysandboxinfo-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">by</span>: <a href="../types/org_org.SandboxInfoQueryFields.html" class="tsd-signature-type tsd-kind-type-alias">SandboxInfoQueryFields</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxInfo.html" class="tsd-signature-type tsd-kind-type-alias">SandboxInfo</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L975">src/org/org.ts:975</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="querysandboxprocessbyid"><span>query<wbr/>Sandbox<wbr/>Process<wbr/>By<wbr/>Id</span><a href="#querysandboxprocessbyid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="querysandboxprocessbyid-1"><span class="tsd-kind-call-signature">querySandboxProcessById</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">id</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span><a href="#querysandboxprocessbyid-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>query SandboxProcess via Id</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">id</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>SandboxProcessId to query for</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1301">src/org/org.ts:1301</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="querysandboxprocessbyorgid"><span>query<wbr/>Sandbox<wbr/>Process<wbr/>By<wbr/>Org<wbr/>Id</span><a href="#querysandboxprocessbyorgid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="querysandboxprocessbyorgid-1"><span class="tsd-kind-call-signature">querySandboxProcessByOrgId</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">sandboxOrgId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span><a href="#querysandboxprocessbyorgid-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>query SandboxProcess via SandboxOrganization (sandbox Org ID)</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">sandboxOrgId</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>SandboxOrganization ID to query for</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1310">src/org/org.ts:1310</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="querysandboxprocessbysandboxinfoid"><span>query<wbr/>Sandbox<wbr/>Process<wbr/>By<wbr/>Sandbox<wbr/>Info<wbr/>Id</span><a href="#querysandboxprocessbysandboxinfoid" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="querysandboxprocessbysandboxinfoid-1"><span class="tsd-kind-call-signature">querySandboxProcessBySandboxInfoId</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">id</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span><a href="#querysandboxprocessbysandboxinfoid-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>query SandboxProcess via SandboxInfoId</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">id</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>SandboxInfoId to query for</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1292">src/org/org.ts:1292</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="querysandboxprocessbysandboxname"><span>query<wbr/>Sandbox<wbr/>Process<wbr/>By<wbr/>Sandbox<wbr/>Name</span><a href="#querysandboxprocessbysandboxname" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="querysandboxprocessbysandboxname-1"><span class="tsd-kind-call-signature">querySandboxProcessBySandboxName</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">name</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span><a href="#querysandboxprocessbysandboxname-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>query SandboxProcess via sandbox name</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">name</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>SandboxName to query for</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1283">src/org/org.ts:1283</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="readuserauthfiles"><span>read<wbr/>User<wbr/>Auth<wbr/>Files</span><a href="#readuserauthfiles" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="readuserauthfiles-1"><span class="tsd-kind-call-signature">readUserAuthFiles</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="org_authInfo.AuthInfo.html" class="tsd-signature-type tsd-kind-class">AuthInfo</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#readuserauthfiles-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Reads and returns the content of all user auth files for this org as an array.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="org_authInfo.AuthInfo.html" class="tsd-signature-type tsd-kind-class">AuthInfo</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1074">src/org/org.ts:1074</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="refreshauth"><span>refresh<wbr/>Auth</span><a href="#refreshauth" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="refreshauth-1"><span class="tsd-kind-call-signature">refreshAuth</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#refreshauth-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Executes a GET request on the baseUrl to force an auth refresh.
+This is useful for the raw methods (request, requestRaw) that use the accessToken directly and don't handle refreshes.</p>
+<p>This method issues a request using the current access token to check if it is still valid.
+If the request returns 200, no refresh happens, and we keep the token.
+If it returns 401, jsforce will request a new token and set it in the connection instance.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1067">src/org/org.ts:1067</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="refreshsandbox"><span>refresh<wbr/>Sandbox</span><a href="#refreshsandbox" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="refreshsandbox-1"><span class="tsd-kind-call-signature">refreshSandbox</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">sandboxInfo</span><span class="tsd-signature-symbol">:</span> <a href="../types/org_org.SandboxInfo.html" class="tsd-signature-type tsd-kind-type-alias">SandboxInfo</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">async</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">interval</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">wait</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span><a href="#refreshsandbox-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Refresh (update) a sandbox from a production org.
+'this' needs to be a production org with sandbox licenses available</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">sandboxInfo</span>: <a href="../types/org_org.SandboxInfo.html" class="tsd-signature-type tsd-kind-type-alias">SandboxInfo</a></span>
+<div class="tsd-comment tsd-typography"><p>SandboxInfo to update the sandbox with</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">async</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">interval</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">wait</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol"> = ...</span></span>
+<div class="tsd-comment tsd-typography"><p>Wait: The amount of time to wait before timing out, Interval: The time interval between polling</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L481">src/org/org.ts:481</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="remove"><span>remove</span><a href="#remove" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="remove-1"><span class="tsd-kind-call-signature">remove</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">throwWhenRemoveFails</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#remove-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Cleans up all org related artifacts including users, sandbox config (if a sandbox), source tracking files, and auth file.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">throwWhenRemoveFails</span>: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></span>
+<div class="tsd-comment tsd-typography"><p>Determines if the call should throw an error or fail silently.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L701">src/org/org.ts:701</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="removeusername"><span>remove<wbr/>Username</span><a href="#removeusername" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="removeusername-1"><span class="tsd-kind-call-signature">removeUsername</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">auth</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <a href="org_authInfo.AuthInfo.html" class="tsd-signature-type tsd-kind-class">AuthInfo</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="" class="tsd-signature-type tsd-kind-class">Org</a><span class="tsd-signature-symbol">&gt;</span><a href="#removeusername-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Removes a username from the user config for this object. For convenience <code>this</code> object is returned.</p>
+<p><strong>Throws</strong> <em><a href="sfError.SfError.html" class="tsd-kind-class">SfError</a>{ name: 'MissingAuthInfoError' }</em> Auth info is missing.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">auth</span>: <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <a href="org_authInfo.AuthInfo.html" class="tsd-signature-type tsd-kind-class">AuthInfo</a></span>
+<div class="tsd-comment tsd-typography"><p>The AuthInfo containing the username to remove.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="" class="tsd-signature-type tsd-kind-class">Org</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1153">src/org/org.ts:1153</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="resumesandbox"><span>resume<wbr/>Sandbox</span><a href="#resumesandbox" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="resumesandbox-1"><span class="tsd-kind-call-signature">resumeSandbox</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">resumeSandboxRequest</span><span class="tsd-signature-symbol">:</span> <a href="../types/org_org.ResumeSandboxRequest.html" class="tsd-signature-type tsd-kind-type-alias">ResumeSandboxRequest</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">async</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">interval</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">wait</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span><a href="#resumesandbox-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Resume a sandbox create or refresh from a production org.
+<code>this</code> needs to be a production org with sandbox licenses available.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">resumeSandboxRequest</span>: <a href="../types/org_org.ResumeSandboxRequest.html" class="tsd-signature-type tsd-kind-type-alias">ResumeSandboxRequest</a></span>
+<div class="tsd-comment tsd-typography"><p>SandboxRequest options to create/refresh the sandbox with</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">async</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">interval</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">wait</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol"> = ...</span></span>
+<div class="tsd-comment tsd-typography"><p>Wait: The amount of time to wait (default: 0 minutes) before timing out,
+Interval: The time interval (default: 30 seconds) between polling</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L558">src/org/org.ts:558</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="retrievemaxapiversion"><span>retrieve<wbr/>Max<wbr/>Api<wbr/>Version</span><a href="#retrievemaxapiversion" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="retrievemaxapiversion-1"><span class="tsd-kind-call-signature">retrieveMaxApiVersion</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><a href="#retrievemaxapiversion-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Retrieves the highest api version that is supported by the target server instance. If the apiVersion configured for
+Sfdx is greater than the one returned in this call an api version mismatch occurs. In the case of the CLI that
+results in a warning.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1199">src/org/org.ts:1199</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="retrieveorganizationinformation"><span>retrieve<wbr/>Organization<wbr/>Information</span><a href="#retrieveorganizationinformation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="retrieveorganizationinformation-1"><span class="tsd-kind-call-signature">retrieveOrganizationInformation</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.OrganizationInformation.html" class="tsd-signature-type tsd-kind-type-alias">OrganizationInformation</a><span class="tsd-signature-symbol">&gt;</span><a href="#retrieveorganizationinformation-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Retrieve a handful of fields from the Organization table in Salesforce. If this does not have the
+data you need, just use <a href="org_connection.Connection.html#singlerecordquery" class="tsd-kind-method">Connection.singleRecordQuery</a> with <code>SELECT &lt;needed fields&gt; FROM Organization</code>.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.OrganizationInformation.html" class="tsd-signature-type tsd-kind-type-alias">OrganizationInformation</a><span class="tsd-signature-symbol">&gt;</span></h4><p>org information</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L969">src/org/org.ts:969</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="sandboxstatus"><span>sandbox<wbr/>Status</span><a href="#sandboxstatus" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="sandboxstatus-1"><span class="tsd-kind-call-signature">sandboxStatus</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">sandboxname</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">interval</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">wait</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span><a href="#sandboxstatus-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Reports sandbox org creation status. If the org is ready, authenticates to the org.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">sandboxname</span>: <span class="tsd-signature-type">string</span></span></li>
+<li><span><span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">interval</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">wait</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Duration</span> <span class="tsd-signature-symbol">}</span></span>
+<div class="tsd-comment tsd-typography"><p>Wait: The amount of time to wait before timing out, Interval: The time interval between polling</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_org.SandboxProcessObject.html" class="tsd-signature-type tsd-kind-type-alias">SandboxProcessObject</a><span class="tsd-signature-symbol">&gt;</span></h4><p>the sandbox process object</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L657">src/org/org.ts:657</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="scratchorgcreate"><span>scratch<wbr/>Org<wbr/>Create</span><a href="#scratchorgcreate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="scratchorgcreate-1"><span class="tsd-kind-call-signature">scratchOrgCreate</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../types/org_org.ScratchOrgRequest.html" class="tsd-signature-type tsd-kind-type-alias">ScratchOrgRequest</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_scratchOrgCreate.ScratchOrgCreateResult.html" class="tsd-signature-type tsd-kind-type-alias">ScratchOrgCreateResult</a><span class="tsd-signature-symbol">&gt;</span><a href="#scratchorgcreate-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Creates a scratchOrg
+'this' needs to be a valid dev-hub</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../types/org_org.ScratchOrgRequest.html" class="tsd-signature-type tsd-kind-type-alias">ScratchOrgRequest</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/org_scratchOrgCreate.ScratchOrgCreateResult.html" class="tsd-signature-type tsd-kind-type-alias">ScratchOrgCreateResult</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L646">src/org/org.ts:646</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setsandboxconfig"><span>set<wbr/>Sandbox<wbr/>Config</span><a href="#setsandboxconfig" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setsandboxconfig-1"><span class="tsd-kind-call-signature">setSandboxConfig</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">orgId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">config</span><span class="tsd-signature-symbol">:</span> <a href="../types/org_org.SandboxFields.html" class="tsd-signature-type tsd-kind-type-alias">SandboxFields</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="" class="tsd-signature-type tsd-kind-class">Org</a><span class="tsd-signature-symbol">&gt;</span><a href="#setsandboxconfig-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>set the sandbox config related to this given org</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">orgId</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>{string} orgId of the sandbox</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">config</span>: <a href="../types/org_org.SandboxFields.html" class="tsd-signature-type tsd-kind-type-alias">SandboxFields</a></span>
+<div class="tsd-comment tsd-typography"><p>{SandboxFields} config of the sandbox</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="" class="tsd-signature-type tsd-kind-class">Org</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1180">src/org/org.ts:1180</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="settrackssource"><span>set<wbr/>Tracks<wbr/>Source</span><a href="#settrackssource" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="settrackssource-1"><span class="tsd-kind-call-signature">setTracksSource</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#settrackssource-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Set the tracking property on the org's auth file</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></span>
+<div class="tsd-comment tsd-typography"><p>true or false (whether the org should use source tracking or not)</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L922">src/org/org.ts:922</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="supportssourcetracking"><span>supports<wbr/>Source<wbr/>Tracking</span><a href="#supportssourcetracking" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="supportssourcetracking-1"><span class="tsd-kind-call-signature">supportsSourceTracking</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><a href="#supportssourcetracking-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1263">src/org/org.ts:1263</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="trackssource"><span>tracks<wbr/>Source</span><a href="#trackssource" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="trackssource-1"><span class="tsd-kind-call-signature">tracksSource</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><a href="#trackssource-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns <code>true</code> if the org uses source tracking.
+Side effect: updates files where the property doesn't currently exist</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L894">src/org/org.ts:894</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="updatelocalinformation"><span>update<wbr/>Local<wbr/>Information</span><a href="#updatelocalinformation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="updatelocalinformation-1"><span class="tsd-kind-call-signature">updateLocalInformation</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Pick</span><span class="tsd-signature-symbol">&lt;</span><br/>        <a href="../types/org_authInfo.AuthFields.html" class="tsd-signature-type tsd-kind-type-alias">AuthFields</a><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="../enums/org_org.Org.Fields.html#name" class="tsd-signature-type tsd-kind-enum-member">NAME</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="../enums/org_org.Org.Fields.html#namespace_prefix" class="tsd-signature-type tsd-kind-enum-member">NAMESPACE_PREFIX</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="../enums/org_org.Org.Fields.html#instance_name" class="tsd-signature-type tsd-kind-enum-member">INSTANCE_NAME</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="../enums/org_org.Org.Fields.html#trial_expiration_date" class="tsd-signature-type tsd-kind-enum-member">TRIAL_EXPIRATION_DATE</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="../enums/org_org.Org.Fields.html#org_edition" class="tsd-signature-type tsd-kind-enum-member">ORG_EDITION</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="../enums/org_org.Org.Fields.html#is_scratch" class="tsd-signature-type tsd-kind-enum-member">IS_SCRATCH</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="../enums/org_org.Org.Fields.html#is_sandbox" class="tsd-signature-type tsd-kind-enum-member">IS_SANDBOX</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">&gt;</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><a href="#updatelocalinformation-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Some organization information is locally cached, such as if the org name or if it is a scratch org.
+This method populates/updates the filesystem from information retrieved from the org.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">Pick</span><span class="tsd-signature-symbol">&lt;</span><br/>        <a href="../types/org_authInfo.AuthFields.html" class="tsd-signature-type tsd-kind-type-alias">AuthFields</a><span class="tsd-signature-symbol">,</span><br/>        <span class="tsd-signature-symbol">|</span> <a href="../enums/org_org.Org.Fields.html#name" class="tsd-signature-type tsd-kind-enum-member">NAME</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="../enums/org_org.Org.Fields.html#namespace_prefix" class="tsd-signature-type tsd-kind-enum-member">NAMESPACE_PREFIX</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="../enums/org_org.Org.Fields.html#instance_name" class="tsd-signature-type tsd-kind-enum-member">INSTANCE_NAME</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="../enums/org_org.Org.Fields.html#trial_expiration_date" class="tsd-signature-type tsd-kind-enum-member">TRIAL_EXPIRATION_DATE</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="../enums/org_org.Org.Fields.html#org_edition" class="tsd-signature-type tsd-kind-enum-member">ORG_EDITION</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="../enums/org_org.Org.Fields.html#is_scratch" class="tsd-signature-type tsd-kind-enum-member">IS_SCRATCH</a><br/>        <span class="tsd-signature-symbol">|</span> <a href="../enums/org_org.Org.Fields.html#is_sandbox" class="tsd-signature-type tsd-kind-enum-member">IS_SANDBOX</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-signature-symbol">&gt;</span><br/>    <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/org.ts#L1024">src/org/org.ts:1024</a></li></ul></aside></div></li></ul></section></section></details></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details">
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
+<div><a href="#addusername"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>add<wbr/>Username</span></a><a href="#checkscratchorg"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>check<wbr/>Scratch<wbr/>Org</span></a><a href="#cleanlocalorgdata"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>clean<wbr/>Local<wbr/>Org<wbr/>Data</span></a><a href="#clonesandbox"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>clone<wbr/>Sandbox</span></a><a href="#createsandbox"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create<wbr/>Sandbox</span></a><a href="#delete"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>delete</span></a><a href="#deletefrom"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>delete<wbr/>From</span></a><a href="#determineifdevhuborg"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>determine<wbr/>If<wbr/>Dev<wbr/>Hub<wbr/>Org</span></a><a href="#determineifsandbox"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>determine<wbr/>If<wbr/>Sandbox</span></a><a href="#determineifscratch"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>determine<wbr/>If<wbr/>Scratch</span></a><a href="#getconfigaggregator"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Config<wbr/>Aggregator</span></a><a href="#getconnection"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Connection</span></a><a href="#getdevhuborg"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Dev<wbr/>Hub<wbr/>Org</span></a><a href="#getfield"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Field</span></a><a href="#getfields"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Fields</span></a><a href="#getfrontdoorurl"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Front<wbr/>Door<wbr/>Url</span></a><a href="#getmetadatauiurl"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Metadata<wbr/>UIURL</span></a><a href="#getorgid"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Org<wbr/>Id</span></a><a href="#getsandboxconfig"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Sandbox<wbr/>Config</span></a><a href="#getusername"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Username</span></a><a href="#isdevhuborg"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Dev<wbr/>Hub<wbr/>Org</span></a><a href="#issandbox"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Sandbox</span></a><a href="#isscratch"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Scratch</span></a><a href="#querysandboxinfo"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query<wbr/>Sandbox<wbr/>Info</span></a><a href="#querysandboxprocessbyid"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query<wbr/>Sandbox<wbr/>Process<wbr/>By<wbr/>Id</span></a><a href="#querysandboxprocessbyorgid"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query<wbr/>Sandbox<wbr/>Process<wbr/>By<wbr/>Org<wbr/>Id</span></a><a href="#querysandboxprocessbysandboxinfoid"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query<wbr/>Sandbox<wbr/>Process<wbr/>By<wbr/>Sandbox<wbr/>Info<wbr/>Id</span></a><a href="#querysandboxprocessbysandboxname"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>query<wbr/>Sandbox<wbr/>Process<wbr/>By<wbr/>Sandbox<wbr/>Name</span></a><a href="#readuserauthfiles"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>read<wbr/>User<wbr/>Auth<wbr/>Files</span></a><a href="#refreshauth"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>refresh<wbr/>Auth</span></a><a href="#refreshsandbox"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>refresh<wbr/>Sandbox</span></a><a href="#remove"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>remove</span></a><a href="#removeusername"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>remove<wbr/>Username</span></a><a href="#resumesandbox"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>resume<wbr/>Sandbox</span></a><a href="#retrievemaxapiversion"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>retrieve<wbr/>Max<wbr/>Api<wbr/>Version</span></a><a href="#retrieveorganizationinformation"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>retrieve<wbr/>Organization<wbr/>Information</span></a><a href="#sandboxstatus"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>sandbox<wbr/>Status</span></a><a href="#scratchorgcreate"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>scratch<wbr/>Org<wbr/>Create</span></a><a href="#setsandboxconfig"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Sandbox<wbr/>Config</span></a><a href="#settrackssource"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Tracks<wbr/>Source</span></a><a href="#supportssourcetracking"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>supports<wbr/>Source<wbr/>Tracking</span></a><a href="#trackssource"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>tracks<wbr/>Source</span></a><a href="#updatelocalinformation"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>update<wbr/>Local<wbr/>Information</span></a></div></details></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="../modules.html">@salesforce/core</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer></footer>
+<div class="overlay"></div></body></html>

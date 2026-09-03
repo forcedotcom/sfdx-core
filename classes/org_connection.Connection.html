@@ -1,0 +1,393 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Connection | @salesforce/core</title><meta name="description" content="Documentation for @salesforce/core"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">@salesforce/core</a>
+<div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb" aria-label="Breadcrumb">
+<li><a href="../modules/org_connection.html">org/connection</a></li>
+<li><a href="" aria-current="page">Connection</a></li></ul>
+<h1>Class Connection&lt;S&gt;</h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>Handles connections and requests to Salesforce Orgs.</p>
+<pre><code><span class="hl-0">// Uses latest API version</span><br/><span class="hl-5">const</span><span class="hl-2"> </span><span class="hl-6">connection</span><span class="hl-2"> = </span><span class="hl-1">await</span><span class="hl-2"> </span><span class="hl-3">Connection</span><span class="hl-2">.</span><span class="hl-7">create</span><span class="hl-2">({</span><br/><span class="hl-2">  </span><span class="hl-3">authInfo:</span><span class="hl-2"> </span><span class="hl-1">await</span><span class="hl-2"> </span><span class="hl-3">AuthInfo</span><span class="hl-2">.</span><span class="hl-7">create</span><span class="hl-2">({ </span><span class="hl-3">username:</span><span class="hl-2"> </span><span class="hl-4">&#39;myAdminUsername&#39;</span><span class="hl-2"> })</span><br/><span class="hl-2">});</span><br/><span class="hl-3">connection</span><span class="hl-2">.</span><span class="hl-7">query</span><span class="hl-2">(</span><span class="hl-4">&#39;SELECT Name from Account&#39;</span><span class="hl-2">);</span><br/><br/><span class="hl-0">// Use different API version</span><br/><span class="hl-3">connection</span><span class="hl-2">.</span><span class="hl-7">setApiVersion</span><span class="hl-2">(</span><span class="hl-4">&quot;42.0&quot;</span><span class="hl-2">);</span><br/><span class="hl-3">connection</span><span class="hl-2">.</span><span class="hl-7">query</span><span class="hl-2">(</span><span class="hl-4">&#39;SELECT Name from Account&#39;</span><span class="hl-2">);</span>
+</code><button>Copy</button></pre>
+
+</div></section>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="s"><span class="tsd-kind-type-parameter">S</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">Schema</span> = <span class="tsd-signature-type">Schema</span></span></li></ul></section>
+<section class="tsd-panel tsd-hierarchy" data-refl="2711">
+<h4>Hierarchy</h4>
+<ul class="tsd-hierarchy">
+<li class="tsd-hierarchy-item"><span class="tsd-signature-type">Connection</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#s">S</a><span class="tsd-signature-symbol">&gt;</span>
+<ul class="tsd-hierarchy">
+<li class="tsd-hierarchy-item"><span class="tsd-hierarchy-target">Connection</span></li></ul></li></ul></section><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L80">src/org/connection.ts:80</a></li>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L505">src/org/connection.ts:505</a></li></ul></aside>
+<section class="tsd-panel-group tsd-index-group">
+<section class="tsd-panel tsd-index-panel">
+<details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h5 class="tsd-index-heading uppercase">Index</h5></summary>
+<div class="tsd-accordion-details">
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="accessors">Accessors<a href="#accessors" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#tooling" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>tooling</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#autofetchquery" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>auto<wbr/>Fetch<wbr/>Query</span></a>
+<a href="#baseurl" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>base<wbr/>Url</span></a>
+<a href="#deploy" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>deploy</span></a>
+<a href="#getapiversion" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Api<wbr/>Version</span></a>
+<a href="#getauthinfo" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Auth<wbr/>Info</span></a>
+<a href="#getauthinfofields" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Auth<wbr/>Info<wbr/>Fields</span></a>
+<a href="#getconnectionoptions" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Connection<wbr/>Options</span></a>
+<a href="#getusername" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Username</span></a>
+<a href="#init" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>init</span></a>
+<a href="#isresolvable" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Resolvable</span></a>
+<a href="#isusingaccesstoken" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Using<wbr/>Access<wbr/>Token</span></a>
+<a href="#normalizeurl" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>normalize<wbr/>Url</span></a>
+<a href="#refreshauth" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>refresh<wbr/>Auth</span></a>
+<a href="#request" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>request</span></a>
+<a href="#retrievemaxapiversion" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>retrieve<wbr/>Max<wbr/>Api<wbr/>Version</span></a>
+<a href="#setapiversion" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Api<wbr/>Version</span></a>
+<a href="#singlerecordquery" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>single<wbr/>Record<wbr/>Query</span></a>
+<a href="#uselatestapiversion" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>use<wbr/>Latest<wbr/>Api<wbr/>Version</span></a>
+<a href="#create" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create</span></a>
+</div></section></div></details></section></section>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Accessors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="accessors-1">Accessors<a href="#accessors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="tooling"><span>tooling</span><a href="#tooling" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li>
+<div class="tsd-signature" id="toolingtooling"><span class="tsd-signature-keyword">get</span> <span class="tsd-kind-get-signature">tooling</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/org_connection.Tooling.html" class="tsd-signature-type tsd-kind-interface">Tooling</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#s">S</a><span class="tsd-signature-symbol">&gt;</span></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Tooling api reference.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/org_connection.Tooling.html" class="tsd-signature-type tsd-kind-interface">Tooling</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#s">S</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Overrides JSForceConnection.tooling</p>
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L113">src/org/connection.ts:113</a></li></ul></aside></div></li></ul></section></section></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="autofetchquery"><span>auto<wbr/>Fetch<wbr/>Query</span><a href="#autofetchquery" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="autofetchquery-1"><span class="tsd-kind-call-signature">autoFetchQuery</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#autofetchqueryt">T</a> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">Schema</span> <span class="tsd-signature-symbol">=</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#s">S</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">soql</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">queryOptions</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">QueryOptions</span> <span class="tsd-signature-symbol">&amp;</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">tooling</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">QueryResult</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#autofetchqueryt">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#autofetchquery-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Executes a query and auto-fetches (i.e., &quot;queryMore&quot;) all results.  This is especially
+useful with large query result sizes, such as over 2000 records.  The default maximum
+fetch size is 10,000 records. Modify this via the options argument.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="autofetchqueryt"><span class="tsd-kind-type-parameter">T</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">Schema</span> = <a class="tsd-signature-type tsd-kind-type-parameter" href="#s">S</a></span></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">soql</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>The SOQL string.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">queryOptions</span>: <span class="tsd-signature-type">Partial</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">QueryOptions</span> <span class="tsd-signature-symbol">&amp;</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">tooling</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></span>
+<div class="tsd-comment tsd-typography"><p>The query options. NOTE: the autoFetch option will always be true.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">QueryResult</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#autofetchqueryt">T</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L368">src/org/connection.ts:368</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="baseurl"><span>base<wbr/>Url</span><a href="#baseurl" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="baseurl-1"><span class="tsd-kind-call-signature">baseUrl</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><a href="#baseurl-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>The Force API base url for the instance.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L215">src/org/connection.ts:215</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="deploy"><span>deploy</span><a href="#deploy" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="deploy-1"><span class="tsd-kind-call-signature">deploy</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">zipInput</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Buffer</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../types/org_connection.DeployOptionsWithRest.html" class="tsd-signature-type tsd-kind-type-alias">DeployOptionsWithRest</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">DeployResultLocator</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">AsyncResult</span> <span class="tsd-signature-symbol">&amp;</span> <span class="tsd-signature-type">Schema</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#deploy-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>deploy a zipped buffer from the SDRL with REST or SOAP</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">zipInput</span>: <span class="tsd-signature-type">Buffer</span></span>
+<div class="tsd-comment tsd-typography"><p>data to deploy</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../types/org_connection.DeployOptionsWithRest.html" class="tsd-signature-type tsd-kind-type-alias">DeployOptionsWithRest</a></span>
+<div class="tsd-comment tsd-typography"><p>JSForce deploy options + a boolean for rest</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">DeployResultLocator</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">AsyncResult</span> <span class="tsd-signature-symbol">&amp;</span> <span class="tsd-signature-type">Schema</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L175">src/org/connection.ts:175</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getapiversion"><span>get<wbr/>Api<wbr/>Version</span><a href="#getapiversion" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getapiversion-1"><span class="tsd-kind-call-signature">getApiVersion</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><a href="#getapiversion-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Get the API version used for all connection requests.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L296">src/org/connection.ts:296</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getauthinfo"><span>get<wbr/>Auth<wbr/>Info</span><a href="#getauthinfo" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getauthinfo-1"><span class="tsd-kind-call-signature">getAuthInfo</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="org_authInfo.AuthInfo.html" class="tsd-signature-type tsd-kind-class">AuthInfo</a><a href="#getauthinfo-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Getter for AuthInfo.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a href="org_authInfo.AuthInfo.html" class="tsd-signature-type tsd-kind-class">AuthInfo</a></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L317">src/org/connection.ts:317</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getauthinfofields"><span>get<wbr/>Auth<wbr/>Info<wbr/>Fields</span><a href="#getauthinfofields" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getauthinfofields-1"><span class="tsd-kind-call-signature">getAuthInfoFields</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="../types/org_authInfo.AuthFields.html" class="tsd-signature-type tsd-kind-type-alias">AuthFields</a><a href="#getauthinfofields-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Getter for the AuthInfo fields.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a href="../types/org_authInfo.AuthFields.html" class="tsd-signature-type tsd-kind-type-alias">AuthFields</a></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L324">src/org/connection.ts:324</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getconnectionoptions"><span>get<wbr/>Connection<wbr/>Options</span><a href="#getconnectionoptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getconnectionoptions-1"><span class="tsd-kind-call-signature">getConnectionOptions</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <a href="../types/org_authInfo.AuthFields.html" class="tsd-signature-type tsd-kind-type-alias">AuthFields</a><a href="#getconnectionoptions-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Getter for the auth fields.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <a href="../types/org_authInfo.AuthFields.html" class="tsd-signature-type tsd-kind-type-alias">AuthFields</a></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L332">src/org/connection.ts:332</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getusername"><span>get<wbr/>Username</span><a href="#getusername" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getusername-1"><span class="tsd-kind-call-signature">getUsername</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><a href="#getusername-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Getter for the username of the Salesforce Org.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Optional</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L339">src/org/connection.ts:339</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="init"><span>init</span><a href="#init" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="init-1"><span class="tsd-kind-call-signature">init</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#init-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Async initializer.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L164">src/org/connection.ts:164</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="isresolvable"><span>is<wbr/>Resolvable</span><a href="#isresolvable" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="isresolvable-1"><span class="tsd-kind-call-signature">isResolvable</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><a href="#isresolvable-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Verify that instance has a reachable DNS entry, otherwise will throw error</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L273">src/org/connection.ts:273</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="isusingaccesstoken"><span>is<wbr/>Using<wbr/>Access<wbr/>Token</span><a href="#isusingaccesstoken" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="isusingaccesstoken-1"><span class="tsd-kind-call-signature">isUsingAccessToken</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><a href="#isusingaccesstoken-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns true if this connection is using access token auth.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L346">src/org/connection.ts:346</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="normalizeurl"><span>normalize<wbr/>Url</span><a href="#normalizeurl" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="normalizeurl-1"><span class="tsd-kind-call-signature">normalizeUrl</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">url</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><a href="#normalizeurl-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Normalize a Salesforce url to include a instance information.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">url</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>Partial url.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L355">src/org/connection.ts:355</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="refreshauth"><span>refresh<wbr/>Auth</span><a href="#refreshauth" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="refreshauth-1"><span class="tsd-kind-call-signature">refreshAuth</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#refreshauth-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Executes a GET request on the baseUrl to force an auth refresh.
+This is useful for the raw methods (request, requestRaw) that use the accessToken directly and don't handle refreshes.</p>
+<p>This method issues a request using the current access token to check if it is still valid.
+If the request returns 200, no refresh happens, and we keep the token.
+If it returns 401, jsforce will request a new token and set it in the connection instance.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L435">src/org/connection.ts:435</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="request"><span>request</span><a href="#request" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="request-1"><span class="tsd-kind-call-signature">request</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#requestr">R</a> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">request</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">HttpRequest</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">JsonMap</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">StreamPromise</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#requestr">R</a><span class="tsd-signature-symbol">&gt;</span><a href="#request-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Send REST API request with given HTTP request info, with connected session information
+and SFDX headers.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="requestr"><span class="tsd-kind-type-parameter">R</span> = <span class="tsd-signature-type">unknown</span></span></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">request</span>: <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">HttpRequest</span></span>
+<div class="tsd-comment tsd-typography"><p>HTTP request object or URL to GET request.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-type">JsonMap</span></span>
+<div class="tsd-comment tsd-typography"><p>HTTP API request options.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">StreamPromise</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#requestr">R</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Overrides JSForceConnection.request</p>
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L198">src/org/connection.ts:198</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="retrievemaxapiversion"><span>retrieve<wbr/>Max<wbr/>Api<wbr/>Version</span><a href="#retrievemaxapiversion" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="retrievemaxapiversion-1"><span class="tsd-kind-call-signature">retrieveMaxApiVersion</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span><a href="#retrievemaxapiversion-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Retrieves the highest api version that is supported by the target server instance.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L224">src/org/connection.ts:224</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="setapiversion"><span>set<wbr/>Api<wbr/>Version</span><a href="#setapiversion" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="setapiversion-1"><span class="tsd-kind-call-signature">setApiVersion</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">version</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">void</span><a href="#setapiversion-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Set the API version for all connection requests.</p>
+<p><strong>Throws</strong> <em><a href="sfError.SfError.html" class="tsd-kind-class">SfError</a>{ name: 'IncorrectAPIVersionError' }</em> Incorrect API version.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">version</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>The API version.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L307">src/org/connection.ts:307</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="singlerecordquery"><span>single<wbr/>Record<wbr/>Query</span><a href="#singlerecordquery" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="singlerecordquery-1"><span class="tsd-kind-call-signature">singleRecordQuery</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#singlerecordqueryt">T</a> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">soql</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../types/org_connection.SingleRecordQueryOptions.html" class="tsd-signature-type tsd-kind-type-alias">SingleRecordQueryOptions</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#singlerecordqueryt">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#singlerecordquery-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Executes a query using either standard REST or Tooling API, returning a single record.
+Will throw if either zero records are found OR multiple records are found.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="singlerecordqueryt"><span class="tsd-kind-type-parameter">T</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">Record</span></span></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">soql</span>: <span class="tsd-signature-type">string</span></span>
+<div class="tsd-comment tsd-typography"><p>The SOQL string.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../types/org_connection.SingleRecordQueryOptions.html" class="tsd-signature-type tsd-kind-type-alias">SingleRecordQueryOptions</a><span class="tsd-signature-symbol"> = ...</span></span>
+<div class="tsd-comment tsd-typography"><p>The query options.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#singlerecordqueryt">T</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L405">src/org/connection.ts:405</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="uselatestapiversion"><span>use<wbr/>Latest<wbr/>Api<wbr/>Version</span><a href="#uselatestapiversion" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="uselatestapiversion-1"><span class="tsd-kind-call-signature">useLatestApiVersion</span><span class="tsd-signature-symbol">()</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#uselatestapiversion-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Use the latest API version available on <code>this.instanceUrl</code>.</p>
+</div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L256">src/org/connection.ts:256</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="create"><code class="tsd-tag">Static</code><span>create</span><a href="#create" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="create-1"><span class="tsd-kind-call-signature">create</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#creates">S</a> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">Schema</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">this</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-keyword">new</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../modules/org_connection.Connection.html" class="tsd-signature-type tsd-kind-namespace">Connection</a><span class="tsd-signature-symbol">.</span><a href="../types/org_connection.Connection.Options.html" class="tsd-signature-type tsd-kind-type-alias">Options</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#creates">S</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a href="" class="tsd-signature-type tsd-kind-class">Connection</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#creates">S</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../modules/org_connection.Connection.html" class="tsd-signature-type tsd-kind-namespace">Connection</a><span class="tsd-signature-symbol">.</span><a href="../types/org_connection.Connection.Options.html" class="tsd-signature-type tsd-kind-type-alias">Options</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#creates">S</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="" class="tsd-signature-type tsd-kind-class">Connection</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#creates">S</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#create-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Creates an instance of a Connection. Performs additional async initializations.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="creates"><span class="tsd-kind-type-parameter">S</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-type">Schema</span></span></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">this</span>: <span class="tsd-signature-keyword">new</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">:</span> <a href="../modules/org_connection.Connection.html" class="tsd-signature-type tsd-kind-namespace">Connection</a><span class="tsd-signature-symbol">.</span><a href="../types/org_connection.Connection.Options.html" class="tsd-signature-type tsd-kind-type-alias">Options</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#creates">S</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a href="" class="tsd-signature-type tsd-kind-class">Connection</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#creates">S</a><span class="tsd-signature-symbol">&gt;</span></span></li>
+<li><span><span class="tsd-kind-parameter">options</span>: <a href="../modules/org_connection.Connection.html" class="tsd-signature-type tsd-kind-namespace">Connection</a><span class="tsd-signature-symbol">.</span><a href="../types/org_connection.Connection.Options.html" class="tsd-signature-type tsd-kind-type-alias">Options</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#creates">S</a><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>Constructor options.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="" class="tsd-signature-type tsd-kind-class">Connection</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#creates">S</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/connection.ts#L122">src/org/connection.ts:122</a></li></ul></aside></div></li></ul></section></section></details></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details">
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Accessors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Accessors</summary>
+<div><a href="#tooling"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Accessor"><use href="../assets/icons.svg#icon-262144"></use></svg><span>tooling</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
+<div><a href="#autofetchquery"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>auto<wbr/>Fetch<wbr/>Query</span></a><a href="#baseurl"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>base<wbr/>Url</span></a><a href="#deploy"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>deploy</span></a><a href="#getapiversion"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Api<wbr/>Version</span></a><a href="#getauthinfo"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Auth<wbr/>Info</span></a><a href="#getauthinfofields"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Auth<wbr/>Info<wbr/>Fields</span></a><a href="#getconnectionoptions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Connection<wbr/>Options</span></a><a href="#getusername"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Username</span></a><a href="#init"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>init</span></a><a href="#isresolvable"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Resolvable</span></a><a href="#isusingaccesstoken"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>is<wbr/>Using<wbr/>Access<wbr/>Token</span></a><a href="#normalizeurl"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>normalize<wbr/>Url</span></a><a href="#refreshauth"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>refresh<wbr/>Auth</span></a><a href="#request"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>request</span></a><a href="#retrievemaxapiversion"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>retrieve<wbr/>Max<wbr/>Api<wbr/>Version</span></a><a href="#setapiversion"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>set<wbr/>Api<wbr/>Version</span></a><a href="#singlerecordquery"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>single<wbr/>Record<wbr/>Query</span></a><a href="#uselatestapiversion"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>use<wbr/>Latest<wbr/>Api<wbr/>Version</span></a><a href="#create"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create</span></a></div></details></div></details></div>
+<div class="site-menu">
+<nav class="tsd-navigation"><a href="../modules.html">@salesforce/core</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer></footer>
+<div class="overlay"></div></body></html>
