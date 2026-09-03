@@ -8,7 +8,7 @@
     "moduleResolution": "nodenext",
     "target": "ES2022",
     "rootDir": "./src",
-    "plugins": [{ "transform": "./src/messageTransformer.ts" }],
+    "plugins": [{ "transform": "./src/messageTransformer.ts", "tsConfig": "./tsconfig.transformer.json" }],
     "esModuleInterop": true,
     "types": ["node"]
   },
