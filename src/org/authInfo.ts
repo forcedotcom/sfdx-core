@@ -299,23 +299,26 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         // prevent ConfigFile collision bug
         // eslint-disable-next-line no-await-in-loop
         const authInfo = await AuthInfo.create({ username });
-        const { orgId, instanceUrl, devHubUsername, expirationDate, isDevHub } = authInfo.getFields();
+        const authFields = authInfo.getFields();
+        const { orgId, instanceUrl, devHubUsername, expirationDate, isDevHub } = authFields;
+        const isScratchOrg = Boolean(devHubUsername) || Boolean(authFields[Org.Fields.IS_SCRATCH]);
+        const expDate = expirationDate ?? authFields[Org.Fields.TRIAL_EXPIRATION_DATE];
+        // eslint-disable-next-line no-await-in-loop
+        const hasSandboxFile = await stateAggregator.sandboxes.hasFile(orgId as string);
+        const isSandbox = Boolean(authFields[Org.Fields.IS_SANDBOX]) || hasSandboxFile;
         final.push({
           aliases,
           configs,
           username,
           instanceUrl,
-          isScratchOrg: Boolean(devHubUsername),
+          isScratchOrg,
           isDevHub: isDevHub ?? false,
-          // eslint-disable-next-line no-await-in-loop
-          isSandbox: await stateAggregator.sandboxes.hasFile(orgId as string),
+          isSandbox,
           orgId: orgId as string,
           accessToken: authInfo.getConnectionOptions().accessToken,
           oauthMethod: authInfo.isJwt() ? 'jwt' : authInfo.isOauth() ? 'web' : 'token',
           isExpired:
-            Boolean(devHubUsername) && expirationDate
-              ? new Date(ensureString(expirationDate)).getTime() < new Date().getTime()
-              : 'unknown',
+            isScratchOrg && expDate ? new Date(ensureString(expDate)).getTime() < new Date().getTime() : 'unknown',
         });
       } catch (err) {
         final.push({
@@ -408,6 +411,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param orgAuthInfo
    */
   public static async identifyPossibleScratchOrgs(fields: AuthFields, orgAuthInfo: AuthInfo): Promise<void> {
+    if (env.getBoolean('SF_SKIP_SCRATCH_ORG_CHECK')) {
+      (await Logger.child('Common', { tag: 'identifyPossibleScratchOrgs' })).debug(
+        'Skipping scratch org identification due to SF_SKIP_SCRATCH_ORG_CHECK'
+      );
+      return;
+    }
+
     // fields property is passed in because the consumers of this method have performed the decrypt.
     // This is so we don't have to call authInfo.getFields(true) and decrypt again OR accidentally save an
     // authInfo before it is necessary.
@@ -415,19 +425,64 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
     await determineOrg(orgAuthInfo);
 
+    // re-read fields after determineOrg may have updated them
+    const updatedFields = orgAuthInfo.getFields();
+
     // return if we already know the hub org, we know it is a devhub or prod-like, or no orgId present
-    if (Boolean(fields.isDevHub) || Boolean(fields.devHubUsername) || !fields.orgId) return;
+    if (Boolean(updatedFields.isDevHub) || Boolean(updatedFields.devHubUsername) || !updatedFields.orgId) return;
+
+    if (updatedFields.isSandbox) {
+      logger.debug('determineOrg already identified org as sandbox, skipping expensive org scan');
+      return;
+    }
+
+    // for scratch orgs, skip the full listAllAuthorizations + sandbox identification and
+    // instead do a lightweight DevHub lookup using raw configs (no AuthInfo creation/decryption)
+    if (updatedFields.isScratch) {
+      logger.debug('determineOrg identified org as scratch, doing lightweight DevHub lookup');
+      const stateAggregator = await StateAggregator.getInstance();
+      const allConfigs = await stateAggregator.orgs.readAll();
+      const devHubUsernames = allConfigs.filter((c) => c.isDevHub).map((c) => ensureString(c.username));
+
+      for (const hubUsername of devHubUsernames) {
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          const soi = await AuthInfo.queryScratchOrg(hubUsername, updatedFields.orgId);
+          // eslint-disable-next-line no-await-in-loop
+          await orgAuthInfo.save({
+            ...fields,
+            devHubUsername: hubUsername,
+            expirationDate: soi.ExpirationDate,
+            isScratch: true,
+          });
+          logger.debug(`set ${hubUsername} as devhub for scratch org ${orgAuthInfo.getUsername()}`);
+          return;
+        } catch (error) {
+          if (error instanceof Error && error.name === 'NoActiveScratchOrgFound') {
+            logger.debug(`devhub ${hubUsername} does not own this scratch org`);
+          } else {
+            logger.debug(`Error connecting to devhub ${hubUsername}`, error);
+          }
+        }
+      }
+      return;
+    }
 
     logger.debug('getting devHubs and prod orgs to identify scratch orgs and sandboxes');
 
-    // TODO: return if url is not sandbox-like to avoid constantly asking about production orgs
     // TODO: someday we make this easier by asking the org if it is a scratch org
 
-    const hubAuthInfos = await AuthInfo.getDevHubAuthInfos();
-    // Get a list of org auths that are known not to be scratch orgs or sandboxes.
-    const possibleProdOrgs = await AuthInfo.listAllAuthorizations(
-      (orgAuth) => orgAuth && !orgAuth.isScratchOrg && !orgAuth.isSandbox
-    );
+    const allOrgs = await AuthInfo.listAllAuthorizations();
+    const hubAuthInfos = allOrgs.filter((org) => org.isDevHub);
+
+    // skip sandbox identification if the instance URL is not sandbox-like
+    // enhanced domains: *.sandbox.my.salesforce.com; pre-enhanced My Domain: company--sbxname.my.salesforce.com
+    const isSandboxLikeUrl =
+      fields.instanceUrl != null && (fields.instanceUrl.includes('.sandbox.') || fields.instanceUrl.includes('--'));
+    const possibleProdOrgs = isSandboxLikeUrl ? allOrgs.filter((org) => !org.isScratchOrg && !org.isSandbox) : [];
+    if (!isSandboxLikeUrl) {
+      logger.debug('instance URL is not sandbox-like, skipping sandbox identification');
+    }
 
     logger.debug(`found ${hubAuthInfos.length} DevHubs`);
     logger.debug(`found ${possibleProdOrgs.length} possible prod orgs`);
@@ -435,12 +490,16 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       return;
     }
 
-    // ask all those orgs if they know this orgId
+    let identified = false;
+
+    // ask all those orgs if they know this orgId, but stop once one claims it
     await Promise.all([
       ...hubAuthInfos.map(async (hubAuthInfo) => {
+        if (identified) return;
         try {
           const soi = await AuthInfo.queryScratchOrg(hubAuthInfo.username, fields.orgId as string);
-          // if any return a result
+          if (identified) return;
+          identified = true;
           logger.debug(`found orgId ${fields.orgId ?? '<undefined>'} in devhub ${hubAuthInfo.username}`);
           try {
             await orgAuthInfo.save({
@@ -466,7 +525,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         }
       }),
       ...possibleProdOrgs.map(async (pOrgAuthInfo) => {
-        await AuthInfo.identifyPossibleSandbox(pOrgAuthInfo, fields, orgAuthInfo, logger);
+        if (identified) return;
+        const found = await AuthInfo.identifyPossibleSandbox(pOrgAuthInfo, fields, orgAuthInfo, logger);
+        if (found) identified = true;
       }),
     ]);
   }
@@ -483,16 +544,16 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     fields: AuthFields,
     orgAuthInfo: AuthInfo,
     logger: Logger
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (!fields.orgId) {
-      return;
+      return false;
     }
 
     try {
       const prodOrg = await Org.create({ aliasOrUsername: possibleProdOrg.username });
       const sbxProcess = await prodOrg.querySandboxProcessByOrgId(fields.orgId);
       if (!sbxProcess?.SandboxInfoId) {
-        return;
+        return false;
       }
       logger.debug(`${fields.orgId} is a sandbox of ${possibleProdOrg.username}`);
 
@@ -526,8 +587,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       } catch (e) {
         logger.debug(`error writing sandbox auth file for: ${orgAuthInfo.getUsername()}`, e);
       }
+      return true;
     } catch (err) {
       logger.debug(`${fields.orgId} is not a sandbox of ${possibleProdOrg.username}`);
+      return false;
     }
   }
 

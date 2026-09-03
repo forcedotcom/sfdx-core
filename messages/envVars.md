@@ -319,3 +319,7 @@ Your environment has both variables populated, and with different values. The va
 # sfCapitalizeRecordTypes
 
 Whether record types are capitalized on scratch org creation.
+
+# sfSkipScratchOrgCheck
+
+Set to "true" to skip the scratch org and sandbox identification check that runs after authenticating an org. When enabled, `sf org login jwt` (and other login commands) will not query existing cached orgs to determine whether the newly authenticated org is a scratch org or sandbox. This can significantly speed up authentication in CI/CD environments with many cached org authorizations.
