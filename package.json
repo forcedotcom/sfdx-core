@@ -121,7 +121,7 @@
       ]
     },
     "compile": {
-      "command": " -p . --pretty --incremental",
+      "command": "tspc -p . --pretty --incremental",
       "dependencies": [
         "build:schema:project",
         "build:schema:scratch"
