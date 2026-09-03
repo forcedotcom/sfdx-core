@@ -1,3 +1,14 @@
+## [9.1.10](https://github.com/forcedotcom/sfdx-core/compare/9.1.9...9.1.10) (2026-09-03)
+
+
+### Bug Fixes
+
+* add mocha types to tsconfig.json ([b3bfab8](https://github.com/forcedotcom/sfdx-core/commit/b3bfab83b2beaad1d2bf87d93aab5a99eed126b6))
+* fix type errors and transformer build for TS v6 ([4aca8c7](https://github.com/forcedotcom/sfdx-core/commit/4aca8c70a92292fce63b5ceca986737649843d29))
+* re-add tspc to the compile command ([4a76214](https://github.com/forcedotcom/sfdx-core/commit/4a76214c73360222b910aacf92d149ab1d97323e))
+
+
+
 ## [9.1.9](https://github.com/forcedotcom/sfdx-core/compare/9.1.8...9.1.9) (2026-08-31)
 
 
