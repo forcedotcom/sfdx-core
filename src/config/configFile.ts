@@ -16,7 +16,7 @@
 
 import { homedir as osHomedir } from 'node:os';
 import { join as pathJoin } from 'node:path';
-import { constants as fsConstants, Stats as fsStats } from 'node:fs';
+import { constants as fsConstants, Stats as fsStats, BigIntStats as fsBigIntStats } from 'node:fs';
 import { parseJsonMap } from '@salesforce/kit';
 import { fs } from '../fs/fs';
 import { Global } from '../global';
@@ -461,5 +461,5 @@ const getNsTimeStampSync = (filePath: string): bigint =>
   getNsTimeStampFromStatus(fs.statSync(filePath, { bigint: true }));
 
 /** in browser environment, memfs is missing the bigInt ns timestamp, so we generate it from the ms */
-const getNsTimeStampFromStatus = (stats: Awaited<ReturnType<typeof fs.promises.stat>>): bigint =>
+const getNsTimeStampFromStatus = (stats: fsStats | fsBigIntStats): bigint =>
   'mtimeNs' in stats ? stats.mtimeNs : BigInt(stats.mtimeMs) * BigInt(1_000_000);
