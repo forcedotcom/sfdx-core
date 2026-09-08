@@ -1,3 +1,12 @@
+## [9.1.11](https://github.com/forcedotcom/sfdx-core/compare/9.1.10...9.1.11) (2026-09-08)
+
+
+### Bug Fixes
+
+* speed up org login by optimizing identifyPossibleScratchOrgs @W-23969733@ ([#1336](https://github.com/forcedotcom/sfdx-core/issues/1336)) ([53d5fd0](https://github.com/forcedotcom/sfdx-core/commit/53d5fd01877cde3b3c0942e4e8de3d272f828b6e))
+
+
+
 ## [9.1.10](https://github.com/forcedotcom/sfdx-core/compare/9.1.9...9.1.10) (2026-09-03)
 
 
