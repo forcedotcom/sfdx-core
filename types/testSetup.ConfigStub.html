@@ -16,7 +16,7 @@
 </div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">ConfigStub</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#contents">contents</a><span class="tsd-signature-symbol">?:</span> <a href="config_configStackTypes.ConfigContents.html" class="tsd-signature-type tsd-kind-type-alias">ConfigContents</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#readfn">readFn</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="config_configStackTypes.ConfigContents.html" class="tsd-signature-type tsd-kind-type-alias">ConfigContents</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#retrievecontents">retrieveContents</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">JsonMap</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#writefn">writeFn</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">contents</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">AnyJson</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/testSetup.ts#L85">src/testSetup.ts:85</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/53d5fd01877cde3b3c0942e4e8de3d272f828b6e/src/testSetup.ts#L85">src/testSetup.ts:85</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -41,7 +41,7 @@ new config when @{link ConfigFile.write} or @{link ConfigFile.writeSync} is call
 such as Alias.update and Alias.fetch.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/testSetup.ts#L103">src/testSetup.ts:103</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/53d5fd01877cde3b3c0942e4e8de3d272f828b6e/src/testSetup.ts#L103">src/testSetup.ts:103</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="readfn"><code class="tsd-tag">Optional</code><span>read<wbr/>Fn</span><a href="#readfn" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">readFn</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="config_configStackTypes.ConfigContents.html" class="tsd-signature-type tsd-kind-type-alias">ConfigContents</a><span class="tsd-signature-symbol">&gt;</span></div>
@@ -50,14 +50,14 @@ unless explicitly done. Only use this if you know what you are doing. Use retrie
 instead.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/testSetup.ts#L91">src/testSetup.ts:91</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/53d5fd01877cde3b3c0942e4e8de3d272f828b6e/src/testSetup.ts#L91">src/testSetup.ts:91</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="retrievecontents"><code class="tsd-tag">Optional</code><span>retrieve<wbr/>Contents</span><a href="#retrievecontents" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">retrieveContents</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">()</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">JsonMap</span><span class="tsd-signature-symbol">&gt;</span></div>
 <div class="tsd-comment tsd-typography"><p>A function to conditionally read based on the config instance. The <code>this</code> value will be the config instance.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/testSetup.ts#L107">src/testSetup.ts:107</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/53d5fd01877cde3b3c0942e4e8de3d272f828b6e/src/testSetup.ts#L107">src/testSetup.ts:107</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="writefn"><code class="tsd-tag">Optional</code><span>write<wbr/>Fn</span><a href="#writefn" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">writeFn</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">contents</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">AnyJson</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></div>
@@ -65,7 +65,7 @@ instead.</p>
 explicitly done. Only use this if you know what you are doing. Use updateContents instead.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/testSetup.ts#L96">src/testSetup.ts:96</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/53d5fd01877cde3b3c0942e4e8de3d272f828b6e/src/testSetup.ts#L96">src/testSetup.ts:96</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

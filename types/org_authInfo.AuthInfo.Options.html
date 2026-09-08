@@ -17,7 +17,7 @@
 </div></section>
 <div class="tsd-signature"><span class="tsd-signature-keyword">type</span> <span class="tsd-kind-type-alias">Options</span> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#accesstokenoptions">accessTokenOptions</a><span class="tsd-signature-symbol">?:</span> <a href="org_authInfo.AccessTokenOptions.html" class="tsd-signature-type tsd-kind-type-alias">AccessTokenOptions</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#clientapps">clientApps</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">{</span><br/>        <span class="tsd-kind-property">accessToken</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>        <span class="tsd-kind-property">clientId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>        <span class="tsd-kind-property">clientSecret</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>        <span class="tsd-kind-property">name</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>        <span class="tsd-kind-property">refreshToken</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#isdevhub">isDevHub</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#oauth2">oauth2</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">OAuth2</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#oauth2options">oauth2Options</a><span class="tsd-signature-symbol">?:</span> <a href="org_authInfo.JwtOAuth2Config.html" class="tsd-signature-type tsd-kind-type-alias">JwtOAuth2Config</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#parentusername">parentUsername</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#username">username</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/authInfo.ts#L1331">src/org/authInfo.ts:1331</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/53d5fd01877cde3b3c0942e4e8de3d272f828b6e/src/org/authInfo.ts#L1394">src/org/authInfo.ts:1394</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -42,29 +42,29 @@
 <div class="tsd-comment tsd-typography"><p>Options for the access token auth.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/authInfo.ts#L1350">src/org/authInfo.ts:1350</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/53d5fd01877cde3b3c0942e4e8de3d272f828b6e/src/org/authInfo.ts#L1413">src/org/authInfo.ts:1413</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="clientapps"><code class="tsd-tag">Optional</code><span>client<wbr/>Apps</span><a href="#clientapps" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">clientApps</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-symbol">{</span><br/>    <span class="tsd-kind-property">accessToken</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">clientId</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">clientSecret</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">name</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">refreshToken</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/authInfo.ts#L1340">src/org/authInfo.ts:1340</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/53d5fd01877cde3b3c0942e4e8de3d272f828b6e/src/org/authInfo.ts#L1403">src/org/authInfo.ts:1403</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="isdevhub"><code class="tsd-tag">Optional</code><span>is<wbr/>Dev<wbr/>Hub</span><a href="#isdevhub" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">isDevHub</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">boolean</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/authInfo.ts#L1361">src/org/authInfo.ts:1361</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/53d5fd01877cde3b3c0942e4e8de3d272f828b6e/src/org/authInfo.ts#L1424">src/org/authInfo.ts:1424</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="oauth2"><code class="tsd-tag">Optional</code><span>oauth2</span><a href="#oauth2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">oauth2</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">OAuth2</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/authInfo.ts#L1352">src/org/authInfo.ts:1352</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/53d5fd01877cde3b3c0942e4e8de3d272f828b6e/src/org/authInfo.ts#L1415">src/org/authInfo.ts:1415</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="oauth2options"><code class="tsd-tag">Optional</code><span>oauth2<wbr/>Options</span><a href="#oauth2options" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">oauth2Options</span><span class="tsd-signature-symbol">?:</span> <a href="org_authInfo.JwtOAuth2Config.html" class="tsd-signature-type tsd-kind-type-alias">JwtOAuth2Config</a></div>
 <div class="tsd-comment tsd-typography"><p>OAuth options.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/authInfo.ts#L1339">src/org/authInfo.ts:1339</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/53d5fd01877cde3b3c0942e4e8de3d272f828b6e/src/org/authInfo.ts#L1402">src/org/authInfo.ts:1402</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="parentusername"><code class="tsd-tag">Optional</code><span>parent<wbr/>Username</span><a href="#parentusername" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">parentUsername</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
@@ -73,14 +73,14 @@ information from another parent org. Typically for scratch org or sandbox
 creation.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/authInfo.ts#L1359">src/org/authInfo.ts:1359</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/53d5fd01877cde3b3c0942e4e8de3d272f828b6e/src/org/authInfo.ts#L1422">src/org/authInfo.ts:1422</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="username"><code class="tsd-tag">Optional</code><span>username</span><a href="#username" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">username</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>Org signup username.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/3b719fc7b58aac9938b03f9b9c8cd62191ff36f7/src/org/authInfo.ts#L1335">src/org/authInfo.ts:1335</a></li></ul></aside></section></section></details></div>
+<li>Defined in <a href="https://github.com/forcedotcom/sfdx-core/blob/53d5fd01877cde3b3c0942e4e8de3d272f828b6e/src/org/authInfo.ts#L1398">src/org/authInfo.ts:1398</a></li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
