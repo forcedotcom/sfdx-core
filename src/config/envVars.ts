@@ -101,6 +101,7 @@ export enum EnvironmentVariable {
   'SF_INSTALLER' = 'SF_INSTALLER',
   'SF_ENV' = 'SF_ENV',
   'SF_CAPITALIZE_RECORD_TYPES' = 'SF_CAPITALIZE_RECORD_TYPES',
+  'SF_SKIP_SCRATCH_ORG_CHECK' = 'SF_SKIP_SCRATCH_ORG_CHECK',
 }
 type EnvMetaData = {
   description: string;
@@ -429,6 +430,10 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SF_CAPITALIZE_RECORD_TYPES]: {
     description: getMessage(EnvironmentVariable.SF_CAPITALIZE_RECORD_TYPES),
+    synonymOf: null,
+  },
+  [EnvironmentVariable.SF_SKIP_SCRATCH_ORG_CHECK]: {
+    description: getMessage(EnvironmentVariable.SF_SKIP_SCRATCH_ORG_CHECK),
     synonymOf: null,
   },
 };
