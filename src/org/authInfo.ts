@@ -1180,7 +1180,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       accessToken: authFieldsBuilder.access_token,
       instanceUrl: authFieldsBuilder.instance_url,
       loginUrl: fullOptions.loginUrl ?? authFieldsBuilder.instance_url,
-      refreshToken: fullOptions.refreshToken,
+      refreshToken: authFieldsBuilder.refresh_token ?? fullOptions.refreshToken,
       clientId: fullOptions.clientId,
       clientSecret: fullOptions.clientSecret,
     };
