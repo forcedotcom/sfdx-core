@@ -1302,6 +1302,64 @@ describe('AuthInfo', () => {
       const sfError = testCallback.firstCall.args[0];
       expect(sfError.name).to.equal('OrgDataNotAvailableError', sfError.message as string);
     });
+
+    it('persists the rotated refresh token returned by the server (RTR)', async () => {
+      // Refresh Token Rotation: when a token-refresh response returns a NEW refresh_token,
+      // AuthInfo must persist it, replacing the token it sent. Today buildRefreshTokenConfig()
+      // re-saves the token it was given instead of the one the server returned, so this fails.
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+
+      const originalRefreshToken = testOrg.refreshToken;
+      const rotatedRefreshToken = `${testOrg.refreshToken}_ROTATED`;
+
+      // Initial auth: the server echoes back the original refresh token.
+      postParamsStub.resolves({
+        access_token: testOrg.accessToken,
+        instance_url: testOrg.instanceUrl,
+        refresh_token: originalRefreshToken,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      });
+
+      const authInfo = await AuthInfo.create({
+        username: testOrg.username,
+        oauth2Options: {
+          refreshToken: originalRefreshToken,
+          loginUrl: testOrg.loginUrl,
+        },
+      });
+
+      // Sanity check: the original refresh token is stored after the initial auth.
+      expect(authInfo.getFields(true).refreshToken).to.equal(originalRefreshToken);
+
+      // A token refresh occurs and the server rotates the refresh token (RTR enabled on the app).
+      postParamsStub.resolves({
+        access_token: `${testOrg.accessToken}_REFRESHED`,
+        instance_url: testOrg.instanceUrl,
+        refresh_token: rotatedRefreshToken,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      });
+
+      // Drive the real refresh path: refreshFn -> initAuthOptions -> buildRefreshTokenConfig -> save.
+      const refreshFn = authInfo.getConnectionOptions().refreshFn as (
+        conn: unknown,
+        callback: (err: Error | null, accessToken?: string) => Promise<void>
+      ) => Promise<void>;
+
+      let refreshedAccessToken: string | undefined;
+      await refreshFn(null, async (err, accessToken) => {
+        if (err) {
+          throw err;
+        }
+        refreshedAccessToken = accessToken;
+      });
+
+      // The refreshed access token propagated back to jsforce's session-refresh callback.
+      expect(refreshedAccessToken).to.equal(`${testOrg.accessToken}_REFRESHED`);
+
+      // RTR: the rotated refresh token must now be persisted, replacing the original.
+      expect(authInfo.getFields(true).refreshToken).to.equal(rotatedRefreshToken);
+    });
   });
 
   describe('getAuthorizationUrl', () => {

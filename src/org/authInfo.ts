@@ -1243,7 +1243,11 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       accessToken: authFieldsBuilder.access_token,
       instanceUrl: authFieldsBuilder.instance_url,
       loginUrl: fullOptions.loginUrl ?? authFieldsBuilder.instance_url,
-      refreshToken: fullOptions.refreshToken,
+      // Refresh Token Rotation (RTR): when the app has RTR enabled, the token endpoint returns a
+      // NEW refresh_token that we must persist, replacing the one we sent. When RTR is off, the
+      // response omits refresh_token, so we keep the existing one.
+      // https://help.salesforce.com/s/articleView?id=sf.remoteaccess_oauth_refresh_token_flow.htm&type=5
+      refreshToken: authFieldsBuilder.refresh_token ?? fullOptions.refreshToken,
       clientId: fullOptions.clientId,
       clientSecret: fullOptions.clientSecret,
     };
