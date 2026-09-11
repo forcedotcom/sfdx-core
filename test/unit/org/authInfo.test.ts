@@ -1360,6 +1360,107 @@ describe('AuthInfo', () => {
       // RTR: the rotated refresh token must now be persisted, replacing the original.
       expect(authInfo.getFields(true).refreshToken).to.equal(rotatedRefreshToken);
     });
+
+    it('routes refresh through the refresh-token flow (not JWT) when a stale privateKey lingers, and stores the rotated token', async () => {
+      // Guard test. An auth file that carries BOTH a stale privateKey (from a prior JWT auth) and a
+      // refreshToken (from a later web auth) can already exist on disk (e.g. created before the
+      // exchangeToken cleanup below). initAuthOptions checks options.privateKey first, so without the
+      // guard `!options.refreshToken` this refresh would misroute into the JWT branch and never store
+      // the rotated refresh token. Seed the corrupt file directly so this asserts the guard in
+      // isolation, independent of how the file became corrupt.
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+
+      const corruptFields = {
+        ...(await testOrg.getConfig()), // has privateKey
+        refreshToken: testOrg.refreshToken,
+      };
+      expect(corruptFields.privateKey, 'precondition: seeded file has a stale privateKey').to.be.a('string');
+      expect(corruptFields.refreshToken, 'precondition: seeded file also has a refreshToken').to.be.a('string');
+      $$.setConfigStubContents('AuthInfoConfig', { contents: corruptFields });
+
+      const authInfo = await AuthInfo.create({ username: testOrg.username });
+
+      // Sanity: the loaded file has both fields and is treated as a refresh-token flow.
+      expect(authInfo.getFields(true).privateKey).to.be.a('string');
+      expect(authInfo.getFields(true).refreshToken).to.equal(testOrg.refreshToken);
+      expect(authInfo.isRefreshTokenFlow(), 'a file with a refreshToken is a refresh-token flow').to.be.true;
+
+      // A refresh occurs and the server rotates the refresh token.
+      const rotatedRefreshToken = `${testOrg.refreshToken}_ROTATED`;
+      postParamsStub.resolves({
+        access_token: `${testOrg.accessToken}_REFRESHED`,
+        instance_url: testOrg.instanceUrl,
+        refresh_token: rotatedRefreshToken,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      });
+
+      // Only observe the branch taken during the refresh, not the initial create.
+      authInfoStubs.authJwt.resetHistory();
+      authInfoStubs.buildRefreshTokenConfig.resetHistory();
+
+      const refreshFn = authInfo.getConnectionOptions().refreshFn as (
+        conn: unknown,
+        callback: (err: Error | null, accessToken?: string) => Promise<void>
+      ) => Promise<void>;
+
+      let refreshedAccessToken: string | undefined;
+      await refreshFn(null, async (err, accessToken) => {
+        if (err) {
+          throw err;
+        }
+        refreshedAccessToken = accessToken;
+      });
+
+      // The refresh took the refresh-token branch, not the JWT branch.
+      expect(authInfoStubs.buildRefreshTokenConfig.called, 'refresh should use buildRefreshTokenConfig').to.be.true;
+      expect(authInfoStubs.authJwt.called, 'refresh should NOT use authJwt despite the stale privateKey').to.be.false;
+
+      // The refreshed access token propagated back, and the rotated refresh token was persisted.
+      expect(refreshedAccessToken).to.equal(`${testOrg.accessToken}_REFRESHED`);
+      expect(authInfo.getFields(true).refreshToken).to.equal(rotatedRefreshToken);
+    });
+
+    it('clears a stale privateKey from the auth file when re-authenticating via web (auth code)', async () => {
+      // exchangeToken cleanup. A user JWT-auths (auth file has a privateKey), then runs `sf org login
+      // web` for the same org. Web login discovers the username only AFTER the code exchange, so
+      // AuthInfo.create is called with NO username and the overwrite guard (init()) is skipped; the
+      // save path merges (Object.assign) the web fields over the existing file. exchangeToken returns
+      // privateKey: undefined so the merge cannot retain the stale JWT-only field.
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+
+      // Existing JWT auth file for this org (has privateKey, no refreshToken).
+      const jwtFields = await testOrg.getConfig();
+      expect(jwtFields.privateKey, 'precondition: seeded JWT auth file has a privateKey').to.be.a('string');
+      expect(jwtFields.refreshToken, 'precondition: seeded JWT auth file has no refreshToken').to.be.undefined;
+      $$.setConfigStubContents('AuthInfoConfig', { contents: jwtFields });
+
+      // Re-authenticate the SAME org via the web/auth-code flow (no username, as `sf org login web` does).
+      postParamsStub.resolves({
+        access_token: testOrg.accessToken,
+        instance_url: testOrg.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        refresh_token: testOrg.refreshToken,
+      });
+      // Discover the SAME username (same case) so the web auth merges onto the seeded JWT file.
+      stubUserRequest(
+        { statusCode: 200, body: { preferred_username: testOrg.username, organization_id: testOrg.orgId } },
+        { statusCode: 200, body: { Username: testOrg.username } }
+      );
+
+      const authInfo = await AuthInfo.create({
+        oauth2Options: { authCode: testOrg.authcode, loginUrl: testOrg.loginUrl },
+      });
+
+      // The web auth took effect and the stale JWT privateKey was cleared, not merged forward.
+      expect(authInfo.getFields(true).refreshToken, 'web auth should have stored a refresh token').to.equal(
+        testOrg.refreshToken
+      );
+      expect(authInfo.isRefreshTokenFlow(), 'should be a refresh-token flow after web auth').to.be.true;
+      expect(authInfo.getFields().privateKey, 'stale privateKey should be cleared after switching to web auth').to.be
+        .undefined;
+    });
   });
 
   describe('getAuthorizationUrl', () => {

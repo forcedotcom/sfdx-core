@@ -1035,7 +1035,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           options.privateKey = pathResolve(options.privateKeyFile);
         }
 
-        if (options.privateKey) {
+        // Route to JWT only when there's a privateKey AND no refreshToken. A legitimate JWT auth never
+        // carries a refreshToken (authJwt writes none, and `login jwt` deletes-then-recreates the auth file).
+        // The edge case that contains BOTH a privateKey AND a refreshToken is when auth was originally JWT
+        // and later switched to Web auth. Web auth does not delete the existing auth file, so `AuthInfo.update`
+        // merges over the old file. In that case the refreshToken is the intended credential, so fall
+        // through to the refresh-token flow instead of misrouting into JWT, which also matches isJwt().
+        if (options.privateKey && !options.refreshToken) {
           authConfig = await this.authJwt(options);
         } else if (!options.authCode && options.refreshToken) {
           // refresh token flow (from sfdxUrl or OAuth refreshFn)
@@ -1057,6 +1063,16 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
       // Update the auth fields WITH encryption
       this.update(authConfig);
+
+      // A web/auth-code or refresh-token authorization is never a JWT one, so it must not carry a
+      // privateKey. When this flow overwrites an existing auth file (e.g. the user was JWT-authed for
+      // this org, then re-authed via web), the save path merges (Object.assign) over the existing
+      // file and would otherwise retain the stale privateKey, which later misroutes refreshFn into
+      // the JWT flow. Only clear it when a stale value actually lingers so we don't add an empty key
+      // to a fresh authorization.
+      if (!authConfig.privateKey && this.getFields().privateKey) {
+        this.stateAggregator.orgs.update(this.username, { privateKey: undefined });
+      }
 
       // Populate Organization metadata (orgEdition, isScratch, isSandbox, etc.) in a single query.
       await determineOrg(this);
