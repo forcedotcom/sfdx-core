@@ -190,7 +190,6 @@ describe('WebOauthServer', () => {
       const origOn = webServer.server.on;
       let requestListener: http.RequestListener;
       stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         if (event !== 'request') return origOn.call(webServer.server, event, callback);
 
         requestListener = callback;
@@ -248,7 +247,6 @@ describe('WebOauthServer', () => {
       const origOn = webServer.server.on;
       let requestListener: http.RequestListener;
       stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         if (event !== 'request') return origOn.call(webServer.server, event, callback);
 
         requestListener = callback;
@@ -309,7 +307,6 @@ describe('WebOauthServer', () => {
       const origOn = webServer.server.on;
       let requestListener: http.RequestListener;
       stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         if (event !== 'request') return origOn.call(webServer.server, event, callback);
 
         requestListener = callback;
@@ -376,7 +373,6 @@ describe('WebOauthServer', () => {
     const origOn = webServer.server.on;
     let requestListener: http.RequestListener;
     stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       if (event !== 'request') return origOn.call(webServer.server, event, callback);
 
       requestListener = callback;
