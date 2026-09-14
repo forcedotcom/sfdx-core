@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788463634760,
+  "lastUpdate": 1789420075372,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -45930,6 +45930,72 @@ window.BENCHMARK_DATA = {
             "range": "±8.12%",
             "unit": "ops/sec",
             "extra": "64 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sorida.lac@salesforce.com",
+            "name": "soridalac",
+            "username": "soridalac"
+          },
+          "committer": {
+            "email": "sorida.lac@salesforce.com",
+            "name": "soridalac",
+            "username": "soridalac"
+          },
+          "distinct": true,
+          "id": "de52810aa65b3f0a3a999f17d456540364e0780a",
+          "message": "fix: remove unused esl-disable and feat-script",
+          "timestamp": "2026-09-14T14:03:03-07:00",
+          "tree_id": "aa3f895a4fcffb84f14917cbd742661107a6f58d",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/de52810aa65b3f0a3a999f17d456540364e0780a"
+        },
+        "date": 1789420065042,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 486176,
+            "range": "±1.02%",
+            "unit": "ops/sec",
+            "extra": "95 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1248293,
+            "range": "±9.40%",
+            "unit": "ops/sec",
+            "extra": "40 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 10779,
+            "range": "±242.15%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 684345,
+            "range": "±12.77%",
+            "unit": "ops/sec",
+            "extra": "66 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 486969,
+            "range": "±11.72%",
+            "unit": "ops/sec",
+            "extra": "60 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 24596,
+            "range": "±182.93%",
+            "unit": "ops/sec",
+            "extra": "63 samples"
           }
         ]
       }
