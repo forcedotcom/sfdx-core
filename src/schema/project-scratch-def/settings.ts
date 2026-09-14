@@ -411,6 +411,12 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_forecastingsettings.htm'
       ),
+    helpSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_helpsettings.htm'
+      ),
     highVelocitySalesSettings: z
       .record(z.string(), z.unknown())
       .optional()
@@ -548,6 +554,12 @@ export const SettingsSchema = z
       .optional()
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_mapandlocationsettings.htm'
+      ),
+    mCETransformationsSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_mcetransformationssettings.htm'
       ),
     meetingsSettings: z
       .record(z.string(), z.unknown())

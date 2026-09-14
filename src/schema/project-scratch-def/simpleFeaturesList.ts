@@ -194,6 +194,7 @@ export const simpleFeaturesList = [
   'JigsawUser',
   'Knowledge',
   'LegacyLiveAgentRouting',
+  'LifeSciencesCloudForCustomerEngagement',
   'LightningSalesConsole',
   'LightningScheduler',
   'LightningServiceConsole',
