@@ -83,7 +83,6 @@ export type Settings = z.infer<typeof SettingsSchema>;
 };
 
 const fetchJson = async (url: string): Promise<DocsResponse> => {
-  // @ts-expect-error fetch is globally available in Node 18+ but tsconfig targets ES2022
   const res: Response = await fetch(url, {
     headers: { 'User-Agent': 'sfdx-core/schema-update' },
   });
