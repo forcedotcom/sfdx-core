@@ -1170,12 +1170,11 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    *
    * Each pass is one call to `tryRotateOrAdopt`, which (1) adopts if disk already holds a rotated token, else
    * (2) tries to acquire the lock and, once held, re-checks-then-refreshes. If we can't acquire (a live holder
-   * is mid-rotation, ELOCKED), we do NOT
-   * fall back to an unlocked refresh, which would race the holder and double-rotate under RTR; we simply loop
-   * back to (1) and re-run the pass (re-read disk, then try to acquire the lock again). `proper-lockfile` only
-   * grants the lock on genuine release or genuine staleness (a live
-   * holder refreshes its lock mtime ~every 5s and so is never stolen from), so looping converges: a slow
-   * holder is waited out, a dead holder's lock crosses the ~10s stale line and is stolen on a later attempt.
+   * is mid-rotation, ELOCKED), we do NOT fall back to an unlocked refresh, which would race the holder and double-rotate
+   * under RTR; we simply loop back to (1) and re-run the pass (re-read disk, then try to acquire the lock again).
+   * `proper-lockfile` only grants the lock on genuine release or genuine staleness (a live
+   * holder refreshes its lock mtime ~every 5s and so is never stolen from), so looping converges: a slow holder is waited out,
+   * a dead holder's lock crosses the ~10s stale line and is stolen on a later attempt.
    * Only a holder that keeps the lock alive for the whole budget below yields the timeout error.
    *
    * The lock uses a dedicated `<authfile>.token-rotation.lock`, kept separate from ConfigFile's
@@ -1221,12 +1220,12 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         return;
       }
       // Otherwise the lock was contended (a live holder is mid-rotation): loop and re-attempt. We never
-      // refresh unlocked -- that would race the holder and double-rotate under RTR. No sleep needed: lockInit
+      // refresh unlocked, that would race the holder and double-rotate under RTR. No sleep needed: lockInit
       // already backed off ~10s, and the next attempt re-reads disk before doing anything.
     }
 
     // Past the cutoff with every attempt still contended: a process kept the rotation lock's mtime fresh for
-    // the entire budget without completing -- genuinely stuck, not merely slow or crashed (a crash lets the
+    // the entire budget without completing. Genuinely stuck, not merely slow or crashed (a crash lets the
     // lock go stale and be stolen by an attempt above).
     throw messages.createError('refreshTokenRotationTimeoutError', [username]);
   }

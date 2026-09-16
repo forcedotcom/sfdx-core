@@ -144,7 +144,6 @@ async function createWebAuthedScratchOrg(): Promise<{ username: string; projectD
     // the network). One rotation is expected; adopters skip the endpoint entirely.
     const originalRefresh = OAuth2.prototype.refreshToken;
     let realRefreshCalls = 0;
-    // eslint-disable-next-line func-names
     OAuth2.prototype.refreshToken = async function (...args: Parameters<typeof originalRefresh>) {
       realRefreshCalls++;
       return originalRefresh.apply(this, args);
