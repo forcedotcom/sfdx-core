@@ -36,11 +36,11 @@ Error authenticating with the refresh token due to: %s
 
 # refreshTokenAuthError.actions
 
-- The stored refresh token is no longer valid (it may have expired, been revoked, or been rotated). Re-authenticate to the org, then retry. For example, run "sf org login web --alias <your-alias>"
+- The stored refresh token is no longer valid (it may have expired, been revoked, or been rotated). Re-authenticate to the org, then try again.
 
 # refreshTokenRotationTimeoutError
 
-Timed out waiting for another process to finish rotating the refresh token for %s. Another process held the rotation lock for the entire wait without completing. Retry the command. If it persists, another "sf" process is likely stuck mid-refresh: stop any other running "sf" processes, then retry.
+Timed out waiting for another process to finish rotating the refresh token for %s. Another process held the rotation lock for the entire wait without completing. Try again. If it persists, another process is likely stuck mid-refresh: stop any other processes using this org's authentication, then try again.
 
 # invalidSfdxAuthUrlError
 
