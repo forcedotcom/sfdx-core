@@ -86,16 +86,26 @@ async function createWebAuthedScratchOrg(): Promise<{ username: string; projectD
     join(projectDir, 'sfdx-project.json'),
     JSON.stringify({ packageDirectories: [{ path: 'force-app', default: true }], namespace: '' }, null, 2)
   );
+  await mkdir(join(projectDir, 'force-app'), { recursive: true });
   await mkdir(join(projectDir, 'config'), { recursive: true });
   await writeFile(
     join(projectDir, 'config', 'project-scratch-def.json'),
     JSON.stringify({ orgName: 'RTR NUT', edition: 'Developer' }, null, 2)
   );
 
-  const { stdout } = await execProm(
-    `sf org create scratch --definition-file config/project-scratch-def.json --target-dev-hub ${devhub} --duration-days 1 --wait 10 --json`,
-    { cwd: projectDir, maxBuffer: 10 * 1024 * 1024 }
-  );
+  let stdout: string;
+  try {
+    ({ stdout } = await execProm(
+      `sf org create scratch --definition-file config/project-scratch-def.json --target-dev-hub ${devhub} --duration-days 1 --wait 10 --json`,
+      { cwd: projectDir, maxBuffer: 10 * 1024 * 1024 }
+    ));
+  } catch (err: unknown) {
+    const e = err as Error & { stdout?: string; stderr?: string };
+    throw new Error(
+      `sf org create scratch failed.\nstdout: ${e.stdout ?? '(empty)'}\nstderr: ${e.stderr ?? '(empty)'}`,
+      { cause: err }
+    );
+  }
   const parsed = JSON.parse(stdout) as { result: { username: string } };
   return { username: parsed.result.username, projectDir };
 }
