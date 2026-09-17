@@ -23,7 +23,7 @@ import dns from 'node:dns';
 import jwt from 'jsonwebtoken';
 import { env, includes } from '@salesforce/kit';
 import { spyMethod, stubMethod } from '@salesforce/ts-sinon';
-import { AnyJson, getJsonMap, JsonMap, toJsonMap } from '@salesforce/ts-types';
+import { AnyJson, ensureString, getJsonMap, JsonMap, toJsonMap } from '@salesforce/ts-types';
 import { expect, config as chaiConfig } from 'chai';
 import { Transport } from '@jsforce/jsforce-node/lib/transport';
 
@@ -38,6 +38,7 @@ import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
 import { StateAggregator } from '../../../src/stateAggregator/stateAggregator';
 import { AliasAccessor } from '../../../src/stateAggregator/accessors/aliasAccessor';
 import { OrgAccessor } from '../../../src/stateAggregator/accessors/orgAccessor';
+import * as fileLocking from '../../../src/util/fileLocking';
 import { Crypto } from '../../../src/crypto/crypto';
 import { Config } from '../../../src/config/config';
 import { SfdcUrl } from '../../../src/util/sfdcUrl';
@@ -1301,6 +1302,528 @@ describe('AuthInfo', () => {
 
       const sfError = testCallback.firstCall.args[0];
       expect(sfError.name).to.equal('OrgDataNotAvailableError', sfError.message as string);
+    });
+
+    it('persists the rotated refresh token returned by the server (RTR)', async () => {
+      // Refresh Token Rotation: when a token-refresh response returns a NEW refresh_token,
+      // AuthInfo must persist it, replacing the token it sent. Today buildRefreshTokenConfig()
+      // re-saves the token it was given instead of the one the server returned, so this fails.
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+
+      const originalRefreshToken = testOrg.refreshToken;
+      const rotatedRefreshToken = `${testOrg.refreshToken}_ROTATED`;
+
+      // Initial auth: the server echoes back the original refresh token.
+      postParamsStub.resolves({
+        access_token: testOrg.accessToken,
+        instance_url: testOrg.instanceUrl,
+        refresh_token: originalRefreshToken,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      });
+
+      const authInfo = await AuthInfo.create({
+        username: testOrg.username,
+        oauth2Options: {
+          refreshToken: originalRefreshToken,
+          loginUrl: testOrg.loginUrl,
+        },
+      });
+
+      // Sanity check: the original refresh token is stored after the initial auth.
+      expect(authInfo.getFields(true).refreshToken).to.equal(originalRefreshToken);
+
+      // A token refresh occurs and the server rotates the refresh token (RTR enabled on the app).
+      postParamsStub.resolves({
+        access_token: `${testOrg.accessToken}_REFRESHED`,
+        instance_url: testOrg.instanceUrl,
+        refresh_token: rotatedRefreshToken,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      });
+
+      // Drive the real refresh path: refreshFn -> initAuthOptions -> buildRefreshTokenConfig -> save.
+      const refreshFn = authInfo.getConnectionOptions().refreshFn as (
+        conn: unknown,
+        callback: (err: Error | null, accessToken?: string) => Promise<void>
+      ) => Promise<void>;
+
+      let refreshedAccessToken: string | undefined;
+      await refreshFn(null, async (err, accessToken) => {
+        if (err) {
+          throw err;
+        }
+        refreshedAccessToken = accessToken;
+      });
+
+      // The refreshed access token propagated back to jsforce's session-refresh callback.
+      expect(refreshedAccessToken).to.equal(`${testOrg.accessToken}_REFRESHED`);
+
+      // RTR: the rotated refresh token must now be persisted, replacing the original.
+      expect(authInfo.getFields(true).refreshToken).to.equal(rotatedRefreshToken);
+    });
+
+    it('routes refresh through the refresh-token flow (not JWT) when a stale privateKey lingers, and stores the rotated token', async () => {
+      // Guard test. An auth file that carries BOTH a stale privateKey (from a prior JWT auth) and a
+      // refreshToken (from a later web auth) can already exist on disk (e.g. created before the
+      // exchangeToken cleanup below). initAuthOptions checks options.privateKey first, so without the
+      // guard `!options.refreshToken` this refresh would misroute into the JWT branch and never store
+      // the rotated refresh token. Seed the corrupt file directly so this asserts the guard in
+      // isolation, independent of how the file became corrupt.
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+
+      const corruptFields = {
+        ...(await testOrg.getConfig()), // has privateKey
+        refreshToken: testOrg.refreshToken,
+      };
+      expect(corruptFields.privateKey, 'precondition: seeded file has a stale privateKey').to.be.a('string');
+      expect(corruptFields.refreshToken, 'precondition: seeded file also has a refreshToken').to.be.a('string');
+      $$.setConfigStubContents('AuthInfoConfig', { contents: corruptFields });
+
+      const authInfo = await AuthInfo.create({ username: testOrg.username });
+
+      // Sanity: the loaded file has both fields and is treated as a refresh-token flow.
+      expect(authInfo.getFields(true).privateKey).to.be.a('string');
+      expect(authInfo.getFields(true).refreshToken).to.equal(testOrg.refreshToken);
+      expect(authInfo.isRefreshTokenFlow(), 'a file with a refreshToken is a refresh-token flow').to.be.true;
+
+      // A refresh occurs and the server rotates the refresh token.
+      const rotatedRefreshToken = `${testOrg.refreshToken}_ROTATED`;
+      postParamsStub.resolves({
+        access_token: `${testOrg.accessToken}_REFRESHED`,
+        instance_url: testOrg.instanceUrl,
+        refresh_token: rotatedRefreshToken,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      });
+
+      // Only observe the branch taken during the refresh, not the initial create.
+      authInfoStubs.authJwt.resetHistory();
+      authInfoStubs.buildRefreshTokenConfig.resetHistory();
+
+      const refreshFn = authInfo.getConnectionOptions().refreshFn as (
+        conn: unknown,
+        callback: (err: Error | null, accessToken?: string) => Promise<void>
+      ) => Promise<void>;
+
+      let refreshedAccessToken: string | undefined;
+      await refreshFn(null, async (err, accessToken) => {
+        if (err) {
+          throw err;
+        }
+        refreshedAccessToken = accessToken;
+      });
+
+      // The refresh took the refresh-token branch, not the JWT branch.
+      expect(authInfoStubs.buildRefreshTokenConfig.called, 'refresh should use buildRefreshTokenConfig').to.be.true;
+      expect(authInfoStubs.authJwt.called, 'refresh should NOT use authJwt despite the stale privateKey').to.be.false;
+
+      // The refreshed access token propagated back, and the rotated refresh token was persisted.
+      expect(refreshedAccessToken).to.equal(`${testOrg.accessToken}_REFRESHED`);
+      expect(authInfo.getFields(true).refreshToken).to.equal(rotatedRefreshToken);
+    });
+
+    it('clears a stale privateKey from the auth file when re-authenticating via web (auth code)', async () => {
+      // exchangeToken cleanup. A user JWT-auths (auth file has a privateKey), then runs `sf org login
+      // web` for the same org. Web login discovers the username only AFTER the code exchange, so
+      // AuthInfo.create is called with NO username and the overwrite guard (init()) is skipped; the
+      // save path merges (Object.assign) the web fields over the existing file. exchangeToken returns
+      // privateKey: undefined so the merge cannot retain the stale JWT-only field.
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+
+      // Existing JWT auth file for this org (has privateKey, no refreshToken).
+      const jwtFields = await testOrg.getConfig();
+      expect(jwtFields.privateKey, 'precondition: seeded JWT auth file has a privateKey').to.be.a('string');
+      expect(jwtFields.refreshToken, 'precondition: seeded JWT auth file has no refreshToken').to.be.undefined;
+      $$.setConfigStubContents('AuthInfoConfig', { contents: jwtFields });
+
+      // Re-authenticate the SAME org via the web/auth-code flow (no username, as `sf org login web` does).
+      postParamsStub.resolves({
+        access_token: testOrg.accessToken,
+        instance_url: testOrg.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+        refresh_token: testOrg.refreshToken,
+      });
+      // Discover the SAME username (same case) so the web auth merges onto the seeded JWT file.
+      stubUserRequest(
+        { statusCode: 200, body: { preferred_username: testOrg.username, organization_id: testOrg.orgId } },
+        { statusCode: 200, body: { Username: testOrg.username } }
+      );
+
+      const authInfo = await AuthInfo.create({
+        oauth2Options: { authCode: testOrg.authcode, loginUrl: testOrg.loginUrl },
+      });
+
+      // The web auth took effect and the stale JWT privateKey was cleared, not merged forward.
+      expect(authInfo.getFields(true).refreshToken, 'web auth should have stored a refresh token').to.equal(
+        testOrg.refreshToken
+      );
+      expect(authInfo.isRefreshTokenFlow(), 'should be a refresh-token flow after web auth').to.be.true;
+      expect(authInfo.getFields().privateKey, 'stale privateKey should be cleared after switching to web auth').to.be
+        .undefined;
+    });
+
+    // Shared setup for the RTR concurrency tests: create a refresh-token AuthInfo holding the original
+    // token, then hand back the driver bits (refreshFn + a helper to run it and capture the access token).
+    const createRefreshTokenAuthInfo = async (): Promise<{
+      authInfo: AuthInfo;
+      originalRefreshToken: string;
+      drive: () => Promise<string | undefined>;
+    }> => {
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+
+      const originalRefreshToken = ensureString(testOrg.refreshToken);
+      postParamsStub.resolves({
+        access_token: testOrg.accessToken,
+        instance_url: testOrg.instanceUrl,
+        refresh_token: originalRefreshToken,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      });
+
+      const authInfo = await AuthInfo.create({
+        username: testOrg.username,
+        oauth2Options: { refreshToken: originalRefreshToken, loginUrl: testOrg.loginUrl },
+      });
+      expect(authInfo.getFields(true).refreshToken).to.equal(originalRefreshToken);
+
+      // Any token-endpoint POST after this point would mean we (re-)refreshed rather than adopted.
+      postParamsStub.resetHistory();
+
+      const refreshFn = authInfo.getConnectionOptions().refreshFn as (
+        conn: unknown,
+        callback: (err: Error | null, accessToken?: string) => Promise<void>
+      ) => Promise<void>;
+      const drive = async (): Promise<string | undefined> => {
+        let refreshedAccessToken: string | undefined;
+        await refreshFn(null, async (err, accessToken) => {
+          if (err) {
+            throw err;
+          }
+          refreshedAccessToken = accessToken;
+        });
+        return refreshedAccessToken;
+      };
+
+      return { authInfo, originalRefreshToken, drive };
+    };
+
+    it('adopts an already-rotated token WITHOUT taking the lock (fast path)', async () => {
+      // A late arrival: by the time we look, disk already holds a rotated token. We must adopt it
+      // lock-free so late contenders never queue on the lock.
+      const { authInfo, originalRefreshToken, drive } = await createRefreshTokenAuthInfo();
+
+      const adoptedRefreshToken = `${originalRefreshToken}_ROTATED_BY_OTHER`;
+      const adoptedAccessToken = `${testOrg.accessToken}_ROTATED_BY_OTHER`;
+      const peekStub = stubMethod($$.SANDBOX, OrgAccessor.prototype, 'peek').resolves({
+        refreshToken: adoptedRefreshToken,
+        accessToken: adoptedAccessToken,
+      });
+      const lockInitStub = stubMethod($$.SANDBOX, fileLocking, 'lockInit');
+
+      const refreshedAccessToken = await drive();
+
+      expect(peekStub.called, 'should consult on-disk tokens').to.be.true;
+      expect(lockInitStub.called, 'fast-path adoption must not take the lock').to.be.false;
+      expect(postParamsStub.called, 'an already-rotated token must be adopted, not re-refreshed').to.be.false;
+      expect(refreshedAccessToken).to.equal(adoptedAccessToken);
+      expect(authInfo.getFields(true).refreshToken).to.equal(adoptedRefreshToken);
+    });
+
+    it('takes the lock, re-checks under it, and adopts a token that rotated while it waited (double-checked)', async () => {
+      // Disk still shows our token on the pre-lock peek, so we take the lock. While we waited, the holder
+      // rotated and released; the under-lock re-peek sees the new token and we adopt instead of rotating.
+      const { authInfo, originalRefreshToken, drive } = await createRefreshTokenAuthInfo();
+
+      const adoptedRefreshToken = `${originalRefreshToken}_ROTATED_BY_OTHER`;
+      const adoptedAccessToken = `${testOrg.accessToken}_ROTATED_BY_OTHER`;
+      const peekStub = stubMethod($$.SANDBOX, OrgAccessor.prototype, 'peek');
+      peekStub.onFirstCall().resolves({ refreshToken: originalRefreshToken }); // pre-lock: not yet rotated
+      peekStub.resolves({ refreshToken: adoptedRefreshToken, accessToken: adoptedAccessToken }); // under lock: rotated
+
+      const unlockSpy = $$.SANDBOX.stub().resolves();
+      const lockInitStub = stubMethod($$.SANDBOX, fileLocking, 'lockInit').resolves({
+        writeAndUnlock: $$.SANDBOX.stub().resolves(),
+        unlock: unlockSpy,
+      });
+
+      const refreshedAccessToken = await drive();
+
+      expect(lockInitStub.calledOnce, 'should acquire the token-rotation lock').to.be.true;
+      expect(lockInitStub.firstCall.args[0] as string).to.match(/\.token-rotation$/);
+      expect(unlockSpy.calledOnce, 'the lock should be released').to.be.true;
+      expect(peekStub.callCount, 'should peek before and again under the lock').to.be.greaterThanOrEqual(2);
+      expect(postParamsStub.called, 'a token rotated under the lock must be adopted, not re-refreshed').to.be.false;
+      expect(refreshedAccessToken).to.equal(adoptedAccessToken);
+      expect(authInfo.getFields(true).refreshToken).to.equal(adoptedRefreshToken);
+    });
+
+    it('retries the lock (does not refresh unlocked) and adopts once the holder rotates (ELOCKED)', async () => {
+      // A straggler under heavy concurrency exhausts the lock's acquisition retries (ELOCKED). It must NOT
+      // fall back to an unlocked refresh (that would race the holder and double-rotate under RTR); it loops,
+      // re-reads disk at the top of the next pass, sees the holder's now-persisted token, and adopts it.
+      const { authInfo, originalRefreshToken, drive } = await createRefreshTokenAuthInfo();
+
+      const adoptedRefreshToken = `${originalRefreshToken}_ROTATED_BY_OTHER`;
+      const adoptedAccessToken = `${testOrg.accessToken}_ROTATED_BY_OTHER`;
+      const peekStub = stubMethod($$.SANDBOX, OrgAccessor.prototype, 'peek');
+      peekStub.onFirstCall().resolves({ refreshToken: originalRefreshToken }); // pass 1: not yet rotated
+      peekStub.resolves({ refreshToken: adoptedRefreshToken, accessToken: adoptedAccessToken }); // pass 2: rotated
+
+      const lockInitStub = stubMethod($$.SANDBOX, fileLocking, 'lockInit').rejects(
+        Object.assign(new Error('Lock file is already being held'), { code: 'ELOCKED' })
+      );
+
+      const refreshedAccessToken = await drive();
+
+      expect(lockInitStub.calledOnce, 'should have attempted (and failed) to acquire the lock once').to.be.true;
+      expect(peekStub.callCount, 'should re-read on-disk tokens on the next pass').to.be.greaterThanOrEqual(2);
+      expect(postParamsStub.called, 'a contended straggler must adopt, not re-refresh unlocked').to.be.false;
+      expect(refreshedAccessToken).to.equal(adoptedAccessToken);
+      expect(authInfo.getFields(true).refreshToken).to.equal(adoptedRefreshToken);
+    });
+
+    it('retries a contended lock, then acquires it and performs the real refresh when no one else rotated (ELOCKED)', async () => {
+      // ELOCKED does not mean someone rotated: the holder may have crashed (stale lock later steal-able) or
+      // been slow. Here the on-disk token never changes, so after a failed attempt we re-acquire the lock and
+      // perform the rotation ourselves rather than adopting or giving up.
+      const { authInfo, originalRefreshToken, drive } = await createRefreshTokenAuthInfo();
+
+      // Disk always shows our own (un-rotated) token: nobody else ever rotated.
+      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'peek').resolves({
+        refreshToken: originalRefreshToken,
+      });
+
+      const unlockSpy = $$.SANDBOX.stub().resolves();
+      const lockInitStub = stubMethod($$.SANDBOX, fileLocking, 'lockInit');
+      lockInitStub
+        .onFirstCall()
+        .rejects(Object.assign(new Error('Lock file is already being held'), { code: 'ELOCKED' }));
+      lockInitStub.resolves({ writeAndUnlock: $$.SANDBOX.stub().resolves(), unlock: unlockSpy }); // acquired on retry
+      const saveSpy = $$.SANDBOX.spy(authInfo, 'save');
+
+      const refreshedAccessToken = await drive();
+
+      expect(lockInitStub.callCount, 'should retry the lock after ELOCKED and then acquire it').to.equal(2);
+      expect(unlockSpy.calledOnce, 'the acquired lock should be released').to.be.true;
+      expect(postParamsStub.called, 'holding the lock with no rotation on disk must perform the real refresh').to.be
+        .true;
+      // The refresh must be written back to disk under the lock (before unlock), so contenders behind us adopt it.
+      expect(saveSpy.called, 'the real refresh must persist the rotated token via save()').to.be.true;
+      expect(saveSpy.calledBefore(unlockSpy), 'save() must run before the lock is released').to.be.true;
+      // The refresh persists the (re-issued) token; we did not adopt anyone else's.
+      expect(refreshedAccessToken).to.equal(testOrg.accessToken);
+      expect(authInfo.getFields(true).refreshToken).to.equal(originalRefreshToken);
+    });
+
+    it('falls through to a locked refresh when the auth file cannot be read (peek returns null)', async () => {
+      // peek() returns null for a missing/unreadable auth file. There is nothing to adopt, so we must not
+      // skip the lock: we take it, re-check under it (still null), and perform a normal refresh under the
+      // lock. This exercises the `onDisk?.refreshToken` null-guard as a real runtime fallback.
+      const { authInfo, originalRefreshToken, drive } = await createRefreshTokenAuthInfo();
+
+      const peekStub = stubMethod($$.SANDBOX, OrgAccessor.prototype, 'peek').resolves(null);
+      const unlockSpy = $$.SANDBOX.stub().resolves();
+      const lockInitStub = stubMethod($$.SANDBOX, fileLocking, 'lockInit').resolves({
+        writeAndUnlock: $$.SANDBOX.stub().resolves(),
+        unlock: unlockSpy,
+      });
+      const saveSpy = $$.SANDBOX.spy(authInfo, 'save');
+
+      const refreshedAccessToken = await drive();
+
+      expect(peekStub.called, 'should still consult disk').to.be.true;
+      expect(lockInitStub.calledOnce, 'a null peek must not skip the lock; it takes it and refreshes').to.be.true;
+      expect(unlockSpy.calledOnce, 'the lock should be released').to.be.true;
+      expect(postParamsStub.called, 'with nothing to adopt we perform the real refresh under the lock').to.be.true;
+      expect(saveSpy.called, 'the refreshed token must be persisted').to.be.true;
+      expect(refreshedAccessToken).to.equal(testOrg.accessToken);
+      expect(authInfo.getFields(true).refreshToken).to.equal(originalRefreshToken);
+    });
+
+    it('persists the rotated token before enrichment runs, so a post-rotation failure cannot strand it (window closure)', async () => {
+      // The rotation POST invalidates the old refresh token server-side the instant it returns. If any
+      // enrichment step that follows in initAuthOptions (determineIfDevHub, orgs.read, update/encrypt,
+      // determineOrg) throws, the rotated token would be stranded in memory while the old one is already
+      // dead: auth permanently broken until re-login. We save the rotated token immediately after the POST,
+      // before enrichment, so a later throw still leaves the live token on disk. Here orgs.read throws right
+      // after a successful rotation, standing in for any post-POST enrichment failure.
+      const { authInfo, originalRefreshToken, drive } = await createRefreshTokenAuthInfo();
+
+      const rotatedRefreshToken = `${originalRefreshToken}_ROTATED`;
+      postParamsStub.resolves({
+        access_token: `${testOrg.accessToken}_NEW`,
+        instance_url: testOrg.instanceUrl,
+        refresh_token: rotatedRefreshToken,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      });
+
+      // Disk shows our own (un-rotated) token, so we take the lock and perform the real refresh (not adopt).
+      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'peek').resolves({ refreshToken: originalRefreshToken });
+      const unlockSpy = $$.SANDBOX.stub().resolves();
+      stubMethod($$.SANDBOX, fileLocking, 'lockInit').resolves({
+        writeAndUnlock: $$.SANDBOX.stub().resolves(),
+        unlock: unlockSpy,
+      });
+
+      // orgs.read runs AFTER the rotation POST and the early save in initAuthOptions; make it throw. It is
+      // spied globally in beforeEach, so restore before re-stubbing it to reject.
+      orgAccessorReadSpy.restore();
+      const readStub = stubMethod($$.SANDBOX, OrgAccessor.prototype, 'read').rejects(
+        new Error('disk read blew up after the rotation POST')
+      );
+      const saveSpy = $$.SANDBOX.spy(authInfo, 'save');
+
+      let error: Error | undefined;
+      try {
+        await drive();
+      } catch (err) {
+        error = err as Error;
+      }
+
+      expect(error?.message, 'the post-rotation enrichment failure must propagate').to.include(
+        'disk read blew up after the rotation POST'
+      );
+      expect(postParamsStub.called, 'the real rotation POST should have fired').to.be.true;
+      expect(readStub.called, 'enrichment (orgs.read) should have run and thrown').to.be.true;
+      expect(saveSpy.called, 'the rotated token must be persisted before enrichment can fail').to.be.true;
+      expect(
+        authInfo.getFields(true).refreshToken,
+        'the live rotated token must be persisted, not the invalidated one'
+      ).to.equal(rotatedRefreshToken);
+      expect(unlockSpy.calledOnce, 'the lock must be released even when enrichment throws').to.be.true;
+    });
+
+    it('throws an actionable timeout when a holder keeps the lock for the entire budget (genuinely stuck)', async () => {
+      // A process holds (and keeps refreshing) the rotation lock forever without persisting a new token, so
+      // every acquisition attempt ELOCKEDs and disk never changes. We must give up with an actionable error
+      // rather than refreshing unlocked. Fake Date so each attempt burns the wait budget without real time.
+      const { drive } = await createRefreshTokenAuthInfo();
+
+      const clock = $$.SANDBOX.useFakeTimers({ toFake: ['Date'] });
+      // Disk never shows a rotation.
+      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'peek').resolves({ refreshToken: undefined });
+      const lockInitStub = stubMethod($$.SANDBOX, fileLocking, 'lockInit').callsFake(async () => {
+        // Model one real lockInit acquisition cycle (~10s of retries) burning down the 35s budget.
+        clock.tick(11_000);
+        throw Object.assign(new Error('Lock file is already being held'), { code: 'ELOCKED' });
+      });
+
+      let caught: Error | undefined;
+      try {
+        await drive();
+      } catch (err) {
+        caught = err as Error;
+      }
+
+      expect(caught, 'a genuinely stuck holder must produce a timeout error').to.be.instanceOf(Error);
+      expect(caught?.message, 'timeout message should be actionable').to.match(/Timed out waiting/);
+      // within(2,5) encodes the budget ratio: 11s ticks against the 35s deadline (~10s inner cycle) give
+      // ~3-4 attempts. This intentionally couples to Duration.seconds(35) in the method — if that budget
+      // changes materially, this bound trips and forces a look, rather than silently under/over-retrying.
+      expect(lockInitStub.callCount, 'should retry until the budget elapses, not loop forever').to.be.within(2, 5);
+      expect(postParamsStub.called, 'a genuinely stuck holder must not trigger an unlocked refresh').to.be.false;
+    });
+
+    it('takes the token-rotation lock for a both-fields file (stale privateKey + refreshToken)', async () => {
+      // Gate coverage for the collapsed `fields.refreshToken` gate (was `refreshToken && !privateKey`). A
+      // file carrying BOTH a stale privateKey (prior JWT) and a real refreshToken (later web auth) must
+      // STILL take the rotation lock; the lingering privateKey must not route it around the single-flight
+      // path (which would reopen the RTR double-rotate window). Seed the corrupt file directly.
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+
+      const corruptFields = {
+        ...(await testOrg.getConfig()), // has privateKey
+        refreshToken: testOrg.refreshToken,
+      };
+      expect(corruptFields.privateKey, 'precondition: seeded file has a stale privateKey').to.be.a('string');
+      expect(corruptFields.refreshToken, 'precondition: seeded file also has a refreshToken').to.be.a('string');
+      $$.setConfigStubContents('AuthInfoConfig', { contents: corruptFields });
+
+      const authInfo = await AuthInfo.create({ username: testOrg.username });
+      expect(authInfo.getFields(true).privateKey, 'precondition: loaded file still has both fields').to.be.a('string');
+
+      postParamsStub.resolves({
+        access_token: `${testOrg.accessToken}_REFRESHED`,
+        instance_url: testOrg.instanceUrl,
+        refresh_token: `${testOrg.refreshToken}_ROTATED`,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      });
+
+      // peek returns our own (un-rotated) token so the loop acquires the lock and rotates (not adopts).
+      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'peek').resolves({ refreshToken: testOrg.refreshToken });
+      const unlockSpy = $$.SANDBOX.stub().resolves();
+      const lockInitStub = stubMethod($$.SANDBOX, fileLocking, 'lockInit').resolves({
+        writeAndUnlock: $$.SANDBOX.stub().resolves(),
+        unlock: unlockSpy,
+      });
+
+      const refreshFn = authInfo.getConnectionOptions().refreshFn as (
+        conn: unknown,
+        callback: (err: Error | null, accessToken?: string) => Promise<void>
+      ) => Promise<void>;
+      await refreshFn(null, async (err) => {
+        if (err) {
+          throw err;
+        }
+      });
+
+      expect(lockInitStub.calledOnce, 'a both-fields file must still take the token-rotation lock').to.be.true;
+      expect(lockInitStub.firstCall.args[0] as string).to.match(/\.token-rotation$/);
+      expect(unlockSpy.calledOnce, 'the lock should be released').to.be.true;
+    });
+
+    it('does not take the token-rotation lock for the JWT flow (no rotating refresh token)', async () => {
+      // JWT mints a fresh access token from a signed assertion and carries no refresh token, so concurrent
+      // JWT refreshes are independent and safe. The lock (and the on-disk re-read) must be skipped for JWT.
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+      $$.setConfigStubContents('AuthInfoConfig', { contents: await testOrg.getConfig() });
+
+      // Stub JWT file I/O + signing so authJwt can complete without touching the filesystem/network shape.
+      // These must be in place before AuthInfo.create, which performs the initial JWT auth.
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'readJwtKey').resolves('authInfoTest_private_key');
+      stubMethod($$.SANDBOX, jwt, 'sign').resolves('authInfoTest_jwtToken');
+      stubMethod($$.SANDBOX, SfdcUrl.prototype, 'lookup').throws();
+      postParamsStub.resolves({
+        access_token: `${testOrg.accessToken}_REFRESHED`,
+        instance_url: testOrg.instanceUrl,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      });
+
+      const authInfo = await AuthInfo.create({
+        username: testOrg.username,
+        oauth2Options: {
+          clientId: testOrg.clientId,
+          loginUrl: testOrg.loginUrl,
+          privateKey: testOrg.privateKey,
+        },
+      });
+      expect(authInfo.isJwt(), 'precondition: should be a JWT auth').to.be.true;
+
+      authInfoStubs.authJwt.resetHistory();
+
+      const lockInitStub = stubMethod($$.SANDBOX, fileLocking, 'lockInit').resolves({
+        writeAndUnlock: $$.SANDBOX.stub().resolves(),
+        unlock: $$.SANDBOX.stub().resolves(),
+      });
+      const peekStub = stubMethod($$.SANDBOX, OrgAccessor.prototype, 'peek');
+
+      const refreshFn = authInfo.getConnectionOptions().refreshFn as (
+        conn: unknown,
+        callback: (err: Error | null, accessToken?: string) => Promise<void>
+      ) => Promise<void>;
+
+      await refreshFn(null, async (err) => {
+        if (err) {
+          throw err;
+        }
+      });
+
+      expect(authInfoStubs.authJwt.called, 'JWT refresh should mint via authJwt').to.be.true;
+      expect(lockInitStub.called, 'JWT refresh must not take the token-rotation lock').to.be.false;
+      expect(peekStub.called, 'JWT refresh should not re-read on-disk tokens').to.be.false;
     });
   });
 

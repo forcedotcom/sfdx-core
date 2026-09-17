@@ -189,23 +189,18 @@ describe('WebOauthServer', () => {
 
       const origOn = webServer.server.on;
       let requestListener: http.RequestListener;
-      stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event: string, callback: http.RequestListener) => {
         if (event !== 'request') return origOn.call(webServer.server, event, callback);
 
         requestListener = callback;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
         callback(
           {
             method: 'GET',
             url: `http://localhost:1717/OauthRedirect?code=${authCode}&state=972475373f51`,
             query: { code: authCode },
-          },
-          {
-            setHeader: () => {},
-            writeHead: () => {},
-            end: () => {},
-          }
+          } as unknown as http.IncomingMessage,
+          { setHeader: () => {}, writeHead: () => {}, end: () => {} } as unknown as http.ServerResponse
         );
       });
 
@@ -247,23 +242,18 @@ describe('WebOauthServer', () => {
 
       const origOn = webServer.server.on;
       let requestListener: http.RequestListener;
-      stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event: string, callback: http.RequestListener) => {
         if (event !== 'request') return origOn.call(webServer.server, event, callback);
 
         requestListener = callback;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
         callback(
           {
             method: 'GET',
             url: `http://localhost:1717/OauthRedirect?code=${authCode}&state=972475373f51`,
             query: { code: authCode },
-          },
-          {
-            setHeader: () => {},
-            writeHead: () => {},
-            end: () => {},
-          }
+          } as unknown as http.IncomingMessage,
+          { setHeader: () => {}, writeHead: () => {}, end: () => {} } as unknown as http.ServerResponse
         );
       });
 
@@ -308,35 +298,23 @@ describe('WebOauthServer', () => {
 
       const origOn = webServer.server.on;
       let requestListener: http.RequestListener;
-      stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event: string, callback: http.RequestListener) => {
         if (event !== 'request') return origOn.call(webServer.server, event, callback);
 
         requestListener = callback;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
         callback(
-          {
-            method: 'GET',
-            url: 'http://localhost:1717/favicon.ico',
-          },
-          {
-            setHeader: () => {},
-            writeHead: () => {},
-            end: () => {},
-          }
+          { method: 'GET', url: 'http://localhost:1717/favicon.ico' } as unknown as http.IncomingMessage,
+          { setHeader: () => {}, writeHead: () => {}, end: () => {} } as unknown as http.ServerResponse
         );
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
         callback(
           {
             method: 'GET',
             url: `http://localhost:1717/OauthRedirect?code=${authCode}&state=972475373f51`,
             query: { code: authCode },
-          },
-          {
-            setHeader: () => {},
-            writeHead: () => {},
-            end: () => {},
-          }
+          } as unknown as http.IncomingMessage,
+          { setHeader: () => {}, writeHead: () => {}, end: () => {} } as unknown as http.ServerResponse
         );
       });
 
@@ -375,22 +353,17 @@ describe('WebOauthServer', () => {
 
     const origOn = webServer.server.on;
     let requestListener: http.RequestListener;
-    stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event: string, callback: http.RequestListener) => {
       if (event !== 'request') return origOn.call(webServer.server, event, callback);
 
       requestListener = callback;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
       callback(
         {
           method: 'GET',
           url: 'http://localhost:1717/OauthRedirect?error=access_denied&error_description=end-user+denied+authorization&state=972475373f51',
-        },
-        {
-          setHeader: () => {},
-          writeHead: () => {},
-          end: endSpy,
-        }
+        } as unknown as http.IncomingMessage,
+        { setHeader: () => {}, writeHead: () => {}, end: endSpy } as unknown as http.ServerResponse
       );
     });
 
