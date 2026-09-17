@@ -1641,6 +1641,59 @@ describe('AuthInfo', () => {
       expect(authInfo.getFields(true).refreshToken).to.equal(originalRefreshToken);
     });
 
+    it('persists the rotated token before enrichment runs, so a post-rotation failure cannot strand it (window closure)', async () => {
+      // The rotation POST invalidates the old refresh token server-side the instant it returns. If any
+      // enrichment step that follows in initAuthOptions (determineIfDevHub, orgs.read, update/encrypt,
+      // determineOrg) throws, the rotated token would be stranded in memory while the old one is already
+      // dead: auth permanently broken until re-login. We save the rotated token immediately after the POST,
+      // before enrichment, so a later throw still leaves the live token on disk. Here orgs.read throws right
+      // after a successful rotation, standing in for any post-POST enrichment failure.
+      const { authInfo, originalRefreshToken, drive } = await createRefreshTokenAuthInfo();
+
+      const rotatedRefreshToken = `${originalRefreshToken}_ROTATED`;
+      postParamsStub.resolves({
+        access_token: `${testOrg.accessToken}_NEW`,
+        instance_url: testOrg.instanceUrl,
+        refresh_token: rotatedRefreshToken,
+        id: '00DAuthInfoTest_orgId/005AuthInfoTest_userId',
+      });
+
+      // Disk shows our own (un-rotated) token, so we take the lock and perform the real refresh (not adopt).
+      stubMethod($$.SANDBOX, OrgAccessor.prototype, 'peek').resolves({ refreshToken: originalRefreshToken });
+      const unlockSpy = $$.SANDBOX.stub().resolves();
+      stubMethod($$.SANDBOX, fileLocking, 'lockInit').resolves({
+        writeAndUnlock: $$.SANDBOX.stub().resolves(),
+        unlock: unlockSpy,
+      });
+
+      // orgs.read runs AFTER the rotation POST and the early save in initAuthOptions; make it throw. It is
+      // spied globally in beforeEach, so restore before re-stubbing it to reject.
+      orgAccessorReadSpy.restore();
+      const readStub = stubMethod($$.SANDBOX, OrgAccessor.prototype, 'read').rejects(
+        new Error('disk read blew up after the rotation POST')
+      );
+      const saveSpy = $$.SANDBOX.spy(authInfo, 'save');
+
+      let error: Error | undefined;
+      try {
+        await drive();
+      } catch (err) {
+        error = err as Error;
+      }
+
+      expect(error?.message, 'the post-rotation enrichment failure must propagate').to.include(
+        'disk read blew up after the rotation POST'
+      );
+      expect(postParamsStub.called, 'the real rotation POST should have fired').to.be.true;
+      expect(readStub.called, 'enrichment (orgs.read) should have run and thrown').to.be.true;
+      expect(saveSpy.called, 'the rotated token must be persisted before enrichment can fail').to.be.true;
+      expect(
+        authInfo.getFields(true).refreshToken,
+        'the live rotated token must be persisted, not the invalidated one'
+      ).to.equal(rotatedRefreshToken);
+      expect(unlockSpy.calledOnce, 'the lock must be released even when enrichment throws').to.be.true;
+    });
+
     it('throws an actionable timeout when a holder keeps the lock for the entire budget (genuinely stuck)', async () => {
       // A process holds (and keeps refreshing) the rotation lock forever without persisting a new token, so
       // every acquisition attempt ELOCKEDs and disk never changes. We must give up with an actionable error

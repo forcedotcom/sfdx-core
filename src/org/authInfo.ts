@@ -1049,13 +1049,15 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           authConfig = await this.authJwt(options);
         } else if (!options.authCode && options.refreshToken) {
           // refresh token flow (from sfdxUrl or OAuth refreshFn).
-          // RTR CAUTION: this POST rotates the token server-side and invalidates the old one immediately.
-          // Everything from here until the caller's save() (determineIfDevHub, orgs.read, update/encrypt,
-          // determineOrg) runs on borrowed time -- a throw in that window strands the rotated token on the
-          // wire while the old one is already dead server-side, permanently breaking the auth until re-login.
-          // determineIfDevHub and determineOrg swallow their own errors, so the practical window is small,
-          // but it is non-zero. A save-early seam for this branch would close it (tracked as a follow-up).
+          // RTR: this POST rotates the token server-side and invalidates the old one immediately. Persist the
+          // rotated token right here, before the enrichment steps below (determineIfDevHub, orgs.read,
+          // update/encrypt, determineOrg) run. A throw anywhere in that window would otherwise strand the
+          // rotated token in memory while the old one is already dead server-side, permanently breaking the
+          // auth until re-login. Saving now closes that window; enrichment and the caller's save() still run
+          // and layer the org metadata on top of the already-persisted token.
           authConfig = await this.buildRefreshTokenConfig(options);
+          this.update(authConfig);
+          await this.save();
         } else if (this.options.oauth2 instanceof OAuth2) {
           // authcode exchange / web auth flow
           authConfig = await this.exchangeToken(options, this.options.oauth2);
