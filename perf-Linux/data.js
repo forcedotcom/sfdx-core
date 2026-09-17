@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789655859199,
+  "lastUpdate": 1789661737871,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -46260,6 +46260,72 @@ window.BENCHMARK_DATA = {
             "range": "±176.13%",
             "unit": "ops/sec",
             "extra": "64 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "e11923e280386b43a959903066480a787e087912",
+          "message": "fix: create force-app dir in RTR NUT and fix lint errors in webOauthServer test\n\nThe RTR NUT scratch org creation failed because the temp project was\nmissing the force-app directory declared in sfdx-project.json. Also\nsurface sf stdout/stderr on failure for better diagnostics.\n\nFix the root cause of webOauthServer.test.ts lint errors by typing the\ncallsFake parameters instead of relying on eslint-disable comments.",
+          "timestamp": "2026-09-17T10:11:14-06:00",
+          "tree_id": "d9a0be0bc1ef4d761d60fd2d8b5744efd38f4836",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/e11923e280386b43a959903066480a787e087912"
+        },
+        "date": 1789661729080,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 647280,
+            "range": "±0.26%",
+            "unit": "ops/sec",
+            "extra": "96 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 138633,
+            "range": "±176.95%",
+            "unit": "ops/sec",
+            "extra": "46 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 1173695,
+            "range": "±5.93%",
+            "unit": "ops/sec",
+            "extra": "48 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 18358,
+            "range": "±210.68%",
+            "unit": "ops/sec",
+            "extra": "14 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 564215,
+            "range": "±5.95%",
+            "unit": "ops/sec",
+            "extra": "57 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 486616,
+            "range": "±5.82%",
+            "unit": "ops/sec",
+            "extra": "63 samples"
           }
         ]
       }
