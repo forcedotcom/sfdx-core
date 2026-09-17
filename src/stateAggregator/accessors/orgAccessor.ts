@@ -63,6 +63,25 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
   }
 
   /**
+   * Read the current on-disk contents of a username's auth file WITHOUT mutating the cache (unlike `read`,
+   * which replaces the cached config/contents). Use this to inspect what another process has persisted
+   * without disturbing this instance's in-memory state. Returns null if the file can't be read.
+   *
+   * @param username username to read
+   * @param decrypt if true, decrypt encrypted values
+   */
+  public async peek(username: string, decrypt = false): Promise<Nullable<P>> {
+    try {
+      const config = await this.initAuthFile(username, false);
+      return config.getContents(decrypt) as P;
+    } catch (err) {
+      const error = SfError.wrap(err);
+      this.logger.debug(`Error when peeking auth file for user: ${username} due to: ${error.name}:${error.message}`);
+      return null;
+    }
+  }
+
+  /**
    * Read all the auth files under the global state directory
    *
    * @param decrypt if true, decrypt encrypted values
@@ -155,6 +174,16 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
   public async stat(username: string): Promise<Nullable<Awaited<ReturnType<typeof fs.promises.stat>>>> {
     const config = this.configs.get(username);
     return config ? config.stat() : null;
+  }
+
+  /**
+   * Return the absolute path to the auth file for a given username. Does not require the file to have been
+   * read (resolves purely from the username and the global state directory).
+   *
+   * @param username
+   */
+  public getPath(username: string): string {
+    return this.parseFilename(username);
   }
 
   /**
