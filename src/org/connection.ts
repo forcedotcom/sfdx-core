@@ -52,6 +52,26 @@ export const SFDX_HTTP_HEADERS = {
   ...(Global.isWeb ? {} : { 'user-agent': clientId }),
 };
 
+const TRACEPARENT_RE = /^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$/i;
+const HEADER_UNSAFE_RE = /[\r\n\0]/;
+
+function getTraceContextHeaders(): { [key: string]: string } {
+  const headers: { [key: string]: string } = {};
+  const tp = process.env.TRACEPARENT;
+  if (tp && TRACEPARENT_RE.test(tp) && !tp.startsWith('ff')) {
+    headers['traceparent'] = tp;
+  }
+  const ts = process.env.TRACESTATE;
+  if (ts && !HEADER_UNSAFE_RE.test(ts)) {
+    headers['tracestate'] = ts;
+  }
+  const bg = process.env.BAGGAGE;
+  if (bg && !HEADER_UNSAFE_RE.test(bg)) {
+    headers['baggage'] = bg;
+  }
+  return headers;
+}
+
 export const DNS_ERROR_NAME = 'DomainNotFoundError';
 export type DeployOptionsWithRest = Partial<DeployOptions> & { rest?: boolean };
 
@@ -203,6 +223,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       : {};
     httpRequest.headers = {
       ...SFDX_HTTP_HEADERS,
+      ...getTraceContextHeaders(),
       ...lowercasedHeaders,
     };
     this.logger.getRawLogger().debug(httpRequest, 'request');
