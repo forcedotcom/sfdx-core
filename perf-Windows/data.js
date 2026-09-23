@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789678859520,
+  "lastUpdate": 1790193669181,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -45732,6 +45732,72 @@ window.BENCHMARK_DATA = {
             "range": "±214.30%",
             "unit": "ops/sec",
             "extra": "13 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "e039aea866fcbda4af7ccbb2b44dd7179482b718",
+          "message": "feat: forward W3C trace context headers on outbound API requests\n\nWhen TRACEPARENT, TRACESTATE, or BAGGAGE env vars are present,\nforward them as HTTP headers on all outbound Salesforce API requests\nvia Connection.request(). Validates TRACEPARENT format and rejects\ncontrol characters in TRACESTATE/BAGGAGE to prevent header injection.\n\n@W-24279635@",
+          "timestamp": "2026-09-23T13:52:01-06:00",
+          "tree_id": "86bffa355991eec277f0b55109ac784427833a8d",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/e039aea866fcbda4af7ccbb2b44dd7179482b718"
+        },
+        "date": 1790193655777,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 386454,
+            "range": "±0.95%",
+            "unit": "ops/sec",
+            "extra": "94 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1391632,
+            "range": "±9.37%",
+            "unit": "ops/sec",
+            "extra": "49 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 59221,
+            "range": "±181.75%",
+            "unit": "ops/sec",
+            "extra": "60 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 31587,
+            "range": "±186.27%",
+            "unit": "ops/sec",
+            "extra": "48 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 319928,
+            "range": "±46.97%",
+            "unit": "ops/sec",
+            "extra": "64 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 333053,
+            "range": "±7.65%",
+            "unit": "ops/sec",
+            "extra": "68 samples"
           }
         ]
       }
