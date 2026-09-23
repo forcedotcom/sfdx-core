@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790193554592,
+  "lastUpdate": 1790195297241,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -46722,6 +46722,72 @@ window.BENCHMARK_DATA = {
             "range": "±176.33%",
             "unit": "ops/sec",
             "extra": "63 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "c2f77dab367029ccf6d0c485eb5095bd53df1e29",
+          "message": "fix: harden W3C trace context validation per spec\n\n- Fix uppercase FF version bypass (case-insensitive regex vs case-sensitive check)\n- Reject all-zero trace-id and parent-id per W3C spec section 3.2.2.3\n- Normalize traceparent header value to lowercase before forwarding\n- Only forward tracestate/baggage when traceparent is valid (W3C section 3.3.1)\n- Add tests for all new edge cases\n\n@W-24279635@",
+          "timestamp": "2026-09-23T14:24:33-06:00",
+          "tree_id": "29fb8f05e5278d67c6396583929e10453550c43b",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/c2f77dab367029ccf6d0c485eb5095bd53df1e29"
+        },
+        "date": 1790195287734,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 899788,
+            "range": "±1.04%",
+            "unit": "ops/sec",
+            "extra": "95 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 192242,
+            "range": "±189.45%",
+            "unit": "ops/sec",
+            "extra": "20 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 1308158,
+            "range": "±6.14%",
+            "unit": "ops/sec",
+            "extra": "56 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 16328,
+            "range": "±225.74%",
+            "unit": "ops/sec",
+            "extra": "9 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 725443,
+            "range": "±9.17%",
+            "unit": "ops/sec",
+            "extra": "49 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 69803,
+            "range": "±173.09%",
+            "unit": "ops/sec",
+            "extra": "46 samples"
           }
         ]
       }
