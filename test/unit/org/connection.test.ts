@@ -372,6 +372,52 @@ describe('Connection', () => {
       expect(getRequestHeaders()).to.not.have.property('traceparent');
     });
 
+    it('request() should reject uppercase version FF', async () => {
+      process.env.TRACEPARENT = 'FF-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01';
+      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
+      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
+      await conn.request('connectionTest/request/url');
+      expect(getRequestHeaders()).to.not.have.property('traceparent');
+    });
+
+    it('request() should reject all-zero trace-id', async () => {
+      process.env.TRACEPARENT = '00-00000000000000000000000000000000-b7ad6b7169203331-01';
+      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
+      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
+      await conn.request('connectionTest/request/url');
+      expect(getRequestHeaders()).to.not.have.property('traceparent');
+    });
+
+    it('request() should reject all-zero parent-id', async () => {
+      process.env.TRACEPARENT = '00-0af7651916cd43dd8448eb211c80319c-0000000000000000-01';
+      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
+      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
+      await conn.request('connectionTest/request/url');
+      expect(getRequestHeaders()).to.not.have.property('traceparent');
+    });
+
+    it('request() should not forward tracestate without valid traceparent', async () => {
+      process.env.TRACEPARENT = 'not-valid';
+      process.env.TRACESTATE = 'congo=t61rcWkgMzE';
+      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
+      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
+      await conn.request('connectionTest/request/url');
+      const headers = getRequestHeaders();
+      expect(headers).to.not.have.property('traceparent');
+      expect(headers).to.not.have.property('tracestate');
+    });
+
+    it('request() should normalize traceparent to lowercase', async () => {
+      process.env.TRACEPARENT = '00-0AF7651916CD43DD8448EB211C80319C-B7AD6B7169203331-01';
+      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
+      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
+      await conn.request('connectionTest/request/url');
+      expect(getRequestHeaders()).to.have.property(
+        'traceparent',
+        '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01'
+      );
+    });
+
     it('request() should reject TRACESTATE with control characters', async () => {
       process.env.TRACEPARENT = '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01';
       process.env.TRACESTATE = 'evil\r\nX-Injected: true';
