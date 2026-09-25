@@ -24,9 +24,13 @@ jobs:
         id: distTag
 
   npm:
+    permissions:
+      id-token: write
+      contents: read
     uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@main
     needs: [getDistTag]
     with:
+      trustedPublishing: true
       tag: ${{ needs.getDistTag.outputs.tag || 'latest' }}
       githubTag: ${{ github.event.release.tag_name || inputs.tag }}
     secrets: inherit
