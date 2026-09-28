@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790367763057,
+  "lastUpdate": 1790634364229,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -45930,6 +45930,72 @@ window.BENCHMARK_DATA = {
             "range": "±195.96%",
             "unit": "ops/sec",
             "extra": "31 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "21b26a0fc888c42f0bc79943d505d1fee090fd1f",
+          "message": "fix(deps): bump undici from 8.5.0 to 8.11.2\n\nBumps [undici](https://github.com/nodejs/undici) from 8.5.0 to 8.11.2.\n- [Release notes](https://github.com/nodejs/undici/releases)\n- [Commits](https://github.com/nodejs/undici/compare/v8.5.0...v8.11.2)\n\n---\nupdated-dependencies:\n- dependency-name: undici\n  dependency-version: 8.11.2\n  dependency-type: indirect\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2026-09-28T22:21:29Z",
+          "tree_id": "a87ea96b2c0bcb8207825ac3248510cf2b8728a9",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/21b26a0fc888c42f0bc79943d505d1fee090fd1f"
+        },
+        "date": 1790634350962,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 387709,
+            "range": "±0.75%",
+            "unit": "ops/sec",
+            "extra": "96 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1089249,
+            "range": "±11.47%",
+            "unit": "ops/sec",
+            "extra": "40 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 22638,
+            "range": "±203.73%",
+            "unit": "ops/sec",
+            "extra": "20 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 506260,
+            "range": "±9.65%",
+            "unit": "ops/sec",
+            "extra": "49 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 407257,
+            "range": "±11.11%",
+            "unit": "ops/sec",
+            "extra": "56 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 23018,
+            "range": "±182.64%",
+            "unit": "ops/sec",
+            "extra": "53 samples"
           }
         ]
       }
