@@ -1,3 +1,12 @@
+## [9.2.2](https://github.com/forcedotcom/sfdx-core/compare/9.2.1...9.2.2) (2026-09-28)
+
+
+### Bug Fixes
+
+* **deps:** bump fast-uri from 3.1.4 to 3.1.7 ([df419d4](https://github.com/forcedotcom/sfdx-core/commit/df419d481876eb6393a6175b1959b814405795b3))
+
+
+
 ## [9.2.1](https://github.com/forcedotcom/sfdx-core/compare/9.2.0...9.2.1) (2026-09-28)
 
 
