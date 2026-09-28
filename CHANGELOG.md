@@ -1,3 +1,12 @@
+## [9.2.1](https://github.com/forcedotcom/sfdx-core/compare/9.2.0...9.2.1) (2026-09-28)
+
+
+### Bug Fixes
+
+* remove stale TS/eslint suppressions ([#1341](https://github.com/forcedotcom/sfdx-core/issues/1341)) ([e11f56e](https://github.com/forcedotcom/sfdx-core/commit/e11f56ee5d3c8df8938ba7531cb6d6c5f9924db5))
+
+
+
 # [9.2.0](https://github.com/forcedotcom/sfdx-core/compare/9.1.12-qa.1...9.2.0) (2026-09-17)
 
 
