@@ -388,6 +388,126 @@ describe('AuthInfo', () => {
       expect(authInfo.isOauth(), 'authInfo.isOauth() should be false').to.be.false;
     });
 
+    describe('access token options that already include identity', () => {
+      const accessToken =
+        '00Dxx0000000001!AQEAQI3AIbublfW11ATFJl9T122vVPj5QaInBp6h9nPsUK8oW4rW5Os0ZjtsUU.DG9rXytUCh3RZvc_XYoRULiHeTMjyi6T1';
+
+      it('skips userinfo, dev hub, and org queries and stores the supplied fields', async () => {
+        const userInfo = stubMethod($$.SANDBOX, AuthInfo.prototype, 'retrieveUserInfo').resolves();
+        const devHub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(true);
+        const orgShape = stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+        const authInfo = await AuthInfo.create({
+          accessTokenOptions: {
+            accessToken,
+            instanceUrl: testOrg.instanceUrl,
+            loginUrl: testOrg.loginUrl,
+            username: 'user@example.com',
+            orgId: '00D000000000001',
+            userId: '005000000000001',
+            namespacePrefix: '',
+            isDevHub: false,
+            isScratch: false,
+            isSandbox: true,
+            instanceName: 'USA123',
+            instanceApiVersion: '64.0',
+            instanceApiVersionLastRetrieved: '9/29/2026, 3:00:00 PM',
+          },
+        });
+
+        expect(userInfo.called).to.be.false;
+        expect(devHub.called).to.be.false;
+        expect(orgShape.called).to.be.false;
+        expect(authInfo.getUsername()).to.equal('user@example.com');
+        expect(authInfo.getFields()).to.include({
+          username: 'user@example.com',
+          orgId: '00D000000000001',
+          userId: '005000000000001',
+          namespacePrefix: '',
+          isDevHub: false,
+          isScratch: false,
+          isSandbox: true,
+          instanceName: 'USA123',
+          instanceApiVersion: '64.0',
+          instanceApiVersionLastRetrieved: '9/29/2026, 3:00:00 PM',
+        });
+      });
+
+      it('treats a null namespacePrefix as known and skips the org query', async () => {
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'retrieveUserInfo').resolves();
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(true);
+        const orgShape = stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+        const authInfo = await AuthInfo.create({
+          accessTokenOptions: {
+            accessToken,
+            instanceUrl: testOrg.instanceUrl,
+            username: 'user@example.com',
+            orgId: '00D000000000001',
+            namespacePrefix: null,
+            isDevHub: false,
+          },
+        });
+
+        expect(orgShape.called).to.be.false;
+        expect(authInfo.getFields().namespacePrefix).to.equal(null);
+      });
+
+      it('still retrieves user info when orgId is absent', async () => {
+        const userInfo = stubMethod($$.SANDBOX, AuthInfo.prototype, 'retrieveUserInfo').resolves({
+          username: 'from-server@example.com',
+          organizationId: '00D000000000002',
+        });
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+        stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+        await AuthInfo.create({
+          accessTokenOptions: {
+            accessToken,
+            instanceUrl: testOrg.instanceUrl,
+            username: 'user@example.com',
+          },
+        });
+
+        expect(userInfo.called).to.be.true;
+      });
+
+      it('still queries dev hub and org shape when those fields are absent', async () => {
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'retrieveUserInfo').resolves();
+        const devHub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+        const orgShape = stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+        await AuthInfo.create({
+          accessTokenOptions: {
+            accessToken,
+            instanceUrl: testOrg.instanceUrl,
+            username: 'user@example.com',
+            orgId: '00D000000000001',
+          },
+        });
+
+        expect(devHub.called).to.be.true;
+        expect(orgShape.called).to.be.true;
+      });
+
+      it('still queries dev hub and org shape for jwt auth', async () => {
+        authInfoStubs.authJwt.restore();
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'authJwt').resolves({
+          instanceUrl: testOrg.instanceUrl,
+          accessToken: testOrg.accessToken,
+          username: testOrg.username,
+        });
+        const devHub = stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+        const orgShape = stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+        await AuthInfo.create({
+          username: testOrg.username,
+          oauth2Options: {
+            clientId: testOrg.clientId,
+            privateKey: testOrg.privateKey,
+          },
+        });
+
+        expect(devHub.called).to.be.true;
+        expect(orgShape.called).to.be.true;
+      });
+    });
+
     describe('JWT', () => {
       it('should return a JWT AuthInfo instance when passed a username and JWT auth options', async () => {
         $$.setConfigStubContents('AuthInfoConfig', { contents: await testOrg.getConfig() });

@@ -118,13 +118,24 @@ export type OrgAuthorization = {
 };
 
 /**
- * Options for access token flow.
+ * Options for access token flow. Present fields skip the token-path lookup that would have produced them.
  */
-export type AccessTokenOptions = {
-  accessToken?: string;
-  loginUrl?: string;
-  instanceUrl?: string;
-};
+export type AccessTokenOptions = Pick<
+  AuthFields,
+  | 'accessToken'
+  | 'loginUrl'
+  | 'instanceUrl'
+  | 'username'
+  | 'orgId'
+  | 'userId'
+  | 'isDevHub'
+  | 'instanceApiVersion'
+  | 'instanceApiVersionLastRetrieved'
+  | Org.Fields.NAMESPACE_PREFIX
+  | Org.Fields.IS_SCRATCH
+  | Org.Fields.IS_SANDBOX
+  | Org.Fields.INSTANCE_NAME
+>;
 
 export type AuthSideEffects = {
   alias?: string;
@@ -1002,11 +1013,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
       if (this.isTokenOptions(options)) {
         authConfig = options;
-        const userInfo = await this.retrieveUserInfo(
-          ensureString(options.instanceUrl),
-          ensureString(options.accessToken)
-        );
-        this.update({ username: userInfo?.username, orgId: userInfo?.organizationId });
+        await this.retrieveUserInfoUnlessSupplied(options);
       } else {
         if (this.options.parentUsername) {
           if (process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP) {
@@ -1066,10 +1073,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         }
       }
 
-      authConfig.isDevHub = await this.determineIfDevHub(
-        ensureString(authConfig.instanceUrl),
-        ensureString(authConfig.accessToken)
-      );
+      authConfig.isDevHub = await this.resolveDevHub(options, authConfig);
 
       if (authConfig.username) await this.stateAggregator.orgs.read(authConfig.username, false, false);
 
@@ -1087,10 +1091,31 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       }
 
       // Populate Organization metadata (orgEdition, isScratch, isSandbox, etc.) in a single query.
-      await determineOrg(this);
+      await this.determineOrgUnlessSupplied(options, authConfig);
     }
 
     return this;
+  }
+
+  private async retrieveUserInfoUnlessSupplied(options: AccessTokenOptions): Promise<void> {
+    if (options.username !== undefined && options.orgId !== undefined) return;
+    const userInfo = await this.retrieveUserInfo(ensureString(options.instanceUrl), ensureString(options.accessToken));
+    this.update({ username: userInfo?.username, orgId: userInfo?.organizationId });
+  }
+
+  private async resolveDevHub(options: JwtOAuth2Config | AccessTokenOptions, authConfig: AuthFields): Promise<boolean> {
+    return this.isTokenOptions(options) && authConfig.isDevHub !== undefined
+      ? authConfig.isDevHub
+      : this.determineIfDevHub(ensureString(authConfig.instanceUrl), ensureString(authConfig.accessToken));
+  }
+
+  /** Token callers that already supplied namespacePrefix (`''` and `null` count) skip the org query. */
+  private async determineOrgUnlessSupplied(
+    options: JwtOAuth2Config | AccessTokenOptions,
+    authConfig: AuthFields
+  ): Promise<void> {
+    if (this.isTokenOptions(options) && authConfig.namespacePrefix !== undefined) return;
+    await determineOrg(this);
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
