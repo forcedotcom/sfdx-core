@@ -409,6 +409,9 @@ describe('AuthInfo', () => {
             isScratch: false,
             isSandbox: true,
             instanceName: 'USA123',
+            name: 'Dreamhouse',
+            orgEdition: 'Developer Edition',
+            trailExpirationDate: '2026-12-01T00:00:00.000+0000',
             instanceApiVersion: '64.0',
             instanceApiVersionLastRetrieved: '9/29/2026, 3:00:00 PM',
           },
@@ -427,6 +430,9 @@ describe('AuthInfo', () => {
           isScratch: false,
           isSandbox: true,
           instanceName: 'USA123',
+          name: 'Dreamhouse',
+          orgEdition: 'Developer Edition',
+          trailExpirationDate: '2026-12-01T00:00:00.000+0000',
           instanceApiVersion: '64.0',
           instanceApiVersionLastRetrieved: '9/29/2026, 3:00:00 PM',
         });
@@ -451,14 +457,14 @@ describe('AuthInfo', () => {
         expect(authInfo.getFields().namespacePrefix).to.equal(null);
       });
 
-      it('still retrieves user info when orgId is absent', async () => {
+      it('keeps the supplied username and stamps orgId from userinfo when orgId is absent', async () => {
         const userInfo = stubMethod($$.SANDBOX, AuthInfo.prototype, 'retrieveUserInfo').resolves({
           username: 'from-server@example.com',
           organizationId: '00D000000000002',
         });
         stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
         stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
-        await AuthInfo.create({
+        const authInfo = await AuthInfo.create({
           accessTokenOptions: {
             accessToken,
             instanceUrl: testOrg.instanceUrl,
@@ -467,6 +473,33 @@ describe('AuthInfo', () => {
         });
 
         expect(userInfo.called).to.be.true;
+        expect(authInfo.getUsername()).to.equal('user@example.com');
+        expect(authInfo.getFields()).to.include({
+          username: 'user@example.com',
+          orgId: '00D000000000002',
+        });
+      });
+
+      it('stamps username from userinfo when username is absent', async () => {
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'retrieveUserInfo').resolves({
+          username: 'from-server@example.com',
+          organizationId: '00D000000000003',
+        });
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+        stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+        const authInfo = await AuthInfo.create({
+          accessTokenOptions: {
+            accessToken,
+            instanceUrl: testOrg.instanceUrl,
+            orgId: '00D000000000001',
+          },
+        });
+
+        expect(authInfo.getUsername()).to.equal('from-server@example.com');
+        expect(authInfo.getFields()).to.include({
+          username: 'from-server@example.com',
+          orgId: '00D000000000001',
+        });
       });
 
       it('still queries dev hub and org shape when those fields are absent', async () => {

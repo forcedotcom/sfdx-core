@@ -135,6 +135,9 @@ export type AccessTokenOptions = Pick<
   | Org.Fields.IS_SCRATCH
   | Org.Fields.IS_SANDBOX
   | Org.Fields.INSTANCE_NAME
+  | Org.Fields.NAME
+  | Org.Fields.ORG_EDITION
+  | Org.Fields.TRIAL_EXPIRATION_DATE
 >;
 
 export type AuthSideEffects = {
@@ -1013,7 +1016,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
       if (this.isTokenOptions(options)) {
         authConfig = options;
-        await this.retrieveUserInfoUnlessSupplied(options);
+        await this.retrieveUserInfoUnlessSupplied(authConfig);
       } else {
         if (this.options.parentUsername) {
           if (process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP) {
@@ -1097,10 +1100,14 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     return this;
   }
 
-  private async retrieveUserInfoUnlessSupplied(options: AccessTokenOptions): Promise<void> {
-    if (options.username !== undefined && options.orgId !== undefined) return;
-    const userInfo = await this.retrieveUserInfo(ensureString(options.instanceUrl), ensureString(options.accessToken));
-    this.update({ username: userInfo?.username, orgId: userInfo?.organizationId });
+  private async retrieveUserInfoUnlessSupplied(authConfig: AccessTokenOptions): Promise<void> {
+    if (authConfig.username !== undefined && authConfig.orgId !== undefined) return;
+    const userInfo = await this.retrieveUserInfo(
+      ensureString(authConfig.instanceUrl),
+      ensureString(authConfig.accessToken)
+    );
+    authConfig.username ??= userInfo?.username;
+    authConfig.orgId ??= userInfo?.organizationId;
   }
 
   private async resolveDevHub(options: JwtOAuth2Config | AccessTokenOptions, authConfig: AuthFields): Promise<boolean> {
