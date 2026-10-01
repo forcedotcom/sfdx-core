@@ -191,7 +191,7 @@ export type SandboxRequest = {
    * May be passed as an object (stringified for you) or a pre-serialized string. Only honored on
    * orgs whose API version exposes the SandboxInfo.ExtensionConfig field (266+).
    */
-  ExtensionConfig?: Record<string, Record<string, unknown>> | string;
+  ExtensionConfig?: Record<string, Record<string, AnyJson>> | string;
 };
 
 export type ResumeSandboxRequest = {
@@ -221,7 +221,7 @@ export type SandboxInfo = {
   Features?: string[];
   PostCopyConfig?: PostCopyConfigEntry[] | string;
   /** Extension-hook config; see {@link SandboxRequest.ExtensionConfig}. */
-  ExtensionConfig?: Record<string, Record<string, unknown>> | string;
+  ExtensionConfig?: Record<string, Record<string, AnyJson>> | string;
 };
 
 export type ScratchOrgRequest = Omit<ScratchOrgCreateOptions, 'hubOrg'>;
@@ -1011,15 +1011,12 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     // API (PostCopyConfig in 264, ExtensionConfig in 266, ...). Older orgs reject the SOQL with
     // INVALID_FIELD ("No such column ..."), naming one missing column at a time. Drop each reported
     // version-gated field and retry until the query succeeds, so existing customers aren't broken
-    // and orgs that support only some of the fields still return them. Bounded by the number of
-    // gated fields (one can be stripped per failed attempt).
-    let fields = [...sandboxInfoFields];
-    let records: SandboxInfo[] = [];
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const _attempt of versionGatedSandboxInfoFields.concat('')) {
+    // and orgs that support only some of the fields still return them. Recursion is bounded by the
+    // number of gated fields (at least one is stripped per failed attempt).
+    const queryWithFieldFallback = async (fields: string[]): Promise<{ records: SandboxInfo[]; fields: string[] }> => {
       try {
-        records = (await this.connection.tooling.query<SandboxInfo>(buildSoql(fields))).records;
-        break;
+        const records = (await this.connection.tooling.query<SandboxInfo>(buildSoql(fields))).records;
+        return { records, fields };
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         const isInvalidField =
@@ -1029,12 +1026,13 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
           this.logger.debug(
             `SandboxInfo field(s) not supported on this org; retrying query without: ${toDrop.join(', ')}`
           );
-          fields = fields.filter((f) => !toDrop.includes(f));
-        } else {
-          throw err;
+          return queryWithFieldFallback(fields.filter((f) => !toDrop.includes(f)));
         }
+        throw err;
       }
-    }
+    };
+
+    const { records, fields } = await queryWithFieldFallback([...sandboxInfoFields]);
     const soql = buildSoql(fields);
 
     const result = records.filter((item) => !item.IsDeleted);
