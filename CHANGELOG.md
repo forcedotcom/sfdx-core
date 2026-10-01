@@ -1,3 +1,12 @@
+# [9.3.0](https://github.com/forcedotcom/sfdx-core/compare/9.2.2...9.3.0) (2026-10-01)
+
+
+### Features
+
+* **auth:** skip token-path HTTP when AccessTokenOptions already has the fields - W-24349622 ([#1346](https://github.com/forcedotcom/sfdx-core/issues/1346)) ([2772f41](https://github.com/forcedotcom/sfdx-core/commit/2772f41f6aa4196d6813d7e0b4f2111a067a983c))
+
+
+
 ## [9.2.2](https://github.com/forcedotcom/sfdx-core/compare/9.2.1...9.2.2) (2026-09-28)
 
 
