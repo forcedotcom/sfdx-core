@@ -1,3 +1,12 @@
+## [9.3.1](https://github.com/forcedotcom/sfdx-core/compare/9.3.0...9.3.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **deps:** bump undici from 8.5.0 to 8.11.2 ([21b26a0](https://github.com/forcedotcom/sfdx-core/commit/21b26a0fc888c42f0bc79943d505d1fee090fd1f))
+
+
+
 # [9.3.0](https://github.com/forcedotcom/sfdx-core/compare/9.2.2...9.3.0) (2026-10-01)
 
 
