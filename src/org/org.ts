@@ -159,7 +159,13 @@ const sandboxInfoFields = [
   'ActivationUserGroupId',
   'Features',
   'PostCopyConfig',
+  'ExtensionConfig',
 ];
+
+// SandboxInfo fields that only exist on newer orgs; a legacy org rejects the SOQL with
+// INVALID_FIELD ("No such column ..."). querySandboxInfo retries without whichever of these
+// the org doesn't recognize so existing customers aren't broken.
+const versionGatedSandboxInfoFields = ['PostCopyConfig', 'ExtensionConfig'];
 
 export type PostCopyConfigEntry = {
   ConfigurationName: string;
@@ -179,6 +185,13 @@ export type SandboxRequest = {
   ActivationUserGroupId?: string;
   Features?: string[] | string;
   PostCopyConfig?: PostCopyConfigEntry[] | string;
+  /**
+   * Extension-hook config, staged as a JSON object keyed by extension type, e.g.
+   * `{ commerce_cloud: { acknowledged: true }, marketing_cloud: { marketing_objects: ['mc_object_1'] } }`.
+   * May be passed as an object (stringified for you) or a pre-serialized string. Only honored on
+   * orgs whose API version exposes the SandboxInfo.ExtensionConfig field (266+).
+   */
+  ExtensionConfig?: Record<string, Record<string, AnyJson>> | string;
 };
 
 export type ResumeSandboxRequest = {
@@ -207,6 +220,8 @@ export type SandboxInfo = {
   CopyArchivedActivities?: boolean; // only for full sandboxes; depends if a license was purchased
   Features?: string[];
   PostCopyConfig?: PostCopyConfigEntry[] | string;
+  /** Extension-hook config; see {@link SandboxRequest.ExtensionConfig}. */
+  ExtensionConfig?: Record<string, Record<string, AnyJson>> | string;
 };
 
 export type ScratchOrgRequest = Omit<ScratchOrgCreateOptions, 'hubOrg'>;
@@ -442,6 +457,10 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     if (sandboxReq.PostCopyConfig && Array.isArray(sandboxReq.PostCopyConfig)) {
       sandboxReq.PostCopyConfig = JSON.stringify(sandboxReq.PostCopyConfig);
     }
+    // The tooling create API expects a JSON string. Accept an object for ergonomics and serialize it.
+    if (sandboxReq.ExtensionConfig && typeof sandboxReq.ExtensionConfig !== 'string') {
+      sandboxReq.ExtensionConfig = JSON.stringify(sandboxReq.ExtensionConfig);
+    }
     const createResult = await this.connection.tooling.create('SandboxInfo', sandboxReq);
     this.logger.debug(createResult, 'Return from calling tooling.create');
 
@@ -489,6 +508,10 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     this.logger.debug(sandboxInfo, 'RefreshSandbox called with SandboxInfo');
     if (sandboxInfo.PostCopyConfig && Array.isArray(sandboxInfo.PostCopyConfig)) {
       sandboxInfo.PostCopyConfig = JSON.stringify(sandboxInfo.PostCopyConfig);
+    }
+    // The tooling update API expects a JSON string. Accept an object for ergonomics and serialize it.
+    if (sandboxInfo.ExtensionConfig && typeof sandboxInfo.ExtensionConfig !== 'string') {
+      sandboxInfo.ExtensionConfig = JSON.stringify(sandboxInfo.ExtensionConfig);
     }
     const refreshResult = await this.connection.tooling.update('SandboxInfo', sandboxInfo);
     this.logger.debug(refreshResult, 'Return from calling tooling.update');
@@ -984,25 +1007,33 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const buildSoql = (fields: string[]): string =>
       `SELECT ${fields.join(',')} FROM SandboxInfo WHERE ${whereClause} ORDER BY CreatedDate DESC`;
 
-    let soql = buildSoql(sandboxInfoFields);
-    let records: SandboxInfo[];
-    try {
-      records = (await this.connection.tooling.query<SandboxInfo>(soql)).records;
-    } catch (err) {
-      // PostCopyConfig is only available on orgs running a release that exposes the field on
-      // the Tooling API. Older orgs reject the SOQL with INVALID_FIELD ("No such column ...").
-      // Retry once without PostCopyConfig so existing customers aren't broken.
-      const message = err instanceof Error ? err.message : String(err);
-      const isInvalidField =
-        (err instanceof Error && err.name === 'INVALID_FIELD') || message.includes('No such column');
-      if (isInvalidField && message.includes('PostCopyConfig')) {
-        this.logger.debug('PostCopyConfig not supported on this org; retrying SandboxInfo query without it');
-        soql = buildSoql(sandboxInfoFields.filter((f) => f !== 'PostCopyConfig'));
-        records = (await this.connection.tooling.query<SandboxInfo>(soql)).records;
-      } else {
+    // Some SandboxInfo fields only exist on orgs running a release that exposes them on the Tooling
+    // API (PostCopyConfig in 264, ExtensionConfig in 266, ...). Older orgs reject the SOQL with
+    // INVALID_FIELD ("No such column ..."), naming one missing column at a time. Drop each reported
+    // version-gated field and retry until the query succeeds, so existing customers aren't broken
+    // and orgs that support only some of the fields still return them. Recursion is bounded by the
+    // number of gated fields (at least one is stripped per failed attempt).
+    const queryWithFieldFallback = async (fields: string[]): Promise<{ records: SandboxInfo[]; fields: string[] }> => {
+      try {
+        const records = (await this.connection.tooling.query<SandboxInfo>(buildSoql(fields))).records;
+        return { records, fields };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        const isInvalidField =
+          (err instanceof Error && err.name === 'INVALID_FIELD') || message.includes('No such column');
+        const toDrop = versionGatedSandboxInfoFields.filter((f) => fields.includes(f) && message.includes(f));
+        if (isInvalidField && toDrop.length > 0) {
+          this.logger.debug(
+            `SandboxInfo field(s) not supported on this org; retrying query without: ${toDrop.join(', ')}`
+          );
+          return queryWithFieldFallback(fields.filter((f) => !toDrop.includes(f)));
+        }
         throw err;
       }
-    }
+    };
+
+    const { records, fields } = await queryWithFieldFallback([...sandboxInfoFields]);
+    const soql = buildSoql(fields);
 
     const result = records.filter((item) => !item.IsDeleted);
 

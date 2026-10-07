@@ -1234,6 +1234,39 @@ describe('Org Tests', () => {
         });
       });
 
+      it('will create the SandboxInfo sObject correctly with ExtensionConfig as an object', async () => {
+        const extensionConfig = JSON.parse(
+          '{"commerce_cloud":{"acknowledged":true},"marketing_cloud":{"marketing_objects":["mc_object_1"]}}'
+        ) as Record<string, Record<string, AnyJson>>;
+        await prod.createSandbox(
+          { SandboxName: 'testSandbox', ExtensionConfig: extensionConfig },
+          { wait: Duration.seconds(30) }
+        );
+        expect(createStub.calledOnce).to.be.true;
+        const createCallArgs = createStub.firstCall.args;
+        expect(createCallArgs[0]).to.equal('SandboxInfo');
+        expect(createCallArgs[1]).to.deep.include({
+          SandboxName: 'testSandbox',
+          ExtensionConfig: JSON.stringify(extensionConfig),
+        });
+      });
+
+      it('will create the SandboxInfo sObject correctly with ExtensionConfig as a string', async () => {
+        const extensionConfig =
+          '{"commerce_cloud":{"acknowledged":true},"marketing_cloud":{"marketing_objects":["mc_object_1"]}}';
+        await prod.createSandbox(
+          { SandboxName: 'testSandbox', ExtensionConfig: extensionConfig },
+          { wait: Duration.seconds(30) }
+        );
+        expect(createStub.calledOnce).to.be.true;
+        const createCallArgs = createStub.firstCall.args;
+        expect(createCallArgs[0]).to.equal('SandboxInfo');
+        expect(createCallArgs[1]).to.deep.include({
+          SandboxName: 'testSandbox',
+          ExtensionConfig: extensionConfig,
+        });
+      });
+
       it('will throw an error if it fails to create SandboxInfo', async () => {
         createStub.restore();
         createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
@@ -1429,6 +1462,39 @@ describe('Org Tests', () => {
         expect(updateStub.firstCall.args[1]).to.deep.include({
           SandboxName: sbxInfo.SandboxName,
           PostCopyConfig: postCopyConfig,
+        });
+      });
+
+      it('will refresh the SandboxInfo sObject correctly with ExtensionConfig as an object', async () => {
+        querySandboxProcessStub.resolves({ records: [sbxProcess] });
+        const extensionConfig = JSON.parse(
+          '{"commerce_cloud":{"acknowledged":true},"marketing_cloud":{"marketing_objects":["mc_object_1"]}}'
+        ) as Record<string, Record<string, AnyJson>>;
+        const sbxInfoWithExtensionConfig: SandboxInfo = { ...sbxInfo, ExtensionConfig: extensionConfig };
+
+        await prod.refreshSandbox(sbxInfoWithExtensionConfig, { async: true });
+
+        expect(updateStub.calledOnce).to.be.true;
+        expect(updateStub.firstCall.args[0]).to.equal('SandboxInfo');
+        expect(updateStub.firstCall.args[1]).to.deep.include({
+          SandboxName: sbxInfo.SandboxName,
+          ExtensionConfig: JSON.stringify(extensionConfig),
+        });
+      });
+
+      it('will refresh the SandboxInfo sObject correctly with ExtensionConfig as a string', async () => {
+        querySandboxProcessStub.resolves({ records: [sbxProcess] });
+        const extensionConfig =
+          '{"commerce_cloud":{"acknowledged":true},"marketing_cloud":{"marketing_objects":["mc_object_1"]}}';
+        const sbxInfoWithExtensionConfig: SandboxInfo = { ...sbxInfo, ExtensionConfig: extensionConfig };
+
+        await prod.refreshSandbox(sbxInfoWithExtensionConfig, { async: true });
+
+        expect(updateStub.calledOnce).to.be.true;
+        expect(updateStub.firstCall.args[0]).to.equal('SandboxInfo');
+        expect(updateStub.firstCall.args[1]).to.deep.include({
+          SandboxName: sbxInfo.SandboxName,
+          ExtensionConfig: extensionConfig,
         });
       });
     });
@@ -1816,6 +1882,7 @@ describe('Org Tests', () => {
 
         expect(queryStub.calledOnce).to.be.true;
         expect(queryStub.firstCall.firstArg).to.include('PostCopyConfig');
+        expect(queryStub.firstCall.firstArg).to.include('ExtensionConfig');
         expect(queryStub.firstCall.firstArg).to.include("SandboxName='mySbx'");
         expect(result).to.deep.equal(sandboxInfoRecord);
       });
@@ -1832,7 +1899,48 @@ describe('Org Tests', () => {
         expect(queryStub.calledTwice).to.be.true;
         expect(queryStub.firstCall.firstArg).to.include('PostCopyConfig');
         expect(queryStub.secondCall.firstArg).to.not.include('PostCopyConfig');
+        expect(queryStub.secondCall.firstArg).to.include('ExtensionConfig');
         expect(queryStub.secondCall.firstArg).to.include("SandboxName='mySbx'");
+        expect(result).to.deep.equal(sandboxInfoRecord);
+      });
+
+      it('retries without ExtensionConfig when the org rejects the field with INVALID_FIELD', async () => {
+        const invalidFieldErr = Object.assign(new Error("No such column 'ExtensionConfig' on entity 'SandboxInfo'."), {
+          name: 'INVALID_FIELD',
+        });
+        queryStub.onFirstCall().rejects(invalidFieldErr);
+        queryStub.onSecondCall().resolves({ records: [sandboxInfoRecord] });
+
+        const result = await prod.querySandboxInfo({ name: 'mySbx' });
+
+        expect(queryStub.calledTwice).to.be.true;
+        expect(queryStub.firstCall.firstArg).to.include('ExtensionConfig');
+        expect(queryStub.secondCall.firstArg).to.not.include('ExtensionConfig');
+        expect(queryStub.secondCall.firstArg).to.include('PostCopyConfig');
+        expect(queryStub.secondCall.firstArg).to.include("SandboxName='mySbx'");
+        expect(result).to.deep.equal(sandboxInfoRecord);
+      });
+
+      it('retries without each version-gated field the org rejects in turn', async () => {
+        const postCopyErr = Object.assign(new Error("No such column 'PostCopyConfig' on entity 'SandboxInfo'."), {
+          name: 'INVALID_FIELD',
+        });
+        const extensionErr = Object.assign(new Error("No such column 'ExtensionConfig' on entity 'SandboxInfo'."), {
+          name: 'INVALID_FIELD',
+        });
+        queryStub.onFirstCall().rejects(postCopyErr);
+        queryStub.onSecondCall().rejects(extensionErr);
+        queryStub.onThirdCall().resolves({ records: [sandboxInfoRecord] });
+
+        const result = await prod.querySandboxInfo({ name: 'mySbx' });
+
+        expect(queryStub.calledThrice).to.be.true;
+        expect(queryStub.firstCall.firstArg).to.include('PostCopyConfig');
+        expect(queryStub.firstCall.firstArg).to.include('ExtensionConfig');
+        expect(queryStub.secondCall.firstArg).to.not.include('PostCopyConfig');
+        expect(queryStub.secondCall.firstArg).to.include('ExtensionConfig');
+        expect(queryStub.thirdCall.firstArg).to.not.include('PostCopyConfig');
+        expect(queryStub.thirdCall.firstArg).to.not.include('ExtensionConfig');
         expect(result).to.deep.equal(sandboxInfoRecord);
       });
     });
