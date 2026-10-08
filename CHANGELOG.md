@@ -1,3 +1,12 @@
+## [9.3.3](https://github.com/forcedotcom/sfdx-core/compare/9.3.2...9.3.3) (2026-10-08)
+
+
+### Bug Fixes
+
+* **deps:** bump jsforce-node to 3.10.29 ([89b2d1a](https://github.com/forcedotcom/sfdx-core/commit/89b2d1acff5d88929fa58c80b3c7eb986cba39d9))
+
+
+
 ## [9.3.2](https://github.com/forcedotcom/sfdx-core/compare/9.3.1...9.3.2) (2026-10-07)
 
 
