@@ -1,3 +1,12 @@
+## [9.3.5](https://github.com/forcedotcom/sfdx-core/compare/9.3.4...9.3.5) (2026-10-09)
+
+
+### Bug Fixes
+
+* **deps:** bump fast-copy from 3.0.2 to 3.1.0 in /examples ([e630515](https://github.com/forcedotcom/sfdx-core/commit/e630515ae655ff0346232ea327663345b84f78c8))
+
+
+
 ## [9.3.4](https://github.com/forcedotcom/sfdx-core/compare/9.3.3...9.3.4) (2026-10-09)
 
 
