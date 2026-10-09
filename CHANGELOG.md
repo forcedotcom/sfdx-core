@@ -1,3 +1,12 @@
+## [9.3.4](https://github.com/forcedotcom/sfdx-core/compare/9.3.3...9.3.4) (2026-10-09)
+
+
+### Bug Fixes
+
+* **deps:** bump source-map-js from 1.2.1 to 1.2.2 ([cd2ae75](https://github.com/forcedotcom/sfdx-core/commit/cd2ae75dba7de76baef3c530be9d11c22efcac9f))
+
+
+
 ## [9.3.3](https://github.com/forcedotcom/sfdx-core/compare/9.3.2...9.3.3) (2026-10-08)
 
 
