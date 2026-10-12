@@ -18,7 +18,8 @@ import { get } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { fromStub, StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';
 import { Duration } from '@salesforce/kit';
-import { Connection as JSForceConnection, HttpRequest } from '@jsforce/jsforce-node';
+import { Connection as JSForceConnection, HttpRequest, Schema } from '@jsforce/jsforce-node';
+import type { ConfigAggregator } from '../../../src/config/configAggregator';
 import { AuthInfo } from '../../../src/org/authInfo';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { Connection, DNS_ERROR_NAME, SFDX_HTTP_HEADERS, SingleRecordQueryErrors } from '../../../src/org/connection';
@@ -98,6 +99,90 @@ describe('Connection', () => {
     expect(conn.loginUrl).to.equal(testConnectionOptions.loginUrl);
     // eslint-disable-next-line no-underscore-dangle
     expect(conn._callOptions?.client).to.contain('sfdx toolbelt:');
+  });
+
+  it('create() should enable trace context forwarding when telemetry is enabled', async () => {
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => undefined,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('forwardTraceContext', true);
+  });
+
+  it('create() should disable trace context forwarding when telemetry is disabled', async () => {
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => 'true',
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('forwardTraceContext', false);
+  });
+
+  it('create() should enable trace context forwarding when telemetry is explicitly enabled', async () => {
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => 'false',
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('forwardTraceContext', true);
+  });
+
+  it('create() should disable trace context forwarding when telemetry is disabled with a boolean', async () => {
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => true,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('forwardTraceContext', false);
   });
 
   it('create() should create a connection with the latest API version', async () => {

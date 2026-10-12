@@ -31,6 +31,7 @@ import {
 } from '@jsforce/jsforce-node';
 import { Tooling as JSForceTooling } from '@jsforce/jsforce-node/lib/api/tooling';
 import { StreamPromise } from '@jsforce/jsforce-node/lib/util/promise';
+import { SfConfigProperties } from '../config/config';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';
@@ -126,6 +127,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     // Get connection options from auth info and create a new jsForce connection
     const connectionOptions: ConnectionConfig<S> = {
       version: await getOptionsVersion<S>(options),
+      forwardTraceContext: await telemetryEnabled(options.configAggregator),
       callOptions: {
         client: clientId,
       },
@@ -533,6 +535,12 @@ const getOptionsVersion = async <S extends Schema>(options: Connection.Options<S
   // Set the API version obtained from the config aggregator.
   const configAggregator = options.configAggregator ?? (await ConfigAggregator.create());
   return asString(configAggregator.getInfo('org-api-version').value);
+};
+
+const telemetryEnabled = async (configAggregator?: ConfigAggregator): Promise<boolean> => {
+  const aggregator = configAggregator ?? (await ConfigAggregator.create());
+  const disabled = aggregator.getPropertyValue<boolean | string>(SfConfigProperties.DISABLE_TELEMETRY);
+  return disabled !== true && disabled !== 'true';
 };
 
 // jsforce does some interesting proxy loading on lib classes.
