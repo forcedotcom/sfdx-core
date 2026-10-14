@@ -31,6 +31,7 @@ import {
 } from '@jsforce/jsforce-node';
 import { Tooling as JSForceTooling } from '@jsforce/jsforce-node/lib/api/tooling';
 import { StreamPromise } from '@jsforce/jsforce-node/lib/util/promise';
+import { SfConfigProperties } from '../config/config';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';
@@ -51,35 +52,6 @@ export const SFDX_HTTP_HEADERS = {
   // web browser security keeps you from setting user-agent
   ...(Global.isWeb ? {} : { 'user-agent': clientId }),
 };
-
-const TRACEPARENT_RE = /^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$/i;
-const HEADER_UNSAFE_RE = /[\r\n\0]/;
-
-const ALL_ZERO_32 = /^0{32}$/;
-const ALL_ZERO_16 = /^0{16}$/;
-
-function getTraceContextHeaders(): { [key: string]: string } {
-  const headers: { [key: string]: string } = {};
-  const tp = process.env.TRACEPARENT;
-  if (tp && TRACEPARENT_RE.test(tp)) {
-    const parts = tp.split('-');
-    const version = parts[0].toLowerCase();
-    const traceId = parts[1].toLowerCase();
-    const parentId = parts[2].toLowerCase();
-    if (version !== 'ff' && !ALL_ZERO_32.test(traceId) && !ALL_ZERO_16.test(parentId)) {
-      headers['traceparent'] = tp.toLowerCase();
-      const ts = process.env.TRACESTATE;
-      if (ts && !HEADER_UNSAFE_RE.test(ts)) {
-        headers['tracestate'] = ts;
-      }
-      const bg = process.env.BAGGAGE;
-      if (bg && !HEADER_UNSAFE_RE.test(bg)) {
-        headers['baggage'] = bg;
-      }
-    }
-  }
-  return headers;
-}
 
 export const DNS_ERROR_NAME = 'DomainNotFoundError';
 export type DeployOptionsWithRest = Partial<DeployOptions> & { rest?: boolean };
@@ -155,6 +127,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     // Get connection options from auth info and create a new jsForce connection
     const connectionOptions: ConnectionConfig<S> = {
       version: await getOptionsVersion<S>(options),
+      forwardTraceContext: await telemetryEnabled(options.configAggregator),
       callOptions: {
         client: clientId,
       },
@@ -232,7 +205,6 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       : {};
     httpRequest.headers = {
       ...SFDX_HTTP_HEADERS,
-      ...getTraceContextHeaders(),
       ...lowercasedHeaders,
     };
     this.logger.getRawLogger().debug(httpRequest, 'request');
@@ -563,6 +535,12 @@ const getOptionsVersion = async <S extends Schema>(options: Connection.Options<S
   // Set the API version obtained from the config aggregator.
   const configAggregator = options.configAggregator ?? (await ConfigAggregator.create());
   return asString(configAggregator.getInfo('org-api-version').value);
+};
+
+const telemetryEnabled = async (configAggregator?: ConfigAggregator): Promise<boolean> => {
+  const aggregator = configAggregator ?? (await ConfigAggregator.create());
+  const disabled = aggregator.getPropertyValue<boolean | string>(SfConfigProperties.DISABLE_TELEMETRY);
+  return disabled !== true && disabled !== 'true';
 };
 
 // jsforce does some interesting proxy loading on lib classes.

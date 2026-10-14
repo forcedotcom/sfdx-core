@@ -18,7 +18,8 @@ import { get } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { fromStub, StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';
 import { Duration } from '@salesforce/kit';
-import { Connection as JSForceConnection, HttpRequest } from '@jsforce/jsforce-node';
+import { Connection as JSForceConnection, HttpRequest, Schema } from '@jsforce/jsforce-node';
+import type { ConfigAggregator } from '../../../src/config/configAggregator';
 import { AuthInfo } from '../../../src/org/authInfo';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { Connection, DNS_ERROR_NAME, SFDX_HTTP_HEADERS, SingleRecordQueryErrors } from '../../../src/org/connection';
@@ -98,6 +99,90 @@ describe('Connection', () => {
     expect(conn.loginUrl).to.equal(testConnectionOptions.loginUrl);
     // eslint-disable-next-line no-underscore-dangle
     expect(conn._callOptions?.client).to.contain('sfdx toolbelt:');
+  });
+
+  it('create() should enable trace context forwarding when telemetry is enabled', async () => {
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => undefined,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('forwardTraceContext', true);
+  });
+
+  it('create() should disable trace context forwarding when telemetry is disabled', async () => {
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => 'true',
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('forwardTraceContext', false);
+  });
+
+  it('create() should enable trace context forwarding when telemetry is explicitly enabled', async () => {
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => 'false',
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('forwardTraceContext', true);
+  });
+
+  it('create() should disable trace context forwarding when telemetry is disabled with a boolean', async () => {
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => true,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('forwardTraceContext', false);
   });
 
   it('create() should create a connection with the latest API version', async () => {
@@ -311,142 +396,6 @@ describe('Connection', () => {
 
     expect(requestMock.called).to.be.true;
     expect(requestMock.secondCall.args[0]).to.deep.equal(expectedRequestInfo);
-  });
-
-  describe('W3C trace context headers', () => {
-    const getRequestHeaders = (): HttpRequest['headers'] => (requestMock.secondCall.args[0] as HttpRequest).headers;
-
-    afterEach(() => {
-      delete process.env.TRACEPARENT;
-      delete process.env.TRACESTATE;
-      delete process.env.BAGGAGE;
-    });
-
-    it('request() should forward valid TRACEPARENT as a header', async () => {
-      process.env.TRACEPARENT = '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01';
-      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
-      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
-      await conn.request('connectionTest/request/url');
-      expect(getRequestHeaders()).to.have.property(
-        'traceparent',
-        '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01'
-      );
-    });
-
-    it('request() should forward TRACESTATE and BAGGAGE when present', async () => {
-      process.env.TRACEPARENT = '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01';
-      process.env.TRACESTATE = 'congo=t61rcWkgMzE';
-      process.env.BAGGAGE = 'client=coding-agent-platform';
-      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
-      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
-      await conn.request('connectionTest/request/url');
-      const headers = getRequestHeaders();
-      expect(headers).to.have.property('traceparent');
-      expect(headers).to.have.property('tracestate', 'congo=t61rcWkgMzE');
-      expect(headers).to.have.property('baggage', 'client=coding-agent-platform');
-    });
-
-    it('request() should not include trace headers when env vars are absent', async () => {
-      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
-      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
-      await conn.request('connectionTest/request/url');
-      const headers = getRequestHeaders();
-      expect(headers).to.not.have.property('traceparent');
-      expect(headers).to.not.have.property('tracestate');
-      expect(headers).to.not.have.property('baggage');
-    });
-
-    it('request() should reject invalid TRACEPARENT', async () => {
-      process.env.TRACEPARENT = 'not-a-valid-traceparent';
-      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
-      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
-      await conn.request('connectionTest/request/url');
-      expect(getRequestHeaders()).to.not.have.property('traceparent');
-    });
-
-    it('request() should reject TRACEPARENT with version ff', async () => {
-      process.env.TRACEPARENT = 'ff-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01';
-      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
-      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
-      await conn.request('connectionTest/request/url');
-      expect(getRequestHeaders()).to.not.have.property('traceparent');
-    });
-
-    it('request() should reject uppercase version FF', async () => {
-      process.env.TRACEPARENT = 'FF-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01';
-      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
-      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
-      await conn.request('connectionTest/request/url');
-      expect(getRequestHeaders()).to.not.have.property('traceparent');
-    });
-
-    it('request() should reject all-zero trace-id', async () => {
-      process.env.TRACEPARENT = '00-00000000000000000000000000000000-b7ad6b7169203331-01';
-      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
-      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
-      await conn.request('connectionTest/request/url');
-      expect(getRequestHeaders()).to.not.have.property('traceparent');
-    });
-
-    it('request() should reject all-zero parent-id', async () => {
-      process.env.TRACEPARENT = '00-0af7651916cd43dd8448eb211c80319c-0000000000000000-01';
-      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
-      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
-      await conn.request('connectionTest/request/url');
-      expect(getRequestHeaders()).to.not.have.property('traceparent');
-    });
-
-    it('request() should not forward tracestate without valid traceparent', async () => {
-      process.env.TRACEPARENT = 'not-valid';
-      process.env.TRACESTATE = 'congo=t61rcWkgMzE';
-      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
-      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
-      await conn.request('connectionTest/request/url');
-      const headers = getRequestHeaders();
-      expect(headers).to.not.have.property('traceparent');
-      expect(headers).to.not.have.property('tracestate');
-    });
-
-    it('request() should normalize traceparent to lowercase', async () => {
-      process.env.TRACEPARENT = '00-0AF7651916CD43DD8448EB211C80319C-B7AD6B7169203331-01';
-      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
-      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
-      await conn.request('connectionTest/request/url');
-      expect(getRequestHeaders()).to.have.property(
-        'traceparent',
-        '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01'
-      );
-    });
-
-    it('request() should reject TRACESTATE with control characters', async () => {
-      process.env.TRACEPARENT = '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01';
-      process.env.TRACESTATE = 'evil\r\nX-Injected: true';
-      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
-      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
-      await conn.request('connectionTest/request/url');
-      const headers = getRequestHeaders();
-      expect(headers).to.have.property('traceparent');
-      expect(headers).to.not.have.property('tracestate');
-    });
-
-    it('request() should reject BAGGAGE with control characters', async () => {
-      process.env.TRACEPARENT = '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01';
-      process.env.BAGGAGE = 'key=value\nX-Injected: true';
-      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
-      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
-      await conn.request('connectionTest/request/url');
-      const headers = getRequestHeaders();
-      expect(headers).to.have.property('traceparent');
-      expect(headers).to.not.have.property('baggage');
-    });
-
-    it('request() should allow per-request headers to override trace headers', async () => {
-      process.env.TRACEPARENT = '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01';
-      requestMock.onSecondCall().returns(Promise.resolve({ success: true }));
-      const conn = await Connection.create({ authInfo: fromStub(testAuthInfoWithDomain) });
-      await conn.request({ method: 'GET', url: 'test', headers: { traceparent: 'custom-value' } });
-      expect(getRequestHeaders()).to.have.property('traceparent', 'custom-value');
-    });
   });
 
   describe('deploy', () => {
