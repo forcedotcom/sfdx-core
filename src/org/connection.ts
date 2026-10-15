@@ -32,6 +32,7 @@ import {
 import { Tooling as JSForceTooling } from '@jsforce/jsforce-node/lib/api/tooling';
 import { StreamPromise } from '@jsforce/jsforce-node/lib/util/promise';
 import { SfConfigProperties } from '../config/config';
+import { EnvironmentVariable } from '../config/envVars';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';
@@ -540,7 +541,12 @@ const getOptionsVersion = async <S extends Schema>(options: Connection.Options<S
 const telemetryEnabled = async (configAggregator?: ConfigAggregator): Promise<boolean> => {
   const aggregator = configAggregator ?? (await ConfigAggregator.create());
   const disabled = aggregator.getPropertyValue<boolean | string>(SfConfigProperties.DISABLE_TELEMETRY);
-  return disabled !== true && disabled !== 'true';
+  const propagators = (env.getString(EnvironmentVariable.SF_PROPAGATORS) ?? 'tracecontext')
+    .split(',')
+    .map((propagator) => propagator.trim().toLowerCase());
+  return (
+    disabled !== true && disabled !== 'true' && !propagators.includes('none') && propagators.includes('tracecontext')
+  );
 };
 
 // jsforce does some interesting proxy loading on lib classes.

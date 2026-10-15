@@ -30,6 +30,7 @@ const TEST_IP = '1.1.1.1';
 describe('Connection', () => {
   const $$ = new TestContext();
   const testConnectionOptions = { loginUrl: 'https://connectionTest/loginUrl' };
+  const originalPropagators = process.env.SF_PROPAGATORS;
   let requestMock: sinon.SinonStub;
   let myDomainResolverStub: sinon.SinonStub;
 
@@ -37,6 +38,7 @@ describe('Connection', () => {
   let testAuthInfoWithDomain: StubbedType<AuthInfo>;
 
   beforeEach(() => {
+    delete process.env.SF_PROPAGATORS;
     $$.SANDBOXES.CONNECTION.restore();
     myDomainResolverStub = $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
 
@@ -59,6 +61,14 @@ describe('Connection', () => {
         instanceUrl: 'https://connectionTest/instanceUrl',
       }),
     });
+  });
+
+  after(() => {
+    if (originalPropagators === undefined) {
+      delete process.env.SF_PROPAGATORS;
+    } else {
+      process.env.SF_PROPAGATORS = originalPropagators;
+    }
   });
 
   it('throws error when no valid API version', async () => {
@@ -183,6 +193,50 @@ describe('Connection', () => {
     });
 
     expect(connectionOptions).to.have.property('forwardTraceContext', false);
+  });
+
+  it('create() should disable trace context forwarding when SF_PROPAGATORS includes none', async () => {
+    process.env.SF_PROPAGATORS = 'none,tracecontext';
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => undefined,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('forwardTraceContext', false);
+  });
+
+  it('create() should forward trace context when SF_PROPAGATORS includes tracecontext', async () => {
+    process.env.SF_PROPAGATORS = 'baggage, TraceContext';
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => undefined,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('forwardTraceContext', true);
   });
 
   it('create() should create a connection with the latest API version', async () => {
