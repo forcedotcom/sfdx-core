@@ -129,7 +129,7 @@ describe('Connection', () => {
       configAggregator: fromStub(configAggregator),
     });
 
-    expect(connectionOptions).to.have.property('forwardTraceContext', true);
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['tracecontext']);
   });
 
   it('create() should disable trace context forwarding when telemetry is disabled', async () => {
@@ -150,7 +150,7 @@ describe('Connection', () => {
       configAggregator: fromStub(configAggregator),
     });
 
-    expect(connectionOptions).to.have.property('forwardTraceContext', false);
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
   });
 
   it('create() should enable trace context forwarding when telemetry is explicitly enabled', async () => {
@@ -171,7 +171,7 @@ describe('Connection', () => {
       configAggregator: fromStub(configAggregator),
     });
 
-    expect(connectionOptions).to.have.property('forwardTraceContext', true);
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['tracecontext']);
   });
 
   it('create() should disable trace context forwarding when telemetry is disabled with a boolean', async () => {
@@ -192,11 +192,11 @@ describe('Connection', () => {
       configAggregator: fromStub(configAggregator),
     });
 
-    expect(connectionOptions).to.have.property('forwardTraceContext', false);
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
   });
 
-  it('create() should disable trace context forwarding when SF_PROPAGATORS includes none', async () => {
-    process.env.SF_PROPAGATORS = 'none,tracecontext';
+  it('create() should pass supported SF_PROPAGATORS values to jsforce', async () => {
+    process.env.SF_PROPAGATORS = 'tracecontext,b3,b3multi';
     const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
       getInfo: () => ({ value: undefined }),
       getPropertyValue: () => undefined,
@@ -214,11 +214,11 @@ describe('Connection', () => {
       configAggregator: fromStub(configAggregator),
     });
 
-    expect(connectionOptions).to.have.property('forwardTraceContext', false);
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['tracecontext', 'b3', 'b3multi']);
   });
 
-  it('create() should forward trace context when SF_PROPAGATORS includes tracecontext', async () => {
-    process.env.SF_PROPAGATORS = 'baggage, TraceContext';
+  it('create() should disable propagation when SF_PROPAGATORS includes none', async () => {
+    process.env.SF_PROPAGATORS = 'tracecontext,none';
     const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
       getInfo: () => ({ value: undefined }),
       getPropertyValue: () => undefined,
@@ -236,7 +236,7 @@ describe('Connection', () => {
       configAggregator: fromStub(configAggregator),
     });
 
-    expect(connectionOptions).to.have.property('forwardTraceContext', true);
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
   });
 
   it('create() should create a connection with the latest API version', async () => {

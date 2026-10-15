@@ -28,6 +28,7 @@ import {
   QueryResult,
   Record,
   Schema,
+  TracePropagator,
 } from '@jsforce/jsforce-node';
 import { Tooling as JSForceTooling } from '@jsforce/jsforce-node/lib/api/tooling';
 import { StreamPromise } from '@jsforce/jsforce-node/lib/util/promise';
@@ -128,7 +129,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     // Get connection options from auth info and create a new jsForce connection
     const connectionOptions: ConnectionConfig<S> = {
       version: await getOptionsVersion<S>(options),
-      forwardTraceContext: await telemetryEnabled(options.configAggregator),
+      propagators: await getPropagators(options.configAggregator),
       callOptions: {
         client: clientId,
       },
@@ -538,15 +539,18 @@ const getOptionsVersion = async <S extends Schema>(options: Connection.Options<S
   return asString(configAggregator.getInfo('org-api-version').value);
 };
 
-const telemetryEnabled = async (configAggregator?: ConfigAggregator): Promise<boolean> => {
+const getPropagators = async (configAggregator?: ConfigAggregator): Promise<TracePropagator[]> => {
   const aggregator = configAggregator ?? (await ConfigAggregator.create());
   const disabled = aggregator.getPropertyValue<boolean | string>(SfConfigProperties.DISABLE_TELEMETRY);
+  if (disabled === true || disabled === 'true') return ['none'];
+
   const propagators = (env.getString(EnvironmentVariable.SF_PROPAGATORS) ?? 'tracecontext')
     .split(',')
-    .map((propagator) => propagator.trim().toLowerCase());
-  return (
-    disabled !== true && disabled !== 'true' && !propagators.includes('none') && propagators.includes('tracecontext')
-  );
+    .map((propagator) => propagator.trim().toLowerCase())
+    .filter((propagator): propagator is TracePropagator =>
+      ['tracecontext', 'b3', 'b3multi', 'none'].includes(propagator)
+    );
+  return propagators.includes('none') ? ['none'] : propagators;
 };
 
 // jsforce does some interesting proxy loading on lib classes.
