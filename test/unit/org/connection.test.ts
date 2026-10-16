@@ -289,6 +289,13 @@ describe('Connection', () => {
         'Unsupported trace propagator: tracecontex. Supported values: tracecontext, b3, b3multi, none'
       )
     ).to.be.true;
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(warningStub.calledOnce).to.be.true;
   });
 
   it('create() should create a connection with the latest API version', async () => {
