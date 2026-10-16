@@ -239,6 +239,28 @@ describe('Connection', () => {
     expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
   });
 
+  it('create() should ignore empty SF_PROPAGATORS entries', async () => {
+    process.env.SF_PROPAGATORS = 'b3,';
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => undefined,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['b3']);
+  });
+
   it('create() should reject unsupported SF_PROPAGATORS values', async () => {
     process.env.SF_PROPAGATORS = 'tracecontex';
     const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
@@ -253,7 +275,11 @@ describe('Connection', () => {
       });
       expect.fail('Expected an unsupported propagator error');
     } catch (error) {
-      expect(error).to.have.property('message', 'Unsupported trace propagator: tracecontex');
+      expect(error).to.have.property('name', 'UnsupportedTracePropagatorError');
+      expect(error).to.have.property(
+        'message',
+        'Unsupported trace propagator: tracecontex. Supported values: tracecontext, b3, b3multi, none'
+      );
     }
   });
 

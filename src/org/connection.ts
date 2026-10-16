@@ -57,6 +57,7 @@ export const SFDX_HTTP_HEADERS = {
 
 export const DNS_ERROR_NAME = 'DomainNotFoundError';
 export type DeployOptionsWithRest = Partial<DeployOptions> & { rest?: boolean };
+const TRACE_PROPAGATORS: TracePropagator[] = ['tracecontext', 'b3', 'b3multi', 'none'];
 
 // preserving interface since it extends a class
 
@@ -546,10 +547,14 @@ const getPropagators = async (configAggregator?: ConfigAggregator): Promise<Trac
 
   const propagators = (env.getString(EnvironmentVariable.SF_PROPAGATORS) ?? 'tracecontext')
     .split(',')
-    .map((propagator) => propagator.trim().toLowerCase());
+    .map((propagator) => propagator.trim().toLowerCase())
+    .filter(Boolean);
   const validatedPropagators = propagators.map((propagator): TracePropagator => {
-    if (!['tracecontext', 'b3', 'b3multi', 'none'].includes(propagator)) {
-      throw new Error(`Unsupported trace propagator: ${propagator}`);
+    if (!TRACE_PROPAGATORS.includes(propagator as TracePropagator)) {
+      throw new SfError(
+        `Unsupported trace propagator: ${propagator}. Supported values: ${TRACE_PROPAGATORS.join(', ')}`,
+        'UnsupportedTracePropagatorError'
+      );
     }
     return propagator as TracePropagator;
   });
