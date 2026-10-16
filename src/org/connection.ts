@@ -545,18 +545,18 @@ const getPropagators = async (configAggregator?: ConfigAggregator): Promise<Trac
   const disabled = aggregator.getPropertyValue<boolean | string>(SfConfigProperties.DISABLE_TELEMETRY);
   if (disabled === true || disabled === 'true') return ['none'];
 
-  const propagators = (env.getString(EnvironmentVariable.SF_PROPAGATORS) ?? 'tracecontext')
+  const propagators = (env.getString(EnvironmentVariable.SF_PROPAGATORS) ?? 'none')
     .split(',')
     .map((propagator) => propagator.trim().toLowerCase())
     .filter(Boolean);
-  const validatedPropagators = propagators.map((propagator): TracePropagator => {
+  const validatedPropagators = propagators.flatMap((propagator): TracePropagator[] => {
     if (!TRACE_PROPAGATORS.includes(propagator as TracePropagator)) {
-      throw new SfError(
-        `Unsupported trace propagator: ${propagator}. Supported values: ${TRACE_PROPAGATORS.join(', ')}`,
-        'UnsupportedTracePropagatorError'
+      void Lifecycle.getInstance().emitWarning(
+        `Unsupported trace propagator: ${propagator}. Supported values: ${TRACE_PROPAGATORS.join(', ')}`
       );
+      return [];
     }
-    return propagator as TracePropagator;
+    return [propagator as TracePropagator];
   });
   return validatedPropagators.includes('none') ? ['none'] : validatedPropagators;
 };

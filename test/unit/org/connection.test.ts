@@ -22,6 +22,7 @@ import { Connection as JSForceConnection, HttpRequest, Schema } from '@jsforce/j
 import type { ConfigAggregator } from '../../../src/config/configAggregator';
 import { AuthInfo } from '../../../src/org/authInfo';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
+import { Lifecycle } from '../../../src/lifecycleEvents';
 import { Connection, DNS_ERROR_NAME, SFDX_HTTP_HEADERS, SingleRecordQueryErrors } from '../../../src/org/connection';
 import { shouldThrow, shouldThrowSync, TestContext } from '../../../src/testSetup';
 
@@ -111,7 +112,7 @@ describe('Connection', () => {
     expect(conn._callOptions?.client).to.contain('sfdx toolbelt:');
   });
 
-  it('create() should enable trace context forwarding when telemetry is enabled', async () => {
+  it('create() should disable trace context forwarding when SF_PROPAGATORS is unset', async () => {
     const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
       getInfo: () => ({ value: undefined }),
       getPropertyValue: () => undefined,
@@ -129,7 +130,7 @@ describe('Connection', () => {
       configAggregator: fromStub(configAggregator),
     });
 
-    expect(connectionOptions).to.have.property('propagators').deep.equal(['tracecontext']);
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
   });
 
   it('create() should disable trace context forwarding when telemetry is disabled', async () => {
@@ -153,7 +154,7 @@ describe('Connection', () => {
     expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
   });
 
-  it('create() should enable trace context forwarding when telemetry is explicitly enabled', async () => {
+  it('create() should leave trace context forwarding disabled when telemetry is explicitly enabled', async () => {
     const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
       getInfo: () => ({ value: undefined }),
       getPropertyValue: () => 'false',
@@ -171,7 +172,7 @@ describe('Connection', () => {
       configAggregator: fromStub(configAggregator),
     });
 
-    expect(connectionOptions).to.have.property('propagators').deep.equal(['tracecontext']);
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
   });
 
   it('create() should disable trace context forwarding when telemetry is disabled with a boolean', async () => {
@@ -261,26 +262,33 @@ describe('Connection', () => {
     expect(connectionOptions).to.have.property('propagators').deep.equal(['b3']);
   });
 
-  it('create() should reject unsupported SF_PROPAGATORS values', async () => {
+  it('create() should warn and ignore unsupported SF_PROPAGATORS values', async () => {
     process.env.SF_PROPAGATORS = 'tracecontex';
+    const warningStub = $$.SANDBOX.stub(Lifecycle.getInstance(), 'emitWarning');
     const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
       getInfo: () => ({ value: undefined }),
       getPropertyValue: () => undefined,
     });
 
-    try {
-      await Connection.create({
-        authInfo: fromStub(testAuthInfo),
-        configAggregator: fromStub(configAggregator),
-      });
-      expect.fail('Expected an unsupported propagator error');
-    } catch (error) {
-      expect(error).to.have.property('name', 'UnsupportedTracePropagatorError');
-      expect(error).to.have.property(
-        'message',
-        'Unsupported trace propagator: tracecontex. Supported values: tracecontext, b3, b3multi, none'
-      );
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
     }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal([]);
+    expect(
+      warningStub.calledWith(
+        'Unsupported trace propagator: tracecontex. Supported values: tracecontext, b3, b3multi, none'
+      )
+    ).to.be.true;
   });
 
   it('create() should create a connection with the latest API version', async () => {

@@ -268,7 +268,7 @@ Set to true to enable Apex pre-compile before the tests are run with the Apex te
 
 # sfPropagators
 
-Comma-separated list of context propagators used for outbound API requests. Defaults to `tracecontext`. Supported values are `tracecontext`, `b3`, `b3multi`, and `none`. Set to `none` to disable all trace-context forwarding.
+Comma-separated list of context propagators used for outbound API requests. Trace-context forwarding is disabled unless this variable is set. Supported values are `tracecontext`, `b3`, `b3multi`, and `none`. Set to `none` to disable all trace-context forwarding.
 
 # sfProjectAutoupdateDisableForPackageCreate
 
