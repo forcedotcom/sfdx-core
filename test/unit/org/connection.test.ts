@@ -196,7 +196,7 @@ describe('Connection', () => {
   });
 
   it('create() should pass supported SF_PROPAGATORS values to jsforce', async () => {
-    process.env.SF_PROPAGATORS = 'tracecontext,b3,b3multi';
+    process.env.SF_PROPAGATORS = 'tracecontext,b3';
     const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
       getInfo: () => ({ value: undefined }),
       getPropertyValue: () => undefined,
@@ -214,7 +214,7 @@ describe('Connection', () => {
       configAggregator: fromStub(configAggregator),
     });
 
-    expect(connectionOptions).to.have.property('propagators').deep.equal(['tracecontext', 'b3', 'b3multi']);
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['tracecontext', 'b3']);
   });
 
   it('create() should disable propagation when SF_PROPAGATORS includes none', async () => {
@@ -237,6 +237,24 @@ describe('Connection', () => {
     });
 
     expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
+  });
+
+  it('create() should reject unsupported SF_PROPAGATORS values', async () => {
+    process.env.SF_PROPAGATORS = 'tracecontex';
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => undefined,
+    });
+
+    try {
+      await Connection.create({
+        authInfo: fromStub(testAuthInfo),
+        configAggregator: fromStub(configAggregator),
+      });
+      expect.fail('Expected an unsupported propagator error');
+    } catch (error) {
+      expect(error).to.have.property('message', 'Unsupported trace propagator: tracecontex');
+    }
   });
 
   it('create() should create a connection with the latest API version', async () => {

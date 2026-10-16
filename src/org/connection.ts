@@ -546,10 +546,11 @@ const getPropagators = async (configAggregator?: ConfigAggregator): Promise<Trac
 
   const propagators = (env.getString(EnvironmentVariable.SF_PROPAGATORS) ?? 'tracecontext')
     .split(',')
-    .map((propagator) => propagator.trim().toLowerCase())
-    .filter((propagator): propagator is TracePropagator =>
-      ['tracecontext', 'b3', 'b3multi', 'none'].includes(propagator)
-    );
+    .map((propagator) => propagator.trim().toLowerCase());
+  const unsupportedPropagator = propagators.find(
+    (propagator) => !['tracecontext', 'b3', 'b3multi', 'none'].includes(propagator)
+  );
+  if (unsupportedPropagator) throw new Error(`Unsupported trace propagator: ${unsupportedPropagator}`);
   return propagators.includes('none') ? ['none'] : propagators;
 };
 
