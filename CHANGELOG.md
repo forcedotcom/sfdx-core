@@ -1,3 +1,12 @@
+## [9.3.7](https://github.com/forcedotcom/sfdx-core/compare/9.3.6...9.3.7) (2026-10-16)
+
+
+### Bug Fixes
+
+* **project:** guard traversal for invalid cwd - W-24534219 ([#1358](https://github.com/forcedotcom/sfdx-core/issues/1358)) ([e5c67fc](https://github.com/forcedotcom/sfdx-core/commit/e5c67fc0c4f90c8789949a3eb400ecc8aae3f77b))
+
+
+
 ## [9.3.6](https://github.com/forcedotcom/sfdx-core/compare/9.3.5...9.3.6) (2026-10-09)
 
 
