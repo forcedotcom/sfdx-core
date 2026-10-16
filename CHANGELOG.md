@@ -1,3 +1,24 @@
+# [9.4.0](https://github.com/forcedotcom/sfdx-core/compare/9.3.7...9.4.0) (2026-10-16)
+
+
+### Bug Fixes
+
+* deduplicate propagator warnings ([433c13e](https://github.com/forcedotcom/sfdx-core/commit/433c13e57fee3ebf52ef6e98d23a4d078172e201))
+* forward trace context through jsforce ([4bb74ee](https://github.com/forcedotcom/sfdx-core/commit/4bb74eeca4eea49a58ec4532db363ad13d275a8a))
+* harden W3C trace context validation per spec ([c2f77da](https://github.com/forcedotcom/sfdx-core/commit/c2f77dab367029ccf6d0c485eb5095bd53df1e29))
+* make trace propagation opt-in ([6e7688a](https://github.com/forcedotcom/sfdx-core/commit/6e7688a074684c49ab5b36cfa645d3c1f1f24641))
+* validate configured propagators ([ccc46dd](https://github.com/forcedotcom/sfdx-core/commit/ccc46dd728b9758722c70af6649910098c13409e))
+* validate trace propagator settings ([8257856](https://github.com/forcedotcom/sfdx-core/commit/8257856f8039fe46413363cc77b0ea27ca92db71))
+
+
+### Features
+
+* configure jsforce propagators ([f352b6f](https://github.com/forcedotcom/sfdx-core/commit/f352b6fc0ac482691620352ad59f3a0fb4f2fea6))
+* configure trace context propagators ([4f8b341](https://github.com/forcedotcom/sfdx-core/commit/4f8b3412c09d71c788ad6f7462b7e150fba486ad))
+* forward W3C trace context headers on outbound API requests ([e039aea](https://github.com/forcedotcom/sfdx-core/commit/e039aea866fcbda4af7ccbb2b44dd7179482b718))
+
+
+
 ## [9.3.7](https://github.com/forcedotcom/sfdx-core/compare/9.3.6...9.3.7) (2026-10-16)
 
 
