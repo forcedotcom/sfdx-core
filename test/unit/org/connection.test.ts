@@ -18,9 +18,11 @@ import { get } from '@salesforce/ts-types';
 import { expect } from 'chai';
 import { fromStub, StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';
 import { Duration } from '@salesforce/kit';
-import { Connection as JSForceConnection, HttpRequest } from '@jsforce/jsforce-node';
+import { Connection as JSForceConnection, HttpRequest, Schema } from '@jsforce/jsforce-node';
+import type { ConfigAggregator } from '../../../src/config/configAggregator';
 import { AuthInfo } from '../../../src/org/authInfo';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
+import { Lifecycle } from '../../../src/lifecycleEvents';
 import { Connection, DNS_ERROR_NAME, SFDX_HTTP_HEADERS, SingleRecordQueryErrors } from '../../../src/org/connection';
 import { shouldThrow, shouldThrowSync, TestContext } from '../../../src/testSetup';
 
@@ -29,6 +31,7 @@ const TEST_IP = '1.1.1.1';
 describe('Connection', () => {
   const $$ = new TestContext();
   const testConnectionOptions = { loginUrl: 'https://connectionTest/loginUrl' };
+  const originalPropagators = process.env.SF_PROPAGATORS;
   let requestMock: sinon.SinonStub;
   let myDomainResolverStub: sinon.SinonStub;
 
@@ -36,6 +39,7 @@ describe('Connection', () => {
   let testAuthInfoWithDomain: StubbedType<AuthInfo>;
 
   beforeEach(() => {
+    delete process.env.SF_PROPAGATORS;
     $$.SANDBOXES.CONNECTION.restore();
     myDomainResolverStub = $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
 
@@ -58,6 +62,14 @@ describe('Connection', () => {
         instanceUrl: 'https://connectionTest/instanceUrl',
       }),
     });
+  });
+
+  after(() => {
+    if (originalPropagators === undefined) {
+      delete process.env.SF_PROPAGATORS;
+    } else {
+      process.env.SF_PROPAGATORS = originalPropagators;
+    }
   });
 
   it('throws error when no valid API version', async () => {
@@ -98,6 +110,192 @@ describe('Connection', () => {
     expect(conn.loginUrl).to.equal(testConnectionOptions.loginUrl);
     // eslint-disable-next-line no-underscore-dangle
     expect(conn._callOptions?.client).to.contain('sfdx toolbelt:');
+  });
+
+  it('create() should disable trace context forwarding when SF_PROPAGATORS is unset', async () => {
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => undefined,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
+  });
+
+  it('create() should disable trace context forwarding when telemetry is disabled', async () => {
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => 'true',
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
+  });
+
+  it('create() should leave trace context forwarding disabled when telemetry is explicitly enabled', async () => {
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => 'false',
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
+  });
+
+  it('create() should disable trace context forwarding when telemetry is disabled with a boolean', async () => {
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => true,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
+  });
+
+  it('create() should pass supported SF_PROPAGATORS values to jsforce', async () => {
+    process.env.SF_PROPAGATORS = 'tracecontext,b3';
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => undefined,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['tracecontext', 'b3']);
+  });
+
+  it('create() should disable propagation when SF_PROPAGATORS includes none', async () => {
+    process.env.SF_PROPAGATORS = 'tracecontext,none';
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => undefined,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
+  });
+
+  it('create() should ignore empty SF_PROPAGATORS entries', async () => {
+    process.env.SF_PROPAGATORS = 'b3,';
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => undefined,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['b3']);
+  });
+
+  it('create() should warn and ignore unsupported SF_PROPAGATORS values', async () => {
+    process.env.SF_PROPAGATORS = 'tracecontex';
+    const warningStub = $$.SANDBOX.stub(Lifecycle.getInstance(), 'emitWarning');
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => undefined,
+    });
+
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal([]);
+    expect(
+      warningStub.calledWith(
+        'Unsupported trace propagator: tracecontex. Supported values: tracecontext, b3, b3multi, none'
+      )
+    ).to.be.true;
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(warningStub.calledOnce).to.be.true;
   });
 
   it('create() should create a connection with the latest API version', async () => {

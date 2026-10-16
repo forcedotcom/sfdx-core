@@ -28,9 +28,12 @@ import {
   QueryResult,
   Record,
   Schema,
+  TracePropagator,
 } from '@jsforce/jsforce-node';
 import { Tooling as JSForceTooling } from '@jsforce/jsforce-node/lib/api/tooling';
 import { StreamPromise } from '@jsforce/jsforce-node/lib/util/promise';
+import { SfConfigProperties } from '../config/config';
+import { EnvironmentVariable } from '../config/envVars';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';
@@ -54,6 +57,11 @@ export const SFDX_HTTP_HEADERS = {
 
 export const DNS_ERROR_NAME = 'DomainNotFoundError';
 export type DeployOptionsWithRest = Partial<DeployOptions> & { rest?: boolean };
+const TRACE_PROPAGATORS: TracePropagator[] = ['tracecontext', 'b3', 'b3multi', 'none'];
+const warnedUnsupportedTracePropagators =
+  ((globalThis as { [key: string]: unknown }).sfCoreUnsupportedTracePropagators as Set<string> | undefined) ??
+  new Set<string>();
+(globalThis as { [key: string]: unknown }).sfCoreUnsupportedTracePropagators = warnedUnsupportedTracePropagators;
 
 // preserving interface since it extends a class
 
@@ -126,6 +134,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     // Get connection options from auth info and create a new jsForce connection
     const connectionOptions: ConnectionConfig<S> = {
       version: await getOptionsVersion<S>(options),
+      propagators: await getPropagators(options.configAggregator),
       callOptions: {
         client: clientId,
       },
@@ -533,6 +542,30 @@ const getOptionsVersion = async <S extends Schema>(options: Connection.Options<S
   // Set the API version obtained from the config aggregator.
   const configAggregator = options.configAggregator ?? (await ConfigAggregator.create());
   return asString(configAggregator.getInfo('org-api-version').value);
+};
+
+const getPropagators = async (configAggregator?: ConfigAggregator): Promise<TracePropagator[]> => {
+  const aggregator = configAggregator ?? (await ConfigAggregator.create());
+  const disabled = aggregator.getPropertyValue<boolean | string>(SfConfigProperties.DISABLE_TELEMETRY);
+  if (disabled === true || disabled === 'true') return ['none'];
+
+  const propagators = (env.getString(EnvironmentVariable.SF_PROPAGATORS) ?? 'none')
+    .split(',')
+    .map((propagator) => propagator.trim().toLowerCase())
+    .filter(Boolean);
+  const validatedPropagators = propagators.flatMap((propagator): TracePropagator[] => {
+    if (!TRACE_PROPAGATORS.includes(propagator as TracePropagator)) {
+      if (!warnedUnsupportedTracePropagators.has(propagator)) {
+        warnedUnsupportedTracePropagators.add(propagator);
+        void Lifecycle.getInstance().emitWarning(
+          `Unsupported trace propagator: ${propagator}. Supported values: ${TRACE_PROPAGATORS.join(', ')}`
+        );
+      }
+      return [];
+    }
+    return [propagator as TracePropagator];
+  });
+  return validatedPropagators.includes('none') ? ['none'] : validatedPropagators;
 };
 
 // jsforce does some interesting proxy loading on lib classes.
