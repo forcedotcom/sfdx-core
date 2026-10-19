@@ -36,7 +36,8 @@ describe('AuthRemover DPoP', () => {
 
   beforeEach(() => {
     deleteKeyStub = $$.SANDBOX.stub(DpopKey, 'delete').resolves();
-    removeFileStub = $$.SANDBOX.stub(OrgAccessor.prototype, 'remove').resolves();
+    // TestContext already stubs OrgAccessor.prototype.remove; record calls through that stub.
+    removeFileStub = OrgAccessor.prototype.remove as SinonStub;
   });
 
   it('deletes the DPoP keychain item before deleting the auth file', async () => {

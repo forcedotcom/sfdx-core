@@ -42,11 +42,14 @@ import { validateApiVersion } from '../util/sfdc';
 import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
 import { Global } from '../global';
+import { DpopKey } from '../crypto/dpop';
 import { AuthFields, AuthInfo } from './authInfo';
+import { DpopTransport, TokenType } from './dpopTransport';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'connection');
+const dpopMessages = Messages.loadMessages('@salesforce/core', 'dpop');
 
 const clientId = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS ?? ''}`;
 export const SFDX_HTTP_HEADERS = {
@@ -144,6 +147,9 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
 
     const conn = new this({ ...options, connectionOptions });
     await conn.init();
+    if (!options.clientApp) {
+      await conn.useDpop(options.authInfo);
+    }
 
     try {
       // No version passed in or in the config, so load one.
@@ -498,6 +504,30 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
         this.logger.debug('API version cache expired. Re-fetching latest.');
       }
     }
+  }
+
+  /**
+   * Binds REST and SOAP requests to the authorization's DPoP key, if it has one.
+   */
+  private async useDpop(authInfo: AuthInfo): Promise<void> {
+    const { dpopKeyReference, dpopNonce } = authInfo.getFields(true);
+    if (!dpopKeyReference) return;
+    let key: DpopKey;
+    try {
+      key = await DpopKey.load(dpopKeyReference);
+    } catch (e) {
+      const error = e instanceof Error ? e : SfError.wrap(e);
+      throw dpopMessages.createError('dpopSessionUnavailable', [authInfo.getUsername(), error.message], [], error);
+    }
+    // eslint-disable-next-line no-underscore-dangle
+    this._transport = new DpopTransport(key, {
+      nonce: dpopNonce,
+      // Read on every request: a refresh can change the token type.
+      tokenType: (): TokenType => (authInfo.getFields(true).tokenType === 'DPoP' ? 'DPoP' : 'Bearer'),
+      onNonce: (nonce): void => {
+        authInfo.update({ dpopNonce: nonce });
+      },
+    });
   }
 }
 
