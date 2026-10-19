@@ -1,0 +1,203 @@
+/*
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import {
+  createHash,
+  createPrivateKey,
+  createPublicKey,
+  generateKeyPair,
+  KeyObject,
+  randomUUID,
+  sign,
+} from 'node:crypto';
+import { inspect, promisify } from 'node:util';
+import { Messages } from '../messages';
+import { DpopKeyStore } from './dpopKeyStore';
+
+Messages.importMessagesDirectory(__dirname);
+const messages = Messages.loadMessages('@salesforce/core', 'dpop');
+
+const generateKeyPairAsync = promisify(generateKeyPair);
+
+/** 2000-01-01T00:00:00Z; earlier `iat` values are treated as a caller bug, not a real clock. */
+const MIN_ISSUED_AT = 946_684_800;
+
+/**
+ * The public half of a DPoP key, as embedded in the `jwk` header of every proof.
+ */
+export type DpopPublicJwk = {
+  kty: 'EC';
+  crv: 'P-256';
+  x: string;
+  y: string;
+};
+
+export type DpopProofOptions = {
+  /** The HTTP method of the request. */
+  method: string;
+  /** The HTTPS request URL. The query and fragment are not part of the proof. */
+  url: string | URL;
+  /** A server-provided `DPoP-Nonce`. */
+  nonce?: string;
+  /** The access token sent with the request; adds an `ath` claim. Omit for token endpoint requests. */
+  accessToken?: string;
+  /** Override for the `iat` claim, in Unix seconds. */
+  issuedAt?: number;
+};
+
+export type DpopKeyStoreOption = {
+  /** Where to persist the private key. Defaults to {@link DpopKeyStore.create}. */
+  store?: DpopKeyStore;
+};
+
+/**
+ * An ES256 key used to sign RFC 9449 DPoP proofs. The private key is persisted by reference in a
+ * {@link DpopKeyStore}, never in an auth file, and is never serialized or logged.
+ *
+ * ```
+ * const key = await DpopKey.generate();
+ * const proof = key.createProof({ method: 'GET', url, accessToken });
+ * ```
+ */
+export class DpopKey {
+  /** The public JWK embedded in each proof. */
+  public readonly publicJwk: DpopPublicJwk;
+  /** The RFC 7638 SHA-256 thumbprint of the public JWK, sent as `dpop_jkt`. */
+  public readonly thumbprint: string;
+  /** Local handle for the private key in the key store. Saved in auth files as `dpopKeyReference`. */
+  public readonly keyReference: string;
+  readonly #privateKey: KeyObject;
+
+  private constructor(privateKey: KeyObject, keyReference: string) {
+    this.#privateKey = privateKey;
+    this.keyReference = keyReference;
+    const { kty, crv, x, y } = createPublicKey(privateKey).export({ format: 'jwk' });
+    if (kty !== 'EC' || crv !== 'P-256' || !x || !y) {
+      throw messages.createError('invalidDpopProofOptions', ['DPoP keys must be P-256 EC keys']);
+    }
+    this.publicJwk = { kty, crv, x, y };
+    // RFC 7638: the required members, in lexicographic order, with no whitespace.
+    this.thumbprint = createHash('sha256').update(JSON.stringify({ crv, kty, x, y })).digest('base64url');
+  }
+
+  /**
+   * Generates a new key and persists its private half.
+   *
+   * @param options The key store to use.
+   */
+  public static async generate(options: DpopKeyStoreOption = {}): Promise<DpopKey> {
+    const { privateKey } = await generateKeyPairAsync('ec', { namedCurve: 'P-256' });
+    const key = new DpopKey(privateKey, randomUUID());
+    const store = options.store ?? (await DpopKeyStore.create());
+    await store.store(key.keyReference, privateKey.export({ type: 'pkcs8', format: 'pem' }).toString());
+    return key;
+  }
+
+  /**
+   * Loads a previously generated key.
+   *
+   * @param keyReference The key's reference.
+   * @param options The key store to use.
+   */
+  public static async load(keyReference: string, options: DpopKeyStoreOption = {}): Promise<DpopKey> {
+    const store = options.store ?? (await DpopKeyStore.create());
+    return new DpopKey(createPrivateKey(await store.retrieve(keyReference)), keyReference);
+  }
+
+  /**
+   * Deletes a previously generated key.
+   *
+   * @param keyReference The key's reference.
+   * @param options The key store to use.
+   * @returns Whether a key was deleted.
+   */
+  public static async delete(keyReference: string, options: DpopKeyStoreOption = {}): Promise<boolean> {
+    const store = options.store ?? (await DpopKeyStore.create());
+    return store.delete(keyReference);
+  }
+
+  /**
+   * The RFC 9449 `ath` claim: the base64url SHA-256 hash of an access token.
+   *
+   * @param accessToken The access token.
+   */
+  public static accessTokenHash(accessToken: string): string {
+    return createHash('sha256').update(accessToken).digest('base64url');
+  }
+
+  /**
+   * The public key, for verifying proofs.
+   */
+  public getPublicKey(): KeyObject {
+    return createPublicKey(this.#privateKey);
+  }
+
+  /**
+   * Signs a proof for a single request. Proofs must not be reused; create a new one for every attempt.
+   *
+   * **Throws** *{@link SfError}{ name: 'InvalidDpopProofOptionsError' }* When the options are invalid.
+   *
+   * @param options The request to bind the proof to.
+   */
+  public createProof(options: DpopProofOptions): string {
+    const url = validateUrl(options.url);
+    if (!options.method) {
+      throw messages.createError('invalidDpopProofOptions', ['method is required']);
+    }
+    if (options.nonce === '') {
+      throw messages.createError('invalidDpopProofOptions', ['nonce must not be empty']);
+    }
+    if (options.issuedAt !== undefined && (!Number.isInteger(options.issuedAt) || options.issuedAt < MIN_ISSUED_AT)) {
+      throw messages.createError('invalidDpopProofOptions', ['issuedAt must be a Unix time in seconds']);
+    }
+
+    const header = { typ: 'dpop+jwt', alg: 'ES256', jwk: this.publicJwk };
+    const claims = {
+      htm: options.method.toUpperCase(),
+      htu: `${url.origin}${url.pathname}`,
+      iat: options.issuedAt ?? Math.floor(Date.now() / 1000),
+      jti: randomUUID(),
+      ...(options.nonce ? { nonce: options.nonce } : {}),
+      ...(options.accessToken !== undefined ? { ath: DpopKey.accessTokenHash(options.accessToken) } : {}),
+    };
+    const signingInput = `${base64url(header)}.${base64url(claims)}`;
+    // JWS ES256 signatures are the raw r||s pair, not DER.
+    const signature = sign('sha256', Buffer.from(signingInput), { key: this.#privateKey, dsaEncoding: 'ieee-p1363' });
+    return `${signingInput}.${signature.toString('base64url')}`;
+  }
+
+  public toJSON(): Record<string, unknown> {
+    return { keyReference: this.keyReference, thumbprint: this.thumbprint, publicJwk: this.publicJwk };
+  }
+
+  public [inspect.custom](): string {
+    return `DpopKey { keyReference: '${this.keyReference}', thumbprint: '${this.thumbprint}' }`;
+  }
+}
+
+const base64url = (value: unknown): string => Buffer.from(JSON.stringify(value)).toString('base64url');
+
+const validateUrl = (input: string | URL): URL => {
+  let url: URL;
+  try {
+    url = new URL(input);
+  } catch {
+    throw messages.createError('invalidDpopProofOptions', ['url must be an absolute URL']);
+  }
+  if (url.protocol !== 'https:' || url.username || url.password) {
+    throw messages.createError('invalidDpopProofOptions', ['url must be HTTPS without embedded credentials']);
+  }
+  return url;
+};

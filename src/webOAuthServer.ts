@@ -28,10 +28,12 @@ import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, CODE_BUILDER_CONNECTED_APP_INFO }
 import { SfError } from './sfError';
 import { Messages } from './messages';
 import { SfProjectJson } from './sfProject';
+import { DpopKey } from './crypto/dpop';
 import { JwtOAuth2Config } from './org/authInfo';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'auth');
+const dpopMessages = Messages.loadMessages('@salesforce/core', 'dpop');
 
 // Server ignores requests for site icons
 const iconPaths = ['/favicon.ico', '/apple-touch-icon-precomposed.png'];
@@ -63,6 +65,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   private logger!: Logger;
   private webServer!: WebServer;
   private oauth2!: OAuth2;
+  private dpopKey?: DpopKey;
   private oauthConfig: JwtOAuth2Config;
   private oauthError = new Error('Oauth Error');
   private clientApp?: string;
@@ -183,6 +186,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
                 const authInfo = await AuthInfo.create({
                   oauth2Options: this.oauthConfig,
                   oauth2: this.oauth2,
+                  dpopKey: this.dpopKey,
                 });
                 await authInfo.save();
                 await this.webServer.handleSuccess(response);
@@ -250,7 +254,16 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
 
     this.webServer = await WebServer.create({ port });
     this.oauth2 = new OAuth2(this.oauthConfig);
-    this.authUrl = AuthInfo.getAuthorizationUrl(this.oauthConfig, this.oauth2);
+    // Bind the authorization code to a new DPoP key. Client app tokens are stored without one, so they aren't bound.
+    if (!this.clientApp && !env.getBoolean('SF_DISABLE_DPOP')) {
+      try {
+        this.dpopKey = await DpopKey.generate();
+      } catch (e) {
+        const error = e instanceof Error ? e : SfError.wrap(e);
+        throw dpopMessages.createError('dpopAuthConfiguration', [error.message], [], error);
+      }
+    }
+    this.authUrl = AuthInfo.getAuthorizationUrl({ ...this.oauthConfig, dpopKey: this.dpopKey }, this.oauth2);
   }
 
   /**
