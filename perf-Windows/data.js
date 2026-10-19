@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792184882019,
+  "lastUpdate": 1792443151124,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -47052,6 +47052,72 @@ window.BENCHMARK_DATA = {
             "range": "±7.65%",
             "unit": "ops/sec",
             "extra": "66 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jfeingold@salesforce.com",
+            "name": "Jamie Feingold",
+            "username": "jfeingold35"
+          },
+          "committer": {
+            "email": "jfeingold@salesforce.com",
+            "name": "Jamie Feingold",
+            "username": "jfeingold35"
+          },
+          "distinct": true,
+          "id": "9395c813695eb4d235f896a085d5c116cade0c23",
+          "message": "feat: add DPoP (RFC 9449) support to auth and connections\n\nPort sf-effect's DPoP implementation to OOP:\n- DpopKey (ES256 via node:crypto) and DpopKeyStore (OS keychain, 0600 file fallback)\n- DpopTransport: per-request proofs for REST, DpopProofHeader for SOAP, single\n  use_dpop_nonce retry, nonce tracking\n- AuthInfo: DPoP-bound JWT, refresh-token and auth-code flows; dpop_jkt on the\n  authorize URL; tokenType/dpopKeyReference/dpopNonce fields; rejects\n  inline private keys and sfdxAuthUrl export for DPoP auths\n- Connection binds requests to the auth's DPoP key; AuthRemover deletes it\n- WebOAuthServer generates a key unless SF_DISABLE_DPOP is set\n- dpopNonce encrypted at rest; DPoP headers redacted in logs\n- TestContext keeps DPoP keys in memory instead of the OS keychain\n\nCo-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-10-19T15:44:33-05:00",
+          "tree_id": "f44519314173abc699382409e10c7fa1aa92002f",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/9395c813695eb4d235f896a085d5c116cade0c23"
+        },
+        "date": 1792443139747,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 505138,
+            "range": "±0.66%",
+            "unit": "ops/sec",
+            "extra": "99 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 104593,
+            "range": "±180.59%",
+            "unit": "ops/sec",
+            "extra": "36 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 1018034,
+            "range": "±11.59%",
+            "unit": "ops/sec",
+            "extra": "44 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 23119,
+            "range": "±200.09%",
+            "unit": "ops/sec",
+            "extra": "24 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 484589,
+            "range": "±5.09%",
+            "unit": "ops/sec",
+            "extra": "50 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 494504,
+            "range": "±6.86%",
+            "unit": "ops/sec",
+            "extra": "68 samples"
           }
         ]
       }
