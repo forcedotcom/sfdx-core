@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792508847762,
+  "lastUpdate": 1792525825620,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -47250,6 +47250,72 @@ window.BENCHMARK_DATA = {
             "range": "±8.45%",
             "unit": "ops/sec",
             "extra": "62 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jfeingold@salesforce.com",
+            "name": "Jamie Feingold",
+            "username": "jfeingold35"
+          },
+          "committer": {
+            "email": "jfeingold@salesforce.com",
+            "name": "Jamie Feingold",
+            "username": "jfeingold35"
+          },
+          "distinct": true,
+          "id": "b37994b5c64fa557a280ae0e032d829993afa461",
+          "message": "fix: bind caller-built DPoP requests and fail fast on streaming\n\nReal CLI commands on a DPoP-required org showed three gaps:\n\n- sf apex run builds its own Apex SOAP envelope (cmd:-prefixed SessionHeader)\n  and sends it with connection.request, so the transport treated it as REST\n  and Salesforce rejected it. The transport now detects SessionHeaders with\n  any prefix and whitespace in XML requests, and inserts the DpopProofHeader\n  in the SessionHeader's namespace, which a live probe showed is the only\n  placement Salesforce accepts. HTTP auth headers are dropped for SOAP.\n- Tokens the session didn't issue (the agents plugin swaps in an SFAP JWT)\n  were relabeled DPoP and signed. Only the session's own token is now bound.\n- Plugins that send requests with fetch hand-build Bearer headers. Adds\n  Connection.getAuthHeaders(method, url), which returns Authorization plus a\n  fresh DPoP proof for DPoP-bound sessions.\n\nThe Streaming API denies every handshake from a DPoP-bound session, so\nStreamingClient now throws DpopStreamingUnsupportedError up front instead of\nretrying until the command times out. Bearer sessions, with or without a\nDPoP key, stream as before.\n\nTests run against a fake Salesforce that accepts and rejects exactly the\nrequest shapes the live probes did.\n\nCo-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-10-20T14:40:15-05:00",
+          "tree_id": "9a59e82dc77cf0927e58d117bce265f1a31e957c",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/b37994b5c64fa557a280ae0e032d829993afa461"
+        },
+        "date": 1792525813344,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 506937,
+            "range": "±0.48%",
+            "unit": "ops/sec",
+            "extra": "96 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 114298,
+            "range": "±179.62%",
+            "unit": "ops/sec",
+            "extra": "42 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 1015914,
+            "range": "±6.97%",
+            "unit": "ops/sec",
+            "extra": "44 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 24122,
+            "range": "±198.94%",
+            "unit": "ops/sec",
+            "extra": "25 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 509062,
+            "range": "±8.32%",
+            "unit": "ops/sec",
+            "extra": "50 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 454108,
+            "range": "±8.51%",
+            "unit": "ops/sec",
+            "extra": "65 samples"
           }
         ]
       }
