@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792443777052,
+  "lastUpdate": 1792508720870,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -48108,6 +48108,72 @@ window.BENCHMARK_DATA = {
             "range": "±9.64%",
             "unit": "ops/sec",
             "extra": "64 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jfeingold@salesforce.com",
+            "name": "Jamie Feingold",
+            "username": "jfeingold35"
+          },
+          "committer": {
+            "email": "jfeingold@salesforce.com",
+            "name": "Jamie Feingold",
+            "username": "jfeingold35"
+          },
+          "distinct": false,
+          "id": "a592aa69ad9de8d3adc73844771dfc5e7fd77f57",
+          "message": "chore: add local DPoP live-org scripts ported from sf-effect\n\nTemporary, manual stand-in for a DPoP NUT. dpop-test-orgs.mjs provisions\nthe scratch orgs and probe External Client Apps; test-dpop-e2e.mjs drives\na browser login through WebOAuthServer (and AuthInfo for JWT) and checks\nproof acceptance/rejection, refresh, and key deletion on logout against\nthe compiled lib/. Not run in CI.\n\nCo-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-10-20T10:00:18-05:00",
+          "tree_id": "701b170afa22e1b56a071416a4a2627cef4b5318",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/a592aa69ad9de8d3adc73844771dfc5e7fd77f57"
+        },
+        "date": 1792508710248,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 502795,
+            "range": "±0.40%",
+            "unit": "ops/sec",
+            "extra": "94 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1198381,
+            "range": "±8.87%",
+            "unit": "ops/sec",
+            "extra": "39 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 9618,
+            "range": "±234.08%",
+            "unit": "ops/sec",
+            "extra": "8 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 645698,
+            "range": "±17.88%",
+            "unit": "ops/sec",
+            "extra": "62 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 31676,
+            "range": "±183.54%",
+            "unit": "ops/sec",
+            "extra": "58 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 373730,
+            "range": "±8.14%",
+            "unit": "ops/sec",
+            "extra": "62 samples"
           }
         ]
       }
