@@ -27,19 +27,28 @@ export type DpopTransportOptions = {
   nonce?: string;
   /** The current token type. REST `Bearer` authorization is rewritten to `DPoP` when this returns `DPoP`. */
   tokenType?: () => TokenType | undefined;
+  /**
+   * The session's current access token. Requests carrying any other token (one a caller swapped in for another
+   * API) are sent unchanged. When omitted, every token is treated as the session's.
+   */
+  accessToken?: () => string | undefined;
   /** Called whenever the server sends a new nonce. */
   onNonce?: (nonce: string) => void;
 };
 
 const AUTHORIZATION = /^(?:Bearer|DPoP) (.+)$/;
-const SOAP_SESSION_HEADER = /<SessionHeader><sessionId>([^<]*)<\/sessionId><\/SessionHeader>/;
+/** A SOAP `SessionHeader` with any (or no) namespace prefix: 1 = prefix with colon, 2 = attributes, 3 = token. */
+const SOAP_SESSION_HEADER =
+  /<((?:[A-Za-z_][\w.-]*:)?)SessionHeader(\s[^>]*)?>\s*<\1sessionId(?:\s[^>]*)?>([^<]*)<\/\1sessionId>\s*<\/\1SessionHeader>/;
+const XMLNS_ATTRIBUTE = /\sxmlns(?::[\w.-]+)?\s*=\s*(?:"[^"]*"|'[^']*')/g;
 
 /**
  * A jsforce transport that binds every request to a {@link DpopKey} (RFC 9449).
  *
  * - REST requests get a `DPoP` proof header, with an `ath` claim when they carry an access token. The header is
  * signed each time it is read, so jsforce's own transport retries never replay a proof.
- * - SOAP requests get the proof in a `DpopProofHeader` envelope header instead of HTTP headers.
+ * - SOAP requests, including envelopes callers build themselves, get the proof in a `DpopProofHeader` envelope
+ * header in the `SessionHeader`'s namespace instead of HTTP headers, which SOAP endpoints ignore.
  * - A `use_dpop_nonce` challenge is retried once with the challenged nonce and a fresh proof.
  *
  * A `DPoP` header supplied by the caller is sent unchanged, and never retried, since it can't be re-signed.
@@ -69,6 +78,23 @@ export class DpopTransport extends Transport {
     });
   }
 
+  /**
+   * Returns the HTTP authorization headers for a request sent outside this transport, with a new proof.
+   *
+   * @param method The HTTP method of the request.
+   * @param url The request URL.
+   * @param accessToken The access token sent with the request.
+   */
+  public authHeaders(method: string, url: string | URL, accessToken: string): Record<string, string> {
+    const { headers } = this.prepare({
+      method: method as HttpRequest['method'],
+      url: String(url),
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    // Spreading reads the signing getter once.
+    return { ...(headers as Record<string, string>) };
+  }
+
   private async send(req: HttpRequest, options: HttpRequestOptions): Promise<HttpResponse> {
     if (getHeader(req.headers, 'DPoP') !== undefined) {
       return super.httpRequest(req, { ...options, retry: { ...options.retry, maxRetries: 0 } });
@@ -82,27 +108,17 @@ export class DpopTransport extends Transport {
 
   /** Returns a copy of the request bound to this key and the current nonce. */
   private prepare(req: HttpRequest): HttpRequest {
+    const headers: Record<string, string> = { ...req.headers };
+    const envelope = typeof req.body === 'string' && isSoap(req) ? req.body : undefined;
+    const session = envelope === undefined ? null : SOAP_SESSION_HEADER.exec(envelope);
+    if (envelope !== undefined && session) return this.prepareSoap(req, envelope, headers, session);
+    if ('_message' in req) return { ...req, headers };
+
     const url = req.url;
     const method = req.method ?? 'GET';
-    const headers: Record<string, string> = { ...req.headers };
-
-    if ('_message' in req && typeof req.body === 'string') {
-      // SOAP: the access token travels in the envelope's SessionHeader, so the proof goes next to it.
-      const accessToken = SOAP_SESSION_HEADER.exec(req.body)?.[1];
-      if (accessToken === undefined) return { ...req, headers };
-      const proof = this.key.createProof({ method, url, nonce: this.nonce, accessToken: unescapeXml(accessToken) });
-      const body = req.body.replace(
-        SOAP_SESSION_HEADER,
-        (sessionHeader) => `${sessionHeader}<DpopProofHeader><proof>${proof}</proof></DpopProofHeader>`
-      );
-      for (const name of Object.keys(headers)) {
-        if (name.toLowerCase() === 'content-length') headers[name] = String(Buffer.byteLength(body));
-      }
-      return { ...req, headers, body };
-    }
-
     const authorizationName = Object.keys(headers).find((name) => name.toLowerCase() === 'authorization');
     const accessToken = authorizationName ? AUTHORIZATION.exec(headers[authorizationName])?.[1] : undefined;
+    if (accessToken !== undefined && !this.isSessionToken(accessToken)) return { ...req, headers };
     if (authorizationName && accessToken !== undefined) {
       const scheme = this.options.tokenType?.() === 'DPoP' ? 'DPoP' : headers[authorizationName].split(' ')[0];
       headers[authorizationName] = `${scheme} ${accessToken}`;
@@ -114,6 +130,32 @@ export class DpopTransport extends Transport {
       get: () => this.key.createProof({ method, url, nonce: this.nonce, accessToken }),
     });
     return { ...req, headers };
+  }
+
+  /**
+   * SOAP: the access token travels in the envelope's SessionHeader, so the proof goes next to it, in the same
+   * namespace. SOAP endpoints ignore HTTP auth headers, so none are sent.
+   */
+  private prepareSoap(
+    req: HttpRequest,
+    envelope: string,
+    headers: Record<string, string>,
+    session: RegExpExecArray
+  ): HttpRequest {
+    const [sessionHeader, prefix, attributes = '', escapedToken] = session;
+    const accessToken = unescapeXml(escapedToken.trim());
+    if (!this.isSessionToken(accessToken)) return { ...req, headers };
+    for (const name of Object.keys(headers)) {
+      if (name.toLowerCase() === 'authorization') delete headers[name];
+    }
+    const proof = this.key.createProof({ method: req.method ?? 'POST', url: req.url, nonce: this.nonce, accessToken });
+    const namespaces = attributes.match(XMLNS_ATTRIBUTE)?.join('') ?? '';
+    const proofHeader = `<${prefix}DpopProofHeader${namespaces}><${prefix}proof>${proof}</${prefix}proof></${prefix}DpopProofHeader>`;
+    const body = envelope.replace(sessionHeader, () => `${sessionHeader}${proofHeader}`);
+    for (const name of Object.keys(headers)) {
+      if (name.toLowerCase() === 'content-length') headers[name] = String(Buffer.byteLength(body));
+    }
+    return { ...req, headers, body };
   }
 
   /**
@@ -132,7 +174,16 @@ export class DpopTransport extends Transport {
     const challenge = `${getHeader(response.headers, 'www-authenticate') ?? ''} ${response.body ?? ''}`;
     return challenge.toLowerCase().includes('use_dpop_nonce');
   }
+
+  /** Whether the token is the session's own, which the server bound to this key. */
+  private isSessionToken(accessToken: string): boolean {
+    return this.options.accessToken ? this.options.accessToken() === accessToken : true;
+  }
 }
+
+/** jsforce's SOAP API, or an envelope a caller built and sent as XML. */
+const isSoap = (req: HttpRequest): boolean =>
+  '_message' in req || /xml/i.test(getHeader(req.headers, 'content-type') ?? '');
 
 const getHeader = (headers: { [name: string]: string } | undefined, name: string): string | undefined =>
   Object.entries(headers ?? {}).find(([key]) => key.toLowerCase() === name.toLowerCase())?.[1];
