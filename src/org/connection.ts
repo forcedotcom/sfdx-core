@@ -349,6 +349,22 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   }
 
   /**
+   * Returns the HTTP headers that authorize a request this connection doesn't send itself, such as a download with
+   * `fetch`: `Authorization`, plus a `DPoP` proof when the session is bound to a DPoP key. A proof is single-use and
+   * bound to the method and URL, so get new headers for every request. The session isn't refreshed.
+   *
+   * @param method The HTTP method of the request.
+   * @param url The request URL.
+   */
+  public getAuthHeaders(method: string, url: string | URL): { [name: string]: string } {
+    if (!this.accessToken) return {};
+    // eslint-disable-next-line no-underscore-dangle
+    const transport = this._transport;
+    if (!(transport instanceof DpopTransport)) return { Authorization: `Bearer ${this.accessToken}` };
+    return transport.authHeaders(method, url, this.accessToken);
+  }
+
+  /**
    * Getter for the username of the Salesforce Org.
    */
   public getUsername(): Optional<string> {
@@ -524,6 +540,8 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       nonce: dpopNonce,
       // Read on every request: a refresh can change the token type.
       tokenType: (): TokenType => (authInfo.getFields(true).tokenType === 'DPoP' ? 'DPoP' : 'Bearer'),
+      // A refresh stores the new token before jsforce sends it, so this is always the token the key is bound to.
+      accessToken: (): string | undefined => authInfo.getFields(true).accessToken,
       onNonce: (nonce): void => {
         authInfo.update({ dpopNonce: nonce });
       },
