@@ -37,10 +37,12 @@ export type DpopTransportOptions = {
 };
 
 const AUTHORIZATION = /^(?:Bearer|DPoP) (.+)$/;
-/** A SOAP `SessionHeader` with any (or no) namespace prefix: 1 = prefix with colon, 2 = attributes, 3 = token. */
+/**
+ * A SOAP `SessionHeader` with any (or no) namespace prefix, as jsforce and apex-node write it: 1 = prefix with
+ * colon, 2 = token. The proof header reuses the prefix, so it lands in the same namespace.
+ */
 const SOAP_SESSION_HEADER =
-  /<((?:[A-Za-z_][\w.-]*:)?)SessionHeader(\s[^>]*)?>\s*<\1sessionId(?:\s[^>]*)?>([^<]*)<\/\1sessionId>\s*<\/\1SessionHeader>/;
-const XMLNS_ATTRIBUTE = /\sxmlns(?::[\w.-]+)?\s*=\s*(?:"[^"]*"|'[^']*')/g;
+  /<((?:[A-Za-z_][\w.-]*:)?)SessionHeader>\s*<\1sessionId>([^<]*)<\/\1sessionId>\s*<\/\1SessionHeader>/;
 
 /**
  * A jsforce transport that binds every request to a {@link DpopKey} (RFC 9449).
@@ -142,15 +144,14 @@ export class DpopTransport extends Transport {
     headers: Record<string, string>,
     session: RegExpExecArray
   ): HttpRequest {
-    const [sessionHeader, prefix, attributes = '', escapedToken] = session;
+    const [sessionHeader, prefix, escapedToken] = session;
     const accessToken = unescapeXml(escapedToken.trim());
     if (!this.isSessionToken(accessToken)) return { ...req, headers };
     for (const name of Object.keys(headers)) {
       if (name.toLowerCase() === 'authorization') delete headers[name];
     }
     const proof = this.key.createProof({ method: req.method ?? 'POST', url: req.url, nonce: this.nonce, accessToken });
-    const namespaces = attributes.match(XMLNS_ATTRIBUTE)?.join('') ?? '';
-    const proofHeader = `<${prefix}DpopProofHeader${namespaces}><${prefix}proof>${proof}</${prefix}proof></${prefix}DpopProofHeader>`;
+    const proofHeader = `<${prefix}DpopProofHeader><${prefix}proof>${proof}</${prefix}proof></${prefix}DpopProofHeader>`;
     const body = envelope.replace(sessionHeader, () => `${sessionHeader}${proofHeader}`);
     for (const name of Object.keys(headers)) {
       if (name.toLowerCase() === 'content-length') headers[name] = String(Buffer.byteLength(body));

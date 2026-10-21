@@ -13,33 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createRequire } from 'node:module';
 import { expect } from 'chai';
 import { stubMethod } from '@salesforce/ts-sinon';
 import { DpopKey } from '../../../src/crypto/dpop';
 import { Connection } from '../../../src/org/connection';
 import { Org } from '../../../src/org/org';
-import { StreamingClient } from '../../../src/status/streamingClient';
+import { CometClient, StreamingClient } from '../../../src/status/streamingClient';
 import { MockTestOrgData, shouldThrow, TestContext } from '../../../src/testSetup';
 import { DpopMockOrg, stubDpopKeyStore } from '../dpopTestHelpers';
 
 const API_VERSION = '68.0';
-
-type FayeDispatcher = { endpoint: unknown };
-type FayeRequestParams = { method: string; headers: Record<string, string> };
-type FayeNodeHttp = new (dispatcher: FayeDispatcher, endpoint: unknown) => {
-  _buildParams(content: Buffer): FayeRequestParams;
-};
-
-// faye's own long-polling transport, to see the headers of the CometD requests it would send.
-const NodeHttp = createRequire(__filename)('faye/src/transport/node_http') as FayeNodeHttp;
-
-const nextRequest = (client: StreamingClient): FayeRequestParams => {
-  // eslint-disable-next-line no-underscore-dangle
-  const dispatcher = (client as unknown as { cometClient: { _dispatcher: FayeDispatcher } }).cometClient._dispatcher;
-  // eslint-disable-next-line no-underscore-dangle
-  return new NodeHttp(dispatcher, dispatcher.endpoint)._buildParams(Buffer.from('[]'));
-};
 
 /**
  * The Streaming API denies every handshake from a DPoP-bound session (`403::Handshake denied`, verified live with
@@ -57,13 +40,28 @@ describe('StreamingClient DPoP', () => {
     stubMethod($$.SANDBOX, Org.prototype, 'refreshAuth').resolves();
   });
 
-  const createClient = async (mockOrg: MockTestOrgData): Promise<{ client: StreamingClient; conn: Connection }> => {
+  /** Creates a client over a comet client that records the headers it is given. */
+  const createClient = async (
+    mockOrg: MockTestOrgData
+  ): Promise<{ headers: Record<string, string>; conn: Connection }> => {
+    const headers: Record<string, string> = {};
+    const cometClient = {
+      addExtension: () => {},
+      disable: () => {},
+      handshake: () => {},
+      setHeader: (name: string, value: string) => {
+        headers[name] = value;
+      },
+      subscribe: () => {},
+      disconnect: () => {},
+      on: () => {},
+    } as unknown as CometClient;
     await $$.stubAuths(mockOrg);
     const org = await Org.create({ aliasOrUsername: mockOrg.username });
-    const client = await StreamingClient.create(
-      new StreamingClient.DefaultOptions(org, 'topic', () => ({ completed: true }))
-    );
-    return { client, conn: org.getConnection() };
+    const options = new StreamingClient.DefaultOptions(org, 'topic', () => ({ completed: true }));
+    options.streamingImpl = { getCometClient: () => cometClient, setLogger: () => {} };
+    await StreamingClient.create(options);
+    return { headers, conn: org.getConnection() };
   };
 
   it('fails fast for a DPoP-bound session instead of retrying a denied handshake', async () => {
@@ -79,17 +77,14 @@ describe('StreamingClient DPoP', () => {
 
   it('streams with a bearer token even when the authorization has a DPoP key', async () => {
     const mockOrg = new DpopMockOrg({ tokenType: 'Bearer', dpopKeyReference: dpopKey.keyReference });
-    const { client, conn } = await createClient(mockOrg);
+    const { headers, conn } = await createClient(mockOrg);
 
-    const request = nextRequest(client);
-
-    expect(request.headers.Authorization).to.equal(`OAuth ${conn.accessToken}`);
-    expect(request.headers).to.not.have.property('DPoP');
+    expect(headers).to.deep.equal({ Authorization: `OAuth ${conn.accessToken}` });
   });
 
   it('streams with a bearer session', async () => {
-    const { client, conn } = await createClient(new MockTestOrgData());
+    const { headers, conn } = await createClient(new MockTestOrgData());
 
-    expect(nextRequest(client).headers.Authorization).to.equal(`OAuth ${conn.accessToken}`);
+    expect(headers).to.deep.equal({ Authorization: `OAuth ${conn.accessToken}` });
   });
 });
