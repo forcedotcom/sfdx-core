@@ -1046,6 +1046,25 @@ describe('Org Tests', () => {
       expect(expectedUsers.length).to.eq(0);
     });
 
+    describe('addUsername', () => {
+      it('should not duplicate a username when added more than once', async () => {
+        await orgs[0].addUsername(ensureString(orgs[1].getUsername()));
+        await orgs[0].addUsername(ensureString(orgs[1].getUsername()));
+
+        const usersPresent = ensureJsonArray($$.getConfigStubContents('OrgUsersConfig').usernames);
+        expect(usersPresent).to.have.members([mock0.username, mock1.username]);
+        expect(usersPresent.filter((u) => u === mock1.username)).to.have.length(1);
+      });
+
+      it('should not duplicate the org admin username when added explicitly', async () => {
+        await orgs[0].addUsername(ensureString(orgs[0].getUsername()));
+
+        const usersPresent = ensureJsonArray($$.getConfigStubContents('OrgUsersConfig').usernames);
+        expect(usersPresent).to.have.members([mock0.username]);
+        expect(usersPresent.filter((u) => u === mock0.username)).to.have.length(1);
+      });
+    });
+
     describe('removeUsername', () => {
       it('should remove all usernames', async () => {
         await orgs[0].addUsername(ensureString(orgs[1].getUsername()));
