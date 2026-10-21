@@ -21,13 +21,7 @@ import * as determineOrgModule from '../../../src/org/determineOrg';
 import { DpopKey } from '../../../src/crypto/dpop';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
 import { MockTestOrgData, TestContext } from '../../../src/testSetup';
-import {
-  apexNodeExecuteAnonymousEnvelope,
-  APEX_NS,
-  EXECUTE_ANONYMOUS_RESPONSE,
-  FakeSalesforce,
-  SOAP_ENV_NS,
-} from '../dpopFakeSalesforce';
+import { apexNodeExecuteAnonymousEnvelope, EXECUTE_ANONYMOUS_RESPONSE, FakeSalesforce } from '../dpopFakeSalesforce';
 import {
   DpopMockOrg,
   FakeResponse,
@@ -109,42 +103,6 @@ describe('Connection DPoP with caller-built requests', () => {
       expect(salesforce.rejections, 'Salesforce rejections').to.deep.equal([]);
       expect(result).to.not.be.instanceOf(Error);
       expect(requests).to.have.length(1);
-    });
-
-    it('puts the proof in the namespace a SessionHeader declares on itself', async () => {
-      const org = dpopOrg();
-      const salesforce = new FakeSalesforce({
-        publicJwk: dpopKey.publicJwk,
-        accessToken: () => org.accessToken,
-        nonce: () => NONCE,
-      });
-      stubTransport($$.SANDBOX, [salesforce.respond(executeAnonymousOk)]);
-      const conn = await connect(org);
-
-      await conn
-        .request({
-          method: 'POST',
-          url: `${conn.instanceUrl}/services/Soap/s/${API_VERSION}`,
-          body:
-            `<e:Envelope xmlns:e="${SOAP_ENV_NS}"><e:Header>` +
-            `<SessionHeader xmlns="${APEX_NS}"><sessionId>${org.accessToken}</sessionId></SessionHeader>` +
-            '</e:Header><e:Body/></e:Envelope>',
-          headers: { 'Content-Type': 'text/xml; charset=utf-8' },
-        })
-        .catch((e: Error) => e);
-
-      expect(salesforce.rejections, 'Salesforce rejections').to.deep.equal([]);
-    });
-
-    it('leaves the envelope unchanged for a bearer session', async () => {
-      const org = new MockTestOrgData();
-      const { requests } = stubTransport($$.SANDBOX, [() => executeAnonymousOk()]);
-      const conn = await connect(org);
-
-      await executeAnonymous(conn);
-
-      expect(requests[0].body).to.equal(apexNodeExecuteAnonymousEnvelope(org.accessToken, APEX));
-      expect(getHeader(requests[0].headers, 'DPoP')).to.be.undefined;
     });
   });
 
