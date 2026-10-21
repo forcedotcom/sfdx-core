@@ -1,3 +1,12 @@
+## [9.4.1](https://github.com/forcedotcom/sfdx-core/compare/9.4.0...9.4.1) (2026-10-21)
+
+
+### Bug Fixes
+
+* use wall-clock time for config CRDT timestamps ([9ea5908](https://github.com/forcedotcom/sfdx-core/commit/9ea5908154221dee34f17a888c7c6c62ffe5fd8c))
+
+
+
 # [9.4.0](https://github.com/forcedotcom/sfdx-core/compare/9.3.7...9.4.0) (2026-10-16)
 
 
