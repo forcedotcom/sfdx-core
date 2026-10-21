@@ -17,6 +17,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 
 import Path from 'node:path';
+import os from 'node:os';
 import fs from 'node:fs';
 import { expect } from 'chai';
 
@@ -253,6 +254,108 @@ describe('Config', () => {
       expect(expected).to.deep.equal(config.getContents());
       expect(mkdirpStub.called).to.be.true;
       expect(writeJson.called).to.be.true;
+    });
+  });
+
+  // Regression guard: config-write-loss after the OS sleeps (W-24580998, surfaces as forcedotcom/cli#3667
+  // and salesforcedx-vscode#8470: a refresh-token-rotation auth loop / "login rate exceeded" lockout).
+  //
+  // The bug lived in the OLD nowBigInt(), which was built on globalThis.performance.now() + timeOrigin,
+  // a MONOTONIC clock that freezes while the OS is suspended. A process that was asleep stamped its
+  // in-memory set() with a timestamp lagging real wall time. ConfigFile.write() reads the on-disk file's
+  // real-clock mtimeNs, builds an LWWMap at that timestamp, and merges it into memory. LWWRegister.merge
+  // keeps the incoming (file) value whenever its timestamp is strictly greater, so the slept process's
+  // fresh value (e.g. a just-refreshed access token) lost to the stale on-disk value and was silently
+  // dropped: the next request 401s, refreshes, and the loss repeats until the org locks the user out.
+  //
+  // The fix moved nowBigInt() onto Date.now() (real wall clock, the same domain as mtimeNs), so the
+  // current code never calls performance.now(). These tests therefore GUARD AGAINST A REVERT to the
+  // performance.now() implementation: freezing performance.now() ~1h in the past recreates the pre-fix
+  // failure, while the file keeps a real-wall-clock mtimeNs. Against the current Date.now()-based code
+  // that stub is inert (Date.now() is never stubbed), so these pass. Revert nowBigInt() to the
+  // performance.now() version and they go red. No real OS suspend, no flakiness.
+  describe('write - frozen performance-clock after OS sleep (W-24580998 regression)', () => {
+    const ONE_HOUR_MS = 60 * 60 * 1000;
+    // The file on disk carries a real-wall-clock mtime from ~1s ago (its last legitimate write).
+    const realClockMtimeNs = () => BigInt(Date.now() - 1000) * 1_000_000n;
+
+    beforeEach(() => {
+      $$.SANDBOXES.CONFIG.restore();
+      // Freeze performance.now() ~1h behind real wall time: recreates the pre-fix failure mode if
+      // nowBigInt() still used performance.now(). Inert against the current Date.now()-based code.
+      $$.SANDBOX.stub(globalThis.performance, 'now').returns(-ONE_HOUR_MS);
+    });
+
+    it('does not drop a slept process in-memory write (async)', async () => {
+      $$.SANDBOX.stub(fs.promises, 'readFile').resolves('{"token":"old-stale"}');
+      // @ts-expect-error we're only mocking one prop of many
+      $$.SANDBOX.stub(fs.promises, 'stat').resolves({ mtimeNs: realClockMtimeNs() });
+      $$.SANDBOX.stub(fs.promises, 'mkdir').resolves();
+      $$.SANDBOX.stub(lockfileLib, 'lock').resolves(() => Promise.resolve());
+      $$.SANDBOX.stub(fs.promises, 'writeFile');
+
+      const config = await TestConfig.create({ isGlobal: true });
+      config.set('token', 'refreshed'); // the token a slept process just refreshed
+      const actual = await config.write();
+
+      // The refreshed value must survive the merge, not revert to the stale on-disk value.
+      expect(actual).to.deep.equal({ token: 'refreshed' });
+      expect(config.getContents()).to.deep.equal({ token: 'refreshed' });
+    });
+
+    it('does not drop a slept process in-memory write (sync)', async () => {
+      $$.SANDBOX.stub(fs, 'readFileSync').returns('{"token":"old-stale"}');
+      // @ts-expect-error we're only mocking one prop of many
+      $$.SANDBOX.stub(fs, 'statSync').returns({ mtimeNs: realClockMtimeNs() });
+      $$.SANDBOX.stub(fs, 'mkdirSync');
+      $$.SANDBOX.stub(lockfileLib, 'lockSync').returns(() => undefined);
+      $$.SANDBOX.stub(fs, 'writeFileSync');
+
+      const config = await TestConfig.create({ isGlobal: true });
+      config.set('token', 'refreshed');
+      const actual = config.writeSync();
+
+      expect(actual).to.deep.equal({ token: 'refreshed' });
+      expect(config.getContents()).to.deep.equal({ token: 'refreshed' });
+    });
+  });
+
+  // Higher-fidelity companion to the stubbed unit tests above: exercises the REAL filesystem
+  // (real file, real stat/mtimeNs, real proper-lockfile, real JSON round-trip). Same revert guard as
+  // above: performance.now() is frozen to recreate the pre-fix failure mode, so this stays green on the
+  // current Date.now()-based code and goes red only if nowBigInt() reverts to performance.now().
+  describe('write - frozen performance-clock after OS sleep, real filesystem (W-24580998 regression)', () => {
+    const ONE_HOUR_MS = 60 * 60 * 1000;
+    let tmpDir: string;
+
+    beforeEach(async () => {
+      $$.SANDBOXES.CONFIG.restore();
+      tmpDir = await fs.promises.mkdtemp(Path.join(os.tmpdir(), 'w24580998-'));
+      // Frozen performance.now() (see the guard note above), inert against the current Date.now() code.
+      $$.SANDBOX.stub(globalThis.performance, 'now').returns(-ONE_HOUR_MS);
+    });
+
+    afterEach(async () => {
+      await fs.promises.rm(tmpDir, { recursive: true, force: true });
+    });
+
+    it('round-trips through a real file without dropping the slept process write', async () => {
+      const filename = 'w24580998.json';
+      const filePath = Path.join(tmpDir, filename);
+      await fs.promises.writeFile(filePath, JSON.stringify({ token: 'old-stale' }));
+      // Stamp the file's mtime on the real wall clock, ~1s ago (its last legitimate write).
+      const aSecondAgo = new Date(Date.now() - 1000);
+      await fs.promises.utimes(filePath, aSecondAgo, aSecondAgo);
+
+      const config = await TestConfig.create({ rootFolder: tmpDir, filename, isGlobal: false, isState: false });
+      expect(config.getPath()).to.equal(filePath);
+
+      config.set('token', 'refreshed');
+      await config.write();
+
+      const onDisk = JSON.parse(await fs.promises.readFile(filePath, 'utf8')) as Record<string, unknown>;
+      expect(onDisk).to.deep.equal({ token: 'refreshed' });
+      expect(config.getContents()).to.deep.equal({ token: 'refreshed' });
     });
   });
 
