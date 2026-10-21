@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792592914098,
+  "lastUpdate": 1792600774154,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -47382,6 +47382,72 @@ window.BENCHMARK_DATA = {
             "range": "±170.21%",
             "unit": "ops/sec",
             "extra": "53 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jfeingold@salesforce.com",
+            "name": "Jamie Feingold",
+            "username": "jfeingold35"
+          },
+          "committer": {
+            "email": "jfeingold@salesforce.com",
+            "name": "Jamie Feingold",
+            "username": "jfeingold35"
+          },
+          "distinct": true,
+          "id": "dd32a030adb2acc9235f9e23c1f2912060ff387e",
+          "message": "test: trim DPoP tests to behavior that can fail\n\n- Drop the bearer Apex envelope test: sessions without a DPoP key never get\n  the DPoP transport, so it could not fail.\n- Drop the xmlns copy for SessionHeaders that declare their own namespace,\n  and its test: no known caller sends that shape. The transport now matches\n  the attribute-free SessionHeaders jsforce and apex-node write.\n- Observe streaming auth headers through the streamingImpl option instead of\n  faye's private dispatcher and transport internals.\n- Fold the fake Salesforce accept and reject checks into two table tests.\n\nCo-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-10-21T10:35:51-05:00",
+          "tree_id": "6f39e21f9b03a5290ea39af38eef230b3dabcc4f",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/dd32a030adb2acc9235f9e23c1f2912060ff387e"
+        },
+        "date": 1792600756265,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 393792,
+            "range": "±1.07%",
+            "unit": "ops/sec",
+            "extra": "92 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1129965,
+            "range": "±9.61%",
+            "unit": "ops/sec",
+            "extra": "41 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 12218,
+            "range": "±206.70%",
+            "unit": "ops/sec",
+            "extra": "19 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 605218,
+            "range": "±12.13%",
+            "unit": "ops/sec",
+            "extra": "61 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 392939,
+            "range": "±10.03%",
+            "unit": "ops/sec",
+            "extra": "56 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 8669,
+            "range": "±200.69%",
+            "unit": "ops/sec",
+            "extra": "26 samples"
           }
         ]
       }
