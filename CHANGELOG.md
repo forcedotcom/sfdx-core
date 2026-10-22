@@ -1,3 +1,12 @@
+## [9.4.2](https://github.com/forcedotcom/sfdx-core/compare/9.4.1...9.4.2) (2026-10-22)
+
+
+### Bug Fixes
+
+* **deps:** bump markdown-it from 14.3.1 to 14.3.3 ([bd5dc6f](https://github.com/forcedotcom/sfdx-core/commit/bd5dc6f5f95ec4da8db2a25eb1cf7ed562ec10a0))
+
+
+
 ## [9.4.1](https://github.com/forcedotcom/sfdx-core/compare/9.4.0...9.4.1) (2026-10-21)
 
 
