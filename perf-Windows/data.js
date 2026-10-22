@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792600774154,
+  "lastUpdate": 1792634751697,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -47448,6 +47448,72 @@ window.BENCHMARK_DATA = {
             "range": "±200.69%",
             "unit": "ops/sec",
             "extra": "26 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bd5dc6f5f95ec4da8db2a25eb1cf7ed562ec10a0",
+          "message": "fix(deps): bump markdown-it from 14.3.1 to 14.3.3\n\nBumps [markdown-it](https://github.com/markdown-it/markdown-it) from 14.3.1 to 14.3.3.\n- [Changelog](https://github.com/markdown-it/markdown-it/blob/14.3.3/CHANGELOG.md)\n- [Commits](https://github.com/markdown-it/markdown-it/compare/14.3.1...14.3.3)\n\n---\nupdated-dependencies:\n- dependency-name: markdown-it\n  dependency-version: 14.3.3\n  dependency-type: indirect\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2026-10-22T02:00:02Z",
+          "tree_id": "42e2a8a94465584bc86e78981aa920c73de8910b",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/bd5dc6f5f95ec4da8db2a25eb1cf7ed562ec10a0"
+        },
+        "date": 1792634738364,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 393782,
+            "range": "±0.86%",
+            "unit": "ops/sec",
+            "extra": "91 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 97634,
+            "range": "±182.82%",
+            "unit": "ops/sec",
+            "extra": "48 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 791347,
+            "range": "±9.95%",
+            "unit": "ops/sec",
+            "extra": "59 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 33235,
+            "range": "±185.74%",
+            "unit": "ops/sec",
+            "extra": "48 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 422375,
+            "range": "±9.09%",
+            "unit": "ops/sec",
+            "extra": "62 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 343520,
+            "range": "±8.35%",
+            "unit": "ops/sec",
+            "extra": "65 samples"
           }
         ]
       }
