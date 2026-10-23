@@ -22,16 +22,21 @@ import { DpopKey } from '../crypto/dpop';
 /** The `token_type` of an access token, which decides the `Authorization` scheme. */
 export type TokenType = 'DPoP' | 'Bearer';
 
+/** The session state a {@link DpopTransport} binds requests against. */
+export type DpopSession = {
+  accessToken?: string;
+  tokenType?: TokenType;
+};
+
 export type DpopTransportOptions = {
   /** The last `DPoP-Nonce` the server sent, if any. */
   nonce?: string;
-  /** The current token type. REST `Bearer` authorization is rewritten to `DPoP` when this returns `DPoP`. */
-  tokenType?: () => TokenType | undefined;
   /**
-   * The session's current access token. Requests carrying any other token (one a caller swapped in for another
-   * API) are sent unchanged. When omitted, every token is treated as the session's.
+   * The session's current access token and token type, read once per request. Requests carrying any other token
+   * (one a caller swapped in for another API) are sent unchanged, and REST `Bearer` authorization is rewritten to
+   * `DPoP` when the token type is `DPoP`. When omitted, every token is treated as the session's.
    */
-  accessToken?: () => string | undefined;
+  session?: () => DpopSession;
   /** Called whenever the server sends a new nonce. */
   onNonce?: (nonce: string) => void;
 };
@@ -123,9 +128,10 @@ export class DpopTransport extends Transport {
     const method = req.method ?? 'GET';
     const authorizationName = Object.keys(headers).find((name) => name.toLowerCase() === 'authorization');
     const accessToken = authorizationName ? AUTHORIZATION.exec(headers[authorizationName])?.[1] : undefined;
-    if (accessToken !== undefined && !this.isSessionToken(accessToken)) return { ...req, headers };
     if (authorizationName && accessToken !== undefined) {
-      const scheme = this.options.tokenType?.() === 'DPoP' ? 'DPoP' : headers[authorizationName].split(' ')[0];
+      const current = this.options.session?.();
+      if (!isSessionToken(accessToken, current)) return { ...req, headers };
+      const scheme = current?.tokenType === 'DPoP' ? 'DPoP' : headers[authorizationName].split(' ')[0];
       headers[authorizationName] = `${scheme} ${accessToken}`;
     }
     // Sign on every read: jsforce reuses this headers object for its own retries.
@@ -149,7 +155,7 @@ export class DpopTransport extends Transport {
   ): PreparedRequest {
     const [sessionHeader, prefix, escapedToken] = session;
     const accessToken = unescapeXml(escapedToken.trim());
-    if (!this.isSessionToken(accessToken)) return { ...req, headers };
+    if (!isSessionToken(accessToken, this.options.session?.())) return { ...req, headers };
     for (const name of Object.keys(headers)) {
       if (name.toLowerCase() === 'authorization') delete headers[name];
     }
@@ -178,12 +184,11 @@ export class DpopTransport extends Transport {
     const challenge = `${getHeader(response.headers, 'www-authenticate') ?? ''} ${response.body ?? ''}`;
     return challenge.toLowerCase().includes('use_dpop_nonce');
   }
-
-  /** Whether the token is the session's own, which the server bound to this key. */
-  private isSessionToken(accessToken: string): boolean {
-    return this.options.accessToken ? this.options.accessToken() === accessToken : true;
-  }
 }
+
+/** Whether the token is the session's own, which the server bound to this key. With no session, every token is. */
+const isSessionToken = (accessToken: string, session: DpopSession | undefined): boolean =>
+  session ? session.accessToken === accessToken : true;
 
 /** jsforce's SOAP API, or an envelope a caller built and sent as XML. */
 const isSoap = (req: HttpRequest): boolean =>

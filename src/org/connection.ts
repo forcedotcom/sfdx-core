@@ -44,7 +44,7 @@ import { Lifecycle } from '../lifecycleEvents';
 import { Global } from '../global';
 import { loadSessionDpopKey } from '../crypto/dpop';
 import { AuthFields, AuthInfo } from './authInfo';
-import { DpopTransport, TokenType } from './dpopTransport';
+import { DpopSession, DpopTransport } from './dpopTransport';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
@@ -531,10 +531,12 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     // eslint-disable-next-line no-underscore-dangle
     this._transport = new DpopTransport(key, {
       nonce: dpopNonce,
-      // Read on every request: a refresh can change the token type.
-      tokenType: (): TokenType | undefined => authInfo.getFields(true).tokenType,
-      // A refresh stores the new token before jsforce sends it, so this is always the token the key is bound to.
-      accessToken: (): string | undefined => authInfo.getFields(true).accessToken,
+      // Read on every request: a refresh can change both. A refresh stores the new token before jsforce sends it, so
+      // this is always the token the key is bound to.
+      session: (): DpopSession => {
+        const { accessToken, tokenType } = authInfo.getFields(true);
+        return { accessToken, tokenType };
+      },
       onNonce: (nonce): void => {
         authInfo.update({ dpopNonce: nonce });
       },
