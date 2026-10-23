@@ -531,8 +531,9 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     // eslint-disable-next-line no-underscore-dangle
     this._transport = new DpopTransport(key, {
       nonce: dpopNonce,
-      // Read on every request: a refresh can change both. A refresh stores the new token before jsforce sends it, so
-      // this is always the token the key is bound to.
+      // Read on every request, since a refresh stores whatever token type the server returns (which only changes if
+      // the app's DPoP setting does). A refresh also stores the new token before jsforce sends it, so this is always
+      // the token the key is bound to.
       session: (): DpopSession => {
         const { accessToken, tokenType } = authInfo.getFields(true);
         return { accessToken, tokenType };
