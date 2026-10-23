@@ -64,4 +64,40 @@ describe('AuthRemover DPoP', () => {
     expect(deleteKeyStub.called).to.be.false;
     expect(removeFileStub.calledOnce).to.be.true;
   });
+
+  it('keeps a DPoP key that another authorization also uses', async () => {
+    const org = new DpopOrg('00Dxx0000000003EAA', { username: 'dpop@example.com' });
+    const sharer = new DpopOrg('00Dxx0000000004EAA', { username: 'sharer@example.com' });
+    await $$.stubAuths(org, sharer);
+
+    const remover = await AuthRemover.create();
+    await remover.removeAuth(org.username);
+
+    expect(deleteKeyStub.called).to.be.false;
+    expect(removeFileStub.calledOnce).to.be.true;
+    expect(removeFileStub.firstCall.args[0]).to.equal(org.username);
+  });
+
+  it('deletes a shared DPoP key along with the last authorization that uses it', async () => {
+    const org = new DpopOrg('00Dxx0000000003EAA', { username: 'dpop@example.com' });
+    const sharer = new DpopOrg('00Dxx0000000004EAA', { username: 'sharer@example.com' });
+    await $$.stubAuths(org, sharer);
+    // Drop each removed auth from the cache, as the real OrgAccessor.remove does.
+    removeFileStub.callsFake(function (this: OrgAccessor, username: string): Promise<void> {
+      // @ts-expect-error because private member
+      this.configs.delete(username);
+      // @ts-expect-error because private member
+      this.contents.delete(username);
+      return Promise.resolve();
+    });
+
+    const remover = await AuthRemover.create();
+    await remover.removeAllAuths();
+
+    expect(removeFileStub.calledTwice).to.be.true;
+    expect(deleteKeyStub.calledOnce).to.be.true;
+    expect(deleteKeyStub.firstCall.args[0]).to.equal(KEY_REFERENCE);
+    expect(deleteKeyStub.firstCall.calledAfter(removeFileStub.firstCall)).to.be.true;
+    expect(deleteKeyStub.firstCall.calledBefore(removeFileStub.secondCall)).to.be.true;
+  });
 });
