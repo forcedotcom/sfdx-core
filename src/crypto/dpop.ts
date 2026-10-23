@@ -134,13 +134,6 @@ export class DpopKey {
   }
 
   /**
-   * The public key, for verifying proofs.
-   */
-  public getPublicKey(): KeyObject {
-    return createPublicKey(this.#privateKey);
-  }
-
-  /**
    * Signs a proof for a single request. Proofs must not be reused; create a new one for every attempt.
    *
    * **Throws** *{@link SfError}{ name: 'InvalidDpopProofOptionsError' }* When the options are invalid.

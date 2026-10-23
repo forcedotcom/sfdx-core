@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { createPublicKey } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -32,6 +33,10 @@ import {
 } from '../dpopTestHelpers';
 
 const NOW_MS = 1_700_000_000_000;
+
+/** Verifies a proof against the public key it was created with, as a server would. */
+const verifyProof = (proof: string, key: DpopKey): jwt.Jwt =>
+  jwt.verify(proof, createPublicKey({ key: key.publicJwk, format: 'jwk' }), { algorithms: ['ES256'], complete: true });
 
 const unavailableKeychain: SecretStore = {
   setSecret: () => Promise.reject(new Error('native store unavailable')),
@@ -67,7 +72,7 @@ describe('DpopKey', () => {
       accessToken: 'a-sensitive-token',
     });
 
-    const verified = jwt.verify(proof, key.getPublicKey(), { algorithms: ['ES256'], complete: true });
+    const verified = verifyProof(proof, key);
     const { header } = decodeProof(proof);
 
     expect(verified.payload).to.have.property('htm', 'POST');
@@ -94,7 +99,7 @@ describe('DpopKey', () => {
       method: 'GET',
       url: new URL('https://example.my.salesforce.com/services/data/v68.0/limits'),
     });
-    const verified = jwt.verify(proof, restored.getPublicKey(), { algorithms: ['ES256'], complete: true });
+    const verified = verifyProof(proof, restored);
 
     expect(restored.thumbprint).to.equal(generated.thumbprint);
     expect(verified.payload).to.have.property('htm', 'GET');
@@ -108,7 +113,7 @@ describe('DpopKey', () => {
       method: 'GET',
       url: new URL('https://example.my.salesforce.com/services/data/v68.0/limits'),
     });
-    const verified = jwt.verify(proof, restored.getPublicKey(), { algorithms: ['ES256'], complete: true });
+    const verified = verifyProof(proof, restored);
 
     expect(restored.thumbprint).to.equal(generated.thumbprint);
     expect(verified.payload).to.have.property('htm', 'GET');
@@ -120,7 +125,7 @@ describe('DpopKey', () => {
       method: 'POST',
       url: new URL('https://login.salesforce.com/services/oauth2/token'),
     });
-    const verified = jwt.verify(proof, key.getPublicKey(), { algorithms: ['ES256'], complete: true });
+    const verified = verifyProof(proof, key);
     const { header, payload } = decodeProof(proof);
 
     expect([...keychain.secrets.values()][0]).to.include('BEGIN PRIVATE KEY');
