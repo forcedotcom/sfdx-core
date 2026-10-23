@@ -539,7 +539,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     this._transport = new DpopTransport(key, {
       nonce: dpopNonce,
       // Read on every request: a refresh can change the token type.
-      tokenType: (): TokenType => (authInfo.getFields(true).tokenType === 'DPoP' ? 'DPoP' : 'Bearer'),
+      tokenType: (): TokenType | undefined => authInfo.getFields(true).tokenType,
       // A refresh stores the new token before jsforce sends it, so this is always the token the key is bound to.
       accessToken: (): string | undefined => authInfo.getFields(true).accessToken,
       onNonce: (nonce): void => {
