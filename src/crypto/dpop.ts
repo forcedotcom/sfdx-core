@@ -32,9 +32,6 @@ const messages = Messages.loadMessages('@salesforce/core', 'dpop');
 
 const generateKeyPairAsync = promisify(generateKeyPair);
 
-/** 2000-01-01T00:00:00Z; earlier `iat` values are treated as a caller bug, not a real clock. */
-const MIN_ISSUED_AT = 946_684_800;
-
 /**
  * The public half of a DPoP key, as embedded in the `jwk` header of every proof.
  */
@@ -54,8 +51,6 @@ export type DpopProofOptions = {
   nonce?: string;
   /** The access token sent with the request; adds an `ath` claim. Omit for token endpoint requests. */
   accessToken?: string;
-  /** Override for the `iat` claim, in Unix seconds. */
-  issuedAt?: number;
 };
 
 export type DpopKeyStoreOption = {
@@ -157,15 +152,12 @@ export class DpopKey {
     if (options.nonce === '') {
       throw messages.createError('invalidDpopProofOptions', ['nonce must not be empty']);
     }
-    if (options.issuedAt !== undefined && (!Number.isInteger(options.issuedAt) || options.issuedAt < MIN_ISSUED_AT)) {
-      throw messages.createError('invalidDpopProofOptions', ['issuedAt must be a Unix time in seconds']);
-    }
 
     const header = { typ: 'dpop+jwt', alg: 'ES256', jwk: this.publicJwk };
     const claims = {
       htm: options.method,
       htu: `${url.origin}${url.pathname}`,
-      iat: options.issuedAt ?? Math.floor(Date.now() / 1000),
+      iat: Math.floor(Date.now() / 1000),
       jti: randomUUID(),
       ...(options.nonce ? { nonce: options.nonce } : {}),
       ...(options.accessToken !== undefined ? { ath: DpopKey.accessTokenHash(options.accessToken) } : {}),

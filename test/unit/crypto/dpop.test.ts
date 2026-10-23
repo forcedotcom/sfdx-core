@@ -22,7 +22,7 @@ import { expect } from 'chai';
 import { SinonFakeTimers } from 'sinon';
 import { DpopKey, DpopProofOptions } from '../../../src/crypto/dpop';
 import { DpopKeyStore, SecretStore } from '../../../src/crypto/dpopKeyStore';
-import { shouldThrowSync, TestContext } from '../../../src/testSetup';
+import { TestContext } from '../../../src/testSetup';
 import {
   BASE64URL_SHA256_PATTERN,
   decodeProof,
@@ -112,27 +112,6 @@ describe('DpopKey', () => {
 
     expect(restored.thumbprint).to.equal(generated.thumbprint);
     expect(verified.payload).to.have.property('htm', 'GET');
-  });
-
-  it('rejects arbitrary small issued-at values', async () => {
-    const key = await DpopKey.generate({ store });
-
-    try {
-      shouldThrowSync(() =>
-        key.createProof({ method: 'GET', url: new URL('https://example.my.salesforce.com'), issuedAt: 5 })
-      );
-    } catch (e) {
-      expect(e).to.have.property('name', 'InvalidDpopProofOptionsError');
-    }
-
-    const proof = key.createProof({
-      method: 'GET',
-      url: new URL('https://example.my.salesforce.com'),
-      issuedAt: 1_700_000_000,
-      accessToken: 'token',
-    });
-    expect(decodeProof(proof).payload).to.include({ iat: 1_700_000_000 });
-    expect(decodeProof(proof).payload.ath).to.match(BASE64URL_SHA256_PATTERN);
   });
 
   it('creates an ES256 key and signs a request-bound proof', async () => {
