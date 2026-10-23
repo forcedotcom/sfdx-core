@@ -42,14 +42,13 @@ import { validateApiVersion } from '../util/sfdc';
 import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
 import { Global } from '../global';
-import { DpopKey } from '../crypto/dpop';
+import { loadSessionDpopKey } from '../crypto/dpop';
 import { AuthFields, AuthInfo } from './authInfo';
 import { DpopTransport, TokenType } from './dpopTransport';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'connection');
-const dpopMessages = Messages.loadMessages('@salesforce/core', 'dpop');
 
 const clientId = `sfdx toolbelt:${process.env.SFDX_SET_CLIENT_IDS ?? ''}`;
 export const SFDX_HTTP_HEADERS = {
@@ -528,13 +527,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   private async bindDpopKeyIfPresent(authInfo: AuthInfo): Promise<void> {
     const { dpopKeyReference, dpopNonce } = authInfo.getFields(true);
     if (!dpopKeyReference) return;
-    let key: DpopKey;
-    try {
-      key = await DpopKey.load(dpopKeyReference);
-    } catch (e) {
-      const error = e instanceof Error ? e : SfError.wrap(e);
-      throw dpopMessages.createError('dpopSessionUnavailable', [authInfo.getUsername(), error.message], [], error);
-    }
+    const key = await loadSessionDpopKey(dpopKeyReference, authInfo.getUsername());
     // eslint-disable-next-line no-underscore-dangle
     this._transport = new DpopTransport(key, {
       nonce: dpopNonce,

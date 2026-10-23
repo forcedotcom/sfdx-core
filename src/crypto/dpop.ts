@@ -25,6 +25,7 @@ import {
 import { promisify } from 'node:util';
 import { HttpMethods } from '@jsforce/jsforce-node';
 import { Messages } from '../messages';
+import { SfError } from '../sfError';
 import { DpopKeyStore } from './dpopKeyStore';
 
 Messages.importMessagesDirectory(__dirname);
@@ -155,6 +156,23 @@ export class DpopKey {
     return `${signingInput}.${signature.toString('base64url')}`;
   }
 }
+
+/**
+ * Loads the DPoP key of a logged-in authorization.
+ *
+ * **Throws** *{@link SfError}{ name: 'DpopSessionUnavailableError' }* When the key can't be loaded; the user must log in again.
+ *
+ * @param keyReference The authorization's `dpopKeyReference`.
+ * @param username The authorization's username, for the error message.
+ */
+export const loadSessionDpopKey = async (keyReference: string, username: string): Promise<DpopKey> => {
+  try {
+    return await DpopKey.load(keyReference);
+  } catch (e) {
+    const error = e instanceof Error ? e : SfError.wrap(e);
+    throw messages.createError('dpopSessionUnavailable', [username, error.message], [], error);
+  }
+};
 
 const base64url = (value: unknown): string => Buffer.from(JSON.stringify(value)).toString('base64url');
 
