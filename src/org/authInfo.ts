@@ -98,7 +98,7 @@ export type AuthFields = {
   expirationDate?: string;
   tracksSource?: boolean;
   /** The access token's `token_type`. `DPoP` tokens are only accepted with a proof from the key below. */
-  tokenType?: string;
+  tokenType?: 'DPoP' | 'Bearer';
   /** Reference to the DPoP private key in the OS keychain or key file. The key itself is never stored here. */
   dpopKeyReference?: string;
   /** The last `DPoP-Nonce` the org sent. */
