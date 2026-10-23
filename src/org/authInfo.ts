@@ -183,6 +183,9 @@ type User = AnyJson & {
 
 type AuthOptions = JwtOAuth2Config & AccessTokenOptions;
 
+/** OAuth options plus the stored DPoP fields, which a refresh or JWT re-mint passes back in from the auth file. */
+type DpopOAuth2Config = JwtOAuth2Config & Pick<AuthFields, 'tokenType' | 'dpopKeyReference' | 'dpopNonce'>;
+
 /**
  * A function to update a refresh token when the access token is expired.
  */
@@ -1040,7 +1043,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * **Throws** *{@link SfError}{ name: 'NamedOrgNotFoundError' }* Org information does not exist.
    * @returns {Promise<AuthInfo>}
    */
-  private async initAuthOptions(options?: JwtOAuth2Config | AccessTokenOptions): Promise<AuthInfo> {
+  private async initAuthOptions(options?: DpopOAuth2Config | AccessTokenOptions): Promise<AuthInfo> {
     this.logger = await Logger.child('AuthInfo');
 
     // If options were passed, use those before checking cache and reading an auth file.
@@ -1428,13 +1431,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   // Build OAuth config for a JWT auth flow
-  private async authJwt(options: JwtOAuth2Config): Promise<AuthFields> {
+  private async authJwt(options: DpopOAuth2Config): Promise<AuthFields> {
     if (!options.clientId) {
       throw messages.createError('missingClientId');
     }
     const privateKeyContents = await this.readJwtKey(ensureString(options.privateKey));
     // JWT bearer tokens are always DPoP-bound. A re-mint reuses the authorization's key and nonce.
-    const { dpopKeyReference, dpopNonce } = options as AuthFields;
+    const { dpopKeyReference, dpopNonce } = options;
     const dpopKey = dpopKeyReference
       ? await this.loadDpopKey(dpopKeyReference)
       : this.options.dpopKey ?? (await DpopKey.generate());
@@ -1524,7 +1527,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   // Build OAuth config for a refresh token auth flow
-  private async buildRefreshTokenConfig(options: JwtOAuth2Config): Promise<AuthFields> {
+  private async buildRefreshTokenConfig(options: DpopOAuth2Config): Promise<AuthFields> {
     const fullOptions: JwtOAuth2Config = {
       ...options,
       redirectUri: options.redirectUri ?? this.getRedirectUri(),
@@ -1537,7 +1540,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
     const oauth2 = new OAuth2(fullOptions);
     // A DPoP-bound refresh token is only accepted with a proof from the key it was issued to.
-    const { dpopKeyReference } = options as AuthFields;
+    const { dpopKeyReference } = options;
     if (dpopKeyReference) {
       // eslint-disable-next-line no-underscore-dangle
       oauth2._transport = this.useDpop(await this.loadDpopKey(dpopKeyReference));
@@ -1553,7 +1556,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const { orgId } = parseIdUrl(authFieldsBuilder.id);
-    const dpopFields = this.dpopFields(authFieldsBuilder.token_type ?? (options as AuthFields).tokenType);
+    const dpopFields = this.dpopFields(authFieldsBuilder.token_type ?? options.tokenType);
 
     let username = this.getUsername();
     if (!username) {
@@ -1561,7 +1564,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       username = ensureString(userInfo?.username);
     }
     // The token endpoint may not send a nonce; keep the last resource nonce then.
-    const dpopNonce = this.dpop ? this.dpop.transport.nonce ?? (options as AuthFields).dpopNonce : undefined;
+    const dpopNonce = this.dpop ? this.dpop.transport.nonce ?? options.dpopNonce : undefined;
     return {
       orgId,
       username,
