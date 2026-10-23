@@ -22,7 +22,7 @@ import {
   randomUUID,
   sign,
 } from 'node:crypto';
-import { inspect, promisify } from 'node:util';
+import { promisify } from 'node:util';
 import { HttpMethods } from '@jsforce/jsforce-node';
 import { Messages } from '../messages';
 import { DpopKeyStore } from './dpopKeyStore';
@@ -153,14 +153,6 @@ export class DpopKey {
     // JWS ES256 signatures are the raw r||s pair, not DER.
     const signature = sign('sha256', Buffer.from(signingInput), { key: this.#privateKey, dsaEncoding: 'ieee-p1363' });
     return `${signingInput}.${signature.toString('base64url')}`;
-  }
-
-  public toJSON(): Record<string, unknown> {
-    return { keyReference: this.keyReference, thumbprint: this.thumbprint, publicJwk: this.publicJwk };
-  }
-
-  public [inspect.custom](): string {
-    return `DpopKey { keyReference: '${this.keyReference}', thumbprint: '${this.thumbprint}' }`;
   }
 }
 
