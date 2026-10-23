@@ -148,7 +148,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     const conn = new this({ ...options, connectionOptions });
     await conn.init();
     if (!options.clientApp) {
-      await conn.useDpop(options.authInfo);
+      await conn.bindDpopKeyIfPresent(options.authInfo);
     }
 
     try {
@@ -525,7 +525,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   /**
    * Binds REST and SOAP requests to the authorization's DPoP key, if it has one.
    */
-  private async useDpop(authInfo: AuthInfo): Promise<void> {
+  private async bindDpopKeyIfPresent(authInfo: AuthInfo): Promise<void> {
     const { dpopKeyReference, dpopNonce } = authInfo.getFields(true);
     if (!dpopKeyReference) return;
     let key: DpopKey;
