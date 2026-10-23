@@ -21,7 +21,7 @@ import { inspect } from 'node:util';
 import jwt from 'jsonwebtoken';
 import { expect } from 'chai';
 import { SinonFakeTimers } from 'sinon';
-import { DpopKey, DpopProofOptions } from '../../../src/crypto/dpop';
+import { DpopKey, DpopProofOptions, loadSessionDpopKey } from '../../../src/crypto/dpop';
 import { DpopKeyStore, SecretStore } from '../../../src/crypto/dpopKeyStore';
 import { TestContext } from '../../../src/testSetup';
 import {
@@ -179,6 +179,24 @@ describe('DpopKey', () => {
       expect.fail('expected load of a deleted key to fail');
     } catch (e) {
       expect(e).to.be.an('error');
+    }
+  });
+});
+
+describe('loadSessionDpopKey', () => {
+  const $$ = new TestContext();
+
+  it('wraps a load failure in an error that names the user', async () => {
+    const cause = new Error('item not found');
+    $$.SANDBOX.stub(DpopKey, 'load').rejects(cause);
+
+    try {
+      await loadSessionDpopKey('3b12f1df-5232-4804-897e-917bf397618a', 'dpop@example.com');
+      expect.fail('expected loadSessionDpopKey to throw');
+    } catch (e) {
+      expect(e).to.have.property('name', 'DpopSessionUnavailableError');
+      expect(e).to.have.property('message').that.includes('dpop@example.com').and.includes('item not found');
+      expect(e).to.have.property('cause', cause);
     }
   });
 });

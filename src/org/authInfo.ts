@@ -49,7 +49,7 @@ import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
 import { findSuggestion } from '../util/findSuggestion';
 import { lockInit } from '../util/fileLocking';
-import { DpopKey } from '../crypto/dpop';
+import { DpopKey, loadSessionDpopKey } from '../crypto/dpop';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { determineOrg } from './determineOrg';
 import { DpopTransport, TokenType } from './dpopTransport';
@@ -1383,15 +1383,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     return transport;
   }
 
-  private async loadDpopKey(keyReference: string): Promise<DpopKey> {
-    try {
-      return await DpopKey.load(keyReference);
-    } catch (e) {
-      const error = e instanceof Error ? e : SfError.wrap(e);
-      throw dpopMessages.createError('dpopSessionUnavailable', [this.getUsername(), error.message], [], error);
-    }
-  }
-
   /** The DPoP fields of the authorization a flow just produced. */
   private dpopFields(tokenType: unknown): Pick<AuthFields, 'tokenType' | 'dpopKeyReference' | 'dpopNonce'> {
     if (!this.dpop) {
@@ -1439,7 +1430,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // JWT bearer tokens are always DPoP-bound. A re-mint reuses the authorization's key and nonce.
     const { dpopKeyReference, dpopNonce } = options;
     const dpopKey = dpopKeyReference
-      ? await this.loadDpopKey(dpopKeyReference)
+      ? await loadSessionDpopKey(dpopKeyReference, this.getUsername())
       : this.options.dpopKey ?? (await DpopKey.generate());
     const transport = this.useDpop(dpopKey, dpopNonce);
     const { loginUrl = SfdcUrl.PRODUCTION } = options;
@@ -1543,7 +1534,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const { dpopKeyReference } = options;
     if (dpopKeyReference) {
       // eslint-disable-next-line no-underscore-dangle
-      oauth2._transport = this.useDpop(await this.loadDpopKey(dpopKeyReference));
+      oauth2._transport = this.useDpop(await loadSessionDpopKey(dpopKeyReference, this.getUsername()));
     }
     let authFieldsBuilder: TokenResponse;
     try {
