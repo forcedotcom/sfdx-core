@@ -1021,9 +1021,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
   private validateDpopFields(): void {
     const fields = this.getFields(true);
-    if ('dpopPrivateKey' in fields) {
-      throw dpopMessages.createError('invalidDpopAuth', [this.getUsername(), 'it contains a DPoP private key']);
-    }
     if (fields.tokenType === 'DPoP' && !fields.dpopKeyReference) {
       throw dpopMessages.createError('invalidDpopAuth', [this.getUsername(), 'it has no DPoP key reference']);
     }

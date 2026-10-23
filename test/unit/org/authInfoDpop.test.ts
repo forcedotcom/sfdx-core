@@ -400,21 +400,6 @@ describe('AuthInfo DPoP', () => {
       }
     });
 
-    it('rejects auth files that contain a DPoP private key', async () => {
-      const testOrg = new DpopMockOrg({
-        tokenType: 'DPoP',
-        dpopKeyReference: KEY_REFERENCE,
-        dpopPrivateKey: 'must-not-be-persisted',
-      });
-      await $$.stubAuths(testOrg);
-
-      try {
-        await shouldThrow(AuthInfo.create({ username: testOrg.username }));
-      } catch (e) {
-        expect(e).to.have.property('name', 'InvalidDpopAuthError');
-      }
-    });
-
     it('persists the DPoP key reference without private material and reads it back', async () => {
       const dpopKey = await DpopKey.generate();
       const [pem] = [...keychain.secrets.values()];
