@@ -20,7 +20,7 @@ import { inspect } from 'node:util';
 import jwt from 'jsonwebtoken';
 import { expect } from 'chai';
 import { SinonFakeTimers } from 'sinon';
-import { DpopKey } from '../../../src/crypto/dpop';
+import { DpopKey, DpopProofOptions } from '../../../src/crypto/dpop';
 import { DpopKeyStore, SecretStore } from '../../../src/crypto/dpopKeyStore';
 import { shouldThrowSync, TestContext } from '../../../src/testSetup';
 import {
@@ -160,7 +160,7 @@ describe('DpopKey', () => {
 
   it('generates a unique jti for every proof', async () => {
     const key = await DpopKey.generate({ store });
-    const options = { method: 'GET', url: 'https://example.my.salesforce.com/services/data' };
+    const options: DpopProofOptions = { method: 'GET', url: 'https://example.my.salesforce.com/services/data' };
 
     expect(decodeProof(key.createProof(options)).payload.jti).to.not.equal(
       decodeProof(key.createProof(options)).payload.jti
