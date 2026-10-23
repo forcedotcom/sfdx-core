@@ -161,10 +161,9 @@ describe('DpopKey', () => {
     });
     const { payload } = decodeProof(proof);
 
-    expect(DpopKey.accessTokenHash('opaque-access-token')).to.equal(expectedAccessTokenHash('opaque-access-token'));
     expect(payload).to.include({
       nonce: 'server-nonce',
-      ath: DpopKey.accessTokenHash('opaque-access-token'),
+      ath: expectedAccessTokenHash('opaque-access-token'),
       htm: 'GET',
     });
     expect(payload.htu).to.equal('https://example.my.salesforce.com/services/data/v68.0/query');

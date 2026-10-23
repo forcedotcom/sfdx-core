@@ -125,15 +125,6 @@ export class DpopKey {
   }
 
   /**
-   * The RFC 9449 `ath` claim: the base64url SHA-256 hash of an access token.
-   *
-   * @param accessToken The access token.
-   */
-  public static accessTokenHash(accessToken: string): string {
-    return createHash('sha256').update(accessToken).digest('base64url');
-  }
-
-  /**
    * Signs a proof for a single request. Proofs must not be reused; create a new one for every attempt.
    *
    * **Throws** *{@link SfError}{ name: 'InvalidDpopProofOptionsError' }* When the options are invalid.
@@ -153,7 +144,10 @@ export class DpopKey {
       iat: Math.floor(Date.now() / 1000),
       jti: randomUUID(),
       ...(options.nonce ? { nonce: options.nonce } : {}),
-      ...(options.accessToken !== undefined ? { ath: DpopKey.accessTokenHash(options.accessToken) } : {}),
+      // RFC 9449 `ath`: the base64url SHA-256 hash of the access token.
+      ...(options.accessToken !== undefined
+        ? { ath: createHash('sha256').update(options.accessToken).digest('base64url') }
+        : {}),
     };
     const signingInput = `${base64url(header)}.${base64url(claims)}`;
     // JWS ES256 signatures are the raw r||s pair, not DER.
