@@ -23,6 +23,7 @@ import {
   sign,
 } from 'node:crypto';
 import { inspect, promisify } from 'node:util';
+import { HttpMethods } from '@jsforce/jsforce-node';
 import { Messages } from '../messages';
 import { DpopKeyStore } from './dpopKeyStore';
 
@@ -46,7 +47,7 @@ export type DpopPublicJwk = {
 
 export type DpopProofOptions = {
   /** The HTTP method of the request. */
-  method: string;
+  method: HttpMethods;
   /** The HTTPS request URL. The query and fragment are not part of the proof. */
   url: string | URL;
   /** A server-provided `DPoP-Nonce`. */
@@ -153,9 +154,6 @@ export class DpopKey {
    */
   public createProof(options: DpopProofOptions): string {
     const url = validateUrl(options.url);
-    if (!options.method) {
-      throw messages.createError('invalidDpopProofOptions', ['method is required']);
-    }
     if (options.nonce === '') {
       throw messages.createError('invalidDpopProofOptions', ['nonce must not be empty']);
     }
@@ -165,7 +163,7 @@ export class DpopKey {
 
     const header = { typ: 'dpop+jwt', alg: 'ES256', jwk: this.publicJwk };
     const claims = {
-      htm: options.method.toUpperCase(),
+      htm: options.method,
       htu: `${url.origin}${url.pathname}`,
       iat: options.issuedAt ?? Math.floor(Date.now() / 1000),
       jti: randomUUID(),

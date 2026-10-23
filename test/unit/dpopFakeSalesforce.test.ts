@@ -15,7 +15,7 @@
  */
 import { expect } from 'chai';
 import { stubMethod } from '@salesforce/ts-sinon';
-import { DpopKey } from '../../src/crypto/dpop';
+import { DpopKey, DpopProofOptions } from '../../src/crypto/dpop';
 import { AuthInfo } from '../../src/org/authInfo';
 import { Connection } from '../../src/org/connection';
 import * as determineOrgModule from '../../src/org/determineOrg';
@@ -70,7 +70,7 @@ describe('FakeSalesforce', () => {
     fake = new FakeSalesforce({ publicJwk: key.publicJwk, accessToken: () => TOKEN, nonce: () => NONCE });
   });
 
-  const proof = (overrides: { method?: string; url?: string; accessToken?: string; nonce?: string } = {}): string =>
+  const proof = (overrides: Partial<DpopProofOptions> = {}): string =>
     key.createProof({ method: 'GET', url: REST_URL, accessToken: TOKEN, nonce: NONCE, ...overrides });
 
   const rest = (headers: Record<string, string>): RecordedRequest => ({ method: 'GET', url: REST_URL, headers });
