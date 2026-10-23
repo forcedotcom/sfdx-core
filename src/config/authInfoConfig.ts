@@ -26,7 +26,8 @@ import { ConfigFile } from './configFile';
  * ```
  */
 export class AuthInfoConfig extends ConfigFile<ConfigFile.Options, AuthFields> {
-  protected static encryptedKeys = [/token/i, /password/i, /secret/i];
+  // tokenType also matches /token/; the DPoP nonce is encrypted too, since it only works with this session.
+  protected static encryptedKeys = [/token/i, /password/i, /secret/i, /dpopNonce/i];
   /**
    * Gets the config options for a given org ID.
    *

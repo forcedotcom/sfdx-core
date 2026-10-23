@@ -35,6 +35,7 @@ import {
 } from '@salesforce/ts-types';
 import { OAuth2Config, OAuth2, TokenResponse } from '@jsforce/jsforce-node';
 import Transport from '@jsforce/jsforce-node/lib/transport';
+import { HttpResponse } from '@jsforce/jsforce-node';
 import * as jwt from 'jsonwebtoken';
 import { fs } from '../fs/fs';
 import { Config } from '../config/config';
@@ -48,13 +49,16 @@ import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
 import { findSuggestion } from '../util/findSuggestion';
 import { lockInit } from '../util/fileLocking';
+import { DpopKey, loadSessionDpopKey } from '../crypto/dpop';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { determineOrg } from './determineOrg';
+import { DpopTransport, TokenType } from './dpopTransport';
 import { Org, SandboxFields } from './org';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'core');
+const dpopMessages = Messages.loadMessages('@salesforce/core', 'dpop');
 
 /**
  * Fields for authorization, org, and local information.
@@ -93,6 +97,12 @@ export type AuthFields = {
   userProfileName?: string;
   expirationDate?: string;
   tracksSource?: boolean;
+  /** The access token's `token_type`. `DPoP` tokens are only accepted with a proof from the key below. */
+  tokenType?: 'DPoP' | 'Bearer';
+  /** Reference to the DPoP private key in the OS keychain or key file. The key itself is never stored here. */
+  dpopKeyReference?: string;
+  /** The last `DPoP-Nonce` the org sent. */
+  dpopNonce?: string;
   [Org.Fields.NAME]?: string;
   [Org.Fields.INSTANCE_NAME]?: string;
   [Org.Fields.NAMESPACE_PREFIX]?: Nullable<string>;
@@ -173,6 +183,9 @@ type User = AnyJson & {
 
 type AuthOptions = JwtOAuth2Config & AccessTokenOptions;
 
+/** OAuth options plus the stored DPoP fields, which a refresh or JWT re-mint passes back in from the auth file. */
+type DpopOAuth2Config = JwtOAuth2Config & Pick<AuthFields, 'tokenType' | 'dpopKeyReference' | 'dpopNonce'>;
+
 /**
  * A function to update a refresh token when the access token is expired.
  */
@@ -197,6 +210,9 @@ export type ConnectionOptions = AuthFields & {
 
 // parses the id field returned from jsForce oauth2 methods to get
 // user ID and org ID.
+const toTokenType = (tokenType: unknown): TokenType | undefined =>
+  isString(tokenType) ? (tokenType.toLowerCase() === 'dpop' ? 'DPoP' : 'Bearer') : undefined;
+
 function parseIdUrl(idUrl: string): { userId: string | undefined; orgId: string | undefined; url: string } {
   const idUrls = idUrl.split('/');
   const userId = idUrls.pop();
@@ -264,6 +280,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   private username!: string;
 
   private options: AuthInfo.Options;
+
+  // Set by the auth flows in initAuthOptions when the authorization is bound to a DPoP key.
+  private dpop?: { transport: DpopTransport; tokenType: TokenType };
 
   /**
    * Constructor
@@ -374,9 +393,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    *
    * @param options The options to generate the URL.
    */
-  public static getAuthorizationUrl(options: JwtOAuth2Config & { scope?: string }, oauth2?: OAuth2): string {
+  public static getAuthorizationUrl(
+    options: JwtOAuth2Config & { scope?: string; dpopKey?: DpopKey },
+    oauth2?: OAuth2
+  ): string {
+    const { dpopKey, ...oauth2Options } = options;
     // Unless explicitly turned off, use a code verifier for enhanced security
-    const oauth2Verifier = oauth2 ?? new OAuth2({ useVerifier: true, ...options });
+    const oauth2Verifier = oauth2 ?? new OAuth2({ useVerifier: true, ...oauth2Options });
 
     // The state parameter allows the redirectUri callback listener to ignore request
     // that don't contain the state value.
@@ -385,6 +408,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       prompt: 'login',
       // Default connected app is 'refresh_token api web'
       scope: options.scope ?? env.getString('SFDX_AUTH_SCOPES', 'refresh_token api web'),
+      // RFC 9449: bind the authorization code to the DPoP key that will redeem it.
+      // eslint-disable-next-line camelcase
+      ...(dpopKey ? { dpop_jkt: dpopKey.thumbprint } : {}),
     };
 
     return oauth2Verifier.getAuthorizationUrl(params);
@@ -853,7 +879,11 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * **See** [SFDX Authorization](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_force_auth.htm#cli_reference_force_auth)
    */
   public getSfdxAuthUrl(): string {
-    const { clientId, clientSecret, refreshToken, instanceUrl } = this.getFields(true);
+    const { clientId, clientSecret, refreshToken, instanceUrl, tokenType, dpopKeyReference } = this.getFields(true);
+    // The DPoP key never leaves this machine, so an auth URL could not be used anywhere else.
+    if (dpopKeyReference !== undefined || tokenType === 'DPoP') {
+      throw dpopMessages.createError('dpopAuthUrlUnsupported', [this.getUsername()]);
+    }
     // host includes an optional port on the instanceUrl
     const url = new URL(ensure(instanceUrl, 'undefined instanceUrl')).host;
     const clientIdAndSecret = clientId ? `${clientId}:${clientSecret ?? ''}` : '';
@@ -989,6 +1019,14 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     } else {
       await this.initAuthOptions(authOptions);
     }
+    this.validateDpopFields();
+  }
+
+  private validateDpopFields(): void {
+    const fields = this.getFields(true);
+    if (fields.tokenType === 'DPoP' && !fields.dpopKeyReference) {
+      throw dpopMessages.createError('invalidDpopAuth', [this.getUsername(), 'it has no DPoP key reference']);
+    }
   }
 
   private getInstanceUrl(aggregator: ConfigAggregator, options?: AuthOptions): string {
@@ -1005,7 +1043,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * **Throws** *{@link SfError}{ name: 'NamedOrgNotFoundError' }* Org information does not exist.
    * @returns {Promise<AuthInfo>}
    */
-  private async initAuthOptions(options?: JwtOAuth2Config | AccessTokenOptions): Promise<AuthInfo> {
+  private async initAuthOptions(options?: DpopOAuth2Config | AccessTokenOptions): Promise<AuthInfo> {
     this.logger = await Logger.child('AuthInfo');
 
     // If options were passed, use those before checking cache and reading an auth file.
@@ -1013,6 +1051,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
     if (options) {
       options = structuredClone(options);
+      // Each auth flow decides whether it uses DPoP; see useDpop.
+      this.dpop = undefined as AuthInfo['dpop'];
 
       if (this.isTokenOptions(options)) {
         authConfig = options;
@@ -1077,6 +1117,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       }
 
       authConfig.isDevHub = await this.resolveDevHub(options, authConfig);
+      // Resource requests may have rotated the nonce since the token request.
+      if (this.dpop?.transport.nonce !== undefined) authConfig.dpopNonce = this.dpop.transport.nonce;
 
       if (authConfig.username) await this.stateAggregator.orgs.read(authConfig.username, false, false);
 
@@ -1092,6 +1134,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       if (!authConfig.privateKey && this.getFields().privateKey) {
         this.stateAggregator.orgs.update(this.username, { privateKey: undefined });
       }
+      this.clearStaleDpopFields();
 
       // Populate Organization metadata (orgEdition, isScratch, isSandbox, etc.) in a single query.
       await this.determineOrgUnlessSupplied(options, authConfig);
@@ -1333,16 +1376,63 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     return false;
   }
 
+  /** Sends this auth flow's token and resource requests with DPoP proofs from `key`. */
+  private useDpop(key: DpopKey, nonce?: string): DpopTransport {
+    const transport = new DpopTransport(key, { nonce });
+    this.dpop = { transport, tokenType: 'Bearer' };
+    return transport;
+  }
+
+  /** The DPoP fields of the authorization a flow just produced. */
+  private dpopFields(tokenType: unknown): Pick<AuthFields, 'tokenType' | 'dpopKeyReference' | 'dpopNonce'> {
+    if (!this.dpop) {
+      const type = toTokenType(tokenType);
+      return type ? { tokenType: type } : {};
+    }
+    this.dpop.tokenType = toTokenType(tokenType) ?? 'Bearer';
+    return {
+      tokenType: this.dpop.tokenType,
+      dpopKeyReference: this.dpop.transport.key.keyReference,
+      ...(this.dpop.transport.nonce !== undefined ? { dpopNonce: this.dpop.transport.nonce } : {}),
+    };
+  }
+
+  /** An authorization without DPoP must not keep a previous one's key reference and nonce. */
+  private clearStaleDpopFields(): void {
+    if (this.dpop) return;
+    const { tokenType, dpopKeyReference, dpopNonce } = this.getFields(true);
+    if (dpopKeyReference !== undefined || dpopNonce !== undefined || tokenType === 'DPoP') {
+      this.stateAggregator.orgs.update(this.username, {
+        dpopKeyReference: undefined,
+        dpopNonce: undefined,
+        ...(tokenType === 'DPoP' ? { tokenType: undefined } : {}),
+      });
+    }
+  }
+
+  /** GET a resource with the access token, and a DPoP proof when this flow uses DPoP. */
+  private async getResource(url: string, accessToken: string): Promise<HttpResponse> {
+    const scheme = this.dpop?.tokenType === 'DPoP' ? 'DPoP' : 'Bearer';
+    const headers = Object.assign({ Authorization: `${scheme} ${accessToken}` }, SFDX_HTTP_HEADERS);
+    return (this.dpop?.transport ?? new Transport()).httpRequest({ url, method: 'GET', headers });
+  }
+
   private async readJwtKey(keyFile: string): Promise<string> {
     return fs.promises.readFile(keyFile, 'utf8');
   }
 
   // Build OAuth config for a JWT auth flow
-  private async authJwt(options: JwtOAuth2Config): Promise<AuthFields> {
+  private async authJwt(options: DpopOAuth2Config): Promise<AuthFields> {
     if (!options.clientId) {
       throw messages.createError('missingClientId');
     }
     const privateKeyContents = await this.readJwtKey(ensureString(options.privateKey));
+    // JWT bearer tokens are always DPoP-bound. A re-mint reuses the authorization's key and nonce.
+    const { dpopKeyReference, dpopNonce } = options;
+    const dpopKey = dpopKeyReference
+      ? await loadSessionDpopKey(dpopKeyReference, this.getUsername())
+      : this.options.dpopKey ?? (await DpopKey.generate());
+    const transport = this.useDpop(dpopKey, dpopNonce);
     const { loginUrl = SfdcUrl.PRODUCTION } = options;
     const url = new SfdcUrl(loginUrl);
     const createdOrgInstance = (this.getFields().createdOrgInstance ?? '').trim().toLowerCase();
@@ -1355,7 +1445,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       try {
         // sequentially, in probabilistic order
         // eslint-disable-next-line no-await-in-loop
-        authFieldsBuilder = await this.tryJwtAuth(options.clientId, login, audience, privateKeyContents);
+        authFieldsBuilder = await this.tryJwtAuth(options.clientId, login, audience, privateKeyContents, transport);
         break;
       } catch (err) {
         const error = err as Error;
@@ -1375,6 +1465,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       loginUrl: options.loginUrl,
       privateKey: options.privateKey,
       clientId: options.clientId,
+      ...this.dpopFields(authFieldsBuilder.token_type),
     };
 
     const instanceUrl = ensureString(authFieldsBuilder.instance_url);
@@ -1398,7 +1489,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     clientId: string,
     loginUrl: string,
     audienceUrl: string,
-    privateKeyContents: string
+    privateKeyContents: string,
+    transport: DpopTransport
   ): Promise<JsonMap> {
     const jwtToken = jwt.sign(
       {
@@ -1414,6 +1506,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     );
 
     const oauth2 = new OAuth2({ loginUrl });
+    // eslint-disable-next-line no-underscore-dangle
+    oauth2._transport = transport;
     return ensureJsonMap(
       await oauth2.requestToken({
         // eslint-disable-next-line camelcase
@@ -1424,7 +1518,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   // Build OAuth config for a refresh token auth flow
-  private async buildRefreshTokenConfig(options: JwtOAuth2Config): Promise<AuthFields> {
+  private async buildRefreshTokenConfig(options: DpopOAuth2Config): Promise<AuthFields> {
     const fullOptions: JwtOAuth2Config = {
       ...options,
       redirectUri: options.redirectUri ?? this.getRedirectUri(),
@@ -1436,6 +1530,12 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     };
 
     const oauth2 = new OAuth2(fullOptions);
+    // A DPoP-bound refresh token is only accepted with a proof from the key it was issued to.
+    const { dpopKeyReference } = options;
+    if (dpopKeyReference) {
+      // eslint-disable-next-line no-underscore-dangle
+      oauth2._transport = this.useDpop(await loadSessionDpopKey(dpopKeyReference, this.getUsername()));
+    }
     let authFieldsBuilder: TokenResponse;
     try {
       authFieldsBuilder = await oauth2.refreshToken(ensure(fullOptions.refreshToken));
@@ -1447,12 +1547,15 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const { orgId } = parseIdUrl(authFieldsBuilder.id);
+    const dpopFields = this.dpopFields(authFieldsBuilder.token_type ?? options.tokenType);
 
     let username = this.getUsername();
     if (!username) {
       const userInfo = await this.retrieveUserInfo(authFieldsBuilder.instance_url, authFieldsBuilder.access_token);
       username = ensureString(userInfo?.username);
     }
+    // The token endpoint may not send a nonce; keep the last resource nonce then.
+    const dpopNonce = this.dpop ? this.dpop.transport.nonce ?? options.dpopNonce : undefined;
     return {
       orgId,
       username,
@@ -1466,6 +1569,8 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       refreshToken: authFieldsBuilder.refresh_token ?? fullOptions.refreshToken,
       clientId: fullOptions.clientId,
       clientSecret: fullOptions.clientSecret,
+      ...dpopFields,
+      ...(dpopNonce !== undefined ? { dpopNonce } : {}),
     };
   }
 
@@ -1481,6 +1586,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
     if (!oauth2.clientId) {
       oauth2.clientId = this.getClientId();
+    }
+    if (this.options.dpopKey) {
+      // eslint-disable-next-line no-underscore-dangle
+      oauth2._transport = this.useDpop(this.options.dpopKey);
     }
 
     // Exchange the auth code for an access token and refresh token.
@@ -1501,6 +1610,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     }
 
     const { orgId } = parseIdUrl(authFields.id);
+    const dpopFields = this.dpopFields(authFields.token_type);
 
     let username: Optional<string> = this.getUsername();
 
@@ -1509,7 +1619,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     if (!username) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      const userInfo = await this.retrieveUserInfo(authFields.instance_url, authFields.access_token);
+      const userInfo = await this.retrieveUserInfo(authFields.instance_url, authFields.access_token, authFields.id);
       username = userInfo?.username;
     }
 
@@ -1522,10 +1632,20 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       refreshToken: authFields.refresh_token,
       clientId: options.clientId,
       clientSecret: options.clientSecret,
+      ...dpopFields,
+      ...(this.dpop?.transport.nonce !== undefined ? { dpopNonce: this.dpop.transport.nonce } : {}),
     };
   }
 
-  private async retrieveUserInfo(instanceUrl: string, accessToken: string): Promise<Optional<UserInfo>> {
+  /**
+   * @param idUrl The token response's identity URL. When userinfo is forbidden (no `openid` scope), the user is
+   * read directly with the user and org IDs from this URL.
+   */
+  private async retrieveUserInfo(
+    instanceUrl: string,
+    accessToken: string,
+    idUrl?: string
+  ): Promise<Optional<UserInfo>> {
     // Make a REST call for the username directly.  Normally this is done via a connection
     // but we don't want to create circular dependencies or lots of snowflakes
     // within this file to support it.
@@ -1533,17 +1653,24 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const instance = ensure(instanceUrl);
     const baseUrl = new SfdcUrl(instance);
     const userInfoUrl = `${baseUrl.toString()}services/oauth2/userinfo`;
-    const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
     try {
       this.logger.info(`Sending request for Username after successful auth code exchange to URL: ${userInfoUrl}`);
-      let response = await new Transport().httpRequest({ url: userInfoUrl, method: 'GET', headers });
-      if (response.statusCode >= 400) {
+      let response = await this.getResource(userInfoUrl, accessToken);
+      const fromIdUrl = idUrl ? parseIdUrl(idUrl) : undefined;
+      let userInfoJson: UserInfoResult | undefined;
+      if (response.statusCode === 403 && fromIdUrl?.userId && fromIdUrl.orgId) {
+        this.logger.debug('userinfo is forbidden; reading the User with the IDs from the identity URL.');
+        // eslint-disable-next-line camelcase
+        userInfoJson = { preferred_username: '', user_id: fromIdUrl.userId, organization_id: fromIdUrl.orgId };
+      } else if (response.statusCode >= 400) {
         this.throwUserGetException(response);
       } else {
-        const userInfoJson = parseJsonMap(response.body) as UserInfoResult;
+        userInfoJson = parseJsonMap(response.body);
+      }
+      if (userInfoJson) {
         const url = `${baseUrl.toString()}services/data/${apiVersion}/sobjects/User/${userInfoJson.user_id}`;
         this.logger.info(`Sending request for User SObject after successful auth code exchange to URL: ${url}`);
-        response = await new Transport().httpRequest({ url, method: 'GET', headers });
+        response = await this.getResource(url, accessToken);
         if (response.statusCode >= 400) {
           this.throwUserGetException(response);
         } else {
@@ -1592,10 +1719,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const instance = ensure(instanceUrl);
     const baseUrl = new SfdcUrl(instance);
     const scratchOrgInfoUrl = `${baseUrl.toString()}services/data/${apiVersion}/query?q=SELECT%20Id%20FROM%20ScratchOrgInfo%20limit%201`;
-    const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
 
     try {
-      const res = await new Transport().httpRequest({ url: scratchOrgInfoUrl, method: 'GET', headers });
+      const res = await this.getResource(scratchOrgInfoUrl, accessToken);
       if (res.statusCode >= 400) {
         return false;
       }
@@ -1642,5 +1768,11 @@ export namespace AuthInfo {
     parentUsername?: string;
 
     isDevHub?: boolean;
+
+    /**
+     * The DPoP key that the authorization code was bound to with `dpop_jkt`. The code exchange and every
+     * request made with the resulting tokens are proven with this key.
+     */
+    dpopKey?: DpopKey;
   };
 }
