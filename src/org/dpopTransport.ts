@@ -36,6 +36,9 @@ export type DpopTransportOptions = {
   onNonce?: (nonce: string) => void;
 };
 
+/** A request after binding; it always carries headers, since binding writes the authorization and proof there. */
+type PreparedRequest = HttpRequest & { headers: Record<string, string> };
+
 const AUTHORIZATION = /^(?:Bearer|DPoP) (.+)$/;
 /**
  * A SOAP `SessionHeader` with any (or no) namespace prefix, as jsforce and apex-node write it: 1 = prefix with
@@ -94,7 +97,7 @@ export class DpopTransport extends Transport {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     // Spreading reads the signing getter once.
-    return { ...(headers as Record<string, string>) };
+    return { ...headers };
   }
 
   private async send(req: HttpRequest, options: HttpRequestOptions): Promise<HttpResponse> {
@@ -109,7 +112,7 @@ export class DpopTransport extends Transport {
   }
 
   /** Returns a copy of the request bound to this key and the current nonce. */
-  private prepare(req: HttpRequest): HttpRequest {
+  private prepare(req: HttpRequest): PreparedRequest {
     const headers: Record<string, string> = { ...req.headers };
     const envelope = typeof req.body === 'string' && isSoap(req) ? req.body : undefined;
     const session = envelope === undefined ? null : SOAP_SESSION_HEADER.exec(envelope);
@@ -143,7 +146,7 @@ export class DpopTransport extends Transport {
     envelope: string,
     headers: Record<string, string>,
     session: RegExpExecArray
-  ): HttpRequest {
+  ): PreparedRequest {
     const [sessionHeader, prefix, escapedToken] = session;
     const accessToken = unescapeXml(escapedToken.trim());
     if (!this.isSessionToken(accessToken)) return { ...req, headers };
