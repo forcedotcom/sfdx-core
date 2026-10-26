@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793027998619,
+  "lastUpdate": 1793033316702,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -47646,6 +47646,72 @@ window.BENCHMARK_DATA = {
             "range": "±234.93%",
             "unit": "ops/sec",
             "extra": "8 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jfeingold@salesforce.com",
+            "name": "Jamie Feingold",
+            "username": "jfeingold35"
+          },
+          "committer": {
+            "email": "jfeingold@salesforce.com",
+            "name": "Jamie Feingold",
+            "username": "jfeingold35"
+          },
+          "distinct": true,
+          "id": "f3420a61c5697c3a823e327b7da79d0f686e51fa",
+          "message": "feat: explain when an app requires DPoP\n\nAn app that requires DPoP rejects a token request without a proof\nwith an invalid_request \"app requires proof of possession\" error, and\nan authorization request without dpop_jkt with \"missing required\ndpop_jkt for code binding\" (both seen live). Users saw only those raw\nerrors.\n\nA login that opted out of DPoP now says the app requires it and to\nlog in without --no-dpop. A JWT re-mint or refresh-token refresh of an\nauthorization without a DPoP key says to log in again to get a DPoP\nsession. The refresh-token case is assumed to fail the same way as a\nJWT grant; it hasn't been seen live.\n\nThe renewal message carries its own instructions, since jsforce's\nsession refresh rethrows only the message of a refresh error.\n\nCo-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-10-26T11:33:40-05:00",
+          "tree_id": "9f89141df59be2a2596294cda0b926346317544c",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/f3420a61c5697c3a823e327b7da79d0f686e51fa"
+        },
+        "date": 1793033301133,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 395270,
+            "range": "±0.71%",
+            "unit": "ops/sec",
+            "extra": "97 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1289060,
+            "range": "±17.39%",
+            "unit": "ops/sec",
+            "extra": "46 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 44430,
+            "range": "±185.78%",
+            "unit": "ops/sec",
+            "extra": "51 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 25390,
+            "range": "±188.06%",
+            "unit": "ops/sec",
+            "extra": "46 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 301533,
+            "range": "±44.63%",
+            "unit": "ops/sec",
+            "extra": "55 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 356757,
+            "range": "±8.69%",
+            "unit": "ops/sec",
+            "extra": "63 samples"
           }
         ]
       }
