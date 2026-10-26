@@ -1039,11 +1039,12 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * or by reading from the persistence store. For convenience `this` object is returned.
    *
    * @param options Options to be used for creating an OAuth2 instance.
+   * @param remint Whether the options are this authorization's own fields, re-minting its expired JWT access token.
    *
    * **Throws** *{@link SfError}{ name: 'NamedOrgNotFoundError' }* Org information does not exist.
    * @returns {Promise<AuthInfo>}
    */
-  private async initAuthOptions(options?: DpopOAuth2Config | AccessTokenOptions): Promise<AuthInfo> {
+  private async initAuthOptions(options?: DpopOAuth2Config | AccessTokenOptions, remint?: boolean): Promise<AuthInfo> {
     this.logger = await Logger.child('AuthInfo');
 
     // If options were passed, use those before checking cache and reading an auth file.
@@ -1096,7 +1097,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         // merges over the old file. In that case the refreshToken is the intended credential, so fall
         // through to the refresh-token flow instead of misrouting into JWT, which also matches isJwt().
         if (options.privateKey && !options.refreshToken) {
-          authConfig = await this.authJwt(options);
+          authConfig = await this.authJwt(options, remint);
         } else if (!options.authCode && options.refreshToken) {
           // refresh token flow (from sfdxUrl or OAuth refreshFn).
           // RTR: this POST rotates the token server-side and invalidates the old one immediately. Persist the
@@ -1217,7 +1218,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         await this.refreshWithTokenRotationLock(fields.refreshToken);
       } else {
         // This method will request the new access token and save to the current AuthInfo instance (but don't persist them!).
-        await this.initAuthOptions(fields);
+        await this.initAuthOptions(fields, true);
         // Persist fields with refreshed access token to auth file.
         await this.save();
       }
@@ -1422,17 +1423,21 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   // Build OAuth config for a JWT auth flow
-  private async authJwt(options: DpopOAuth2Config): Promise<AuthFields> {
+  private async authJwt(options: DpopOAuth2Config, remint?: boolean): Promise<AuthFields> {
     if (!options.clientId) {
       throw messages.createError('missingClientId');
     }
     const privateKeyContents = await this.readJwtKey(ensureString(options.privateKey));
-    // JWT bearer tokens are always DPoP-bound. A re-mint reuses the authorization's key and nonce.
+    // A new JWT login uses DPoP. A re-mint keeps the authorization's mode, like a refresh-token refresh: it reuses
+    // the key and nonce if there is a key, and otherwise stays Bearer, so a JWT authorization from before DPoP isn't
+    // switched to DPoP behind the user's back.
     const { dpopKeyReference, dpopNonce } = options;
     const dpopKey = dpopKeyReference
       ? await loadSessionDpopKey(dpopKeyReference, this.getUsername())
+      : remint
+      ? undefined
       : this.options.dpopKey ?? (await DpopKey.generate());
-    const transport = this.useDpop(dpopKey, dpopNonce);
+    const transport = dpopKey ? this.useDpop(dpopKey, dpopNonce) : undefined;
     const { loginUrl = SfdcUrl.PRODUCTION } = options;
     const url = new SfdcUrl(loginUrl);
     const createdOrgInstance = (this.getFields().createdOrgInstance ?? '').trim().toLowerCase();
@@ -1490,7 +1495,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     loginUrl: string,
     audienceUrl: string,
     privateKeyContents: string,
-    transport: DpopTransport
+    transport?: DpopTransport
   ): Promise<JsonMap> {
     const jwtToken = jwt.sign(
       {
@@ -1507,7 +1512,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
     const oauth2 = new OAuth2({ loginUrl });
     // eslint-disable-next-line no-underscore-dangle
-    oauth2._transport = transport;
+    if (transport) oauth2._transport = transport;
     return ensureJsonMap(
       await oauth2.requestToken({
         // eslint-disable-next-line camelcase
