@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792782586912,
+  "lastUpdate": 1793027998619,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -47580,6 +47580,72 @@ window.BENCHMARK_DATA = {
             "range": "±8.48%",
             "unit": "ops/sec",
             "extra": "68 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jfeingold@salesforce.com",
+            "name": "Jamie Feingold",
+            "username": "jfeingold35"
+          },
+          "committer": {
+            "email": "jfeingold@salesforce.com",
+            "name": "Jamie Feingold",
+            "username": "jfeingold35"
+          },
+          "distinct": true,
+          "id": "182ebe9b104b604310ff1f22d06073d51b031503",
+          "message": "fix: store the DPoP token type unencrypted\n\ntokenType only matched the /token/ encrypted key by accident. It is\nonly 'DPoP' or 'Bearer', so encrypting it protects nothing, and an\nundecrypted read returned ciphertext that never equals 'DPoP'.\n\nCo-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-10-26T10:11:29-05:00",
+          "tree_id": "11b70a61fb79e0ef55161d5b8a30286e25f628a0",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/182ebe9b104b604310ff1f22d06073d51b031503"
+        },
+        "date": 1793027983087,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 389648,
+            "range": "±1.03%",
+            "unit": "ops/sec",
+            "extra": "95 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1253272,
+            "range": "±9.37%",
+            "unit": "ops/sec",
+            "extra": "45 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 8898,
+            "range": "±234.19%",
+            "unit": "ops/sec",
+            "extra": "8 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 321511,
+            "range": "±100.74%",
+            "unit": "ops/sec",
+            "extra": "67 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 482236,
+            "range": "±13.31%",
+            "unit": "ops/sec",
+            "extra": "60 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 2419,
+            "range": "±234.93%",
+            "unit": "ops/sec",
+            "extra": "8 samples"
           }
         ]
       }
