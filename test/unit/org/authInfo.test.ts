@@ -606,7 +606,7 @@ describe('AuthInfo', () => {
           loginUrl: jwtConfig.loginUrl,
           privateKey: jwtConfig.privateKey,
           isDevHub: false,
-          // JWT auth is always DPoP-bound; the server returned a Bearer token type.
+          // A new JWT login uses DPoP by default; the server returned a Bearer token type.
           tokenType: 'Bearer',
         };
         const { dpopKeyReference, ...authConfig } = authInfoStubs.update.firstCall.args[0] as AuthFields;
@@ -745,7 +745,7 @@ describe('AuthInfo', () => {
           loginUrl: jwtConfig.loginUrl,
           privateKey: jwtConfig.privateKey,
           isDevHub: false,
-          // JWT auth is always DPoP-bound; the server returned a Bearer token type.
+          // A new JWT login uses DPoP by default; the server returned a Bearer token type.
           tokenType: 'Bearer',
         };
         const { dpopKeyReference, ...authConfig } = authInfoStubs.update.firstCall.args[0] as AuthFields;

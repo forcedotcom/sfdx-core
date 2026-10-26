@@ -320,7 +320,7 @@ describe('AuthInfo DPoP', () => {
         oauth2Options: { clientId: 'connected-app', privateKey: 'path/to/server.key', loginUrl: LOGIN },
       });
 
-    it('always uses DPoP for a new JWT bearer authorization', async () => {
+    it('uses DPoP for a new JWT bearer authorization by default', async () => {
       const { requests } = stubTransport($$.SANDBOX, [
         urlIncludes(TOKEN_PATH, () => ok({ ...JWT_TOKEN, token_type: 'Bearer' })),
         urlIncludes(DEVHUB_QUERY, () => ok({ records: [] })),
@@ -348,6 +348,32 @@ describe('AuthInfo DPoP', () => {
 
       expect(getHeader(devHub.headers, 'Authorization')).to.equal('Bearer new-access');
       expectResourceProof(devHub, 'new-access');
+    });
+
+    it('logs in with JWT without DPoP with dpop: false', async () => {
+      const { requests } = stubTransport($$.SANDBOX, [
+        urlIncludes(TOKEN_PATH, () => ok({ ...JWT_TOKEN, token_type: 'Bearer' })),
+        urlIncludes(DEVHUB_QUERY, () => ok({ records: [] })),
+      ]);
+
+      const authInfo = await AuthInfo.create({
+        username: JWT_USERNAME,
+        oauth2Options: { clientId: 'connected-app', privateKey: 'path/to/server.key', loginUrl: LOGIN },
+        dpop: false,
+      });
+
+      const fields = authInfo.getFields(true);
+      expect(fields.accessToken).to.equal('new-access');
+      expect(fields.tokenType).to.equal('Bearer');
+      expect(fields.dpopKeyReference).to.be.undefined;
+      expect(keychain.secrets.size, 'no DPoP key is created').to.equal(0);
+
+      const [token, devHub] = requests;
+      expect(requests).to.have.length(2);
+      expect(new URLSearchParams(token.body).get('grant_type')).to.equal('urn:ietf:params:oauth:grant-type:jwt-bearer');
+      expect(getHeader(token.headers, 'DPoP')).to.be.undefined;
+      expect(getHeader(devHub.headers, 'Authorization')).to.equal('Bearer new-access');
+      expect(getHeader(devHub.headers, 'DPoP')).to.be.undefined;
     });
 
     it('binds JWT bearer access tokens to DPoP and reuses the token nonce for resource requests', async () => {
