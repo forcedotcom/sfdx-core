@@ -52,7 +52,7 @@ import { lockInit } from '../util/fileLocking';
 import { DpopKey, loadSessionDpopKey } from '../crypto/dpop';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
 import { determineOrg } from './determineOrg';
-import { DpopTransport, TokenType } from './dpopTransport';
+import { DpopTransport, isDpopRequiredError, TokenType } from './dpopTransport';
 import { Org, SandboxFields } from './org';
 import { OrgConfigProperties } from './orgConfigProperties';
 
@@ -1444,6 +1444,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const audienceUrl = await url.getJwtAudienceUrl(createdOrgInstance);
     let authFieldsBuilder: JsonMap | undefined;
     const authErrors = [];
+    let dpopRequired: Error | undefined;
     // given that we can no longer depend on instance names or URls to determine audience, let's try them all
     const loginAndAudienceUrls = getLoginAudienceCombos(audienceUrl, loginUrl);
     for (const [login, audience] of loginAndAudienceUrls) {
@@ -1454,6 +1455,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         break;
       } catch (err) {
         const error = err as Error;
+        if (!transport && isDpopRequiredError(error)) dpopRequired = error;
         const message = error.message.includes('audience')
           ? `${error.message}  [audience=${audience} login=${login}]`
           : error.message;
@@ -1461,6 +1463,17 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       }
     }
     if (!authFieldsBuilder) {
+      // Without a key, this is a login that opted out of DPoP, or a re-mint of an authorization from before DPoP. A
+      // re-mint's error reaches the user through jsforce's session refresh, which keeps only the message, so that
+      // message says what to do.
+      if (dpopRequired) {
+        throw dpopMessages.createError(
+          remint ? 'dpopRequiredForSession' : 'dpopRequiredForLogin',
+          [],
+          [],
+          dpopRequired
+        );
+      }
       // messages.createError expects names to end in `error` and this one says Errors so do it manually.
       throw new SfError(messages.getMessage('jwtAuthErrors', [authErrors.join('\n')]), 'JwtAuthError');
     }
@@ -1546,6 +1559,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       authFieldsBuilder = await oauth2.refreshToken(ensure(fullOptions.refreshToken));
     } catch (err: unknown) {
       const cause = err instanceof Error ? err : SfError.wrap(err);
+      // Seen for JWT grants without a proof; assumed to be the same for a Bearer refresh token.
+      if (!dpopKeyReference && isDpopRequiredError(cause)) {
+        throw dpopMessages.createError('dpopRequiredForSession', [], [], cause);
+      }
       throw messages.createError('refreshTokenAuthError', [cause.message], undefined, cause);
     }
 

@@ -53,6 +53,14 @@ const SOAP_SESSION_HEADER =
   /<((?:[A-Za-z_][\w.-]*:)?)SessionHeader>\s*<\1sessionId>([^<]*)<\/\1sessionId>\s*<\/\1SessionHeader>/;
 
 /**
+ * Whether a jsforce token request error means the app requires DPoP and the request had no proof. Salesforce
+ * answers that with an `invalid_request` error saying the "app requires proof of possession", which jsforce
+ * throws as an error with that name and message. `invalid_request` alone covers many other problems.
+ */
+export const isDpopRequiredError = (error: unknown): boolean =>
+  error instanceof Error && error.name === 'invalid_request' && /proof of possession/i.test(error.message);
+
+/**
  * A jsforce transport that binds every request to a {@link DpopKey} (RFC 9449).
  *
  * - REST requests get a `DPoP` proof header, with an `ath` claim when they carry an access token. The header is

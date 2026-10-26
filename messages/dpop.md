@@ -41,3 +41,15 @@ The DPoP key for %s could not be loaded: %s
 # dpopSessionUnavailable.actions
 
 - Log in to the org again to create a new DPoP key.
+
+# dpopRequiredForLogin
+
+The app requires DPoP, so you can't log in to it without DPoP.
+
+# dpopRequiredForLogin.actions
+
+- Log in again without "--no-dpop".
+
+# dpopRequiredForSession
+
+This authorization doesn't use DPoP, but its app requires DPoP. Log in to the org again, for example with "sf org login web" or "sf org login jwt", to get a DPoP session.
