@@ -1428,13 +1428,13 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       throw messages.createError('missingClientId');
     }
     const privateKeyContents = await this.readJwtKey(ensureString(options.privateKey));
-    // A new JWT login uses DPoP. A re-mint keeps the authorization's mode, like a refresh-token refresh: it reuses
-    // the key and nonce if there is a key, and otherwise stays Bearer, so a JWT authorization from before DPoP isn't
-    // switched to DPoP behind the user's back.
+    // A new JWT login uses DPoP unless the caller opts out. A re-mint keeps the authorization's mode, like a
+    // refresh-token refresh: it reuses the key and nonce if there is a key, and otherwise stays Bearer, so a JWT
+    // authorization from before DPoP, or one that opted out, isn't switched to DPoP behind the user's back.
     const { dpopKeyReference, dpopNonce } = options;
     const dpopKey = dpopKeyReference
       ? await loadSessionDpopKey(dpopKeyReference, this.getUsername())
-      : remint
+      : remint || this.options.dpop === false
       ? undefined
       : this.options.dpopKey ?? (await DpopKey.generate());
     const transport = dpopKey ? this.useDpop(dpopKey, dpopNonce) : undefined;
@@ -1779,5 +1779,11 @@ export namespace AuthInfo {
      * request made with the resulting tokens are proven with this key.
      */
     dpopKey?: DpopKey;
+
+    /**
+     * Set to `false` to log in with JWT without DPoP, for example to use the Streaming API or an access token
+     * outside the CLI. A new JWT login uses DPoP by default, and re-minting its access token keeps that choice.
+     */
+    dpop?: boolean;
   };
 }
