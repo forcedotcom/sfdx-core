@@ -179,6 +179,16 @@ describe('ConfigStore', () => {
       expect(config.get('refreshToken', true)).to.equal(refreshToken);
     });
 
+    it('stores the AuthInfoConfig tokenType unencrypted', async () => {
+      $$.SANDBOX.stub(AuthInfoConfig.prototype, 'read');
+      const config = await AuthInfoConfig.create({});
+      config.setContentsFromObject({ accessToken: '1234', tokenType: 'DPoP', dpopNonce: 'nonce' });
+
+      expect(config.get('tokenType')).to.equal('DPoP');
+      expect(config.get('accessToken')).to.not.equal('1234');
+      expect(config.get('dpopNonce')).to.not.equal('nonce');
+    });
+
     it('does not fail when saving an already encrypted object', async () => {
       const expected = 'a29djf0kq3dj90d3q';
       const config = await CarConfig.create();
