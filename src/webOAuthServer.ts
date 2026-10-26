@@ -70,6 +70,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   private oauthError = new Error('Oauth Error');
   private clientApp?: string;
   private username?: string;
+  private dpop: boolean;
 
   public constructor(options: WebOAuthServer.Options) {
     super(options);
@@ -86,6 +87,8 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
       this.clientApp = options.clientApp;
       this.username = options.username;
     }
+    // Client app tokens are stored without a DPoP key, so they aren't bound.
+    this.dpop = !('clientApp' in options) && options.dpop !== false;
   }
 
   /**
@@ -254,8 +257,8 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
 
     this.webServer = await WebServer.create({ port });
     this.oauth2 = new OAuth2(this.oauthConfig);
-    // Bind the authorization code to a new DPoP key. Client app tokens are stored without one, so they aren't bound.
-    if (!this.clientApp && !env.getBoolean('SF_DISABLE_DPOP')) {
+    // Bind the authorization code to a new DPoP key.
+    if (this.dpop) {
       try {
         this.dpopKey = await DpopKey.generate();
       } catch (e) {
@@ -405,6 +408,11 @@ export namespace WebOAuthServer {
            */
           scope?: string;
         };
+        /**
+         * Whether to bind the authorization to a new DPoP key (RFC 9449). Defaults to `true`. Set `false` to get a
+         * Bearer session, for tools that send the access token without a DPoP proof.
+         */
+        dpop?: boolean;
       }
     | {
         oauthConfig: JwtOAuth2Config & {

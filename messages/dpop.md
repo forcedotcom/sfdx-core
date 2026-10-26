@@ -32,7 +32,7 @@ DPoP is enabled but a DPoP key could not be created: %s
 
 # dpopAuthConfiguration.actions
 
-- Set SF_DISABLE_DPOP=true to log in without DPoP.
+- Log in without DPoP, for example with "sf org login web --no-dpop".
 
 # dpopSessionUnavailable
 

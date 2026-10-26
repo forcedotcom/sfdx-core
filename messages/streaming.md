@@ -29,4 +29,4 @@ The Streaming API doesn't accept DPoP-bound sessions, and the session for %s is 
 # dpopStreamingUnsupported.actions
 
 - Run the command without streaming, if it has an option to poll instead.
-- Or set SF_DISABLE_DPOP=true and log in to the org again with "sf org login web" to get a bearer session.
+- Or log in to the org again without DPoP, for example with "sf org login web --no-dpop", to get a bearer session.
