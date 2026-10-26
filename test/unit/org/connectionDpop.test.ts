@@ -382,6 +382,49 @@ describe('Connection DPoP', () => {
       expect(fields.tokenType).to.equal('Bearer');
       expect(fields.dpopKeyReference).to.be.undefined;
     });
+
+    describe('when the app now requires DPoP', () => {
+      const dpopRequired = (): FakeResponse => ({
+        statusCode: 400,
+        body: { error: 'invalid_request', error_description: 'app requires proof of possession' },
+      });
+
+      it('asks the user to log in again when a JWT session without a DPoP key is re-minted', async () => {
+        const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
+        stubMethod($$.SANDBOX, AuthInfo.prototype, 'readJwtKey').resolves(
+          privateKey.export({ type: 'pkcs8', format: 'pem' }).toString()
+        );
+        stubMethod($$.SANDBOX, SfdcUrl.prototype, 'lookup').resolves();
+        const org = new DpopMockOrg({ privateKey: 'path/to/server.key', instanceApiVersion: API_VERSION });
+        org.refreshToken = undefined;
+        stubTransport($$.SANDBOX, [urlIncludes(TOKEN_PATH, dpopRequired), urlIncludes(SOBJECTS_PATH, invalidSession)]);
+        const { conn } = await connect(org);
+
+        try {
+          await shouldThrow(conn.request(`${org.instanceUrl}${SOBJECTS_PATH}`));
+        } catch (e) {
+          // jsforce's session refresh keeps only the message of the refresh error.
+          expect((e as Error).message)
+            .to.include("doesn't use DPoP, but its app requires DPoP")
+            .and.include('Log in to the org again');
+        }
+      });
+
+      it('asks the user to log in again when a session without a DPoP key is refreshed', async () => {
+        const org = new MockTestOrgData();
+        stubTransport($$.SANDBOX, [urlIncludes(TOKEN_PATH, dpopRequired), urlIncludes(SOBJECTS_PATH, invalidSession)]);
+        const { conn } = await connect(org);
+
+        try {
+          await shouldThrow(conn.request(`${org.instanceUrl}${SOBJECTS_PATH}`));
+        } catch (e) {
+          // jsforce's session refresh keeps only the message of the refresh error.
+          expect((e as Error).message)
+            .to.include("doesn't use DPoP, but its app requires DPoP")
+            .and.include('Log in to the org again');
+        }
+      });
+    });
   });
 
   describe('transport retries', () => {

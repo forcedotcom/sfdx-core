@@ -292,11 +292,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
                 error_description?: string;
               };
               if (request.query.error) {
-                const errorName: string =
-                  typeof request.query.error_description === 'string'
-                    ? request.query.error_description
-                    : request.query.error;
-                this.oauthError = new SfError(errorName, request.query.error);
+                this.oauthError = this.authorizationError(request.query.error, request.query.error_description);
                 await this.webServer.handleError(response);
                 return reject(this.oauthError);
               }
@@ -343,6 +339,16 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
    * @param request the http request
    * @returns {Nullable<string>}
    */
+  /** The error for an authorization the server redirected back with an `error`. */
+  private authorizationError(error: string, description?: string): Error {
+    const errorName = typeof description === 'string' ? description : error;
+    // An app that requires DPoP rejects an authorization request without dpop_jkt.
+    if (!this.dpop && error === 'invalid_request' && /dpop_jkt/i.test(errorName)) {
+      return dpopMessages.createError('dpopRequiredForLogin');
+    }
+    return new SfError(errorName, error);
+  }
+
   private parseAuthCodeFromRequest(response: http.ServerResponse, request: WebOAuthServer.Request): Nullable<string> {
     if (!this.validateState(request)) {
       const error = new SfError('urlStateMismatch');

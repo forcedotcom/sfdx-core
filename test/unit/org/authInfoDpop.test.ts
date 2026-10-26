@@ -376,6 +376,44 @@ describe('AuthInfo DPoP', () => {
       expect(getHeader(devHub.headers, 'DPoP')).to.be.undefined;
     });
 
+    const jwtLoginWithoutDpop = (): Promise<AuthInfo> =>
+      AuthInfo.create({
+        username: JWT_USERNAME,
+        oauth2Options: { clientId: 'connected-app', privateKey: 'path/to/server.key', loginUrl: LOGIN },
+        dpop: false,
+      });
+
+    it('explains that the app requires DPoP when a JWT login without DPoP is rejected for it', async () => {
+      stubTransport($$.SANDBOX, [
+        urlIncludes(TOKEN_PATH, () => ({
+          statusCode: 400,
+          body: { error: 'invalid_request', error_description: 'app requires proof of possession' },
+        })),
+      ]);
+
+      try {
+        await shouldThrow(jwtLoginWithoutDpop());
+      } catch (e) {
+        expect(e).to.have.property('name', 'DpopRequiredForLoginError');
+        expect(e).to.have.nested.property('cause.message', 'app requires proof of possession');
+      }
+    });
+
+    it('keeps the JWT error for other invalid_request rejections', async () => {
+      stubTransport($$.SANDBOX, [
+        urlIncludes(TOKEN_PATH, () => ({
+          statusCode: 400,
+          body: { error: 'invalid_request', error_description: 'invalid assertion' },
+        })),
+      ]);
+
+      try {
+        await shouldThrow(jwtLoginWithoutDpop());
+      } catch (e) {
+        expect(e).to.have.property('name', 'JwtAuthError');
+      }
+    });
+
     it('binds JWT bearer access tokens to DPoP and reuses the token nonce for resource requests', async () => {
       const { requests } = stubTransport($$.SANDBOX, [
         urlIncludes(
