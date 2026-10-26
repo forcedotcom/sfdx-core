@@ -337,6 +337,51 @@ describe('Connection DPoP', () => {
       });
       expect(authInfo.getFields(true).accessToken).to.equal(FRESH_TOKEN);
     });
+
+    it('re-mints a JWT session without a DPoP key as Bearer', async () => {
+      const { privateKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
+      stubMethod($$.SANDBOX, AuthInfo.prototype, 'readJwtKey').resolves(
+        privateKey.export({ type: 'pkcs8', format: 'pem' }).toString()
+      );
+      stubMethod($$.SANDBOX, SfdcUrl.prototype, 'lookup').resolves();
+      const generate = $$.SANDBOX.spy(DpopKey, 'generate');
+      // A JWT authorization from before DPoP.
+      const org = new DpopMockOrg({ privateKey: 'path/to/server.key', instanceApiVersion: API_VERSION });
+      org.refreshToken = undefined;
+      const { requests } = stubTransport($$.SANDBOX, [
+        urlIncludes(TOKEN_PATH, () =>
+          ok({
+            access_token: FRESH_TOKEN,
+            instance_url: org.instanceUrl,
+            id: `${org.loginUrl}/id/${org.orgId}/${org.userId}`,
+            token_type: 'Bearer',
+          })
+        ),
+        urlIncludes(SOBJECTS_PATH, sequence(invalidSession(), ok())),
+      ]);
+      const { conn, authInfo } = await connect(org);
+
+      const response = await conn.request(`${org.instanceUrl}${SOBJECTS_PATH}`);
+
+      expect(response).to.deep.equal({ ok: true });
+      expect(generate.called, 'a re-mint does not create a DPoP key').to.be.false;
+      const tokenRequests = requests.filter(isTo(TOKEN_PATH));
+      expect(tokenRequests).to.have.length(1);
+      expect(new URLSearchParams(tokenRequests[0].body).get('grant_type')).to.equal(
+        'urn:ietf:params:oauth:grant-type:jwt-bearer'
+      );
+      expect(getHeader(tokenRequests[0].headers, 'DPoP')).to.be.undefined;
+
+      const resources = requests.filter(isTo(SOBJECTS_PATH));
+      expect(resources).to.have.length(2);
+      expect(getHeader(resources[1].headers, 'Authorization')).to.equal(`Bearer ${FRESH_TOKEN}`);
+      expect(getHeader(resources[1].headers, 'DPoP')).to.be.undefined;
+
+      const fields = authInfo.getFields(true);
+      expect(fields.accessToken).to.equal(FRESH_TOKEN);
+      expect(fields.tokenType).to.equal('Bearer');
+      expect(fields.dpopKeyReference).to.be.undefined;
+    });
   });
 
   describe('transport retries', () => {
