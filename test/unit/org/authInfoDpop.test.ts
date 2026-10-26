@@ -111,10 +111,6 @@ describe('AuthInfo DPoP', () => {
     ({ keychain } = stubDpopKeyStore($$.SANDBOX));
   });
 
-  afterEach(() => {
-    delete process.env.SF_DISABLE_DPOP;
-  });
-
   describe('getAuthorizationUrl', () => {
     it('binds the authorization code to the key thumbprint with dpop_jkt', async () => {
       const dpopKey = await DpopKey.generate();
@@ -324,8 +320,7 @@ describe('AuthInfo DPoP', () => {
         oauth2Options: { clientId: 'connected-app', privateKey: 'path/to/server.key', loginUrl: LOGIN },
       });
 
-    it('always uses DPoP for a new JWT bearer authorization, regardless of SF_DISABLE_DPOP', async () => {
-      process.env.SF_DISABLE_DPOP = 'true';
+    it('always uses DPoP for a new JWT bearer authorization', async () => {
       const { requests } = stubTransport($$.SANDBOX, [
         urlIncludes(TOKEN_PATH, () => ok({ ...JWT_TOKEN, token_type: 'Bearer' })),
         urlIncludes(DEVHUB_QUERY, () => ok({ records: [] })),

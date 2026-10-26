@@ -32,10 +32,6 @@ describe('WebOauthServer DPoP', () => {
     generateSpy = $$.SANDBOX.spy(DpopKey, 'generate');
   });
 
-  afterEach(() => {
-    delete process.env.SF_DISABLE_DPOP;
-  });
-
   describe('getAuthorizationUrl', () => {
     it('binds the authorization request to a freshly generated DPoP key with dpop_jkt', async () => {
       const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
@@ -49,10 +45,8 @@ describe('WebOauthServer DPoP', () => {
       expect(opened.searchParams.get('state')).to.be.a('string').and.not.be.empty;
     });
 
-    it('does not generate a key or send dpop_jkt when SF_DISABLE_DPOP=true', async () => {
-      process.env.SF_DISABLE_DPOP = 'true';
-
-      const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
+    it('does not generate a key or send dpop_jkt with dpop: false', async () => {
+      const oauthServer = await WebOAuthServer.create({ oauthConfig: {}, dpop: false });
       const opened = new URL(oauthServer.getAuthorizationUrl());
 
       expect(generateSpy.called).to.be.false;
@@ -86,8 +80,8 @@ describe('WebOauthServer DPoP', () => {
       );
     });
 
-    const authorize = async (): Promise<AuthInfo.Options> => {
-      const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
+    const authorize = async (options: { dpop?: boolean } = {}): Promise<AuthInfo.Options> => {
+      const oauthServer = await WebOAuthServer.create({ oauthConfig: {}, ...options });
       await oauthServer.start();
       // @ts-expect-error because private member
       stubMethod($$.SANDBOX, oauthServer.webServer, 'handleSuccess').resolves();
@@ -106,10 +100,8 @@ describe('WebOauthServer DPoP', () => {
       expect(authCreateOptions.oauth2).to.have.property('codeVerifier');
     });
 
-    it('exchanges the code without a DPoP key when SF_DISABLE_DPOP=true', async () => {
-      process.env.SF_DISABLE_DPOP = 'true';
-
-      const authCreateOptions = await authorize();
+    it('exchanges the code without a DPoP key with dpop: false', async () => {
+      const authCreateOptions = await authorize({ dpop: false });
 
       expect(authCreateOptions.dpopKey).to.be.undefined;
     });
