@@ -254,7 +254,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       instanceApiVersion: this.maxApiVersion,
       // This will get messed up if the user changes their local time on their machine.
       // Not a big deal since it will just get updated sooner/later.
-      instanceApiVersionLastRetrieved: new Date().toLocaleString(),
+      instanceApiVersionLastRetrieved: new Date().toISOString(),
     });
 
     return this.maxApiVersion;
@@ -480,12 +480,14 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     // Check if the cache has expired
     if (lastChecked) {
       const now = new Date();
-      const has24HoursPastSinceLastCheck = now.getTime() - lastChecked > Duration.hours(24).milliseconds;
+      const timeSinceLastCheck = now.getTime() - lastChecked;
+      // To be considered fresh, the cache must be from a date within the past 24 hours, as opposed to older (or from the future)
+      const cacheOutsideValidWindow = timeSinceLastCheck < 0 || timeSinceLastCheck > Duration.hours(24).milliseconds;
       this.logger.debug(
         `API version cache last checked on ${lastCheckedDateString ?? '<undefined>'} (now is ${now.toLocaleString()})`
       );
 
-      if (!has24HoursPastSinceLastCheck && version) {
+      if (!cacheOutsideValidWindow && version) {
         if (!validateApiVersion(version)) {
           this.logger.warn(
             `Cached instanceApiVersion "${version}" is invalid (expected format: "XX.0"). Ignoring cache and re-fetching.`
