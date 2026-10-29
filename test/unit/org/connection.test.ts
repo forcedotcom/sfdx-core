@@ -395,6 +395,22 @@ describe('Connection', () => {
     expect(requestMock.calledOnce).to.be.true;
   });
 
+  it('getCachedApiVersion ignores values cached from the future, and re-fetches', async () => {
+    $$.SANDBOX.stub(Connection.prototype, 'isResolvable').resolves(true);
+
+    // Set up getFields to return an invalid cached version BEFORE create
+    testAuthInfo.getFields.returns({
+      instanceApiVersionLastRetrieved: new Date(Date.now() + Duration.hours(10).milliseconds).toLocaleString(),
+      instanceApiVersion: '51.0',
+    });
+
+    // The request mock (first call) returns the version list when cache is invalid
+    const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+    // the lastRetrieved date is in the future, so cache is ignored and server is hit → returns '50.0'
+    expect(conn.getApiVersion()).to.equal('50.0');
+    expect(requestMock.calledOnce).to.be.true;
+  });
+
   it('getCachedApiVersion should accept valid cached version', async () => {
     $$.SANDBOX.stub(Connection.prototype, 'isResolvable').resolves(true);
 
