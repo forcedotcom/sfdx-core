@@ -1,3 +1,12 @@
+## [9.4.3](https://github.com/forcedotcom/sfdx-core/compare/9.4.2...9.4.3) (2026-10-29)
+
+
+### Bug Fixes
+
+* api version access date cached as ISO string @W-24685191@ ([05ce0fd](https://github.com/forcedotcom/sfdx-core/commit/05ce0fdee993963f6af7fd8d37359f0065976cc2))
+
+
+
 ## [9.4.2](https://github.com/forcedotcom/sfdx-core/compare/9.4.1...9.4.2) (2026-10-22)
 
 
