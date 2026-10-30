@@ -28,10 +28,12 @@ import { AuthInfo, DEFAULT_CONNECTED_APP_INFO, CODE_BUILDER_CONNECTED_APP_INFO }
 import { SfError } from './sfError';
 import { Messages } from './messages';
 import { SfProjectJson } from './sfProject';
+import { DpopKey } from './crypto/dpop';
 import { JwtOAuth2Config } from './org/authInfo';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'auth');
+const dpopMessages = Messages.loadMessages('@salesforce/core', 'dpop');
 
 // Server ignores requests for site icons
 const iconPaths = ['/favicon.ico', '/apple-touch-icon-precomposed.png'];
@@ -63,10 +65,12 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   private logger!: Logger;
   private webServer!: WebServer;
   private oauth2!: OAuth2;
+  private dpopKey?: DpopKey;
   private oauthConfig: JwtOAuth2Config;
   private oauthError = new Error('Oauth Error');
   private clientApp?: string;
   private username?: string;
+  private dpop: boolean;
 
   public constructor(options: WebOAuthServer.Options) {
     super(options);
@@ -83,6 +87,8 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
       this.clientApp = options.clientApp;
       this.username = options.username;
     }
+    // Client app tokens are stored without a DPoP key, so they aren't bound.
+    this.dpop = !('clientApp' in options) && options.dpop !== false;
   }
 
   /**
@@ -183,6 +189,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
                 const authInfo = await AuthInfo.create({
                   oauth2Options: this.oauthConfig,
                   oauth2: this.oauth2,
+                  dpopKey: this.dpopKey,
                 });
                 await authInfo.save();
                 await this.webServer.handleSuccess(response);
@@ -250,7 +257,16 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
 
     this.webServer = await WebServer.create({ port });
     this.oauth2 = new OAuth2(this.oauthConfig);
-    this.authUrl = AuthInfo.getAuthorizationUrl(this.oauthConfig, this.oauth2);
+    // Bind the authorization code to a new DPoP key.
+    if (this.dpop) {
+      try {
+        this.dpopKey = await DpopKey.generate();
+      } catch (e) {
+        const error = e instanceof Error ? e : SfError.wrap(e);
+        throw dpopMessages.createError('dpopAuthConfiguration', [error.message], [], error);
+      }
+    }
+    this.authUrl = AuthInfo.getAuthorizationUrl({ ...this.oauthConfig, dpopKey: this.dpopKey }, this.oauth2);
   }
 
   /**
@@ -276,11 +292,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
                 error_description?: string;
               };
               if (request.query.error) {
-                const errorName: string =
-                  typeof request.query.error_description === 'string'
-                    ? request.query.error_description
-                    : request.query.error;
-                this.oauthError = new SfError(errorName, request.query.error);
+                this.oauthError = this.authorizationError(request.query.error, request.query.error_description);
                 await this.webServer.handleError(response);
                 return reject(this.oauthError);
               }
@@ -327,6 +339,16 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
    * @param request the http request
    * @returns {Nullable<string>}
    */
+  /** The error for an authorization the server redirected back with an `error`. */
+  private authorizationError(error: string, description?: string): Error {
+    const errorName = typeof description === 'string' ? description : error;
+    // An app that requires DPoP rejects an authorization request without dpop_jkt.
+    if (!this.dpop && error === 'invalid_request' && /dpop_jkt/i.test(errorName)) {
+      return dpopMessages.createError('dpopRequiredForLogin');
+    }
+    return new SfError(errorName, error);
+  }
+
   private parseAuthCodeFromRequest(response: http.ServerResponse, request: WebOAuthServer.Request): Nullable<string> {
     if (!this.validateState(request)) {
       const error = new SfError('urlStateMismatch');
@@ -392,6 +414,11 @@ export namespace WebOAuthServer {
            */
           scope?: string;
         };
+        /**
+         * Whether to bind the authorization to a new DPoP key (RFC 9449). Defaults to `true`. Set `false` to get a
+         * Bearer session, for tools that send the access token without a DPoP proof.
+         */
+        dpop?: boolean;
       }
     | {
         oauthConfig: JwtOAuth2Config & {
