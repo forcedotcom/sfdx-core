@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2021, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 import * as path from 'node:path';
@@ -49,6 +58,25 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
         throw err;
       }
       this.logger.debug(`Error when reading auth file for user: ${username} due to: ${error.name}:${error.message}`);
+      return null;
+    }
+  }
+
+  /**
+   * Read the current on-disk contents of a username's auth file WITHOUT mutating the cache (unlike `read`,
+   * which replaces the cached config/contents). Use this to inspect what another process has persisted
+   * without disturbing this instance's in-memory state. Returns null if the file can't be read.
+   *
+   * @param username username to read
+   * @param decrypt if true, decrypt encrypted values
+   */
+  public async peek(username: string, decrypt = false): Promise<Nullable<P>> {
+    try {
+      const config = await this.initAuthFile(username, false);
+      return config.getContents(decrypt) as P;
+    } catch (err) {
+      const error = SfError.wrap(err);
+      this.logger.debug(`Error when peeking auth file for user: ${username} due to: ${error.name}:${error.message}`);
       return null;
     }
   }
@@ -149,6 +177,16 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
   }
 
   /**
+   * Return the absolute path to the auth file for a given username. Does not require the file to have been
+   * read (resolves purely from the username and the global state directory).
+   *
+   * @param username
+   */
+  public getPath(username: string): string {
+    return this.parseFilename(username);
+  }
+
+  /**
    * Returns true if there is an auth file for the given username
    *
    * @param username
@@ -196,7 +234,7 @@ export abstract class BaseOrgAccessor<T extends ConfigFile, P extends ConfigCont
    */
   public update(username: string, org: Partial<P>): void {
     const existing = this.get(username) || {};
-    const merged = Object.assign({}, existing, org) as P;
+    const merged = Object.assign({}, existing, org);
     return this.set(username, merged);
   }
 

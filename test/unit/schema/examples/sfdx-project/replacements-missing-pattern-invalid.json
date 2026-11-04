@@ -1,0 +1,14 @@
+{
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true
+    }
+  ],
+  "replacements": [
+    {
+      "filename": "force-app/main/default/classes/myClass.cls",
+      "replaceWithEnv": "THE_REPLACEMENT"
+    }
+  ]
+}

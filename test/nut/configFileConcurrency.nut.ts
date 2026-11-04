@@ -1,13 +1,22 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { rm } from 'node:fs/promises';
-import { exec } from 'node:child_process';
+import { exec, execSync } from 'node:child_process';
 import { promisify } from 'node:util';
 import { expect } from 'chai';
 import { sleep } from '@salesforce/kit';
@@ -22,13 +31,26 @@ const sharedLocation = join('sfdx-core-ut', 'test', 'configFile');
  *  to simulate real-world concurrency where it's unlikely to hit the same ms
  */
 const SLEEP_FUDGE_MS = 5;
+const BUNDLED_SCRIPT = join(__dirname, '.concurrencyReadWrite.js');
+const PARALLEL_READ_WRITE_COUNT = 50;
 
 describe('concurrency', () => {
+  before(() => {
+    execSync(
+      // compile this once, instead of calling ts-node on each PARALLEL_READ_WRITE_COUNT
+      `npx esbuild test/nut/concurrencyReadWrite.ts --bundle --platform=node --packages=external --outfile=${BUNDLED_SCRIPT}`
+    );
+  });
+
   beforeEach(async () => {
     await rm(join(tmpdir(), '.sfdx', 'sfdx-core-ut'), { recursive: true, force: true });
   });
   afterEach(async () => {
     await rm(join(tmpdir(), '.sfdx', 'sfdx-core-ut'), { recursive: true, force: true });
+  });
+
+  after(async () => {
+    await rm(BUNDLED_SCRIPT, { force: true });
   });
 
   it('merges in new props from file saved since a prop was set in memory', async () => {
@@ -180,7 +202,7 @@ describe('concurrency', () => {
     await sleep(SLEEP_FUDGE_MS);
 
     await Promise.all(
-      Array.from({ length: 50 }).map((_, i) => execProm(`yarn ts-node test/nut/concurrencyReadWrite.ts ${i}`))
+      Array.from({ length: PARALLEL_READ_WRITE_COUNT }).map((_, i) => execProm(`node ${BUNDLED_SCRIPT} ${i}`))
     );
   });
 });

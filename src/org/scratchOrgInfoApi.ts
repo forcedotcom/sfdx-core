@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2021, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 import { inspect } from 'node:util';
@@ -28,7 +37,7 @@ import { ScratchOrgInfo } from './scratchOrgTypes';
 import { emit } from './scratchOrgLifecycleEvents';
 
 // preserving because it extends a class
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+
 export interface JsForceError extends Error {
   errorCode: string;
   fields: string[];
@@ -87,7 +96,8 @@ const buildOAuth2Options = async (options: {
   delay?: number;
 }> => {
   const logger = await Logger.child('buildOAuth2Options');
-  const isJwtFlow = !!options.hubOrg.getConnection().getAuthInfoFields().privateKey;
+  const signupAppOverridden = !!process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP;
+  const isJwtFlow = !signupAppOverridden && !!options.hubOrg.getConnection().getAuthInfoFields().privateKey;
   const oauth2Options: JwtOAuth2Config = {
     loginUrl: getOrgInstanceAuthority(
       options.scratchOrgInfoComplete,
@@ -97,6 +107,7 @@ const buildOAuth2Options = async (options: {
   };
 
   logger.debug(`isJwtFlow: ${isJwtFlow}`);
+  logger.debug(`signupAppOverridden: ${signupAppOverridden}`);
   logger.debug(`using resolved loginUrl: ${oauth2Options.loginUrl ?? '<undefined>'}`);
 
   if (isJwtFlow && !process.env.SFDX_CLIENT_SECRET) {
@@ -291,7 +302,7 @@ const checkOrgDoesntExist = async (scratchOrgInfo: Record<string, unknown>): Pro
     try {
       await AuthInfo.create({ username: username.toLowerCase() });
     } catch (error) {
-      const sfError = SfError.wrap(error as Error);
+      const sfError = SfError.wrap(error);
       // if an AuthInfo couldn't be created that means no AuthFile exists.
       if (sfError.name === 'NamedOrgNotFoundError') {
         return;
@@ -454,7 +465,7 @@ export const deploySettings = async (
       await updateRevisionCounterToZero(scratchOrg);
       logger.trace('Settings deployed to org');
     } catch (error) {
-      throw SfError.wrap(error as Error);
+      throw SfError.wrap(error);
     }
   }
 };
@@ -489,7 +500,7 @@ export const resolveUrl = async (scratchOrgAuthInfo: AuthInfo): Promise<AuthInfo
     await resolver.resolve();
     return scratchOrgAuthInfo;
   } catch (error) {
-    const sfError = SfError.wrap(error as Error);
+    const sfError = SfError.wrap(error);
     logger.debug('processScratchOrgInfoResult - err: %s', error);
     if (sfError.name === 'MyDomainResolverTimeoutError') {
       sfError.setData({

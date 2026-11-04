@@ -1,0 +1,15 @@
+{
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true
+    }
+  ],
+  "replacements": [
+    {
+      "glob": "**/*.trigger",
+      "stringToReplace": "oldValue",
+      "replaceWithFile": "config/newValue.txt"
+    }
+  ]
+}

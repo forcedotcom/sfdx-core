@@ -1,0 +1,177 @@
+/*
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { readFileSync, writeFileSync } from 'node:fs';
+
+const DOCS_URL = 'https://developer.salesforce.com/docs/get_document/atlas.en-us.api_meta.meta';
+const DOCS_BASE_URL = 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta';
+const SETTINGS_FILE = 'src/schema/project-scratch-def/settings.ts';
+
+type TocNode = {
+  text: string;
+  id: string;
+  a_attr?: { href: string };
+  children?: TocNode[];
+};
+
+type DocsResponse = {
+  toc: TocNode[];
+};
+
+type SettingInfo = {
+  propName: string;
+  docUrl: string;
+};
+
+const COPYRIGHT_HEADER = `/*
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+`;
+
+// Convert PascalCase to camelCase, stripping any suffix like "(Beta)"
+const toCamelCase = (str: string): string => {
+  const clean = str.replace(/\s*\(.*\)$/, '');
+  return clean.charAt(0).toLowerCase() + clean.slice(1);
+};
+
+// Find the Settings node in the TOC tree
+const findSettingsNode = (nodes: TocNode[]): TocNode | undefined =>
+  nodes.reduce<TocNode | undefined>(
+    (found, node) =>
+      found ?? (node.text === 'Settings' ? node : node.children ? findSettingsNode(node.children) : undefined),
+    undefined
+  );
+
+// Extract existing settings property names from the current file
+const extractExistingSettings = (content: string): Set<string> => {
+  const matches = content.matchAll(/^\s{4}(\w+):\s*z\s*$/gm);
+  return new Set([...matches].map((m) => m[1]));
+};
+
+// Generate a single setting entry
+const generateSettingEntry = ({ propName, docUrl }: SettingInfo): string =>
+  `    ${propName}: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to ${docUrl}'
+      )`;
+
+// Generate the full settings file content
+const generateFileContent = (settings: SettingInfo[]): string => {
+  const entries = settings.map(generateSettingEntry).join(',\n');
+  return `${COPYRIGHT_HEADER}import { z } from 'zod';
+
+/**
+ * Settings for scratch org configuration
+ * Each settings property corresponds to a metadata type configuration
+ */
+export const SettingsSchema = z
+  .object({
+${entries},
+  })
+  .catchall(z.unknown());
+
+export type Settings = z.infer<typeof SettingsSchema>;
+`;
+};
+
+const fetchJson = async (url: string): Promise<DocsResponse> => {
+  const res: Response = await fetch(url, {
+    headers: { 'User-Agent': 'sfdx-core/schema-update' },
+  });
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} from ${url}`);
+  }
+  const text = await res.text();
+  if (!text.startsWith('{') && !text.startsWith('[')) {
+    throw new Error(`Expected JSON but got: ${text.slice(0, 200)}`);
+  }
+  return JSON.parse(text) as DocsResponse;
+};
+
+const main = async (): Promise<void> => {
+  console.log('Fetching settings from Salesforce Metadata API documentation...');
+
+  const data = await fetchJson(DOCS_URL);
+
+  const settingsNode = findSettingsNode(data.toc);
+  if (!settingsNode?.children) {
+    throw new Error('Could not find Settings node in documentation TOC');
+  }
+
+  console.log(`Found ${settingsNode.children.length} settings in documentation`);
+
+  // Extract settings info from doc children
+  const docSettings: SettingInfo[] = settingsNode.children
+    .filter((node) => node.a_attr?.href)
+    .map((node) => ({
+      propName: toCamelCase(node.text),
+      docUrl: `${DOCS_BASE_URL}/${node.a_attr!.href}`,
+    }));
+
+  // Read existing settings
+  const existingContent = readFileSync(SETTINGS_FILE, 'utf-8');
+  const existingSettings = extractExistingSettings(existingContent);
+
+  // Find new settings
+  const newSettings = docSettings.filter((s) => !existingSettings.has(s.propName));
+
+  if (newSettings.length > 0) {
+    console.log(
+      `Adding ${newSettings.length} new settings:`,
+      newSettings.map((s) => s.propName)
+    );
+
+    // Merge and sort all settings
+    const allSettings = [...new Map([...docSettings].map((s) => [s.propName, s])).values()];
+
+    // Add any existing settings not in docs (preserve them)
+    existingSettings.forEach((propName) => {
+      if (!allSettings.some((s) => s.propName === propName)) {
+        // Reconstruct URL from propName for preserved settings
+        const href = `meta_${propName.toLowerCase()}.htm`;
+        allSettings.push({ propName, docUrl: `${DOCS_BASE_URL}/${href}` });
+      }
+    });
+
+    // Sort alphabetically
+    allSettings.sort((a, b) => a.propName.localeCompare(b.propName));
+
+    writeFileSync(SETTINGS_FILE, generateFileContent(allSettings));
+    console.log('Updated settings.ts');
+  } else {
+    console.log('No new settings to add');
+  }
+
+  console.log('Done');
+};
+
+main().catch((err: unknown) => {
+  console.error('Error:', err instanceof Error ? err.message : err);
+  process.exit(1);
+});

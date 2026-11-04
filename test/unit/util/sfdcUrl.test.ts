@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2021, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 import { expect } from 'chai';
 import { SinonSpy, SinonStub } from 'sinon';
@@ -152,6 +161,11 @@ describe('util/sfdcUrl', () => {
       expect(url.isSalesforceDomain()).to.be.true;
     });
 
+    it('is allowlist mil domain', () => {
+      const url = new SfdcUrl('https://foo.my.salesforce.mil');
+      expect(url.isSalesforceDomain()).to.be.true;
+    });
+
     it('cnEdition', () => {
       const url = new SfdcUrl('https://foo.my.sfcrmproducts.cn');
       expect(url.isSalesforceDomain()).to.be.true;
@@ -188,6 +202,25 @@ describe('util/sfdcUrl', () => {
 
       urls.map((url) => {
         expect(url.isInternalUrl()).to.equal(true);
+        expect(url.isLocalUrl()).to.equal(false);
+      });
+    });
+    it('rejects attacker-controlled domains containing .internal. substring', () => {
+      const url = new SfdcUrl('https://capture.internal.test.attacker.com');
+      expect(url.isInternalUrl()).to.equal(false);
+      expect(url.isLocalUrl()).to.equal(false);
+    });
+    it('rejects attacker-controlled domains with internal-like substrings', () => {
+      const urls = [
+        'https://evil.internal.example.com',
+        'https://x.localhost.sfdcdev.evil.com',
+        'https://stm.force.com.attacker.com',
+        'https://blitz.salesforce.com.evil.dev',
+        'https://gs1.attacker.com',
+      ].map((u) => new SfdcUrl(u));
+
+      urls.map((url) => {
+        expect(url.isInternalUrl()).to.equal(false);
         expect(url.isLocalUrl()).to.equal(false);
       });
     });
@@ -228,7 +261,6 @@ describe('util/sfdcUrl', () => {
       try {
         await shouldThrow(url.checkLightningDomain());
       } catch (e) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect((e as Error).name).to.equal('Error');
       }
     });
@@ -323,7 +355,6 @@ describe('util/sfdcUrl', () => {
       try {
         await shouldThrow(url.lookup());
       } catch (e) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect((e as Error).name).to.equal('Error');
       }
     });

@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 import { URL } from 'node:url';
@@ -17,9 +26,12 @@ import {
   QueryResult,
   Record,
   Schema,
+  TracePropagator,
 } from '@jsforce/jsforce-node';
 import { Tooling as JSForceTooling } from '@jsforce/jsforce-node/lib/api/tooling';
 import { StreamPromise } from '@jsforce/jsforce-node/lib/util/promise';
+import { SfConfigProperties } from '../config/config';
+import { EnvironmentVariable } from '../config/envVars';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';
@@ -43,9 +55,14 @@ export const SFDX_HTTP_HEADERS = {
 
 export const DNS_ERROR_NAME = 'DomainNotFoundError';
 export type DeployOptionsWithRest = Partial<DeployOptions> & { rest?: boolean };
+const TRACE_PROPAGATORS: TracePropagator[] = ['tracecontext', 'b3', 'b3multi', 'none'];
+const warnedUnsupportedTracePropagators =
+  ((globalThis as { [key: string]: unknown }).sfCoreUnsupportedTracePropagators as Set<string> | undefined) ??
+  new Set<string>();
+(globalThis as { [key: string]: unknown }).sfCoreUnsupportedTracePropagators = warnedUnsupportedTracePropagators;
 
 // preserving interface since it extends a class
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+
 export interface Tooling<S extends Schema = Schema> extends JSForceTooling<S> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _logger: any;
@@ -115,6 +132,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     // Get connection options from auth info and create a new jsForce connection
     const connectionOptions: ConnectionConfig<S> = {
       version: await getOptionsVersion<S>(options),
+      propagators: await getPropagators(options.configAggregator),
       callOptions: {
         client: clientId,
       },
@@ -234,7 +252,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       instanceApiVersion: this.maxApiVersion,
       // This will get messed up if the user changes their local time on their machine.
       // Not a big deal since it will just get updated sooner/later.
-      instanceApiVersionLastRetrieved: new Date().toLocaleString(),
+      instanceApiVersionLastRetrieved: new Date().toISOString(),
     });
 
     return this.maxApiVersion;
@@ -250,8 +268,9 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       if (error.name === DNS_ERROR_NAME) {
         throw error; // throws on DNS connection errors
       }
-      // Don't fail if we can't use the latest, just use the default
-      this.logger.warn('Failed to set the latest API version:', error);
+      this.logger.warn(
+        `Failed to set the latest API version (${error.name}: ${error.message}). Using default: v${this.version}`
+      );
     }
   }
 
@@ -403,8 +422,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     if (result.totalSize > 1) {
       throw new SfError(
         options.returnChoicesOnMultiple
-          ? // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-            `Multiple records found. ${result.records.map((item) => item[options.choiceField as keyof T]).join(',')}`
+          ? `Multiple records found. ${result.records.map((item) => item[options.choiceField as keyof T]).join(',')}`
           : 'The query returned more than 1 record',
         SingleRecordQueryErrors.MultipleRecords
       );
@@ -413,7 +431,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   }
 
   /**
-   * Executes a HEAD request on the baseUrl to force an auth refresh.
+   * Executes a GET request on the baseUrl to force an auth refresh.
    * This is useful for the raw methods (request, requestRaw) that use the accessToken directly and don't handle refreshes.
    *
    * This method issues a request using the current access token to check if it is still valid.
@@ -425,7 +443,13 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     this.logger.debug('Refreshing auth for org.');
     const requestInfo: HttpRequest = {
       url: this.baseUrl(),
-      method: 'HEAD',
+      /**
+       * IMPORTANT:
+       * We do a GET request instead of a HEAD to get the response body.
+       *
+       * jsforce relies on the res status code AND body to be able to stop retrying on known invalid scenarios (e.g. API access restricted to a specific CA/ECA)
+       */
+      method: 'GET',
     };
     await this.request(requestInfo);
   }
@@ -454,13 +478,20 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     // Check if the cache has expired
     if (lastChecked) {
       const now = new Date();
-      const has24HoursPastSinceLastCheck = now.getTime() - lastChecked > Duration.hours(24).milliseconds;
+      const timeSinceLastCheck = now.getTime() - lastChecked;
+      // To be considered fresh, the cache must be from a date within the past 24 hours, as opposed to older (or from the future)
+      const cacheOutsideValidWindow = timeSinceLastCheck < 0 || timeSinceLastCheck > Duration.hours(24).milliseconds;
       this.logger.debug(
         `API version cache last checked on ${lastCheckedDateString ?? '<undefined>'} (now is ${now.toLocaleString()})`
       );
 
-      if (!has24HoursPastSinceLastCheck && version) {
-        // return cached API version
+      if (!cacheOutsideValidWindow && version) {
+        if (!validateApiVersion(version)) {
+          this.logger.warn(
+            `Cached instanceApiVersion "${version}" is invalid (expected format: "XX.0"). Ignoring cache and re-fetching.`
+          );
+          return;
+        }
         this.logger.debug(`Using cached API version: ${version}`);
         return version;
       } else {
@@ -511,6 +542,30 @@ const getOptionsVersion = async <S extends Schema>(options: Connection.Options<S
   // Set the API version obtained from the config aggregator.
   const configAggregator = options.configAggregator ?? (await ConfigAggregator.create());
   return asString(configAggregator.getInfo('org-api-version').value);
+};
+
+const getPropagators = async (configAggregator?: ConfigAggregator): Promise<TracePropagator[]> => {
+  const aggregator = configAggregator ?? (await ConfigAggregator.create());
+  const disabled = aggregator.getPropertyValue<boolean | string>(SfConfigProperties.DISABLE_TELEMETRY);
+  if (disabled === true || disabled === 'true') return ['none'];
+
+  const propagators = (env.getString(EnvironmentVariable.SF_PROPAGATORS) ?? 'none')
+    .split(',')
+    .map((propagator) => propagator.trim().toLowerCase())
+    .filter(Boolean);
+  const validatedPropagators = propagators.flatMap((propagator): TracePropagator[] => {
+    if (!TRACE_PROPAGATORS.includes(propagator as TracePropagator)) {
+      if (!warnedUnsupportedTracePropagators.has(propagator)) {
+        warnedUnsupportedTracePropagators.add(propagator);
+        void Lifecycle.getInstance().emitWarning(
+          `Unsupported trace propagator: ${propagator}. Supported values: ${TRACE_PROPAGATORS.join(', ')}`
+        );
+      }
+      return [];
+    }
+    return [propagator as TracePropagator];
+  });
+  return validatedPropagators.includes('none') ? ['none'] : validatedPropagators;
 };
 
 // jsforce does some interesting proxy loading on lib classes.

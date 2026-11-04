@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 import { deepStrictEqual, fail } from 'node:assert';
 import fs from 'node:fs';
@@ -102,6 +111,24 @@ describe('Org Tests', () => {
         orgId: testData.orgId,
         status: 'UNKNOWN',
       });
+    });
+  });
+
+  describe('updateLocalInformation', () => {
+    it('should persist orgEdition from Organization.OrganizationType', async () => {
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({
+        Name: 'My Org',
+        InstanceName: 'cs42',
+        IsSandbox: false,
+        TrialExpirationDate: null,
+        NamespacePrefix: null,
+        OrganizationType: 'Developer Edition',
+      });
+      const result = await org.updateLocalInformation();
+      expect(result).to.have.property('orgEdition', 'Developer Edition');
+      expect(result).to.have.property('name', 'My Org');
+      expect(result).to.have.property('instanceName', 'cs42');
     });
   });
 
@@ -945,10 +972,15 @@ describe('Org Tests', () => {
 
   describe('refresh auth', () => {
     let url: string;
+    type RequestInfo = { method: string } & AnyJson;
+
     beforeEach(() => {
-      $$.fakeConnectionRequest = (requestInfo: AnyJson): Promise<AnyJson> => {
-        url = ensureString(ensureJsonMap(requestInfo).url);
-        return Promise.resolve({});
+      $$.fakeConnectionRequest = (requestInfo: RequestInfo): Promise<AnyJson> => {
+        if (requestInfo.method === 'GET') {
+          url = ensureString(ensureJsonMap(requestInfo).url);
+          return Promise.resolve({});
+        }
+        throw new Error('refreshAuth should always a GET request to get the response body');
       };
     });
     it('should request an refresh token', async () => {
@@ -1131,6 +1163,77 @@ describe('Org Tests', () => {
         expect(pollStatusAndAuthStub.calledOnce).to.be.true;
       });
 
+      it('will create the SandboxInfo sObject correctly with features as an array', async () => {
+        await prod.createSandbox(
+          { SandboxName: 'testSandbox', Features: ['SandboxStorage'] },
+          { wait: Duration.seconds(30) }
+        );
+        expect(createStub.calledOnce).to.be.true;
+        expect(querySandboxProcessStub.calledOnce).to.be.true;
+        expect(pollStatusAndAuthStub.calledOnce).to.be.true;
+        const createCallArgs = createStub.firstCall.args;
+        expect(createCallArgs[0]).to.equal('SandboxInfo');
+        expect(createCallArgs[1]).to.deep.include({
+          SandboxName: 'testSandbox',
+          Features: '["SandboxStorage"]',
+        });
+      });
+
+      it('will create the SandboxInfo sObject correctly with features as a string', async () => {
+        await prod.createSandbox(
+          { SandboxName: 'testSandbox', Features: '["SandboxStorage"]' },
+          { wait: Duration.seconds(30) }
+        );
+        expect(createStub.calledOnce).to.be.true;
+        expect(querySandboxProcessStub.calledOnce).to.be.true;
+        expect(pollStatusAndAuthStub.calledOnce).to.be.true;
+        const createCallArgs = createStub.firstCall.args;
+        expect(createCallArgs[0]).to.equal('SandboxInfo');
+        expect(createCallArgs[1]).to.deep.include({
+          SandboxName: 'testSandbox',
+          Features: '["SandboxStorage"]',
+        });
+      });
+
+      it('will create the SandboxInfo sObject correctly with PostCopyConfig as an array', async () => {
+        const postCopyConfig = [
+          {
+            ConfigurationName: 'OutboundMessages',
+            Label: 'R12 Endpoint',
+            Fields: { EndpointUrl: 'Url' },
+            IsActive: true,
+            ExecutionOrder: 1,
+          },
+        ];
+        await prod.createSandbox(
+          { SandboxName: 'testSandbox', PostCopyConfig: postCopyConfig },
+          { wait: Duration.seconds(30) }
+        );
+        expect(createStub.calledOnce).to.be.true;
+        const createCallArgs = createStub.firstCall.args;
+        expect(createCallArgs[0]).to.equal('SandboxInfo');
+        expect(createCallArgs[1]).to.deep.include({
+          SandboxName: 'testSandbox',
+          PostCopyConfig: JSON.stringify(postCopyConfig),
+        });
+      });
+
+      it('will create the SandboxInfo sObject correctly with PostCopyConfig as a string', async () => {
+        const postCopyConfig =
+          '[{"ConfigurationName":"OutboundMessages","Label":"R12 Endpoint","Fields":{"EndpointUrl":"Url"},"IsActive":true,"ExecutionOrder":1}]';
+        await prod.createSandbox(
+          { SandboxName: 'testSandbox', PostCopyConfig: postCopyConfig },
+          { wait: Duration.seconds(30) }
+        );
+        expect(createStub.calledOnce).to.be.true;
+        const createCallArgs = createStub.firstCall.args;
+        expect(createCallArgs[0]).to.equal('SandboxInfo');
+        expect(createCallArgs[1]).to.deep.include({
+          SandboxName: 'testSandbox',
+          PostCopyConfig: postCopyConfig,
+        });
+      });
+
       it('will throw an error if it fails to create SandboxInfo', async () => {
         createStub.restore();
         createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
@@ -1174,9 +1277,7 @@ describe('Org Tests', () => {
         });
       });
 
-      it('will fail to auth sandbox user correctly - but will swallow the error', async () => {
-        // @ts-expect-error because private member
-        const logStub = stubMethod($$.SANDBOX, prod.logger, 'debug');
+      it('will throw SandboxAuthIncompleteError on INVALID_STATUS', async () => {
         const sandboxResponse = {
           SandboxName: 'test',
           EndDate: '2021-19-06T20:25:46.000+0000',
@@ -1186,11 +1287,15 @@ describe('Org Tests', () => {
         // @ts-expect-error - type not assignable
         stubMethod<SandboxUserAuthResponse>($$.SANDBOX, prod.getConnection().tooling, 'request').throws(err);
 
-        // @ts-expect-error because private method
-        await prod.sandboxSignupComplete(sandboxResponse);
-        expect(logStub.callCount).to.equal(3);
-        // error swallowed
-        expect(logStub.thirdCall.args[0]).to.equal('Error while authenticating the user:');
+        try {
+          // @ts-expect-error because private method
+          await shouldThrow(prod.sandboxSignupComplete(sandboxResponse));
+        } catch (e) {
+          const error = e as SfError;
+          expect(error.name).to.equal('SandboxAuthIncompleteError');
+          expect(error.message).to.include('could not auth');
+          expect(error.cause).to.equal(err);
+        }
       });
     });
 
@@ -1287,6 +1392,45 @@ describe('Org Tests', () => {
           expect((e as SfError).exitCode).to.equal(1);
         }
       });
+
+      it('will refresh the SandboxInfo sObject correctly with PostCopyConfig as an array', async () => {
+        querySandboxProcessStub.resolves({ records: [sbxProcess] });
+        const postCopyConfig = [
+          {
+            ConfigurationName: 'OutboundMessages',
+            Label: 'R12 Endpoint',
+            Fields: { EndpointUrl: 'Url' },
+            IsActive: true,
+            ExecutionOrder: 1,
+          },
+        ];
+        const sbxInfoWithPostCopy: SandboxInfo = { ...sbxInfo, PostCopyConfig: postCopyConfig };
+
+        await prod.refreshSandbox(sbxInfoWithPostCopy, { async: true });
+
+        expect(updateStub.calledOnce).to.be.true;
+        expect(updateStub.firstCall.args[0]).to.equal('SandboxInfo');
+        expect(updateStub.firstCall.args[1]).to.deep.include({
+          SandboxName: sbxInfo.SandboxName,
+          PostCopyConfig: JSON.stringify(postCopyConfig),
+        });
+      });
+
+      it('will refresh the SandboxInfo sObject correctly with PostCopyConfig as a string', async () => {
+        querySandboxProcessStub.resolves({ records: [sbxProcess] });
+        const postCopyConfig =
+          '[{"ConfigurationName":"OutboundMessages","Label":"R12 Endpoint","Fields":{"EndpointUrl":"Url"},"IsActive":true,"ExecutionOrder":1}]';
+        const sbxInfoWithPostCopy: SandboxInfo = { ...sbxInfo, PostCopyConfig: postCopyConfig };
+
+        await prod.refreshSandbox(sbxInfoWithPostCopy, { async: true });
+
+        expect(updateStub.calledOnce).to.be.true;
+        expect(updateStub.firstCall.args[0]).to.equal('SandboxInfo');
+        expect(updateStub.firstCall.args[1]).to.deep.include({
+          SandboxName: sbxInfo.SandboxName,
+          PostCopyConfig: postCopyConfig,
+        });
+      });
     });
 
     describe('cloneSandbox', () => {
@@ -1375,7 +1519,7 @@ describe('Org Tests', () => {
         expect(createCallArgs[0]).to.equal('SandboxInfo');
         expect(createCallArgs[1]).to.deep.include({
           SandboxName: 'testSandboxWithFeatures',
-          Features: ['SandboxStorage'],
+          Features: '["SandboxStorage"]',
         });
       });
     });
@@ -1511,6 +1655,26 @@ describe('Org Tests', () => {
           expect(lifecycleSpy.calledWith(SandboxEvents.EVENT_STATUS)).to.be.true;
         }
       });
+
+      it('will throw SandboxAuthNotCompleteError when writeSandboxAuthFile fails (wait=0, status=Completed)', async () => {
+        const completedSbxProcess = Object.assign({}, statusResult.records[0], { Status: 'Completed' });
+        queryStub.resolves({ records: [completedSbxProcess] });
+        const sandboxInfo = { authUserName: 'test@example.com' } as SandboxUserAuthResponse;
+        stubMethod($$.SANDBOX, prod, 'sandboxSignupComplete').resolves(sandboxInfo);
+        const writeErr = new Error('disk full');
+        stubMethod($$.SANDBOX, prod, 'writeSandboxAuthFile').throws(writeErr);
+
+        try {
+          await shouldThrow(
+            prod.resumeSandbox({ SandboxName: completedSbxProcess.SandboxName }, { wait: Duration.seconds(0) })
+          );
+        } catch (e) {
+          const error = e as SfError;
+          expect(error.name).to.equal('SandboxAuthNotCompleteError');
+          expect(error.message).to.include('disk full');
+          expect(error.cause).to.equal(writeErr);
+        }
+      });
     });
 
     describe('sandboxStatus', () => {
@@ -1622,6 +1786,135 @@ describe('Org Tests', () => {
           expect(err.data).to.deep.equal(expectedSbxProcesses);
         }
       });
+    });
+
+    describe('querySandboxInfo', () => {
+      const sandboxInfoRecord: SandboxInfo = {
+        Id: '0GQB0000000TVobOAG',
+        IsDeleted: false,
+        CreatedDate: '2023-06-16T18:35:47.000+0000',
+        CreatedById: '005B0000004TiUpIAK',
+        LastModifiedDate: '2023-09-27T20:50:26.000+0000',
+        LastModifiedById: '005B0000004TiUpIAK',
+        SandboxName: 'mySbx',
+        LicenseType: 'DEVELOPER',
+        HistoryDays: 0,
+        CopyChatter: false,
+        AutoActivate: true,
+      };
+
+      let queryStub: SinonStub;
+
+      beforeEach(() => {
+        queryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query');
+      });
+
+      it('queries SandboxInfo including PostCopyConfig on orgs that support the field', async () => {
+        queryStub.resolves({ records: [sandboxInfoRecord] });
+
+        const result = await prod.querySandboxInfo({ name: 'mySbx' });
+
+        expect(queryStub.calledOnce).to.be.true;
+        expect(queryStub.firstCall.firstArg).to.include('PostCopyConfig');
+        expect(queryStub.firstCall.firstArg).to.include("SandboxName='mySbx'");
+        expect(result).to.deep.equal(sandboxInfoRecord);
+      });
+
+      it('retries without PostCopyConfig when the org rejects the field with INVALID_FIELD', async () => {
+        const invalidFieldErr = Object.assign(new Error("No such column 'PostCopyConfig' on entity 'SandboxInfo'."), {
+          name: 'INVALID_FIELD',
+        });
+        queryStub.onFirstCall().rejects(invalidFieldErr);
+        queryStub.onSecondCall().resolves({ records: [sandboxInfoRecord] });
+
+        const result = await prod.querySandboxInfo({ name: 'mySbx' });
+
+        expect(queryStub.calledTwice).to.be.true;
+        expect(queryStub.firstCall.firstArg).to.include('PostCopyConfig');
+        expect(queryStub.secondCall.firstArg).to.not.include('PostCopyConfig');
+        expect(queryStub.secondCall.firstArg).to.include("SandboxName='mySbx'");
+        expect(result).to.deep.equal(sandboxInfoRecord);
+      });
+    });
+  });
+
+  describe('org edition detection', () => {
+    it('calls updateLocalInformation during Org.create when orgEdition is missing', async () => {
+      $$.setConfigStubContents('AuthInfoConfig', { contents: { tracksSource: true } });
+      const querySpy = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({
+        Name: 'Test Org',
+        InstanceName: 'NA999',
+        IsSandbox: false,
+        TrialExpirationDate: null,
+        NamespacePrefix: null,
+        OrganizationType: 'Developer Edition',
+      });
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      expect(querySpy.called).to.be.true;
+      expect(org.getField(Org.Fields.ORG_EDITION)).to.eq('Developer Edition');
+    });
+
+    it('does not call updateLocalInformation during Org.create when orgEdition is already present', async () => {
+      $$.setConfigStubContents('AuthInfoConfig', {
+        contents: { tracksSource: true, orgEdition: 'Enterprise Edition', namespacePrefix: null },
+      });
+      const querySpy = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({});
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      expect(querySpy.called).to.be.false;
+      expect(org.getField(Org.Fields.ORG_EDITION)).to.eq('Enterprise Edition');
+    });
+
+    it('fetches namespacePrefix when orgEdition is memoized but namespacePrefix is undefined', async () => {
+      $$.setConfigStubContents('AuthInfoConfig', {
+        contents: { tracksSource: true, orgEdition: 'Enterprise Edition' },
+      });
+      const querySpy = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({
+        Name: 'Test Org',
+        InstanceName: 'NA999',
+        IsSandbox: false,
+        TrialExpirationDate: null,
+        NamespacePrefix: 'myNs',
+        OrganizationType: 'Enterprise Edition',
+      });
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      expect(querySpy.called).to.be.true;
+      expect(org.getField(Org.Fields.NAMESPACE_PREFIX)).to.eq('myNs');
+      expect(org.getField(Org.Fields.ORG_EDITION)).to.eq('Enterprise Edition');
+    });
+
+    it('persists a non-null namespacePrefix without overwriting orgEdition', async () => {
+      $$.setConfigStubContents('AuthInfoConfig', {
+        contents: { tracksSource: true, orgEdition: 'Developer Edition' },
+      });
+      const querySpy = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({
+        Name: 'Test Org',
+        InstanceName: 'NA999',
+        IsSandbox: false,
+        TrialExpirationDate: null,
+        NamespacePrefix: 'pkg1',
+        OrganizationType: 'Developer Edition',
+      });
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      expect(querySpy.called).to.be.true;
+      expect(org.getField(Org.Fields.NAMESPACE_PREFIX)).to.eq('pkg1');
+      expect(org.getField(Org.Fields.ORG_EDITION)).to.eq('Developer Edition');
+    });
+
+    it('does not re-query once namespacePrefix is memoized with a non-null value', async () => {
+      $$.setConfigStubContents('AuthInfoConfig', {
+        contents: { tracksSource: true, orgEdition: 'Enterprise Edition', namespacePrefix: 'alreadySet' },
+      });
+      const querySpy = stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').resolves({});
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      expect(querySpy.called).to.be.false;
+      expect(org.getField(Org.Fields.NAMESPACE_PREFIX)).to.eq('alreadySet');
+    });
+
+    it('Org.create succeeds even if updateLocalInformation throws', async () => {
+      $$.setConfigStubContents('AuthInfoConfig', { contents: { tracksSource: true } });
+      stubMethod($$.SANDBOX, Connection.prototype, 'singleRecordQuery').rejects(new Error('org unreachable'));
+      const org = await Org.create({ aliasOrUsername: testData.username });
+      expect(org.getField(Org.Fields.ORG_EDITION)).to.be.undefined;
     });
   });
 

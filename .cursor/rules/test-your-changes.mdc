@@ -1,0 +1,15 @@
+---
+alwaysApply: true
+---
+
+every change should pass
+
+- yarn compile
+- yarn lint
+- yarn test:only
+- yarn bundle:check
+- yarn test:nuts
+
+Then run `npx knip` and make sure that modified code do not introduce unused exports or types
+
+- if knip fails due to `ERR_MODULE_NOT_FOUND` you can `rm -rf ~/.npm/_npx` and re-run it. You'll have to agree to it (or pass `-y` to it)

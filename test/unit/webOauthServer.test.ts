@@ -1,10 +1,18 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import * as http from 'node:http';
 import { expect } from 'chai';
@@ -14,7 +22,7 @@ import { StubbedType, spyMethod, stubInterface, stubMethod } from '@salesforce/t
 import { Env } from '@salesforce/kit';
 import { MockTestOrgData, TestContext } from '../../src/testSetup';
 import { SfProjectJson } from '../../src/sfProject';
-import { WebOAuthServer, WebServer } from '../../src/webOAuthServer';
+import { DEFAULT_CODE_BUILDER_REDIRECT_URI, WebOAuthServer, WebServer } from '../../src/webOAuthServer';
 import { AuthFields, AuthInfo } from '../../src/org/authInfo';
 
 describe('WebOauthServer', () => {
@@ -69,6 +77,42 @@ describe('WebOauthServer', () => {
       expect(authUrl).to.include('redirect_uri=');
       expect(authUrl).to.include('api.code-builder.platform.salesforce.com');
       expect(authUrl).to.include(cbState);
+    });
+
+    it('should use default redirect URI when CODE_BUILDER_REDIRECT_URI env is not set', async () => {
+      const cbState = '1234567890';
+      stubMethod($$.SANDBOX, Env.prototype, 'getBoolean').withArgs('CODE_BUILDER').returns(true);
+      const getStringStub = stubMethod($$.SANDBOX, Env.prototype, 'getString');
+      getStringStub.withArgs('CODE_BUILDER_STATE').returns(cbState);
+      // Do not stub CODE_BUILDER_REDIRECT_URI so it is undefined → default is used
+      const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
+      const authUrl = oauthServer.getAuthorizationUrl();
+      expect(authUrl).to.not.be.undefined;
+      expect(authUrl).to.include('client_id=CodeBuilder');
+      expect(authUrl).to.include('redirect_uri=');
+      expect(
+        authUrl.includes('api.code-builder.platform.salesforce.com') ||
+          authUrl.includes(encodeURIComponent(DEFAULT_CODE_BUILDER_REDIRECT_URI))
+      ).to.be.true;
+    });
+
+    it('should use CODE_BUILDER_REDIRECT_URI from env when set for code builder', async () => {
+      const cbState = '1234567890';
+      const stagingRedirectUri = 'https://api.code-builder-stg.platform.salesforce.com/api/auth/salesforce/callback';
+      stubMethod($$.SANDBOX, Env.prototype, 'getBoolean').withArgs('CODE_BUILDER').returns(true);
+      const getStringStub = stubMethod($$.SANDBOX, Env.prototype, 'getString');
+      getStringStub.withArgs('CODE_BUILDER_STATE').returns(cbState);
+      getStringStub.withArgs('CODE_BUILDER_REDIRECT_URI').returns(stagingRedirectUri);
+      const oauthServer = await WebOAuthServer.create({ oauthConfig: {} });
+      const authUrl = oauthServer.getAuthorizationUrl();
+      expect(authUrl).to.not.be.undefined;
+      expect(authUrl).to.include('client_id=CodeBuilder');
+      expect(authUrl).to.include('redirect_uri=');
+      // Redirect URI may be URL-encoded in the auth URL
+      expect(
+        authUrl.includes('api.code-builder-stg.platform.salesforce.com') ||
+          authUrl.includes(encodeURIComponent(stagingRedirectUri))
+      ).to.be.true;
     });
   });
 
@@ -145,23 +189,18 @@ describe('WebOauthServer', () => {
 
       const origOn = webServer.server.on;
       let requestListener: http.RequestListener;
-      stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-argument
+      stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event: string, callback: http.RequestListener) => {
         if (event !== 'request') return origOn.call(webServer.server, event, callback);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         requestListener = callback;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
         callback(
           {
             method: 'GET',
             url: `http://localhost:1717/OauthRedirect?code=${authCode}&state=972475373f51`,
             query: { code: authCode },
-          },
-          {
-            setHeader: () => {},
-            writeHead: () => {},
-            end: () => {},
-          }
+          } as unknown as http.IncomingMessage,
+          { setHeader: () => {}, writeHead: () => {}, end: () => {} } as unknown as http.ServerResponse
         );
       });
 
@@ -203,23 +242,18 @@ describe('WebOauthServer', () => {
 
       const origOn = webServer.server.on;
       let requestListener: http.RequestListener;
-      stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-argument
+      stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event: string, callback: http.RequestListener) => {
         if (event !== 'request') return origOn.call(webServer.server, event, callback);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         requestListener = callback;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
         callback(
           {
             method: 'GET',
             url: `http://localhost:1717/OauthRedirect?code=${authCode}&state=972475373f51`,
             query: { code: authCode },
-          },
-          {
-            setHeader: () => {},
-            writeHead: () => {},
-            end: () => {},
-          }
+          } as unknown as http.IncomingMessage,
+          { setHeader: () => {}, writeHead: () => {}, end: () => {} } as unknown as http.ServerResponse
         );
       });
 
@@ -264,35 +298,23 @@ describe('WebOauthServer', () => {
 
       const origOn = webServer.server.on;
       let requestListener: http.RequestListener;
-      stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-argument
+      stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event: string, callback: http.RequestListener) => {
         if (event !== 'request') return origOn.call(webServer.server, event, callback);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         requestListener = callback;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
         callback(
-          {
-            method: 'GET',
-            url: 'http://localhost:1717/favicon.ico',
-          },
-          {
-            setHeader: () => {},
-            writeHead: () => {},
-            end: () => {},
-          }
+          { method: 'GET', url: 'http://localhost:1717/favicon.ico' } as unknown as http.IncomingMessage,
+          { setHeader: () => {}, writeHead: () => {}, end: () => {} } as unknown as http.ServerResponse
         );
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
         callback(
           {
             method: 'GET',
             url: `http://localhost:1717/OauthRedirect?code=${authCode}&state=972475373f51`,
             query: { code: authCode },
-          },
-          {
-            setHeader: () => {},
-            writeHead: () => {},
-            end: () => {},
-          }
+          } as unknown as http.IncomingMessage,
+          { setHeader: () => {}, writeHead: () => {}, end: () => {} } as unknown as http.ServerResponse
         );
       });
 
@@ -331,22 +353,17 @@ describe('WebOauthServer', () => {
 
     const origOn = webServer.server.on;
     let requestListener: http.RequestListener;
-    stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event, callback) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-argument
+    stubMethod($$.SANDBOX, webServer.server, 'on').callsFake((event: string, callback: http.RequestListener) => {
       if (event !== 'request') return origOn.call(webServer.server, event, callback);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
       requestListener = callback;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
       callback(
         {
           method: 'GET',
           url: 'http://localhost:1717/OauthRedirect?error=access_denied&error_description=end-user+denied+authorization&state=972475373f51',
-        },
-        {
-          setHeader: () => {},
-          writeHead: () => {},
-          end: endSpy,
-        }
+        } as unknown as http.IncomingMessage,
+        { setHeader: () => {}, writeHead: () => {}, end: endSpy } as unknown as http.ServerResponse
       );
     });
 

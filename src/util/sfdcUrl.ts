@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2021, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 import { URL } from 'node:url';
@@ -109,8 +118,9 @@ export class SfdcUrl extends URL {
       '.force.com',
       '.salesforce.com',
       '.salesforceliveagent.com',
+      '.salesforce.mil',
       '.secure.force.com',
-      'crmforce.mil',
+      '.crmforce.mil',
       '.sfcrmproducts.cn',
     ];
 
@@ -127,20 +137,21 @@ export class SfdcUrl extends URL {
    * @returns {boolean} true if this is an internal domain
    */
   public isInternalUrl(): boolean {
-    const INTERNAL_URL_PARTS = [
-      '.vpod.',
-      'stm.salesforce.com',
-      'stm.force.com',
+    const INTERNAL_SFDC_SUFFIXES = [
+      '.vpod.salesforce.com',
+      '.vpod.force.com',
+      '.stm.salesforce.com',
+      '.stm.force.com',
       '.blitz.salesforce.com',
       '.stm.salesforce.ms',
       '.pc-rnd.force.com',
       '.pc-rnd.salesforce.com',
-      '.crm.dev', // workspaces container
+      '.crm.dev',
     ];
     return (
-      this.origin.startsWith('https://gs1.') ||
+      this.hostname === 'gs1.salesforce.com' ||
       this.isLocalUrl() ||
-      INTERNAL_URL_PARTS.some((part) => this.origin.includes(part))
+      INTERNAL_SFDC_SUFFIXES.some((suffix) => this.hostname.endsWith(suffix))
     );
   }
 
@@ -150,8 +161,8 @@ export class SfdcUrl extends URL {
    * @returns {boolean} true if this is a local machine
    */
   public isLocalUrl(): boolean {
-    const LOCAL_PARTS = ['localhost.sfdcdev.', '.internal.'];
-    return LOCAL_PARTS.some((part) => this.origin.includes(part));
+    const LOCAL_SFDC_SUFFIXES = ['.localhost.sfdcdev.salesforce.com', '.internal.salesforce.com'];
+    return LOCAL_SFDC_SUFFIXES.some((suffix) => this.hostname.endsWith(suffix));
   }
 
   public toLightningDomain(): string {

@@ -1,14 +1,24 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 import { spyMethod } from '@salesforce/ts-sinon';
 import { expect } from 'chai';
 import { AuthRemover } from '../../../src/org/authRemover';
 import { Config } from '../../../src/config/config';
+import { ConfigAggregator } from '../../../src/config/configAggregator';
 import { AliasAccessor } from '../../../src/stateAggregator/accessors/aliasAccessor';
 import { MockTestOrgData, shouldThrow, TestContext } from '../../../src/testSetup';
 import { OrgConfigProperties } from '../../../src/org/orgConfigProperties';
@@ -125,6 +135,20 @@ describe('AuthRemover', () => {
       ]);
       expect($$.stubs.configWrite.callCount).to.equal(2);
     });
+
+    it('should not write config files when there are no config keys to remove', async () => {
+      // Set up a username with no config values associated with it
+      // No aliases, and no config properties set to this username
+      $$.setConfigStubContents('Config', {
+        contents: {},
+      });
+
+      const remover = await AuthRemover.create();
+      // @ts-expect-error because private member
+      await remover.unsetConfigValues(username);
+      // When there are no keys to remove, write should not be called
+      expect($$.stubs.configWrite.callCount).to.equal(0);
+    });
   });
 
   describe('unsetAliases', () => {
@@ -140,6 +164,41 @@ describe('AuthRemover', () => {
       // expect 2 calls: one for each alias
       expect(aliasesSpy.callCount).to.equal(2);
       expect(aliasesSpy.args).to.deep.equal([[alias1], [alias2]]);
+    });
+  });
+
+  describe('projectPath', () => {
+    it('should forward projectPath to ConfigAggregator.create', async () => {
+      const createSpy = spyMethod($$.SANDBOX, ConfigAggregator, 'create');
+      const projectPath = '/some/project/path';
+
+      await AuthRemover.create({ projectPath });
+
+      expect(createSpy.calledWith({ projectPath })).to.equal(true);
+    });
+
+    it('should call ConfigAggregator.create with no options when projectPath is omitted', async () => {
+      const createSpy = spyMethod($$.SANDBOX, ConfigAggregator, 'create');
+
+      await AuthRemover.create();
+
+      expect(createSpy.calledWith(undefined)).to.equal(true);
+    });
+
+    it('should reload the ConfigAggregator when skipCache is true', async () => {
+      const reloadSpy = spyMethod($$.SANDBOX, ConfigAggregator.prototype, 'reload');
+
+      await AuthRemover.create({ skipCache: true });
+
+      expect(reloadSpy.calledOnce).to.equal(true);
+    });
+
+    it('should not reload the ConfigAggregator by default', async () => {
+      const reloadSpy = spyMethod($$.SANDBOX, ConfigAggregator.prototype, 'reload');
+
+      await AuthRemover.create();
+
+      expect(reloadSpy.called).to.equal(false);
     });
   });
 });

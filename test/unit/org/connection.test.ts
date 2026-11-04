@@ -1,17 +1,28 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 import { get } from '@salesforce/ts-types';
 
 import { expect } from 'chai';
 import { fromStub, StubbedType, stubInterface, stubMethod } from '@salesforce/ts-sinon';
 import { Duration } from '@salesforce/kit';
-import { Connection as JSForceConnection, HttpRequest } from '@jsforce/jsforce-node';
+import { Connection as JSForceConnection, HttpRequest, Schema } from '@jsforce/jsforce-node';
+import type { ConfigAggregator } from '../../../src/config/configAggregator';
 import { AuthInfo } from '../../../src/org/authInfo';
 import { MyDomainResolver } from '../../../src/status/myDomainResolver';
+import { Lifecycle } from '../../../src/lifecycleEvents';
 import { Connection, DNS_ERROR_NAME, SFDX_HTTP_HEADERS, SingleRecordQueryErrors } from '../../../src/org/connection';
 import { shouldThrow, shouldThrowSync, TestContext } from '../../../src/testSetup';
 
@@ -20,6 +31,7 @@ const TEST_IP = '1.1.1.1';
 describe('Connection', () => {
   const $$ = new TestContext();
   const testConnectionOptions = { loginUrl: 'https://connectionTest/loginUrl' };
+  const originalPropagators = process.env.SF_PROPAGATORS;
   let requestMock: sinon.SinonStub;
   let myDomainResolverStub: sinon.SinonStub;
 
@@ -27,6 +39,7 @@ describe('Connection', () => {
   let testAuthInfoWithDomain: StubbedType<AuthInfo>;
 
   beforeEach(() => {
+    delete process.env.SF_PROPAGATORS;
     $$.SANDBOXES.CONNECTION.restore();
     myDomainResolverStub = $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves(TEST_IP);
 
@@ -49,6 +62,14 @@ describe('Connection', () => {
         instanceUrl: 'https://connectionTest/instanceUrl',
       }),
     });
+  });
+
+  after(() => {
+    if (originalPropagators === undefined) {
+      delete process.env.SF_PROPAGATORS;
+    } else {
+      process.env.SF_PROPAGATORS = originalPropagators;
+    }
   });
 
   it('throws error when no valid API version', async () => {
@@ -89,6 +110,192 @@ describe('Connection', () => {
     expect(conn.loginUrl).to.equal(testConnectionOptions.loginUrl);
     // eslint-disable-next-line no-underscore-dangle
     expect(conn._callOptions?.client).to.contain('sfdx toolbelt:');
+  });
+
+  it('create() should disable trace context forwarding when SF_PROPAGATORS is unset', async () => {
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => undefined,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
+  });
+
+  it('create() should disable trace context forwarding when telemetry is disabled', async () => {
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => 'true',
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
+  });
+
+  it('create() should leave trace context forwarding disabled when telemetry is explicitly enabled', async () => {
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => 'false',
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
+  });
+
+  it('create() should disable trace context forwarding when telemetry is disabled with a boolean', async () => {
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => true,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
+  });
+
+  it('create() should pass supported SF_PROPAGATORS values to jsforce', async () => {
+    process.env.SF_PROPAGATORS = 'tracecontext,b3';
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => undefined,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['tracecontext', 'b3']);
+  });
+
+  it('create() should disable propagation when SF_PROPAGATORS includes none', async () => {
+    process.env.SF_PROPAGATORS = 'tracecontext,none';
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => undefined,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['none']);
+  });
+
+  it('create() should ignore empty SF_PROPAGATORS entries', async () => {
+    process.env.SF_PROPAGATORS = 'b3,';
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => undefined,
+    });
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal(['b3']);
+  });
+
+  it('create() should warn and ignore unsupported SF_PROPAGATORS values', async () => {
+    process.env.SF_PROPAGATORS = 'tracecontex';
+    const warningStub = $$.SANDBOX.stub(Lifecycle.getInstance(), 'emitWarning');
+    const configAggregator = stubInterface<ConfigAggregator>($$.SANDBOX, {
+      getInfo: () => ({ value: undefined }),
+      getPropertyValue: () => undefined,
+    });
+
+    let connectionOptions: Record<string, unknown> | undefined;
+    class TestConnection extends Connection {
+      public constructor(options: Connection.Options<Schema>) {
+        super(options);
+        connectionOptions = options.connectionOptions;
+      }
+    }
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(connectionOptions).to.have.property('propagators').deep.equal([]);
+    expect(
+      warningStub.calledWith(
+        'Unsupported trace propagator: tracecontex. Supported values: tracecontext, b3, b3multi, none'
+      )
+    ).to.be.true;
+
+    await TestConnection.create({
+      authInfo: fromStub(testAuthInfo),
+      configAggregator: fromStub(configAggregator),
+    });
+
+    expect(warningStub.calledOnce).to.be.true;
   });
 
   it('create() should create a connection with the latest API version', async () => {
@@ -170,6 +377,53 @@ describe('Connection', () => {
     expect(requestMock.calledOnce).to.be.true;
     // @ts-expect-error (accessing private property)
     expect(conn.maxApiVersion).to.equal('51.0');
+  });
+
+  it('getCachedApiVersion should ignore invalid cached version and re-fetch', async () => {
+    $$.SANDBOX.stub(Connection.prototype, 'isResolvable').resolves(true);
+
+    // Set up getFields to return an invalid cached version BEFORE create
+    testAuthInfo.getFields.returns({
+      instanceApiVersionLastRetrieved: new Date(Date.now() - Duration.hours(10).milliseconds).toLocaleString(),
+      instanceApiVersion: 'latest',
+    });
+
+    // The request mock (first call) returns the version list when cache is invalid
+    const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+    // 'latest' is invalid, so cache is ignored and server is hit → returns '50.0'
+    expect(conn.getApiVersion()).to.equal('50.0');
+    expect(requestMock.calledOnce).to.be.true;
+  });
+
+  it('getCachedApiVersion ignores values cached from the future, and re-fetches', async () => {
+    $$.SANDBOX.stub(Connection.prototype, 'isResolvable').resolves(true);
+
+    // Set up getFields to return an invalid cached version BEFORE create
+    testAuthInfo.getFields.returns({
+      instanceApiVersionLastRetrieved: new Date(Date.now() + Duration.hours(10).milliseconds).toLocaleString(),
+      instanceApiVersion: '51.0',
+    });
+
+    // The request mock (first call) returns the version list when cache is invalid
+    const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+    // the lastRetrieved date is in the future, so cache is ignored and server is hit → returns '50.0'
+    expect(conn.getApiVersion()).to.equal('50.0');
+    expect(requestMock.calledOnce).to.be.true;
+  });
+
+  it('getCachedApiVersion should accept valid cached version', async () => {
+    $$.SANDBOX.stub(Connection.prototype, 'isResolvable').resolves(true);
+
+    // Set up getFields to return a valid cached version BEFORE create
+    testAuthInfo.getFields.returns({
+      instanceApiVersionLastRetrieved: new Date(Date.now() - Duration.hours(10).milliseconds).toLocaleString(),
+      instanceApiVersion: '59.0',
+    });
+
+    const conn = await Connection.create({ authInfo: fromStub(testAuthInfo) });
+    // Valid cache is used directly, no server request needed
+    expect(conn.getApiVersion()).to.equal('59.0');
+    expect(requestMock.called).to.be.false;
   });
 
   it('setApiVersion() should throw with invalid version', async () => {

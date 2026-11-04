@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2021, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 import { parseJson } from '@salesforce/kit';
 import { ensureString } from '@salesforce/ts-types';
@@ -11,6 +20,8 @@ import { SfProjectJson, isPackagingDirectory } from '../sfProject';
 import { WebOAuthServer } from '../webOAuthServer';
 import { Messages } from '../messages';
 import { SfError } from '../sfError';
+import { ScratchOrgDef, ScratchOrgDefSchema } from '../schema/project-scratch-def/scratchOrgDef';
+import { Lifecycle } from '../lifecycleEvents';
 import { Org } from './org';
 import { ScratchOrgInfo } from './scratchOrgTypes';
 import { ScratchOrgFeatureDeprecation } from './scratchOrgFeatureDeprecation';
@@ -224,12 +235,13 @@ export const generateScratchOrgInfo = async ({
   return {
     ...payload,
     orgName: scratchOrgInfoPayload.orgName ?? 'Company',
-    // we already have the info, and want to get rid of configApi, so this doesn't use that
-    connectedAppCallbackUrl: `http://localhost:${await WebOAuthServer.determineOauthPort()}/OauthRedirect`,
+    connectedAppCallbackUrl:
+      process.env.SF_SCRATCH_SIGNUP_CALLBACK_URL ??
+      `http://localhost:${await WebOAuthServer.determineOauthPort()}/OauthRedirect`,
     ...(!nonamespace && namespace ? { namespace } : {}),
-    // Use the Hub org's client ID value, if one wasn't provided to us, or the default
     connectedAppConsumerKey:
       scratchOrgInfoPayload.connectedAppConsumerKey ??
+      process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP ??
       hubOrg.getConnection().getAuthInfoFields().clientId ??
       DEFAULT_CONNECTED_APP_INFO.clientId,
     package2AncestorIds:
@@ -269,13 +281,15 @@ export const getScratchOrgInfoPayload = async (options: {
 }> => {
   let warnings: string[] = [];
 
-  // orgConfig input overrides definitionjson (-j option; hidden/deprecated) overrides definitionfile (-f option)
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  // Merge after all validations complete
+
   const scratchOrgInfoPayload: ScratchOrgInfoPayload = {
     ...(options.definitionfile ? await parseDefinitionFile(options.definitionfile) : {}),
-    ...(options.definitionjson ? JSON.parse(options.definitionjson) : {}),
-    ...(options.orgConfig ?? {}),
-  };
+    ...(options.definitionjson
+      ? await validateInputDef(JSON.parse(options.definitionjson) as Record<string, unknown>, 'definitionjson')
+      : {}),
+    ...(options.orgConfig ? await validateInputDef(options.orgConfig, 'orgConfig') : {}),
+  } as ScratchOrgInfoPayload;
 
   // scratchOrgInfoPayload must be heads down camelcase.
   Object.keys(scratchOrgInfoPayload).forEach((key) => {
@@ -318,13 +332,44 @@ export const getScratchOrgInfoPayload = async (options: {
   };
 };
 
-const parseDefinitionFile = async (definitionFile: string): Promise<Record<string, unknown>> => {
+/**
+ * Validates input definition objects (definitionjson or orgConfig) against schema
+ * Emits warnings if validation issues are found
+ */
+const validateInputDef = async (
+  input: Record<string, unknown>,
+  source: string
+): Promise<ScratchOrgDef | Record<string, unknown>> => {
+  const result = ScratchOrgDefSchema.safeParse(input);
+  if (!result.success) {
+    const errorMessages = result.error.issues.map((err) => `${err.path.join('.')}: ${err.message}`).join('\n');
+    await Lifecycle.getInstance().emitWarning(
+      `Scratch org definition validation issues in ${source}:\n${errorMessages}`
+    );
+    return input;
+  }
+
+  return result.data;
+};
+
+const parseDefinitionFile = async (definitionFile: string): Promise<ScratchOrgDef | Record<string, unknown>> => {
   try {
     const fileData = await fs.promises.readFile(definitionFile, 'utf8');
     const defFileContents = parseJson(fileData) as Record<string, unknown>;
     // remove key '$schema' from the definition file
     delete defFileContents['$schema'];
-    return defFileContents;
+
+    // Validate with zod schema and emit warnings if there are issues
+    const result = ScratchOrgDefSchema.safeParse(defFileContents);
+    if (!result.success) {
+      const errorMessages = result.error.issues.map((err) => `${err.path.join('.')}: ${err.message}`).join('\n');
+      await Lifecycle.getInstance().emitWarning(
+        `Scratch org definition validation issues in ${definitionFile}:\n${errorMessages}`
+      );
+      return defFileContents;
+    } else {
+      return result.data;
+    }
   } catch (err) {
     const error = err as Error;
     if (error.name === 'JsonParseError') {

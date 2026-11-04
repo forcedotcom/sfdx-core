@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 import { AsyncOptionalCreatable } from '@salesforce/kit';
@@ -39,11 +48,27 @@ const messages = Messages.loadMessages('@salesforce/core', 'auth');
  * );
  * await remover.removeAuth(auth.username);
  * ```
+ *
+ * Pass a `projectPath` to resolve local config from a specific project instead of `process.cwd()`,
+ * and `skipCache` to re-read config from disk when the process-cached aggregator can't be trusted:
+ *
+ * ```
+ * const remover = await AuthRemover.create({ projectPath: '/path/to/project', skipCache: true });
+ * await remover.removeAuth('example@mycompany.com');
+ * ```
  */
-export class AuthRemover extends AsyncOptionalCreatable {
+export class AuthRemover extends AsyncOptionalCreatable<AuthRemoverOptions> {
   private config!: ConfigAggregator;
   private stateAggregator!: StateAggregator;
   private logger!: Logger;
+  private readonly projectPath?: string;
+  private readonly skipCache?: boolean;
+
+  public constructor(options?: AuthRemoverOptions) {
+    super(options);
+    this.projectPath = options?.projectPath;
+    this.skipCache = options?.skipCache;
+  }
 
   /**
    * Removes the authentication and any configs or aliases associated with it
@@ -91,17 +116,18 @@ export class AuthRemover extends AsyncOptionalCreatable {
    */
   public findAllAuths(): Record<string, AuthFields & JsonMap> {
     const orgs = this.stateAggregator.orgs.getAll();
-    return orgs.reduce<Record<string, AuthFields & JsonMap>>(
-      (x, y) =>
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        ({ ...x, [y.username!]: y }),
-      {}
-    );
+    return orgs.reduce<Record<string, AuthFields & JsonMap>>((x, y) => ({ ...x, [y.username!]: y }), {});
   }
 
   protected async init(): Promise<void> {
     this.logger = await Logger.child(this.constructor.name);
-    this.config = await ConfigAggregator.create();
+    this.config = await ConfigAggregator.create(this.projectPath ? { projectPath: this.projectPath } : undefined);
+    // ConfigAggregator.create returns a process-cached instance keyed by projectPath, so its
+    // in-memory config may be stale (set out of process, or before this call). When the caller
+    // can't trust the cache, skipCache re-reads from disk so unsetConfigValues sees current values.
+    if (this.skipCache) {
+      await this.config.reload();
+    }
     this.stateAggregator = await StateAggregator.getInstance();
     await this.stateAggregator.orgs.readAll();
   }
@@ -156,17 +182,19 @@ export class AuthRemover extends AsyncOptionalCreatable {
           .filter((k) => !!k)
           .reduce((x, y) => x.concat(y), []);
         const allKeys = keysWithUsername.concat(keysWithAlias);
-        this.logger.debug(`Found these config keys to remove: ${allKeys.join(',')}`);
-        allKeys.forEach((key) => {
-          try {
-            config.unset(key);
-          } catch {
-            this.logger.debug(`Failed to remove ${key}`);
-          }
-        });
-        // prevent ConfigFile collision bug
-        // eslint-disable-next-line no-await-in-loop
-        await config.write();
+        if (allKeys.length) {
+          this.logger.debug(`Found these config keys to remove: ${allKeys.join(',')}`);
+          allKeys.forEach((key) => {
+            try {
+              config.unset(key);
+            } catch {
+              this.logger.debug(`Failed to remove ${key}`);
+            }
+          });
+          // prevent ConfigFile collision bug
+          // eslint-disable-next-line no-await-in-loop
+          await config.write();
+        }
       }
     }
   }
@@ -178,7 +206,7 @@ export class AuthRemover extends AsyncOptionalCreatable {
    */
   private async unsetAliases(username: string): Promise<void> {
     this.logger.debug(`Clearing aliases for username: ${username}`);
-    const existingAliases = this.stateAggregator.aliases.getAll(username);
+    const existingAliases = this.getAliases(username);
     if (existingAliases.length === 0) return;
 
     this.logger.debug(`Found these aliases to remove: ${existingAliases.join(',')}`);
@@ -188,3 +216,13 @@ export class AuthRemover extends AsyncOptionalCreatable {
     }
   }
 }
+
+export type AuthRemoverOptions = {
+  /** an absolute path to the project root, used to resolve local config; defaults to `process.cwd()` */
+  projectPath?: string;
+  /**
+   * re-read config from disk instead of trusting the process-cached ConfigAggregator. Set `true`
+   * when the config may have changed out of process or before this call. Defaults to `false`.
+   */
+  skipCache?: boolean;
+};

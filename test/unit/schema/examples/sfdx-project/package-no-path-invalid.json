@@ -1,0 +1,14 @@
+{
+  "name": "project-name",
+  "packageDirectories": [
+    {
+      "default": true
+    }
+  ],
+  "namespace": "",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "48.0",
+  "packageAliases": {
+    "dreamhouse": "0Ho1I000000XZDVSA4"
+  }
+}

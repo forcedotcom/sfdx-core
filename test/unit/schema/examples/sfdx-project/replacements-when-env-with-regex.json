@@ -1,0 +1,21 @@
+{
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true
+    }
+  ],
+  "replacements": [
+    {
+      "filename": "force-app/main/default/classes/myClass.cls",
+      "regexToReplace": "\\bTODO\\b.*",
+      "replaceWithEnv": "REPLACEMENT_TEXT",
+      "replaceWhenEnv": [
+        {
+          "env": "ENVIRONMENT",
+          "value": "STAGING"
+        }
+      ]
+    }
+  ]
+}

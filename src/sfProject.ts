@@ -1,25 +1,36 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 import { basename, dirname, isAbsolute, normalize, resolve, sep } from 'node:path';
 import { defaults, env } from '@salesforce/kit';
 import { Dictionary, ensure, JsonMap, Nullable, Optional } from '@salesforce/ts-types';
-import { PackageDir, ProjectJson as ProjectJsonSchema, PackagePackageDir } from '@salesforce/schemas';
+import { PackageDir, PackagePackageDir } from './schema/sfdx-project/packageDir';
+import { BundleEntry } from './schema/sfdx-project/bundleEntry';
+import { type ProjectJson as ProjectJsonType, ProjectJsonSchema } from './schema/sfdx-project/sfdxProjectJson';
 import { fs } from './fs/fs';
 import { SfdcUrl } from './util/sfdcUrl';
 import { ConfigAggregator } from './config/configAggregator';
 import { ConfigFile } from './config/configFile';
-import { ConfigContents } from './config/configStackTypes';
 
-import { SchemaValidator } from './schema/validator';
 import { resolveProjectPath, resolveProjectPathSync, SFDX_PROJECT_JSON } from './util/internal';
 
 import { SfError } from './sfError';
 import { Messages } from './messages';
 import { ensureNoUppercaseKeys } from './util/findUppercaseKeys';
+import { Lifecycle } from './lifecycleEvents';
+import { ConfigContents } from './config/configStackTypes';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/core', 'config');
@@ -38,8 +49,7 @@ type NameAndFullPath = {
 export type NamedPackagingDir = PackagePackageDir & NameAndFullPath;
 export type NamedPackageDir = PackageDir & NameAndFullPath;
 
-export type ProjectJson = ConfigContents & ProjectJsonSchema;
-
+export type ProjectJson = ConfigContents & ProjectJsonType;
 /**
  * The sfdx-project.json config object. This file determines if a folder is a valid sfdx project.
  *
@@ -66,7 +76,7 @@ export type ProjectJson = ConfigContents & ProjectJsonSchema;
  */
 export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
   /** json properties that are uppercase, or allow uppercase keys inside them */
-  public static BLOCKLIST = ['packageAliases', 'plugins'];
+  public static BLOCKLIST = ['packageAliases', 'plugins', 'packageBundleAliases'];
 
   public static getFileName(): string {
     return SFDX_PROJECT_JSON;
@@ -115,7 +125,7 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
    * Validates sfdx-project.json against the schema.
    *
    * Set the `SFDX_PROJECT_JSON_VALIDATION` environment variable to `true` to throw an error when schema validation fails.
-   * A warning is logged by default when the file is invalid.
+   * A warning is emitted by default when the file is invalid.
    *
    * ***See*** [sfdx-project.schema.json] ((https://github.com/forcedotcom/schemas/blob/main/sfdx-project.schema.json)
    */
@@ -124,17 +134,16 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
       // read calls back into this method after necessarily setting this.hasRead=true
       await this.read();
     }
-    try {
-      const projectJsonSchemaPath = require.resolve('@salesforce/schemas/sfdx-project.schema.json');
-      const validator = new SchemaValidator(this.logger, projectJsonSchemaPath);
-      await validator.validate(this.getContents());
-    } catch (err) {
-      const error = err as Error;
+    const result = ProjectJsonSchema.safeParse(this.getContents());
+    if (!result.success) {
+      const errorMessages = result.error.issues.map((err) => `${err.path.join('.')}: ${err.message}`).join('\n');
+      const fullMessage = messages.getMessage('schemaValidationError', [this.getPath(), errorMessages]);
+
       // Don't throw errors if the global isn't valid, but still warn the user.
       if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false) && !this.options.isGlobal) {
-        throw messages.createError('schemaValidationError', [this.getPath(), error.message], [this.getPath()], error);
+        throw messages.createError('schemaValidationError', [this.getPath(), errorMessages], [this.getPath()]);
       } else {
-        this.logger.warn(messages.getMessage('schemaValidationError', [this.getPath(), error.message]));
+        await Lifecycle.getInstance().emitWarning(fullMessage);
       }
     }
   }
@@ -152,7 +161,7 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
    * Validates sfdx-project.json against the schema.
    *
    * Set the `SFDX_PROJECT_JSON_VALIDATION` environment variable to `true` to throw an error when schema validation fails.
-   * A warning is logged by default when the file is invalid.
+   * A warning is emitted by default when the file is invalid.
    *
    * ***See*** [sfdx-project.schema.json] ((https://github.com/forcedotcom/schemas/blob/main/sfdx-project.schema.json)
    */
@@ -161,17 +170,17 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
       // read calls back into this method after necessarily setting this.hasRead=true
       this.readSync();
     }
-    try {
-      const projectJsonSchemaPath = require.resolve('@salesforce/schemas/sfdx-project.schema.json');
-      const validator = new SchemaValidator(this.logger, projectJsonSchemaPath);
-      validator.validateSync(this.getContents());
-    } catch (err) {
-      const error = err as Error;
+    const result = ProjectJsonSchema.safeParse(this.getContents());
+    if (!result.success) {
+      const errorMessages = result.error.issues.map((err) => `${err.path.join('.')}: ${err.message}`).join('\n');
+      const fullMessage = messages.getMessage('schemaValidationError', [this.getPath(), errorMessages]);
+
       // Don't throw errors if the global isn't valid, but still warn the user.
       if (env.getBoolean('SFDX_PROJECT_JSON_VALIDATION', false) && !this.options.isGlobal) {
-        throw messages.createError('schemaValidationError', [this.getPath(), error.message], [this.getPath()], error);
+        throw messages.createError('schemaValidationError', [this.getPath(), errorMessages], [this.getPath()]);
       } else {
-        this.logger.warn(messages.getMessage('schemaValidationError', [this.getPath(), error.message]));
+        // For sync method, we can't await emitWarning, so we use void to fire and forget
+        void Lifecycle.getInstance().emitWarning(fullMessage);
       }
     }
   }
@@ -276,10 +285,17 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
   }
 
   /**
+   * Has multiple package bundles defined in the project.
+   */
+  public hasMultiplePackageBundles(): boolean {
+    return (this.getContents()?.packageBundles?.length ?? 0) > 1;
+  }
+
+  /**
    * Has at least one package alias defined in the project.
    */
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/require-await
-  public async hasPackageAliases() {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  public async hasPackageAliases(): Promise<boolean> {
     return Object.keys(this.getContents().packageAliases ?? {}).length > 0;
   }
 
@@ -333,6 +349,63 @@ export class SfProjectJson extends ConfigFile<ConfigFile.Options, ProjectJson> {
     this.set('packageDirectories', modifiedPackagesDirs);
   }
 
+  /**
+   * Get package bundles defined in the project.
+   */
+  public getPackageBundles(): BundleEntry[] {
+    return this.get('packageBundles') ?? [];
+  }
+  /**
+   * Add a bundle entry to the project.
+   * If the bundle entry already exists, the new entry
+   * properties will be merged with the existing properties.
+   *
+   * @param bundleEntry
+   */
+  public addPackageBundle(bundleEntry: BundleEntry): void {
+    const bundles = this.getPackageBundles();
+
+    const bundleIndex = bundles.findIndex((b: BundleEntry) => b.name === bundleEntry.name);
+
+    const bundleEntryJson: BundleEntry = {
+      ...(bundleIndex > -1 ? bundles[bundleIndex] : bundleEntry),
+      ...bundleEntry,
+    };
+
+    const modifiedBundles =
+      bundleIndex > -1
+        ? bundles.map((b: BundleEntry) => (b.name === bundleEntry.name ? bundleEntryJson : b))
+        : [...bundles, bundleEntryJson];
+
+    this.set('packageBundles', modifiedBundles);
+  }
+
+  /**
+   * Has at least one package bundle alias defined in the project.
+   */
+  public hasPackageBundleAliases(): boolean {
+    return Object.keys(this.getContents().packageBundleAliases ?? {}).length > 0;
+  }
+
+  /**
+   * Get package bundle aliases defined in the project.
+   */
+  public getPackageBundleAliases(): Nullable<Dictionary<string>> {
+    return this.get('packageBundleAliases') as Nullable<Dictionary<string>>;
+  }
+
+  /**
+   * Add a bundle alias to the project.
+   * If the bundle alias already exists, it will be overwritten.
+   *
+   * @param alias The alias name
+   * @param id The bundle ID
+   */
+  public addPackageBundleAlias(alias: string, id: string): void {
+    const newAliases = { ...(this.get('packageBundleAliases') ?? {}), [alias]: id };
+    this.set('packageBundleAliases', newAliases);
+  }
+
   // keep it because testSetup stubs it!
   // eslint-disable-next-line class-methods-use-this
   private doesPackageExist(packagePath: string): boolean {
@@ -367,6 +440,7 @@ export class SfProject {
   private packageDirectories?: NamedPackageDir[];
   private activePackage: Nullable<NamedPackageDir>;
   private packageAliases: Nullable<Dictionary<string>>;
+  private packageBundleAliases: Nullable<Dictionary<string>>;
 
   /**
    * Do not directly construct instances of this class -- use {@link SfProject.resolve} instead.
@@ -620,6 +694,13 @@ export class SfProject {
   }
 
   /**
+   * Has multiple package bundles defined in the project.
+   */
+  public hasMultiplePackageBundles(): boolean {
+    return this.getSfProjectJson().hasMultiplePackageBundles();
+  }
+
+  /**
    * Get the currently activated package on the project. This has no implication on sfdx-project.json
    * but is useful for keeping track of package and source specific options in a process.
    */
@@ -676,28 +757,48 @@ export class SfProject {
       ]);
       await Promise.all([global.read(), local.read()]);
 
-      this.projectConfig = defaults(local.toObject(), global.toObject());
+      const config = defaults(local.toObject(), global.toObject());
 
       // Add fields in sfdx-config.json
-      Object.assign(this.projectConfig, configAggregator.getConfig());
+      Object.assign(config, configAggregator.getConfig());
 
       // we don't have a login url yet, so use instanceUrl from config or default
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (!this.projectConfig.sfdcLoginUrl) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        this.projectConfig.sfdcLoginUrl = configAggregator.getConfig()['org-instance-url'] ?? SfdcUrl.PRODUCTION;
+
+      if (!config.sfdcLoginUrl) {
+        config.sfdcLoginUrl = configAggregator.getConfig()['org-instance-url'] ?? SfdcUrl.PRODUCTION;
       }
       // LEGACY - Allow override of sfdcLoginUrl via env var FORCE_SFDC_LOGIN_URL
       if (process.env.FORCE_SFDC_LOGIN_URL) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        this.projectConfig.sfdcLoginUrl = process.env.FORCE_SFDC_LOGIN_URL;
+        config.sfdcLoginUrl = process.env.FORCE_SFDC_LOGIN_URL;
       }
 
       // Allow override of signupTargetLoginUrl via env var SFDX_SCRATCH_ORG_CREATION_LOGIN_URL
       if (process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        this.projectConfig.signupTargetLoginUrl = process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL;
+        config.signupTargetLoginUrl = process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL;
       }
+
+      const loginUrl = config.sfdcLoginUrl as string;
+      if (loginUrl) {
+        if (
+          !SfdcUrl.isValidUrl(loginUrl) ||
+          (!new SfdcUrl(loginUrl).isSalesforceDomain() && !new SfdcUrl(loginUrl).isInternalUrl())
+        ) {
+          throw messages.createError('invalidProjectLoginUrl', [loginUrl]);
+        }
+      }
+
+      const signupUrl = config.signupTargetLoginUrl as string;
+      if (signupUrl) {
+        if (
+          !SfdcUrl.isValidUrl(signupUrl) ||
+          (!new SfdcUrl(signupUrl).isSalesforceDomain() && !new SfdcUrl(signupUrl).isInternalUrl())
+        ) {
+          throw messages.createError('invalidProjectLoginUrl', [signupUrl]);
+        }
+      }
+
+      // Only cache after validation passes
+      this.projectConfig = config;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -730,6 +831,27 @@ export class SfProject {
       throw messages.createError('invalidId', [id]);
     }
     return Object.entries(this.getPackageAliases() ?? {})
+      .filter(([, value]) => value?.startsWith(id))
+      .map(([key]) => key);
+  }
+
+  public getPackageBundleAliases(): Nullable<Dictionary<string>> {
+    if (!this.packageBundleAliases) {
+      this.packageBundleAliases = this.getSfProjectJson().getPackageBundleAliases();
+    }
+    return this.packageBundleAliases;
+  }
+
+  public getPackageBundleIdFromAlias(alias: string): Optional<string> {
+    const packageBundleAliases = this.getPackageBundleAliases();
+    return packageBundleAliases ? packageBundleAliases[alias] : undefined;
+  }
+
+  public getAliasesFromPackageBundleId(id: string): string[] {
+    if (!/^.{15,18}$/.test(id)) {
+      throw messages.createError('invalidId', [id]);
+    }
+    return Object.entries(this.getPackageBundleAliases() ?? {})
       .filter(([, value]) => value?.startsWith(id))
       .map(([key]) => key);
   }

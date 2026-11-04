@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 import { OAuth2Config } from '@jsforce/jsforce-node';
@@ -78,8 +87,17 @@ export {
 
 export { OrgConfigProperties, ORG_CONFIG_ALLOWED_PROPERTIES } from './org/orgConfigProperties';
 
-export { NamedPackageDir, SfProject, SfProjectJson } from './sfProject';
+export {
+  NamedPackageDir,
+  SfProject,
+  SfProjectJson,
+  isPackagingDirectory,
+  isNamedPackagingDirectory,
+} from './sfProject';
 
+/**
+ * @deprecated For sfdx-project.json and scratch org definitions, use the exported zod schemas (ProjectJsonSchema, ScratchOrgDefSchema) from '@salesforce/core'. For custom schemas, use a schema validator library like zod directly.
+ */
 export { SchemaValidator } from './schema/validator';
 
 export { SfError } from './sfError';
@@ -102,6 +120,8 @@ export {
 } from './org/scratchOrgCreate';
 
 export { ScratchOrgInfo } from './org/scratchOrgTypes';
+export { ProjectJson, ProjectJsonSchema } from './schema/sfdx-project/sfdxProjectJson';
+export { ScratchOrgDef, ScratchOrgDefSchema } from './schema/project-scratch-def/scratchOrgDef';
 export {
   ScratchOrgLifecycleEvent,
   scratchOrgLifecycleEventName,

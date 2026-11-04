@@ -1,0 +1,17 @@
+{
+  "name": "project-name",
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true
+    }
+  ],
+  "replacements": [
+    {
+      "filename": "force-app/main/default/classes/myClass.cls",
+      "stringToReplace": "replaceMe",
+      "regexToReplace": ".*",
+      "replaceWithEnv": "THE_REPLACEMENT"
+    }
+  ]
+}

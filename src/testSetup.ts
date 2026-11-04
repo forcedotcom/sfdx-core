@@ -1,14 +1,23 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-/* eslint-disable no-param-reassign */ // mutate ALL the THINGS!
+// mutate ALL the THINGS!
+/// <reference types="mocha" />
 /* eslint-disable class-methods-use-this */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 import { EventEmitter } from 'node:events';
 import { tmpdir as osTmpdir } from 'node:os';
 import { basename, join as pathJoin, dirname } from 'node:path';
@@ -426,7 +435,7 @@ export class TestContext {
 const requireSinon = (sinon: Nullable<SinonStatic>): SinonStatic => {
   if (sinon) return sinon;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
+    // eslint-disable-next-line import/no-extraneous-dependencies
     const newSinon = require('sinon');
     return newSinon as SinonStatic;
   } catch (e) {
@@ -660,7 +669,7 @@ export const restoreContext = (testContext: TestContext): void => {
   // Restore the default value for this setting on restore.
   Global.SFDX_INTEROPERABILITY = true;
   testContext.SANDBOX.restore();
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
   Object.values(testContext.SANDBOXES).forEach((theSandbox) => theSandbox.restore());
   testContext.configStubs = {};
   // Give each test run a clean StateAggregator
@@ -841,13 +850,13 @@ export class StreamingMockCometClient extends CometClient {
   /**
    * Fake addExtension. Does nothing.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public addExtension(extension: StreamingExtension): void {}
 
   /**
    * Fake disable. Does nothing.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public disable(label: string): void {}
 
   /**
@@ -864,7 +873,7 @@ export class StreamingMockCometClient extends CometClient {
   /**
    * Fake setHeader. Does nothing,
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public setHeader(name: string, value: string): void {}
 
   /**
@@ -939,6 +948,7 @@ export class MockTestOrgData {
   public isExpired?: boolean | 'unknown';
   public password?: string;
   public namespacePrefix?: string;
+  public orgEdition?: string;
 
   public constructor(id: string = uniqid(), options?: { username: string }) {
     this.testId = id;
@@ -954,6 +964,7 @@ export class MockTestOrgData {
     this.refreshToken = `${this.testId}/refreshToken`;
     this.redirectUri = 'http://localhost:1717/OauthRedirect';
     this.namespacePrefix = `acme_${this.testId}`;
+    this.orgEdition = 'Developer Edition';
   }
 
   /**
@@ -1043,13 +1054,14 @@ export class MockTestOrgData {
     }
 
     config.isDevHub = this.isDevHub;
+    config.orgEdition = this.orgEdition;
 
     if (this.password) {
       config.password = crypto.encrypt(this.password);
     }
 
     // remove "undefined" properties that don't exist in actual files
-    return Object.fromEntries(Object.entries(config).filter(([, v]) => v !== undefined)) as AuthFields;
+    return Object.fromEntries(Object.entries(config).filter(([, v]) => v !== undefined));
   }
 
   /**

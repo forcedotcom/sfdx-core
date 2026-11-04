@@ -1,10 +1,18 @@
 /*
- * Copyright (c) 2021, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import * as sinon from 'sinon';
 import { assert, expect } from 'chai';
@@ -20,7 +28,6 @@ import * as mockForStandaloneFunctions from '../../../src/org/scratchOrgInfoApi'
 import {
   authorizeScratchOrg,
   deploySettings,
-  JsForceError,
   pollForScratchOrgInfo,
   requestScratchOrgCreation,
   resolveUrl,
@@ -153,7 +160,7 @@ describe('requestScratchOrgCreation', () => {
       ...new Error('JsForce-Error'),
       errorCode: 'REQUIRED_FIELD_MISSING',
       fields: ['error-field'],
-    } as JsForceError;
+    };
 
     // @ts-expect-error - type partial mismatch
     connectionStub.sobject.withArgs('ScratchOrgInfo').returns({
@@ -463,7 +470,29 @@ describe('authorizeScratchOrg', () => {
 
   afterEach(() => {
     env.unset('SFDX_CLIENT_SECRET');
+    delete process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP;
     sandbox.restore();
+  });
+
+  it('authorizeScratchOrg uses auth code exchange when SF_SCRATCH_SIGNUP_CONNECTED_APP is set', async () => {
+    hubOrgStub.isDevHubOrg.returns(true);
+    process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP = 'PlatformCLI';
+
+    const result = await authorizeScratchOrg({
+      scratchOrgInfoComplete: TEMPLATE_SCRATCH_ORG_INFO,
+      hubOrg: hubOrgStub,
+    });
+
+    expect(result).to.be.equal(authInfo);
+    expect(authInfoStub.firstCall.args[0]).to.deep.equal({
+      username: TEMPLATE_SCRATCH_ORG_INFO.SignupUsername,
+      parentUsername: username,
+      oauth2Options: {
+        loginUrl: `https://${TEMPLATE_SCRATCH_ORG_INFO.SignupInstance}.salesforce.com`,
+        redirectUri: undefined,
+        authCode: TEMPLATE_SCRATCH_ORG_INFO.AuthCode,
+      },
+    });
   });
 
   it('authorizeScratchOrg basic', async () => {

@@ -1,16 +1,24 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 /* eslint-disable class-methods-use-this */
 
 import { randomBytes } from 'node:crypto';
 import { resolve as pathResolve } from 'node:path';
 import * as os from 'node:os';
-import { Record as RecordType } from '@jsforce/jsforce-node';
-import { AsyncOptionalCreatable, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
+import { AsyncOptionalCreatable, Duration, env, isEmpty, parseJson, parseJsonMap } from '@salesforce/kit';
 import {
   AnyJson,
   asString,
@@ -33,13 +41,15 @@ import { Config } from '../config/config';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';
 import { SfError } from '../sfError';
-import { matchesAccessToken, trimTo15 } from '../util/sfdc';
+import { matchesOpaqueAccessToken, trimTo15, validateApiVersion } from '../util/sfdc';
 import { StateAggregator } from '../stateAggregator/stateAggregator';
 import { filterSecrets } from '../logger/filters';
 import { Messages } from '../messages';
 import { getLoginAudienceCombos, SfdcUrl } from '../util/sfdcUrl';
 import { findSuggestion } from '../util/findSuggestion';
+import { lockInit } from '../util/fileLocking';
 import { Connection, SFDX_HTTP_HEADERS } from './connection';
+import { determineOrg } from './determineOrg';
 import { Org, SandboxFields } from './org';
 import { OrgConfigProperties } from './orgConfigProperties';
 
@@ -76,7 +86,6 @@ export type AuthFields = {
   password?: string;
   privateKey?: string;
   refreshToken?: string;
-  scratchAdminUsername?: string;
   snapshot?: string;
   userId?: string;
   username?: string;
@@ -90,6 +99,7 @@ export type AuthFields = {
   [Org.Fields.IS_SANDBOX]?: boolean;
   [Org.Fields.IS_SCRATCH]?: boolean;
   [Org.Fields.TRIAL_EXPIRATION_DATE]?: Nullable<string>;
+  [Org.Fields.ORG_EDITION]?: string;
 };
 
 export type OrgAuthorization = {
@@ -108,13 +118,27 @@ export type OrgAuthorization = {
 };
 
 /**
- * Options for access token flow.
+ * Options for access token flow. Present fields skip the token-path lookup that would have produced them.
  */
-export type AccessTokenOptions = {
-  accessToken?: string;
-  loginUrl?: string;
-  instanceUrl?: string;
-};
+export type AccessTokenOptions = Pick<
+  AuthFields,
+  | 'accessToken'
+  | 'loginUrl'
+  | 'instanceUrl'
+  | 'username'
+  | 'orgId'
+  | 'userId'
+  | 'isDevHub'
+  | 'instanceApiVersion'
+  | 'instanceApiVersionLastRetrieved'
+  | Org.Fields.NAMESPACE_PREFIX
+  | Org.Fields.IS_SCRATCH
+  | Org.Fields.IS_SANDBOX
+  | Org.Fields.INSTANCE_NAME
+  | Org.Fields.NAME
+  | Org.Fields.ORG_EDITION
+  | Org.Fields.TRIAL_EXPIRATION_DATE
+>;
 
 export type AuthSideEffects = {
   alias?: string;
@@ -137,13 +161,11 @@ type UserInfo = AnyJson & {
   organizationId: string;
 };
 
-/* eslint-disable camelcase */
 type UserInfoResult = AnyJson & {
   preferred_username: string;
   organization_id: string;
   user_id: string;
 };
-/* eslint-enable camelcase */
 
 type User = AnyJson & {
   Username: string;
@@ -292,23 +314,26 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         // prevent ConfigFile collision bug
         // eslint-disable-next-line no-await-in-loop
         const authInfo = await AuthInfo.create({ username });
-        const { orgId, instanceUrl, devHubUsername, expirationDate, isDevHub } = authInfo.getFields();
+        const authFields = authInfo.getFields();
+        const { orgId, instanceUrl, devHubUsername, expirationDate, isDevHub } = authFields;
+        const isScratchOrg = Boolean(devHubUsername) || Boolean(authFields[Org.Fields.IS_SCRATCH]);
+        const expDate = expirationDate ?? authFields[Org.Fields.TRIAL_EXPIRATION_DATE];
+        // eslint-disable-next-line no-await-in-loop
+        const hasSandboxFile = await stateAggregator.sandboxes.hasFile(orgId as string);
+        const isSandbox = Boolean(authFields[Org.Fields.IS_SANDBOX]) || hasSandboxFile;
         final.push({
           aliases,
           configs,
           username,
           instanceUrl,
-          isScratchOrg: Boolean(devHubUsername),
+          isScratchOrg,
           isDevHub: isDevHub ?? false,
-          // eslint-disable-next-line no-await-in-loop
-          isSandbox: await stateAggregator.sandboxes.hasFile(orgId as string),
+          isSandbox,
           orgId: orgId as string,
           accessToken: authInfo.getConnectionOptions().accessToken,
           oauthMethod: authInfo.isJwt() ? 'jwt' : authInfo.isOauth() ? 'web' : 'token',
           isExpired:
-            Boolean(devHubUsername) && expirationDate
-              ? new Date(ensureString(expirationDate)).getTime() < new Date().getTime()
-              : 'unknown',
+            isScratchOrg && expDate ? new Date(ensureString(expDate)).getTime() < new Date().getTime() : 'unknown',
         });
       } catch (err) {
         final.push({
@@ -401,24 +426,78 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    * @param orgAuthInfo
    */
   public static async identifyPossibleScratchOrgs(fields: AuthFields, orgAuthInfo: AuthInfo): Promise<void> {
+    if (env.getBoolean('SF_SKIP_SCRATCH_ORG_CHECK')) {
+      (await Logger.child('Common', { tag: 'identifyPossibleScratchOrgs' })).debug(
+        'Skipping scratch org identification due to SF_SKIP_SCRATCH_ORG_CHECK'
+      );
+      return;
+    }
+
     // fields property is passed in because the consumers of this method have performed the decrypt.
     // This is so we don't have to call authInfo.getFields(true) and decrypt again OR accidentally save an
     // authInfo before it is necessary.
     const logger = await Logger.child('Common', { tag: 'identifyPossibleScratchOrgs' });
 
+    await determineOrg(orgAuthInfo);
+
+    // re-read fields after determineOrg may have updated them
+    const updatedFields = orgAuthInfo.getFields();
+
     // return if we already know the hub org, we know it is a devhub or prod-like, or no orgId present
-    if (Boolean(fields.isDevHub) || Boolean(fields.devHubUsername) || !fields.orgId) return;
+    if (Boolean(updatedFields.isDevHub) || Boolean(updatedFields.devHubUsername) || !updatedFields.orgId) return;
+
+    if (updatedFields.isSandbox) {
+      logger.debug('determineOrg already identified org as sandbox, skipping expensive org scan');
+      return;
+    }
+
+    // for scratch orgs, skip the full listAllAuthorizations + sandbox identification and
+    // instead do a lightweight DevHub lookup using raw configs (no AuthInfo creation/decryption)
+    if (updatedFields.isScratch) {
+      logger.debug('determineOrg identified org as scratch, doing lightweight DevHub lookup');
+      const stateAggregator = await StateAggregator.getInstance();
+      const allConfigs = await stateAggregator.orgs.readAll();
+      const devHubUsernames = allConfigs.filter((c) => c.isDevHub).map((c) => ensureString(c.username));
+
+      for (const hubUsername of devHubUsernames) {
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          const soi = await AuthInfo.queryScratchOrg(hubUsername, updatedFields.orgId);
+          // eslint-disable-next-line no-await-in-loop
+          await orgAuthInfo.save({
+            ...fields,
+            devHubUsername: hubUsername,
+            expirationDate: soi.ExpirationDate,
+            isScratch: true,
+          });
+          logger.debug(`set ${hubUsername} as devhub for scratch org ${orgAuthInfo.getUsername()}`);
+          return;
+        } catch (error) {
+          if (error instanceof Error && error.name === 'NoActiveScratchOrgFound') {
+            logger.debug(`devhub ${hubUsername} does not own this scratch org`);
+          } else {
+            logger.debug(`Error connecting to devhub ${hubUsername}`, error);
+          }
+        }
+      }
+      return;
+    }
 
     logger.debug('getting devHubs and prod orgs to identify scratch orgs and sandboxes');
 
-    // TODO: return if url is not sandbox-like to avoid constantly asking about production orgs
     // TODO: someday we make this easier by asking the org if it is a scratch org
 
-    const hubAuthInfos = await AuthInfo.getDevHubAuthInfos();
-    // Get a list of org auths that are known not to be scratch orgs or sandboxes.
-    const possibleProdOrgs = await AuthInfo.listAllAuthorizations(
-      (orgAuth) => orgAuth && !orgAuth.isScratchOrg && !orgAuth.isSandbox
-    );
+    const allOrgs = await AuthInfo.listAllAuthorizations();
+    const hubAuthInfos = allOrgs.filter((org) => org.isDevHub);
+
+    // skip sandbox identification if the instance URL is not sandbox-like
+    // enhanced domains: *.sandbox.my.salesforce.com; pre-enhanced My Domain: company--sbxname.my.salesforce.com
+    const isSandboxLikeUrl =
+      fields.instanceUrl != null && (fields.instanceUrl.includes('.sandbox.') || fields.instanceUrl.includes('--'));
+    const possibleProdOrgs = isSandboxLikeUrl ? allOrgs.filter((org) => !org.isScratchOrg && !org.isSandbox) : [];
+    if (!isSandboxLikeUrl) {
+      logger.debug('instance URL is not sandbox-like, skipping sandbox identification');
+    }
 
     logger.debug(`found ${hubAuthInfos.length} DevHubs`);
     logger.debug(`found ${possibleProdOrgs.length} possible prod orgs`);
@@ -426,12 +505,16 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       return;
     }
 
-    // ask all those orgs if they know this orgId
+    let identified = false;
+
+    // ask all those orgs if they know this orgId, but stop once one claims it
     await Promise.all([
       ...hubAuthInfos.map(async (hubAuthInfo) => {
+        if (identified) return;
         try {
           const soi = await AuthInfo.queryScratchOrg(hubAuthInfo.username, fields.orgId as string);
-          // if any return a result
+          if (identified) return;
+          identified = true;
           logger.debug(`found orgId ${fields.orgId ?? '<undefined>'} in devhub ${hubAuthInfo.username}`);
           try {
             await orgAuthInfo.save({
@@ -457,7 +540,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         }
       }),
       ...possibleProdOrgs.map(async (pOrgAuthInfo) => {
-        await AuthInfo.identifyPossibleSandbox(pOrgAuthInfo, fields, orgAuthInfo, logger);
+        if (identified) return;
+        const found = await AuthInfo.identifyPossibleSandbox(pOrgAuthInfo, fields, orgAuthInfo, logger);
+        if (found) identified = true;
       }),
     ]);
   }
@@ -474,16 +559,16 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     fields: AuthFields,
     orgAuthInfo: AuthInfo,
     logger: Logger
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (!fields.orgId) {
-      return;
+      return false;
     }
 
     try {
       const prodOrg = await Org.create({ aliasOrUsername: possibleProdOrg.username });
       const sbxProcess = await prodOrg.querySandboxProcessByOrgId(fields.orgId);
       if (!sbxProcess?.SandboxInfoId) {
-        return;
+        return false;
       }
       logger.debug(`${fields.orgId} is a sandbox of ${possibleProdOrg.username}`);
 
@@ -517,8 +602,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       } catch (e) {
         logger.debug(`error writing sandbox auth file for: ${orgAuthInfo.getUsername()}`, e);
       }
+      return true;
     } catch (err) {
       logger.debug(`${fields.orgId} is not a sandbox of ${possibleProdOrg.username}`);
+      return false;
     }
   }
 
@@ -595,7 +682,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     this.update(authData);
     const username = ensure(this.getUsername());
 
-    if (matchesAccessToken(username)) {
+    if (matchesOpaqueAccessToken(username)) {
       this.logger.debug('Username is an accesstoken. Skip saving authinfo to disk.');
       return this;
     }
@@ -613,6 +700,12 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   public update(authData?: AuthFields): AuthInfo {
     if (authData && isPlainObject(authData)) {
+      if (authData.instanceApiVersion && !validateApiVersion(authData.instanceApiVersion)) {
+        this.logger.warn(
+          `Ignoring invalid instanceApiVersion "${authData.instanceApiVersion}" (expected format: "XX.0")`
+        );
+        authData.instanceApiVersion = undefined;
+      }
       this.username = authData.username ?? this.username;
       this.stateAggregator.orgs.update(this.username, authData);
       this.logger.info(`Updated auth info for username: ${this.username}`);
@@ -703,7 +796,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
               accessToken: ensureString(authFields.accessToken),
               clientId: decryptedApp.clientId,
               clientSecret: decryptedApp.clientSecret,
-              refreshToken: decryptedApp.refreshToken,
+              // Persist the server-returned refresh token (rotated under RTR), falling back to the one we
+              // sent when the response omits it (RTR off). Persisting the old token here would send an
+              // invalidated credential on the next refresh once RTR is enabled on this connected app.
+              refreshToken: ensureString(authFields.refreshToken ?? decryptedApp.refreshToken),
               oauthFlow: 'web',
             },
           },
@@ -859,7 +955,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     } // Else it will be set in initAuthOptions below.
 
     // If the username is an access token, use that for auth and don't persist
-    if (isString(oauthUsername) && matchesAccessToken(oauthUsername)) {
+    if (isString(oauthUsername) && matchesOpaqueAccessToken(oauthUsername)) {
       // Need to initAuthOptions the logger and authInfoCrypto since we don't call init()
       this.logger = await Logger.child('AuthInfo');
 
@@ -896,8 +992,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
   }
 
   private getInstanceUrl(aggregator: ConfigAggregator, options?: AuthOptions): string {
-    const instanceUrl =
-      options?.instanceUrl ?? (aggregator.getPropertyValue(OrgConfigProperties.ORG_INSTANCE_URL) as string);
+    const instanceUrl = options?.instanceUrl ?? aggregator.getPropertyValue(OrgConfigProperties.ORG_INSTANCE_URL);
     return instanceUrl ?? SfdcUrl.PRODUCTION;
   }
 
@@ -921,25 +1016,30 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
       if (this.isTokenOptions(options)) {
         authConfig = options;
-        const userInfo = await this.retrieveUserInfo(
-          ensureString(options.instanceUrl),
-          ensureString(options.accessToken)
-        );
-        this.update({ username: userInfo?.username, orgId: userInfo?.organizationId });
+        await this.retrieveUserInfoUnlessSupplied(authConfig);
       } else {
         if (this.options.parentUsername) {
-          const parentFields = await this.loadDecryptedAuthFromConfig(this.options.parentUsername);
-
-          options.clientId = parentFields.clientId;
-
-          if (process.env.SFDX_CLIENT_SECRET) {
-            options.clientSecret = process.env.SFDX_CLIENT_SECRET;
+          if (process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP) {
+            // When the signup app is overridden, use it as the clientId for the auth code exchange.
+            // Skip loading parent fields entirely — we don't need the parent's privateKey/clientSecret
+            // and the parent org may not be in the StateAggregator cache.
+            options.clientId = process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP;
+            if (process.env.SFDX_CLIENT_SECRET) {
+              options.clientSecret = process.env.SFDX_CLIENT_SECRET;
+            }
           } else {
-            // Grab whatever flow is defined
-            Object.assign(options, {
-              clientSecret: parentFields.clientSecret,
-              privateKey: parentFields.privateKey ? pathResolve(parentFields.privateKey) : parentFields.privateKey,
-            });
+            const parentFields = await this.loadDecryptedAuthFromConfig(this.options.parentUsername);
+            options.clientId = parentFields.clientId;
+
+            if (process.env.SFDX_CLIENT_SECRET) {
+              options.clientSecret = process.env.SFDX_CLIENT_SECRET;
+            } else {
+              // Grab whatever flow is defined
+              Object.assign(options, {
+                clientSecret: parentFields.clientSecret,
+                privateKey: parentFields.privateKey ? pathResolve(parentFields.privateKey) : parentFields.privateKey,
+              });
+            }
           }
         }
 
@@ -949,11 +1049,25 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
           options.privateKey = pathResolve(options.privateKeyFile);
         }
 
-        if (options.privateKey) {
+        // Route to JWT only when there's a privateKey AND no refreshToken. A legitimate JWT auth never
+        // carries a refreshToken (authJwt writes none, and `login jwt` deletes-then-recreates the auth file).
+        // The edge case that contains BOTH a privateKey AND a refreshToken is when auth was originally JWT
+        // and later switched to Web auth. Web auth does not delete the existing auth file, so `AuthInfo.update`
+        // merges over the old file. In that case the refreshToken is the intended credential, so fall
+        // through to the refresh-token flow instead of misrouting into JWT, which also matches isJwt().
+        if (options.privateKey && !options.refreshToken) {
           authConfig = await this.authJwt(options);
         } else if (!options.authCode && options.refreshToken) {
-          // refresh token flow (from sfdxUrl or OAuth refreshFn)
+          // refresh token flow (from sfdxUrl or OAuth refreshFn).
+          // RTR: this POST rotates the token server-side and invalidates the old one immediately. Persist the
+          // rotated token right here, before the enrichment steps below (determineIfDevHub, orgs.read,
+          // update/encrypt, determineOrg) run. A throw anywhere in that window would otherwise strand the
+          // rotated token in memory while the old one is already dead server-side, permanently breaking the
+          // auth until re-login. Saving now closes that window; enrichment and the caller's save() still run
+          // and layer the org metadata on top of the already-persisted token.
           authConfig = await this.buildRefreshTokenConfig(options);
+          this.update(authConfig);
+          await this.save();
         } else if (this.options.oauth2 instanceof OAuth2) {
           // authcode exchange / web auth flow
           authConfig = await this.exchangeToken(options, this.options.oauth2);
@@ -962,27 +1076,53 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
         }
       }
 
-      authConfig.isDevHub = await this.determineIfDevHub(
-        ensureString(authConfig.instanceUrl),
-        ensureString(authConfig.accessToken)
-      );
-
-      const namespacePrefix = await this.getNamespacePrefix(
-        ensureString(authConfig.instanceUrl),
-        ensureString(authConfig.accessToken)
-      );
-
-      if (namespacePrefix) {
-        authConfig.namespacePrefix = namespacePrefix;
-      }
+      authConfig.isDevHub = await this.resolveDevHub(options, authConfig);
 
       if (authConfig.username) await this.stateAggregator.orgs.read(authConfig.username, false, false);
 
       // Update the auth fields WITH encryption
       this.update(authConfig);
+
+      // A web/auth-code or refresh-token authorization is never a JWT one, so it must not carry a
+      // privateKey. When this flow overwrites an existing auth file (e.g. the user was JWT-authed for
+      // this org, then re-authed via web), the save path merges (Object.assign) over the existing
+      // file and would otherwise retain the stale privateKey, which later misroutes refreshFn into
+      // the JWT flow. Only clear it when a stale value actually lingers so we don't add an empty key
+      // to a fresh authorization.
+      if (!authConfig.privateKey && this.getFields().privateKey) {
+        this.stateAggregator.orgs.update(this.username, { privateKey: undefined });
+      }
+
+      // Populate Organization metadata (orgEdition, isScratch, isSandbox, etc.) in a single query.
+      await this.determineOrgUnlessSupplied(options, authConfig);
     }
 
     return this;
+  }
+
+  private async retrieveUserInfoUnlessSupplied(authConfig: AccessTokenOptions): Promise<void> {
+    if (authConfig.username !== undefined && authConfig.orgId !== undefined) return;
+    const userInfo = await this.retrieveUserInfo(
+      ensureString(authConfig.instanceUrl),
+      ensureString(authConfig.accessToken)
+    );
+    authConfig.username ??= userInfo?.username;
+    authConfig.orgId ??= userInfo?.organizationId;
+  }
+
+  private async resolveDevHub(options: JwtOAuth2Config | AccessTokenOptions, authConfig: AuthFields): Promise<boolean> {
+    return this.isTokenOptions(options) && authConfig.isDevHub !== undefined
+      ? authConfig.isDevHub
+      : this.determineIfDevHub(ensureString(authConfig.instanceUrl), ensureString(authConfig.accessToken));
+  }
+
+  /** Token callers that already supplied namespacePrefix (`''` and `null` count) skip the org query. */
+  private async determineOrgUnlessSupplied(
+    options: JwtOAuth2Config | AccessTokenOptions,
+    authConfig: AuthFields
+  ): Promise<void> {
+    if (this.isTokenOptions(options) && authConfig.namespacePrefix !== undefined) return;
+    await determineOrg(this);
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -1018,10 +1158,26 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     try {
       const fields = this.getFields(true);
 
-      // This method will request the new access token and save to the current AuthInfo instance (but don't persist them!).
-      await this.initAuthOptions(fields);
-      // Persist fields with refreshed access token to auth file.
-      await this.save();
+      // JWT auth mints a fresh access token from a locally-signed assertion and consumes no stored credential,
+      // so concurrent JWT refreshes are independent and safe. The refresh-token flow is different: every caller
+      // refreshes by re-sending the *same persisted refresh token* read from the auth file, and with Refresh
+      // Token Rotation enabled the server returns a new refresh token and invalidates the old one *immediately*.
+      // So two connections/processes refreshing at once would both send that on-disk token and double-rotate the
+      // auth. Serialize just that flow.
+      //
+      // Gate on `refreshToken` alone (not `refreshToken && !privateKey`): a legitimate JWT auth never carries
+      // a refresh token, so this still excludes JWT, and it also covers the fixed edge case where both-fields
+      // exist from an original JWT login and switching to web (stale privateKey + real refreshToken), which
+      // initAuthOptions routes through the refresh-token flow and which therefore must take the lock too.
+      //  See the router in initAuthOptions and isJwt().
+      if (fields.refreshToken) {
+        await this.refreshWithTokenRotationLock(fields.refreshToken);
+      } else {
+        // This method will request the new access token and save to the current AuthInfo instance (but don't persist them!).
+        await this.initAuthOptions(fields);
+        // Persist fields with refreshed access token to auth file.
+        await this.save();
+      }
 
       // Pass new access token to the jsforce's session-refresh callback for proper propagation:
       // https://jsforce.github.io/jsforce/types/session_refresh_delegate.SessionRefreshFunc.html
@@ -1031,10 +1187,150 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       const error = err as Error;
       if (error?.message?.includes('Data Not Available')) {
         // Set cause to keep original stacktrace
-        return await callback(messages.createError('orgDataNotAvailableError', [this.getUsername()], [], error));
+        return callback(messages.createError('orgDataNotAvailableError', [this.getUsername()], [], error));
       }
-      return await callback(error);
+      return callback(error);
     }
+  }
+
+  /**
+   * Single-flight a refresh-token refresh so two connections/processes can't rotate the same token at once.
+   *
+   * With Refresh Token Rotation (RTR) enabled, each refresh returns a new refresh token and invalidates the
+   * previous one; a second refresh sent with the now-stale refresh token fails and invalidates the current token too.
+   * We take a cross-process lock (which also serializes same-process contenders), then re-read the latest
+   * tokens from disk: if another actor already rotated while we waited, we adopt their fresh credentials
+   * instead of refreshing again with our now-invalid token.
+   *
+   * Each pass is one call to `tryRotateOrAdopt`, which (1) adopts if disk already holds a rotated token, else
+   * (2) tries to acquire the lock and, once held, re-checks-then-refreshes. If we can't acquire (a live holder
+   * is mid-rotation, ELOCKED), we do NOT fall back to an unlocked refresh, which would race the holder and double-rotate
+   * under RTR; we simply loop back to (1) and re-run the pass (re-read disk, then try to acquire the lock again).
+   * `proper-lockfile` only grants the lock on genuine release or genuine staleness (a live
+   * holder refreshes its lock mtime ~every 5s and so is never stolen from), so looping converges: a slow holder is waited out,
+   * a dead holder's lock crosses the ~10s stale line and is stolen on a later attempt.
+   * Only a holder that keeps the lock alive for the whole budget below yields the timeout error.
+   *
+   * The lock uses a dedicated `<authfile>.token-rotation.lock`, kept separate from ConfigFile's
+   * own `<authfile>.lock` write lock, because proper-lockfile is not re-entrant: holding the auth-file lock
+   * here and then letting save() re-acquire the same path would self-block.
+   *
+   * KNOWN LIMITATIONS (all inherent, not bugs):
+   *
+   * (1) Only actors that take THIS lock are serialized. Within a single CLI release this is a non-issue: the
+   * CLI deduplicates @salesforce/core to one version, so every in-process refresher runs this same locking
+   * code (and the lock path is derived deterministically, so differing versions that BOTH lock still
+   * interoperate). The realistic gap is a 2nd/3rd-party plugin: those install under the CLI's plugin data dir
+   * with their OWN non-deduped node_modules and may bundle a core version predating this lock. Such a plugin
+   * (or any external tool that refreshes the token directly) won't honor `<authfile>.token-rotation.lock` and
+   * can still double-rotate the same auth while we hold it. There is no server-side coordination to prevent this.
+   *
+   * (2) On the web runtime (Global.isWeb), lockInit is a no-op that takes no lock (matching existing
+   * ConfigFile behavior), so nothing is serialized there.
+   *
+   * (3) A genuinely-stuck holder makes this block for up to the budget below plus one in-flight lock cycle
+   * (~40s) before throwing. Because that happens inside a live jsforce session-refresh, an upstream client
+   * with a shorter timeout may give up first with a less specific error. Only the pathological stuck case
+   * pays this; the common paths return in one lock cycle or via the lock-free adopt.
+   *
+   * @param heldRefreshToken the refresh token this connection currently holds (read from the auth file); the
+   * baseline we compare against disk to detect a rotation, and the token we would send if we do rotate.
+   */
+  private async refreshWithTokenRotationLock(heldRefreshToken: string): Promise<void> {
+    const username = ensure(this.getUsername());
+
+    // Cutoff for STARTING another attempt -- not a wall-clock cap on the whole method. Each attempt either
+    // finishes (adopt or refresh) or reports contention (ELOCKED); we re-attempt ONLY while contended. One
+    // lockInit acquisition cycle is ~10s (its lockRetryOptions retry budget before it throws ELOCKED) and the
+    // cutoff is consulted only between attempts, so a genuinely stuck holder pushes the actual time-to-throw
+    // to roughly this cutoff plus one in-flight cycle. Sizing it to ~35s (~3.5x a cycle) starts a 3rd attempt
+    // at ~20s with room to spare and leaves headroom for a 4th: enough for a dead holder's lock to cross the
+    // 10s stale line and be stolen on a later attempt, and for a slow-but-live holder to release.
+    const attemptDeadline = Date.now() + Duration.seconds(35).milliseconds;
+
+    while (Date.now() < attemptDeadline) {
+      // eslint-disable-next-line no-await-in-loop
+      if (await this.tryRotateOrAdopt(username, heldRefreshToken)) {
+        return;
+      }
+      // Otherwise the lock was contended (a live holder is mid-rotation): loop and re-attempt. We never
+      // refresh unlocked, that would race the holder and double-rotate under RTR. No sleep needed: lockInit
+      // already backed off ~10s, and the next attempt re-reads disk before doing anything.
+    }
+
+    // Past the cutoff with every attempt still contended: a process kept the rotation lock's mtime fresh for
+    // the entire budget without completing. Genuinely stuck, not merely slow or crashed (a crash lets the
+    // lock go stale and be stolen by an attempt above).
+    throw messages.createError('refreshTokenRotationTimeoutError', [username]);
+  }
+
+  /**
+   * One rotation attempt: adopt an already-rotated token if disk has one, else take the lock and
+   * double-check-then-rotate under it.
+   *
+   * @returns `true` if we adopted or refreshed (caller is done); `false` if the lock was contended
+   * (`ELOCKED`) and the caller should re-attempt. Throws on any non-`ELOCKED` failure.
+   */
+  private async tryRotateOrAdopt(username: string, heldRefreshToken: string): Promise<boolean> {
+    // Fast path / adopt: if another connection or process already rotated the token, adopt those fresh
+    // credentials without taking the lock. On the first pass this thins the herd (late arrivals never
+    // contend); on later passes it catches a holder that rotated and released while we were waiting.
+    if (await this.adoptIfAlreadyRotated(username, heldRefreshToken)) {
+      return true;
+    }
+
+    // proper-lockfile appends `.lock`, so this locks `<authfile>.token-rotation.lock`.
+    const lockPath = `${this.stateAggregator.orgs.getPath(username)}.token-rotation`;
+    let unlock: (() => Promise<void>) | undefined;
+    try {
+      ({ unlock } = await lockInit(lockPath));
+    } catch (err) {
+      // Contended: a live holder is mid-rotation. Report it so the caller re-attempts (never refreshing
+      // unlocked, which would double-rotate under RTR). Any non-ELOCKED error is a real failure.
+      if ((err as { code?: string })?.code === 'ELOCKED') {
+        return false;
+      }
+      throw err;
+    }
+
+    // We hold the lock. Run to completion regardless of the caller's cutoff -- we never abandon a rotation we
+    // hold the lock for; the cutoff only gates whether a NEW attempt starts.
+    try {
+      // Double-check under the lock: the holder we queued behind may have rotated while we waited.
+      if (await this.adoptIfAlreadyRotated(username, heldRefreshToken)) {
+        return true;
+      }
+      // No one rotated: perform the refresh (updates this instance in memory) and persist the new token
+      // before we release the lock, so everyone waiting behind us adopts it instead of re-rotating.
+      await this.initAuthOptions(this.getFields(true));
+      await this.save();
+      return true;
+    } finally {
+      await unlock();
+    }
+  }
+
+  /**
+   * Re-read the on-disk auth (without disturbing this instance's in-memory fields) and, if another
+   * connection/process has already rotated the refresh token, adopt those fresh credentials. Disk is
+   * already current in that case, so no save is needed.
+   *
+   * NOTE: this gates on the refresh token only, not access-token freshness (we don't persist access-token
+   * expiry). If the adopted access token has since expired, jsforce gets a 401 and re-enters refreshFn,
+   * which then rotates under the lock (our refresh token now matches disk, so the double-check falls through
+   * to a real refresh). That is one extra round trip in a narrow case, and still strictly better than the
+   * pre-adopt behavior, where refreshing with our rotated-out token would have failed outright.
+   *
+   * @returns true if a rotated token was adopted; false if the on-disk token still matches ours.
+   */
+  private async adoptIfAlreadyRotated(username: string, heldRefreshToken: string): Promise<boolean> {
+    const onDisk = await this.stateAggregator.orgs.peek(username, true);
+    if (onDisk?.refreshToken && onDisk.refreshToken !== heldRefreshToken) {
+      this.logger.info('Refresh token was already rotated by another process; adopting refreshed credentials.');
+      this.update(onDisk);
+      return true;
+    }
+    return false;
   }
 
   private async readJwtKey(keyFile: string): Promise<string> {
@@ -1161,7 +1457,11 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
       accessToken: authFieldsBuilder.access_token,
       instanceUrl: authFieldsBuilder.instance_url,
       loginUrl: fullOptions.loginUrl ?? authFieldsBuilder.instance_url,
-      refreshToken: fullOptions.refreshToken,
+      // Refresh Token Rotation (RTR): when the app has RTR enabled, the token endpoint returns a
+      // NEW refresh_token that we must persist, replacing the one we sent. When RTR is off, the
+      // response omits refresh_token, so we keep the existing one.
+      // https://help.salesforce.com/s/articleView?id=sf.remoteaccess_oauth_refresh_token_flow.htm&type=5
+      refreshToken: authFieldsBuilder.refresh_token ?? fullOptions.refreshToken,
       clientId: fullOptions.clientId,
       clientSecret: fullOptions.clientSecret,
     };
@@ -1175,11 +1475,9 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
    */
   private async exchangeToken(options: JwtOAuth2Config, oauth2: OAuth2 = new OAuth2(options)): Promise<AuthFields> {
     if (!oauth2.redirectUri) {
-      // eslint-disable-next-line no-param-reassign
       oauth2.redirectUri = this.getRedirectUri();
     }
     if (!oauth2.clientId) {
-      // eslint-disable-next-line no-param-reassign
       oauth2.clientId = this.getClientId();
     }
 
@@ -1188,6 +1486,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     try {
       this.logger.debug(`Exchanging auth code for access token using loginUrl: ${options.loginUrl ?? '<undefined>'}`);
       authFields = await oauth2.requestToken(ensure(options.authCode));
+      this.logger.debug(`Successfully requested an access token with scopes: "${authFields.scope}".`);
     } catch (err) {
       const msg = err instanceof Error ? `${err.name}::${err.message}` : typeof err === 'string' ? err : 'UNKNOWN';
       const redacted = filterSecrets(options);
@@ -1276,32 +1575,6 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     throw new SfError(errorMsg);
   }
 
-  private async getNamespacePrefix(instanceUrl: string, accessToken: string): Promise<string | undefined> {
-    // Make a REST call for the Organization obj directly.  Normally this is done via a connection
-    // but we don't want to create circular dependencies or lots of snowflakes
-    // within this file to support it.
-    const apiVersion = 'v51.0'; // hardcoding to v51.0 just for this call is okay.
-    const instance = ensure(instanceUrl);
-    const baseUrl = new SfdcUrl(instance);
-    const namespacePrefixOrgUrl = `${baseUrl.toString()}/services/data/${apiVersion}/query?q=Select%20Namespaceprefix%20FROM%20Organization`;
-    const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
-
-    try {
-      const res = await new Transport().httpRequest({ url: namespacePrefixOrgUrl, method: 'GET', headers });
-      if (res.statusCode >= 400) {
-        return;
-      }
-
-      const namespacePrefix = JSON.parse(res.body) as {
-        records: RecordType[];
-      };
-
-      return ensureString(namespacePrefix.records[0]?.NamespacePrefix);
-    } catch (err) {
-      /* Doesn't have a namespace */
-      return;
-    }
-  }
   /**
    * Returns `true` if the org is a Dev Hub.
    *
@@ -1314,7 +1587,7 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
     const apiVersion = 'v51.0'; // hardcoding to v51.0 just for this call is okay.
     const instance = ensure(instanceUrl);
     const baseUrl = new SfdcUrl(instance);
-    const scratchOrgInfoUrl = `${baseUrl.toString()}/services/data/${apiVersion}/query?q=SELECT%20Id%20FROM%20ScratchOrgInfo%20limit%201`;
+    const scratchOrgInfoUrl = `${baseUrl.toString()}services/data/${apiVersion}/query?q=SELECT%20Id%20FROM%20ScratchOrgInfo%20limit%201`;
     const headers = Object.assign({ Authorization: `Bearer ${accessToken}` }, SFDX_HTTP_HEADERS);
 
     try {

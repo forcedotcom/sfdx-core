@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 /* eslint-disable class-methods-use-this */
 
@@ -37,6 +46,7 @@ import { StateAggregator } from '../stateAggregator/stateAggregator';
 import { PollingClient } from '../status/pollingClient';
 import { StatusResult } from '../status/types';
 import { Connection, SingleRecordQueryErrors } from './connection';
+import { determineOrg } from './determineOrg';
 import { AuthFields, AuthInfo } from './authInfo';
 import { scratchOrgCreate, ScratchOrgCreateOptions, ScratchOrgCreateResult } from './scratchOrgCreate';
 import { OrgConfigProperties } from './orgConfigProperties';
@@ -52,6 +62,7 @@ export type OrganizationInformation = {
   IsSandbox: boolean;
   TrialExpirationDate: string | null;
   NamespacePrefix: string | null;
+  OrganizationType: string;
 };
 
 export enum OrgTypes {
@@ -147,7 +158,16 @@ const sandboxInfoFields = [
   'SourceId',
   'ActivationUserGroupId',
   'Features',
+  'PostCopyConfig',
 ];
+
+export type PostCopyConfigEntry = {
+  ConfigurationName: string;
+  Label: string;
+  Fields: Record<string, string>;
+  IsActive: boolean;
+  ExecutionOrder: number;
+};
 
 export type SandboxRequest = {
   SandboxName: string;
@@ -157,8 +177,10 @@ export type SandboxRequest = {
   Description?: string;
   ApexClassId?: string;
   ActivationUserGroupId?: string;
-  Features?: string[];
+  Features?: string[] | string;
+  PostCopyConfig?: PostCopyConfigEntry[] | string;
 };
+
 export type ResumeSandboxRequest = {
   SandboxName?: string;
   SandboxProcessObjId?: string;
@@ -184,6 +206,7 @@ export type SandboxInfo = {
   ActivationUserGroupId?: string; // Support might be added back in API v61.0 (Summer '24)
   CopyArchivedActivities?: boolean; // only for full sandboxes; depends if a license was purchased
   Features?: string[];
+  PostCopyConfig?: PostCopyConfigEntry[] | string;
 };
 
 export type ScratchOrgRequest = Omit<ScratchOrgCreateOptions, 'hubOrg'>;
@@ -413,6 +436,13 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
   ): Promise<SandboxProcessObject> {
     this.logger.debug(sandboxReq, 'CreateSandbox called with SandboxRequest');
+    // The tooling create API expects a string, not an array, so convert.
+    if (sandboxReq.Features && Array.isArray(sandboxReq.Features)) {
+      sandboxReq.Features = JSON.stringify(sandboxReq.Features);
+    }
+    if (sandboxReq.PostCopyConfig && Array.isArray(sandboxReq.PostCopyConfig)) {
+      sandboxReq.PostCopyConfig = JSON.stringify(sandboxReq.PostCopyConfig);
+    }
     const createResult = await this.connection.tooling.create('SandboxInfo', sandboxReq);
     this.logger.debug(createResult, 'Return from calling tooling.create');
 
@@ -458,6 +488,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
   ): Promise<SandboxProcessObject> {
     this.logger.debug(sandboxInfo, 'RefreshSandbox called with SandboxInfo');
+    if (sandboxInfo.PostCopyConfig && Array.isArray(sandboxInfo.PostCopyConfig)) {
+      sandboxInfo.PostCopyConfig = JSON.stringify(sandboxInfo.PostCopyConfig);
+    }
     const refreshResult = await this.connection.tooling.update('SandboxInfo', sandboxInfo);
     this.logger.debug(refreshResult, 'Return from calling tooling.update');
 
@@ -580,7 +613,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
             await this.writeSandboxAuthFile(sandboxCreationProgress, sandboxInfo);
             return sandboxCreationProgress;
           } catch (err) {
-            // eat the error, we don't want to throw an error if we can't write the file
+            const authError = err instanceof Error ? err : new Error(String(err));
+            this.logger.debug('Failed to write sandbox auth file', authError.message);
+            const sfError = messages.createError('sandboxAuthNotComplete', [authError.message]);
+            sfError.cause = authError;
+            throw sfError;
           }
         }
       }
@@ -932,7 +969,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public async retrieveOrganizationInformation(): Promise<OrganizationInformation> {
     return this.getConnection().singleRecordQuery<OrganizationInformation>(
-      'SELECT Name, InstanceName, IsSandbox, TrialExpirationDate, NamespacePrefix FROM Organization'
+      'SELECT Name, InstanceName, IsSandbox, TrialExpirationDate, NamespacePrefix, OrganizationType FROM Organization'
     );
   }
 
@@ -945,10 +982,30 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
 
     const whereClause = by.id ? `Id='${by.id}'` : `SandboxName='${by.name ?? '<undefined>'}'`;
-    const soql = `SELECT ${sandboxInfoFields.join(
-      ','
-    )} FROM SandboxInfo WHERE ${whereClause} ORDER BY CreatedDate DESC`;
-    const result = (await this.connection.tooling.query<SandboxInfo>(soql)).records.filter((item) => !item.IsDeleted);
+    const buildSoql = (fields: string[]): string =>
+      `SELECT ${fields.join(',')} FROM SandboxInfo WHERE ${whereClause} ORDER BY CreatedDate DESC`;
+
+    let soql = buildSoql(sandboxInfoFields);
+    let records: SandboxInfo[];
+    try {
+      records = (await this.connection.tooling.query<SandboxInfo>(soql)).records;
+    } catch (err) {
+      // PostCopyConfig is only available on orgs running a release that exposes the field on
+      // the Tooling API. Older orgs reject the SOQL with INVALID_FIELD ("No such column ...").
+      // Retry once without PostCopyConfig so existing customers aren't broken.
+      const message = err instanceof Error ? err.message : String(err);
+      const isInvalidField =
+        (err instanceof Error && err.name === 'INVALID_FIELD') || message.includes('No such column');
+      if (isInvalidField && message.includes('PostCopyConfig')) {
+        this.logger.debug('PostCopyConfig not supported on this org; retrying SandboxInfo query without it');
+        soql = buildSoql(sandboxInfoFields.filter((f) => f !== 'PostCopyConfig'));
+        records = (await this.connection.tooling.query<SandboxInfo>(soql)).records;
+      } else {
+        throw err;
+      }
+    }
+
+    const result = records.filter((item) => !item.IsDeleted);
 
     if (result.length === 0) {
       throw new SfError(`No record found for ${soql}`, SingleRecordQueryErrors.NoRecords);
@@ -974,6 +1031,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         | Org.Fields.IS_SANDBOX
         | Org.Fields.IS_SCRATCH
         | Org.Fields.TRIAL_EXPIRATION_DATE
+        | Org.Fields.ORG_EDITION
       >
     | undefined
   > {
@@ -990,6 +1048,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         [Org.Fields.IS_SANDBOX]: organization.IsSandbox && !organization.TrialExpirationDate,
         [Org.Fields.IS_SCRATCH]: organization.IsSandbox && Boolean(organization.TrialExpirationDate),
         [Org.Fields.TRIAL_EXPIRATION_DATE]: organization.TrialExpirationDate,
+        [Org.Fields.ORG_EDITION]: organization.OrganizationType,
       };
       stateAggregator.orgs.update(username, updateFields);
       await stateAggregator.orgs.write(username);
@@ -998,21 +1057,16 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
   }
 
   /**
-   * Executes a HEAD request on the baseUrl to force an auth refresh.
+   * Executes a GET request on the baseUrl to force an auth refresh.
    * This is useful for the raw methods (request, requestRaw) that use the accessToken directly and don't handle refreshes.
    *
    * This method issues a request using the current access token to check if it is still valid.
    * If the request returns 200, no refresh happens, and we keep the token.
    * If it returns 401, jsforce will request a new token and set it in the connection instance.
    */
-  public async refreshAuth(): Promise<void> {
-    this.logger.debug('Refreshing auth for org.');
-    const requestInfo: HttpRequest = {
-      url: this.getConnection().baseUrl(),
-      method: 'HEAD',
-    };
 
-    await this.getConnection().request(requestInfo);
+  public async refreshAuth(): Promise<ReturnType<Connection['refreshAuth']>> {
+    await this.getConnection().refreshAuth();
   }
 
   /**
@@ -1259,12 +1313,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    * Initialize async components.
    */
   protected async init(): Promise<void> {
-    const stateAggregator = await StateAggregator.getInstance();
     this.logger = (await Logger.child('Org')).getRawLogger();
-
-    this.configAggregator = this.options.aggregator ? this.options.aggregator : await ConfigAggregator.create();
+    this.configAggregator = this.options.aggregator ?? (await ConfigAggregator.create());
 
     if (!this.options.connection) {
+      const stateAggregator = await StateAggregator.getInstance();
       if (this.options.aliasOrUsername == null) {
         this.configAggregator = this.getConfigAggregator();
         const aliasOrUsername = this.options.isDevHub
@@ -1285,12 +1338,18 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       this.connection = this.options.connection;
     }
     this.orgId = this.getField(Org.Fields.ORG_ID);
+
+    try {
+      await determineOrg(this.getConnection().getAuthInfo());
+    } catch {
+      // best effort — connection may not support getAuthInfo (e.g. passed-in mock)
+    }
   }
 
   /**
    * **Throws** *{@link SfError}{ name: 'NotSupportedError' }* Throws an unsupported error.
    */
-  // eslint-disable-next-line class-methods-use-this
+
   protected getDefaultOptions(): Org.Options {
     throw new SfError('Not Supported', 'NotSupportedError');
   }
@@ -1361,7 +1420,6 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
   }
 
-  // eslint-disable-next-line class-methods-use-this
   private async queryProduction(org: Org, field: string, value: string): Promise<{ SandboxInfoId: string }> {
     return org.connection.singleRecordQuery<{ SandboxInfoId: string }>(
       `SELECT SandboxInfoId FROM SandboxProcess WHERE ${field} ='${value}' AND Status NOT IN ('D', 'E')`,
@@ -1650,7 +1708,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       await Lifecycle.getInstance().emit(SandboxEvents.EVENT_RESULT, {
         sandboxProcessObj,
         sandboxRes,
-      } as ResultEvent);
+      });
     } else {
       // no authed sandbox user, error
       throw messages.createError('missingAuthUsername', [sandboxProcessObj.SandboxName]);
@@ -1668,8 +1726,20 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     const pollingClient = await PollingClient.create({
       poll: async (): Promise<StatusResult> => {
         const sandboxProcessObj = await this.querySandboxProcessById(options.sandboxProcessObj.Id);
-        // check to see if sandbox can authenticate via sandboxAuth endpoint
-        const sandboxInfo = await this.sandboxSignupComplete(sandboxProcessObj);
+        let sandboxInfo: SandboxUserAuthResponse | undefined;
+        try {
+          // check to see if sandbox can authenticate via sandboxAuth endpoint
+          sandboxInfo = await this.sandboxSignupComplete(sandboxProcessObj);
+        } catch (err) {
+          const error = err instanceof Error ? err : SfError.wrap(isString(err) ? err : 'unknown');
+          if (error.name === 'SandboxAuthIncompleteError') {
+            this.logger.debug('Sandbox auth returned INVALID_STATUS, will retry', error.message);
+            waitingOnAuth = true;
+          } else {
+            throw error;
+          }
+        }
+
         if (sandboxInfo) {
           await Lifecycle.getInstance().emit(SandboxEvents.EVENT_AUTH, sandboxInfo);
           try {
@@ -1692,7 +1762,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
           remainingWait: remainingWait.seconds,
           interval: options.pollInterval.seconds,
           waitingOnAuth,
-        } as StatusEvent);
+        });
         remainingWait = Duration.seconds(remainingWait.seconds - options.pollInterval.seconds);
         return { completed: false, payload: sandboxProcessObj };
       },
@@ -1773,10 +1843,11 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       // In that case, the sandboxAuth call will throw a specific exception.
       if (error?.name === 'INVALID_STATUS') {
         this.logger.debug('Error while authenticating the user:', error.message);
-      } else {
-        // If it fails for any unexpected reason, rethrow
-        throw error;
+        const sfError = messages.createError('sandboxAuthIncomplete', [error.message]);
+        sfError.cause = error;
+        throw sfError;
       }
+      throw error;
     }
   }
 
@@ -1806,7 +1877,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
         force: true,
       });
     } catch (e) {
-      const err = SfError.wrap(e as string | Error);
+      const err = SfError.wrap(e);
       // consume the error in case something  went wrong
       this.logger.debug(`error deleting source tracking information for ${this.getOrgId()} error: ${err.message}`);
     }
@@ -1864,6 +1935,10 @@ export namespace Org {
     NAMESPACE_PREFIX = 'namespacePrefix',
     INSTANCE_NAME = 'instanceName',
     TRIAL_EXPIRATION_DATE = 'trailExpirationDate',
+    /**
+     * The org edition. e.g. `Developer Edition`, `Enterprise Edition`.
+     */
+    ORG_EDITION = 'orgEdition',
 
     /**
      * The Salesforce instance the org was created on. e.g. `cs42`.

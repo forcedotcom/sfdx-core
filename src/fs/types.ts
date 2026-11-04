@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2023, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 import type * as nodeFs from 'node:fs';
 import type { IFs as MemFs } from 'memfs';
@@ -47,18 +56,24 @@ export type VirtualFs = Omit<
     ) => Promise<void>;
     readFile: {
       (path: string): Promise<Buffer>;
-      (path: string, encoding: BufferEncoding): Promise<string>;
+      (path: string, options: BufferEncoding | { encoding: BufferEncoding }): Promise<string>;
     };
+    glob: MemFs['promises']['glob'];
   };
 
   // Override sync methods with specific types
   readFileSync: {
+    (path: string, options: BufferEncoding | { encoding: BufferEncoding }): string;
     (path: string): Buffer;
-    (path: string, encoding: BufferEncoding): string;
   };
-  writeFileSync: (file: string, data: string | Buffer, encoding?: BufferEncoding) => void;
+  writeFileSync: (
+    file: string,
+    data: string | Buffer,
+    options?: BufferEncoding | { encoding?: BufferEncoding; mode?: string | number }
+  ) => void;
   /** there are some differences between node:fs and memfs for statSync around bigint stats.  Be careful if using those */
   statSync: typeof nodeFs.statSync;
+  globSync: MemFs['globSync'];
   mkdtempSync: typeof nodeFs.mkdtempSync;
   createWriteStream: typeof nodeFs.createWriteStream;
   mkdirSync: typeof nodeFs.mkdirSync;

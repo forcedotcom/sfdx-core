@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -15,6 +24,7 @@ import { SfError } from '../../src/sfError';
 import { Messages } from '../../src/messages';
 import { SfProject, SfProjectJson, NamedPackageDir } from '../../src/sfProject';
 import { shouldThrow, shouldThrowSync, TestContext } from '../../src/testSetup';
+import { Lifecycle } from '../../src/lifecycleEvents';
 
 describe('SfProject', () => {
   const $$ = new TestContext();
@@ -33,14 +43,12 @@ describe('SfProject', () => {
           const json = await SfProjectJson.create();
           json.set('packageAliases', { MyName: 'somePackage' });
           await json.write();
-          // @ts-expect-error possibly undefined
-          expect($$.getConfigStubContents('SfProjectJson').packageAliases['MyName']).to.equal('somePackage');
+          expect(json.getPackageAliases()!['MyName']).to.equal('somePackage');
         });
         it('allows uppercase packaging aliases on read', async () => {
           $$.setConfigStubContents('SfProjectJson', { contents: { packageAliases: { MyName: 'somePackage' } } });
           const json = await SfProjectJson.create();
-          // @ts-expect-error possibly undefined
-          expect(json.get('packageAliases')['MyName']).to.equal('somePackage');
+          expect(json.getPackageAliases()!['MyName']).to.equal('somePackage');
         });
       });
       describe('plugins', () => {
@@ -55,6 +63,19 @@ describe('SfProject', () => {
           $$.setConfigStubContents('SfProjectJson', { contents: { plugins: pluginsContent } });
           const json = await SfProjectJson.create();
           expect(json.get('plugins')).to.deep.equal(pluginsContent);
+        });
+      });
+      describe('packageBundleAliases', () => {
+        it('allows uppercase packaging aliases on write', async () => {
+          const json = await SfProjectJson.create();
+          json.set('packageBundleAliases', { MyName: 'someBundle' });
+          await json.write();
+          expect(json.getPackageBundleAliases()!['MyName']).to.equal('someBundle');
+        });
+        it('allows uppercase packaging aliases on read', async () => {
+          $$.setConfigStubContents('SfProjectJson', { contents: { packageBundleAliases: { MyName: 'someBundle' } } });
+          const json = await SfProjectJson.create();
+          expect(json.getPackageBundleAliases()!['MyName']).to.equal('someBundle');
         });
       });
     });
@@ -120,42 +141,50 @@ describe('SfProject', () => {
         },
       });
       const loggerSpy = $$.SANDBOX.spy($$.TEST_LOGGER, 'warn');
+      const warnStub = $$.SANDBOX.stub(Lifecycle.prototype, 'emitWarning');
+
       const project = new SfProjectJson({});
       await project.schemaValidate();
       expect(loggerSpy.called).to.be.false;
+      expect(warnStub.called).to.be.false;
     });
-    it('throws when SFDX_PROJECT_JSON_VALIDATION=true and invalid file', async () => {
-      $$.setConfigStubContents('SfProjectJson', {
-        contents: {
-          packageDirectories: [{ path: 'force-app', default: true }],
-          foo: 'bar',
-        },
-      });
-      $$.SANDBOX.stub(env, 'getBoolean').callsFake((envVarName) => envVarName === 'SFDX_PROJECT_JSON_VALIDATION');
-      const expectedError = "Validation errors:\n#/additionalProperties: must NOT have additional properties 'foo'";
-      try {
-        const project = new SfProjectJson({});
-        await shouldThrow(project.schemaValidate());
-      } catch (e) {
-        if (!(e instanceof Error)) {
-          expect.fail('Expected error to be an instance of Error');
+
+    describe('invalid file', () => {
+      it('throws when SFDX_PROJECT_JSON_VALIDATION=true', async () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageDirectories: [{ path: 'force-app', default: true }],
+            foo: 'bar',
+          },
+        });
+        $$.SANDBOX.stub(env, 'getBoolean').callsFake((envVarName) => envVarName === 'SFDX_PROJECT_JSON_VALIDATION');
+        const expectedError = 'Unrecognized key: "foo"';
+        try {
+          const project = new SfProjectJson({});
+          await shouldThrow(project.schemaValidate());
+        } catch (e) {
+          if (!(e instanceof Error)) {
+            expect.fail('Expected error to be an instance of Error');
+          }
+          expect(e.name).to.equal('SchemaValidationError');
+          expect(e.message).to.contain(expectedError);
         }
-        expect(e.name).to.equal('SchemaValidationError');
-        expect(e.message).to.contain(expectedError);
-      }
-    });
-    it('warns when SFDX_PROJECT_JSON_VALIDATION=false and invalid file', async () => {
-      $$.setConfigStubContents('SfProjectJson', {
-        contents: {
-          packageDirectories: [{ path: 'force-app', default: true }],
-          foo: 'bar',
-        },
       });
-      const loggerSpy = $$.SANDBOX.spy($$.TEST_LOGGER, 'warn');
-      const project = new SfProjectJson({});
-      await project.schemaValidate();
-      expect(loggerSpy.calledOnce).to.be.true;
-      expect(loggerSpy.args[0][0]).to.contain('is not schema valid');
+      it('warns when SFDX_PROJECT_JSON_VALIDATION=false', async () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageDirectories: [{ path: 'force-app', default: true }],
+            foo: 'bar',
+          },
+        });
+        const warnStub = $$.SANDBOX.stub(Lifecycle.prototype, 'emitWarning');
+        const project = new SfProjectJson({});
+        await project.schemaValidate();
+
+        expect(warnStub.calledOnce).to.be.true;
+        expect(warnStub.firstCall.firstArg).to.contain('is not schema valid');
+        expect(warnStub.firstCall.firstArg).to.contain('Unrecognized key');
+      });
     });
   });
 
@@ -267,7 +296,7 @@ describe('SfProject', () => {
       const read = async function () {
         // @ts-expect-error this is any
         if (this.isGlobal()) {
-          return { sfdcLoginUrl: 'globalUrl' };
+          return { sfdcLoginUrl: 'https://global.my.salesforce.com' };
         } else {
           return {};
         }
@@ -275,56 +304,56 @@ describe('SfProject', () => {
       $$.configStubs.SfProjectJson = { retrieveContents: read };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
-      expect(config['sfdcLoginUrl']).to.equal('globalUrl');
+      expect(config['sfdcLoginUrl']).to.equal('https://global.my.salesforce.com');
     });
     it('gets local overrides global', async () => {
       const read = async function () {
         // @ts-expect-error this is any
         if (this.isGlobal()) {
-          return { sfdcLoginUrl: 'globalUrl' };
+          return { sfdcLoginUrl: 'https://global.my.salesforce.com' };
         } else {
-          return { sfdcLoginUrl: 'localUrl' };
+          return { sfdcLoginUrl: 'https://local.my.salesforce.com' };
         }
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
-      expect(config['sfdcLoginUrl']).to.equal('localUrl');
+      expect(config['sfdcLoginUrl']).to.equal('https://local.my.salesforce.com');
     });
     it('gets env overrides local and config', async () => {
-      process.env.FORCE_SFDC_LOGIN_URL = 'envarUrl';
+      process.env.FORCE_SFDC_LOGIN_URL = 'https://envvar.my.salesforce.com';
       const read = async function () {
         // @ts-expect-error this is any
         if (this.isGlobal()) {
-          return { sfdcLoginUrl: 'globalUrl' };
+          return { sfdcLoginUrl: 'https://global.my.salesforce.com' };
         } else {
-          return { sfdcLoginUrl: 'localUrl' };
+          return { sfdcLoginUrl: 'https://local.my.salesforce.com' };
         }
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
       $$.configStubs.Config = { contents: { instanceUrl: 'https://dontusethis.my.salesforce.com' } };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
-      expect(config['sfdcLoginUrl']).to.equal('envarUrl');
+      expect(config['sfdcLoginUrl']).to.equal('https://envvar.my.salesforce.com');
     });
     it('gets signupTargetLoginUrl local', async () => {
       const read = async function () {
-        return { signupTargetLoginUrl: 'localUrl' };
+        return { signupTargetLoginUrl: 'https://signup.my.salesforce.com' };
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
-      expect(config['signupTargetLoginUrl']).to.equal('localUrl');
+      expect(config['signupTargetLoginUrl']).to.equal('https://signup.my.salesforce.com');
     });
     it('gets SFDX_SCRATCH_ORG_CREATION_LOGIN_URL env overrides config', async () => {
-      process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL = 'envarUrl';
+      process.env.SFDX_SCRATCH_ORG_CREATION_LOGIN_URL = 'https://envvar-signup.my.salesforce.com';
       const read = async function () {
-        return { signupTargetLoginUrl: 'localUrl' };
+        return { signupTargetLoginUrl: 'https://signup.my.salesforce.com' };
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
-      expect(config['signupTargetLoginUrl']).to.equal('envarUrl');
+      expect(config['signupTargetLoginUrl']).to.equal('https://envvar-signup.my.salesforce.com');
     });
     it('gets config org-instance-url sets sfdcLoginUrl when there is none elsewhere', async () => {
       const read = async function () {
@@ -347,9 +376,9 @@ describe('SfProject', () => {
       const read = async function () {
         // @ts-expect-error this is any
         if (this.isGlobal()) {
-          return { 'org-api-version': '38.0', sfdcLoginUrl: 'https://fromfiles.com' };
+          return { 'org-api-version': '38.0', sfdcLoginUrl: 'https://fromfiles.my.salesforce.com' };
         } else {
-          return { 'org-api-version': '39.0', sfdcLoginUrl: 'https://fromfiles.com' };
+          return { 'org-api-version': '39.0', sfdcLoginUrl: 'https://fromfiles.my.salesforce.com' };
         }
       };
       $$.configStubs.SfProjectJson = { retrieveContents: read };
@@ -358,7 +387,7 @@ describe('SfProject', () => {
       };
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
-      expect(config['sfdcLoginUrl']).to.equal('https://fromfiles.com');
+      expect(config['sfdcLoginUrl']).to.equal('https://fromfiles.my.salesforce.com');
     });
     it('gets config overrides local', async () => {
       const read = async function () {
@@ -374,6 +403,79 @@ describe('SfProject', () => {
       const project = await SfProject.resolve();
       const config = await project.resolveProjectConfig();
       expect(config['org-api-version']).to.equal('40.0');
+    });
+    it('rejects sfdcLoginUrl that is not a Salesforce domain', async () => {
+      const read = async function () {
+        return { sfdcLoginUrl: 'https://attacker.example.com' };
+      };
+      $$.configStubs.SfProjectJson = { retrieveContents: read };
+      const project = await SfProject.resolve();
+      try {
+        await project.resolveProjectConfig();
+        assert.fail('Expected an error to be thrown');
+      } catch (e) {
+        expect(e).to.be.instanceOf(SfError);
+        expect((e as SfError).message).to.include('https://attacker.example.com');
+        expect((e as SfError).message).to.include('not a valid Salesforce domain');
+      }
+    });
+    it('rejects non-Salesforce FORCE_SFDC_LOGIN_URL env var', async () => {
+      process.env.FORCE_SFDC_LOGIN_URL = 'https://evil.example.com';
+      $$.configStubs.SfProjectJson = { contents: {} };
+      const project = await SfProject.resolve();
+      try {
+        await project.resolveProjectConfig();
+        assert.fail('Expected an error to be thrown');
+      } catch (e) {
+        expect(e).to.be.instanceOf(SfError);
+        expect((e as SfError).message).to.include('https://evil.example.com');
+      }
+    });
+    it('allows valid Salesforce custom domain in sfdcLoginUrl', async () => {
+      const read = async function () {
+        return { sfdcLoginUrl: 'https://mycompany.my.salesforce.com' };
+      };
+      $$.configStubs.SfProjectJson = { retrieveContents: read };
+      const project = await SfProject.resolve();
+      const config = await project.resolveProjectConfig();
+      expect(config['sfdcLoginUrl']).to.equal('https://mycompany.my.salesforce.com');
+    });
+    it('allows internal URLs in sfdcLoginUrl', async () => {
+      const read = async function () {
+        return { sfdcLoginUrl: 'https://myorg.stm.salesforce.com' };
+      };
+      $$.configStubs.SfProjectJson = { retrieveContents: read };
+      const project = await SfProject.resolve();
+      const config = await project.resolveProjectConfig();
+      expect(config['sfdcLoginUrl']).to.equal('https://myorg.stm.salesforce.com');
+    });
+    it('rejects malformed (non-URL) sfdcLoginUrl', async () => {
+      const read = async function () {
+        return { sfdcLoginUrl: 'not-a-valid-url' };
+      };
+      $$.configStubs.SfProjectJson = { retrieveContents: read };
+      const project = await SfProject.resolve();
+      try {
+        await project.resolveProjectConfig();
+        assert.fail('Expected an error to be thrown');
+      } catch (e) {
+        expect(e).to.be.instanceOf(SfError);
+        expect((e as SfError).message).to.include('not-a-valid-url');
+      }
+    });
+    it('rejects non-Salesforce signupTargetLoginUrl', async () => {
+      const read = async function () {
+        return { signupTargetLoginUrl: 'https://attacker.example.com' };
+      };
+      $$.configStubs.SfProjectJson = { retrieveContents: read };
+      const project = await SfProject.resolve();
+      try {
+        await project.resolveProjectConfig();
+        assert.fail('Expected an error to be thrown');
+      } catch (e) {
+        expect(e).to.be.instanceOf(SfError);
+        expect((e as SfError).message).to.include('https://attacker.example.com');
+      }
     });
   });
 
@@ -676,9 +778,7 @@ describe('SfProject', () => {
         });
 
         const project = SfProject.getInstance();
-        project
-          .getSfProjectJson()
-          .addPackageDirectory({ path: './force-app', package: 'p1', default: true } as NamedPackageDir);
+        project.getSfProjectJson().addPackageDirectory({ path: './force-app', package: 'p1', default: true });
 
         expect(SfProject.getInstance().hasMultiplePackages()).to.equal(false);
       });
@@ -709,7 +809,7 @@ describe('SfProject', () => {
           package: 'p1',
           default: true,
           ancestorId: '04txxxxxxxxxxxxxxx',
-        } as NamedPackageDir);
+        });
 
         expect(project.hasMultiplePackages()).to.equal(false);
         expect(project.getSfProjectJson().getPackageDirectoriesSync()[0]).to.have.property(
@@ -727,17 +827,17 @@ describe('SfProject', () => {
         });
 
         const project = SfProject.getInstance();
-        expect(project.getPackageAliases()).to.not.be.ok;
+        expect(project.getPackageAliases()).to.be.undefined;
       });
-      it('should return false no aliases are defined', () => {
+      it('should return false no aliases are defined', async () => {
         $$.setConfigStubContents('SfProjectJson', {
           contents: {},
         });
 
         const project = SfProject.getInstance();
-        expect(project.hasPackageAliases()).to.not.be.false;
+        expect(await project.hasPackageAliases()).to.be.false;
       });
-      it('should return true when at least one alias is defined', () => {
+      it('should return true when at least one alias is defined', async () => {
         $$.setConfigStubContents('SfProjectJson', {
           contents: {
             packageAliases: {
@@ -747,7 +847,7 @@ describe('SfProject', () => {
         });
 
         const project = SfProject.getInstance();
-        expect(project.hasPackageAliases()).to.not.be.true;
+        expect(await project.hasPackageAliases()).to.be.true;
       });
       it('should return the defined package aliases', () => {
         $$.setConfigStubContents('SfProjectJson', {
@@ -775,7 +875,7 @@ describe('SfProject', () => {
         const project = SfProject.getInstance();
         expect(project.getPackageIdFromAlias('alias1')).to.equal('04txxxxxxxxxxxxxxx');
       });
-      it('should find id of alias by name', () => {
+      it('should not find id of alias by name when name not in aliases collection', () => {
         $$.setConfigStubContents('SfProjectJson', {
           contents: {
             packageAliases: {
@@ -835,6 +935,234 @@ describe('SfProject', () => {
         const project = SfProject.getInstance();
         project.getSfProjectJson().addPackageAlias('alias2', '04tyyyyyyyyyyyyyyy');
         expect(project.getAliasesFromPackageId('04tyyyyyyyyyyyyyyy')).to.deep.equal(['alias2']);
+      });
+    });
+  });
+  describe('addPackageBundle', () => {
+    it('should add a new package bundle when no package bundles exist', () => {
+      $$.setConfigStubContents('SfProjectJson', {
+        contents: {
+          packageBundles: [],
+        },
+      });
+
+      const project = SfProject.getInstance();
+      project.getSfProjectJson().addPackageBundle({
+        name: 'testBundle',
+        versionName: 'testBundle',
+        versionNumber: '1.0.0.0',
+        versionDescription: 'testBundle',
+      });
+
+      expect(SfProject.getInstance().hasMultiplePackageBundles()).to.equal(false);
+    });
+    it('should add a new package bundle when no package bundles property exists', () => {
+      $$.setConfigStubContents('SfProjectJson', {
+        contents: {},
+      });
+
+      const project = SfProject.getInstance();
+      project.getSfProjectJson().addPackageBundle({
+        name: 'testBundle',
+        versionName: 'testBundle',
+        versionNumber: '1.0.0.0',
+        versionDescription: 'testBundle',
+      });
+
+      expect(SfProject.getInstance().hasMultiplePackageBundles()).to.equal(false);
+      expect(project.getSfProjectJson().getPackageBundles()).to.have.lengthOf(1);
+    });
+    it('should add a new package bundle to existing package bundles', () => {
+      $$.setConfigStubContents('SfProjectJson', {
+        contents: {
+          packageBundles: [
+            {
+              name: 'testBundle',
+              versionName: 'testBundle',
+              versionNumber: '1.0.0.0',
+              versionDescription: 'testBundle',
+            },
+          ],
+        },
+      });
+
+      const project = SfProject.getInstance();
+      project.getSfProjectJson().addPackageBundle({
+        name: 'testBundle2',
+        versionName: 'testBundle2',
+        versionNumber: '1.0.0.0',
+        versionDescription: 'testBundle2',
+      });
+
+      expect(SfProject.getInstance().hasMultiplePackageBundles()).to.equal(true);
+    });
+    it('should add a new package bundle to existing package bundles', () => {
+      $$.setConfigStubContents('SfProjectJson', {
+        contents: {
+          packageBundles: [
+            {
+              name: 'testBundle',
+              versionName: 'testBundle',
+              versionNumber: '1.0.0.0',
+              versionDescription: 'testBundle',
+            },
+          ],
+        },
+      });
+
+      const project = SfProject.getInstance();
+      project.getSfProjectJson().addPackageBundle({
+        name: 'testBundle2',
+        versionName: 'testBundle2',
+        versionNumber: '1.0.0.0',
+        versionDescription: 'testBundle2',
+      });
+
+      expect(SfProject.getInstance().hasMultiplePackageBundles()).to.equal(true);
+    });
+    it('should merge to an existing existing package bundle', () => {
+      $$.setConfigStubContents('SfProjectJson', {
+        contents: {
+          packageBundles: [
+            {
+              name: 'testBundle',
+              versionName: 'testBundle',
+              versionNumber: '1.0.0.0',
+              versionDescription: 'testBundle',
+            },
+          ],
+        },
+      });
+
+      const project = SfProject.getInstance();
+      project.getSfProjectJson().addPackageBundle({
+        name: 'testBundle',
+        versionName: 'testBundle',
+        versionNumber: '1.0.0.0',
+        versionDescription: 'testBundle',
+      });
+
+      expect(project.hasMultiplePackageBundles()).to.equal(false);
+      expect(project.getSfProjectJson().getPackageBundles()[0]).to.have.property('versionNumber', '1.0.0.0');
+    });
+  });
+
+  describe('packageBundleAliases', () => {
+    describe('sfproject bundle aliases', () => {
+      it('should return an undefined object if no bundle aliases are defined', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {},
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getSfProjectJson().getPackageBundleAliases()).to.be.undefined;
+      });
+      it('should return false when no bundle aliases are defined', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {},
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getSfProjectJson().hasPackageBundleAliases()).to.be.false;
+      });
+      it('should return true when at least one bundle alias is defined', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageBundleAliases: {
+              alias1: '1Flxxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getSfProjectJson().hasPackageBundleAliases()).to.be.true;
+      });
+      it('should return the defined package aliases', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageBundleAliases: {
+              alias1: '1Flxxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getSfProjectJson().getPackageBundleAliases()).to.deep.equal({
+          alias1: '1Flxxxxxxxxxxxxxxx',
+        });
+      });
+      it('should find id of alias by name', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageBundleAliases: {
+              alias1: '1Flxxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getPackageBundleIdFromAlias('alias1')).to.equal('1Flxxxxxxxxxxxxxxx');
+      });
+      it('should not find id of alias by name when name not in aliases collection', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageBundleAliases: {
+              alias1: '1Flxxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getPackageBundleIdFromAlias('alias2')).to.not.be.ok;
+      });
+      it('should find alias by id', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageBundleAliases: {
+              alias1: '1Flxxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getAliasesFromPackageBundleId('1Flxxxxxxxxxxxxxxx')).to.deep.equal(['alias1']);
+      });
+      it('should not find alias by id using id not in aliases collection', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageBundleAliases: {
+              alias1: '1Flxxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getAliasesFromPackageBundleId('1Flyyyyyyyyyyyyyy')).to.deep.equal([]);
+      });
+      it('should find alias using 15 char id', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageBundleAliases: {
+              alias1: '1Flxxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        expect(project.getAliasesFromPackageBundleId('1Flxxxxxxxxxxxx')).to.deep.equal(['alias1']);
+      });
+      it('should add a new alias', () => {
+        $$.setConfigStubContents('SfProjectJson', {
+          contents: {
+            packageBundleAliases: {
+              alias1: '1Flxxxxxxxxxxxxxxx',
+            },
+          },
+        });
+
+        const project = SfProject.getInstance();
+        project.getSfProjectJson().addPackageBundleAlias('alias2', '1Flyyyyyyyyyyyyyy');
+        expect(project.getAliasesFromPackageBundleId('1Flyyyyyyyyyyyyyy')).to.deep.equal(['alias2']);
       });
     });
   });

@@ -266,6 +266,10 @@ URL to a private npm server, where all packages that you publish are private.
 
 Set to true to enable Apex pre-compile before the tests are run with the Apex test run command. Default is false.
 
+# sfPropagators
+
+Comma-separated list of context propagators used for outbound API requests. Trace-context forwarding is disabled unless this variable is set. Supported values are `tracecontext`, `b3`, `b3multi`, and `none`. Set to `none` to disable all trace-context forwarding.
+
 # sfProjectAutoupdateDisableForPackageCreate
 
 Set to true to disable automatic updates to sfdx-project.json when running the package create command.
@@ -319,3 +323,7 @@ Your environment has both variables populated, and with different values. The va
 # sfCapitalizeRecordTypes
 
 Whether record types are capitalized on scratch org creation.
+
+# sfSkipScratchOrgCheck
+
+Set to "true" to skip the scratch org and sandbox identification check that runs after authenticating an org. When enabled, `sf org login jwt` (and other login commands) will not query existing cached orgs to determine whether the newly authenticated org is a scratch org or sandbox. This can significantly speed up authentication in CI/CD environments with many cached org authorizations.

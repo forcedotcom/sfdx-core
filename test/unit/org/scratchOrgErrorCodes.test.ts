@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 import { expect } from 'chai';
 import { Duration } from '@salesforce/kit';
@@ -255,5 +264,21 @@ describe('getHumanErrorMessage', () => {
   it('Passes for non errors', async () => {
     const successOrgInfo: ScratchOrgInfo = { ...baseOrgInfo, Status: 'Active' };
     expect(await checkScratchOrgInfoForErrors(successOrgInfo, testUsername)).to.deep.equal(successOrgInfo);
+  });
+
+  it('C-1016 includes env var workaround in actions', async () => {
+    const ErrorCode = 'C-1016';
+    try {
+      await shouldThrow(checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername));
+    } catch (err) {
+      if (!(err instanceof SfError)) {
+        expect.fail('should have thrown SfError');
+      }
+      expect(err.name).to.equal('RemoteOrgSignupFailed');
+      expect(err.message).to.include('Connected App');
+      expect(err.actions).to.have.lengthOf(2);
+      expect(err.actions![0]).to.include('information on error code');
+      expect(err.actions![1]).to.include('SF_SCRATCH_SIGNUP_CONNECTED_APP');
+    }
   });
 });

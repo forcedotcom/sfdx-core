@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 import { stubMethod } from '@salesforce/ts-sinon';
 import { AnyJson, isString } from '@salesforce/ts-types';
@@ -12,6 +21,7 @@ import { MockTestOrgData, shouldThrow, shouldThrowSync, TestContext } from '../.
 import { Org } from '../../../src/org/org';
 import { DefaultUserFields, User } from '../../../src/org/user';
 import { AuthInfo } from '../../../src/org/authInfo';
+import * as determineOrgModule from '../../../src/org/determineOrg';
 import { Connection } from '../../../src/org/connection';
 import { PermissionSetAssignment } from '../../../src/org/permissionSetAssignment';
 
@@ -70,7 +80,7 @@ describe('User Tests', () => {
     it('refresh auth called', async () => {
       stubMethod($$.SANDBOX, User.prototype, 'rawRequest').resolves({
         statusCode: 201,
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+
         body: `{"id": "${user1.getMockUserInfo()['Id']}"}`,
         headers: {
           'auto-approve-user': user1.refreshToken,
@@ -116,41 +126,172 @@ describe('User Tests', () => {
   describe('generatePasswordUtf8', () => {
     const iterations = 1000;
 
-    it(`Should generate ${iterations} passwords containing at least one number and one upper and lowercase letter `, () => {
+    const digitArray: string[] = '0123456789'.split('');
+    const upperArray: string[] = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    const lowerArray: string[] = 'abcdefghijklmnopqrstuvwxyz'.split('');
+    const symbolArray: string[] = '!@#$|%^&*()[]_-'.split('');
+
+    it(`Should generate ${iterations} passwords containing at least one number, uppercase, lowercase, and symbol`, () => {
       for (let i = 0; i < iterations; i++) {
         const password: SecureBuffer<void> = User.generatePasswordUtf8();
         password.value((buffer: Buffer): void => {
           const passwordAsArrayOfCharacters = buffer.toString('utf8').split('');
           expect(passwordAsArrayOfCharacters.length).to.be.equal(13);
-          expect(
-            passwordAsArrayOfCharacters.some((char) =>
-              ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(char)
-            )
+          expect(passwordAsArrayOfCharacters.some((char) => digitArray.includes(char))).to.equal(
+            true,
+            'expected digits'
           );
-          expect(passwordAsArrayOfCharacters.some((char) => char.toUpperCase() !== char.toLowerCase()));
-          expect(passwordAsArrayOfCharacters.some((char) => char.toLowerCase() !== char.toLowerCase()));
+          expect(passwordAsArrayOfCharacters.some((char) => upperArray.includes(char))).to.equal(
+            true,
+            'expected uppercase letters'
+          );
+          expect(passwordAsArrayOfCharacters.some((char) => lowerArray.includes(char))).to.equal(
+            true,
+            'expected lowercase letters'
+          );
+          expect(passwordAsArrayOfCharacters.some((char) => symbolArray.includes(char))).to.equal(
+            true,
+            'expected symbols'
+          );
         });
       }
     });
 
-    it('Should generate length 12 and complexity 5 password containing at least one number and one  lowercase letter ', () => {
+    it('Should generate length 12 and complexity 5 password containing at least one number, one upper and lowercase letter, and one symbol', () => {
       const passwordCondition = { length: 12, complexity: 5 };
       const password: SecureBuffer<void> = User.generatePasswordUtf8(passwordCondition);
       password.value((buffer: Buffer): void => {
-        const passwordAsArrayOfCharacters = buffer.toString('utf8');
-        const complexity5Regex = new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$|%^&*()[]_-])(?=.{12})');
-
-        expect(complexity5Regex.test(passwordAsArrayOfCharacters));
+        const passwordAsArrayOfCharacters = buffer.toString('utf8').split('');
+        expect(passwordAsArrayOfCharacters.length).to.be.equal(12);
+        expect(passwordAsArrayOfCharacters.some((char) => digitArray.includes(char))).to.equal(true, 'expected digits');
+        expect(passwordAsArrayOfCharacters.some((char) => upperArray.includes(char))).to.equal(
+          true,
+          'expected uppercase letters'
+        );
+        expect(passwordAsArrayOfCharacters.some((char) => lowerArray.includes(char))).to.equal(
+          true,
+          'expected lowercase letters'
+        );
+        expect(passwordAsArrayOfCharacters.some((char) => symbolArray.includes(char))).to.equal(
+          true,
+          'expected symbols'
+        );
       });
     });
-    it('Should generate length 14 and complexity 3 password containing at least one number and one  lowercase letter ', () => {
+
+    it('Should generate length 12 and complexity 4 password containing at least one upper and lowercase letter and at least one symbol', () => {
+      const passwordCondition = { length: 12, complexity: 4 };
+      const password: SecureBuffer<void> = User.generatePasswordUtf8(passwordCondition);
+      password.value((buffer: Buffer): void => {
+        const passwordAsCharArray = buffer.toString('utf8').split('');
+        expect(passwordAsCharArray.length).to.be.equal(12);
+        // Should be no numbers
+        expect(passwordAsCharArray.some((char) => digitArray.includes(char))).to.equal(false, 'expected no digits');
+        expect(passwordAsCharArray.some((char) => upperArray.includes(char))).to.equal(
+          true,
+          'expected uppercase letters'
+        );
+        expect(passwordAsCharArray.some((char) => lowerArray.includes(char))).to.equal(
+          true,
+          'expected lowercase letters'
+        );
+        expect(passwordAsCharArray.some((char) => symbolArray.includes(char))).to.equal(true, 'expected symbols');
+      });
+    });
+
+    it('Should generate length 14 and complexity 3 password containing at least one number, one uppercase, and one lowercase letter ', () => {
       const passwordCondition = { length: 14, complexity: 3 };
       const password: SecureBuffer<void> = User.generatePasswordUtf8(passwordCondition);
       password.value((buffer: Buffer): void => {
-        const passwordAsArrayOfCharacters = buffer.toString('utf8');
-        const complexity3Regex = new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{14})');
+        const passwordAsArrayOfCharacters = buffer.toString('utf8').split('');
+        expect(passwordAsArrayOfCharacters.length).to.be.equal(14);
+        expect(passwordAsArrayOfCharacters.some((char) => digitArray.includes(char))).to.equal(true, 'expected digits');
+        expect(passwordAsArrayOfCharacters.some((char) => upperArray.includes(char))).to.equal(
+          true,
+          'expected uppercase letters'
+        );
+        expect(passwordAsArrayOfCharacters.some((char) => lowerArray.includes(char))).to.equal(
+          true,
+          'expected lowercase letters'
+        );
+        expect(passwordAsArrayOfCharacters.some((char) => symbolArray.includes(char))).to.equal(
+          false,
+          'expected no symbols'
+        );
+      });
+    });
 
-        expect(complexity3Regex.test(passwordAsArrayOfCharacters));
+    it('Should generate length 14 and complexity 2 password containing at least one symbol and at least one lowercase letter', () => {
+      const passwordCondition = { length: 14, complexity: 2 };
+      const password: SecureBuffer<void> = User.generatePasswordUtf8(passwordCondition);
+      password.value((buffer: Buffer): void => {
+        const passwordAsArrayOfCharacters = buffer.toString('utf8').split('');
+        expect(passwordAsArrayOfCharacters.length).to.be.equal(14);
+        expect(passwordAsArrayOfCharacters.some((char) => digitArray.includes(char))).to.equal(
+          false,
+          'expected no digits'
+        );
+        expect(passwordAsArrayOfCharacters.some((char) => upperArray.includes(char))).to.equal(
+          false,
+          'expected no uppercase letters'
+        );
+        expect(passwordAsArrayOfCharacters.some((char) => lowerArray.includes(char))).to.equal(
+          true,
+          'expected lowercase letters'
+        );
+        expect(passwordAsArrayOfCharacters.some((char) => symbolArray.includes(char))).to.equal(
+          true,
+          'expected symbols'
+        );
+      });
+    });
+
+    it('Should generate length 14 and complexity 1 password containing at least one lowercase letter and at least one number', () => {
+      const passwordCondition = { length: 14, complexity: 1 };
+      const password: SecureBuffer<void> = User.generatePasswordUtf8(passwordCondition);
+      password.value((buffer: Buffer): void => {
+        const passwordAsArrayOfCharacters = buffer.toString('utf8').split('');
+        expect(passwordAsArrayOfCharacters.length).to.be.equal(14);
+        expect(passwordAsArrayOfCharacters.some((char) => digitArray.includes(char))).to.equal(true, 'expected digits');
+        expect(passwordAsArrayOfCharacters.some((char) => upperArray.includes(char))).to.equal(
+          false,
+          'expected no uppercase letters'
+        );
+        expect(passwordAsArrayOfCharacters.some((char) => lowerArray.includes(char))).to.equal(
+          true,
+          'expected lowercase letters'
+        );
+        // Should be no symbols
+        expect(passwordAsArrayOfCharacters.some((char) => symbolArray.includes(char))).to.equal(
+          false,
+          'expected no symbols'
+        );
+      });
+    });
+
+    it('Should generate length 14 and complexity 0 password containing only lowercase letters', () => {
+      const passwordCondition = { length: 14, complexity: 0 };
+      const password: SecureBuffer<void> = User.generatePasswordUtf8(passwordCondition);
+      password.value((buffer: Buffer): void => {
+        const passwordAsArrayOfCharacters = buffer.toString('utf8').split('');
+        expect(passwordAsArrayOfCharacters.length).to.be.equal(14);
+        expect(passwordAsArrayOfCharacters.some((char) => digitArray.includes(char))).to.equal(
+          false,
+          'expected no digits'
+        );
+        expect(passwordAsArrayOfCharacters.some((char) => upperArray.includes(char))).to.equal(
+          false,
+          'expected no uppercase letters'
+        );
+        expect(passwordAsArrayOfCharacters.some((char) => lowerArray.includes(char))).to.equal(
+          true,
+          'expected lowercase letters'
+        );
+        // Should be no symbols
+        expect(passwordAsArrayOfCharacters.some((char) => symbolArray.includes(char))).to.equal(
+          false,
+          'expected no symbols'
+        );
       });
     });
 
@@ -159,7 +300,6 @@ describe('User Tests', () => {
         const passwordCondition = { length: 14, complexity: 9 };
         shouldThrowSync(() => User.generatePasswordUtf8(passwordCondition));
       } catch (err) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect((err as Error).message).to.equal(
           'Invalid complexity value. Specify a value between 0 and 5, inclusive.'
         );
@@ -171,7 +311,6 @@ describe('User Tests', () => {
         const passwordCondition = { length: 7, complexity: 2 };
         shouldThrowSync(() => User.generatePasswordUtf8(passwordCondition));
       } catch (err) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         expect((err as Error).message).to.equal('Invalid length value. Specify a value between 8 and 1000, inclusive.');
       }
     });
@@ -186,7 +325,7 @@ describe('User Tests', () => {
           'auto-approve-user': '789101',
         },
       });
-      stubMethod($$.SANDBOX, AuthInfo.prototype, 'getNamespacePrefix').resolves();
+      stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
 
       const org = await Org.create({
         connection: await Connection.create({

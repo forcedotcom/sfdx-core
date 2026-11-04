@@ -1,3 +1,745 @@
+## [9.4.4](https://github.com/forcedotcom/sfdx-core/compare/9.4.3...9.4.4) (2026-10-30)
+
+
+### Bug Fixes
+
+* **deps:** bump undici from 8.11.2 to 8.12.3 ([f811046](https://github.com/forcedotcom/sfdx-core/commit/f8110461f3ef444c744582a49d0dd715e6577a75))
+
+
+
+## [9.4.3](https://github.com/forcedotcom/sfdx-core/compare/9.4.2...9.4.3) (2026-10-29)
+
+
+### Bug Fixes
+
+* api version access date cached as ISO string @W-24685191@ ([05ce0fd](https://github.com/forcedotcom/sfdx-core/commit/05ce0fdee993963f6af7fd8d37359f0065976cc2))
+
+
+
+## [9.4.2](https://github.com/forcedotcom/sfdx-core/compare/9.4.1...9.4.2) (2026-10-22)
+
+
+### Bug Fixes
+
+* **deps:** bump markdown-it from 14.3.1 to 14.3.3 ([bd5dc6f](https://github.com/forcedotcom/sfdx-core/commit/bd5dc6f5f95ec4da8db2a25eb1cf7ed562ec10a0))
+
+
+
+## [9.4.1](https://github.com/forcedotcom/sfdx-core/compare/9.4.0...9.4.1) (2026-10-21)
+
+
+### Bug Fixes
+
+* use wall-clock time for config CRDT timestamps ([9ea5908](https://github.com/forcedotcom/sfdx-core/commit/9ea5908154221dee34f17a888c7c6c62ffe5fd8c))
+
+
+
+# [9.4.0](https://github.com/forcedotcom/sfdx-core/compare/9.3.7...9.4.0) (2026-10-16)
+
+
+### Bug Fixes
+
+* deduplicate propagator warnings ([433c13e](https://github.com/forcedotcom/sfdx-core/commit/433c13e57fee3ebf52ef6e98d23a4d078172e201))
+* forward trace context through jsforce ([4bb74ee](https://github.com/forcedotcom/sfdx-core/commit/4bb74eeca4eea49a58ec4532db363ad13d275a8a))
+* harden W3C trace context validation per spec ([c2f77da](https://github.com/forcedotcom/sfdx-core/commit/c2f77dab367029ccf6d0c485eb5095bd53df1e29))
+* make trace propagation opt-in ([6e7688a](https://github.com/forcedotcom/sfdx-core/commit/6e7688a074684c49ab5b36cfa645d3c1f1f24641))
+* validate configured propagators ([ccc46dd](https://github.com/forcedotcom/sfdx-core/commit/ccc46dd728b9758722c70af6649910098c13409e))
+* validate trace propagator settings ([8257856](https://github.com/forcedotcom/sfdx-core/commit/8257856f8039fe46413363cc77b0ea27ca92db71))
+
+
+### Features
+
+* configure jsforce propagators ([f352b6f](https://github.com/forcedotcom/sfdx-core/commit/f352b6fc0ac482691620352ad59f3a0fb4f2fea6))
+* configure trace context propagators ([4f8b341](https://github.com/forcedotcom/sfdx-core/commit/4f8b3412c09d71c788ad6f7462b7e150fba486ad))
+* forward W3C trace context headers on outbound API requests ([e039aea](https://github.com/forcedotcom/sfdx-core/commit/e039aea866fcbda4af7ccbb2b44dd7179482b718))
+
+
+
+## [9.3.7](https://github.com/forcedotcom/sfdx-core/compare/9.3.6...9.3.7) (2026-10-16)
+
+
+### Bug Fixes
+
+* **project:** guard traversal for invalid cwd - W-24534219 ([#1358](https://github.com/forcedotcom/sfdx-core/issues/1358)) ([e5c67fc](https://github.com/forcedotcom/sfdx-core/commit/e5c67fc0c4f90c8789949a3eb400ecc8aae3f77b))
+
+
+
+## [9.3.6](https://github.com/forcedotcom/sfdx-core/compare/9.3.5...9.3.6) (2026-10-09)
+
+
+### Bug Fixes
+
+* **deps:** bump fast-copy from 3.0.2 to 3.1.0 ([de68662](https://github.com/forcedotcom/sfdx-core/commit/de68662767d536e2ae129977f617c4d0705d9da1))
+
+
+
+## [9.3.5](https://github.com/forcedotcom/sfdx-core/compare/9.3.4...9.3.5) (2026-10-09)
+
+
+### Bug Fixes
+
+* **deps:** bump fast-copy from 3.0.2 to 3.1.0 in /examples ([e630515](https://github.com/forcedotcom/sfdx-core/commit/e630515ae655ff0346232ea327663345b84f78c8))
+
+
+
+## [9.3.4](https://github.com/forcedotcom/sfdx-core/compare/9.3.3...9.3.4) (2026-10-09)
+
+
+### Bug Fixes
+
+* **deps:** bump source-map-js from 1.2.1 to 1.2.2 ([cd2ae75](https://github.com/forcedotcom/sfdx-core/commit/cd2ae75dba7de76baef3c530be9d11c22efcac9f))
+
+
+
+## [9.3.3](https://github.com/forcedotcom/sfdx-core/compare/9.3.2...9.3.3) (2026-10-08)
+
+
+### Bug Fixes
+
+* **deps:** bump jsforce-node to 3.10.29 ([89b2d1a](https://github.com/forcedotcom/sfdx-core/commit/89b2d1acff5d88929fa58c80b3c7eb986cba39d9))
+
+
+
+## [9.3.2](https://github.com/forcedotcom/sfdx-core/compare/9.3.1...9.3.2) (2026-10-07)
+
+
+### Bug Fixes
+
+* **deps:** bump fast-uri from 3.1.7 to 3.1.8 ([d1f64e3](https://github.com/forcedotcom/sfdx-core/commit/d1f64e3051e74f235598419793220a88d37fa783))
+
+
+
+## [9.3.1](https://github.com/forcedotcom/sfdx-core/compare/9.3.0...9.3.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **deps:** bump undici from 8.5.0 to 8.11.2 ([21b26a0](https://github.com/forcedotcom/sfdx-core/commit/21b26a0fc888c42f0bc79943d505d1fee090fd1f))
+
+
+
+# [9.3.0](https://github.com/forcedotcom/sfdx-core/compare/9.2.2...9.3.0) (2026-10-01)
+
+
+### Features
+
+* **auth:** skip token-path HTTP when AccessTokenOptions already has the fields - W-24349622 ([#1346](https://github.com/forcedotcom/sfdx-core/issues/1346)) ([2772f41](https://github.com/forcedotcom/sfdx-core/commit/2772f41f6aa4196d6813d7e0b4f2111a067a983c))
+
+
+
+## [9.2.2](https://github.com/forcedotcom/sfdx-core/compare/9.2.1...9.2.2) (2026-09-28)
+
+
+### Bug Fixes
+
+* **deps:** bump fast-uri from 3.1.4 to 3.1.7 ([df419d4](https://github.com/forcedotcom/sfdx-core/commit/df419d481876eb6393a6175b1959b814405795b3))
+
+
+
+## [9.2.1](https://github.com/forcedotcom/sfdx-core/compare/9.2.0...9.2.1) (2026-09-28)
+
+
+### Bug Fixes
+
+* remove stale TS/eslint suppressions ([#1341](https://github.com/forcedotcom/sfdx-core/issues/1341)) ([e11f56e](https://github.com/forcedotcom/sfdx-core/commit/e11f56ee5d3c8df8938ba7531cb6d6c5f9924db5))
+
+
+
+# [9.2.0](https://github.com/forcedotcom/sfdx-core/compare/9.1.12-qa.1...9.2.0) (2026-09-17)
+
+
+### Bug Fixes
+
+* create force-app dir in RTR NUT and fix lint errors in webOauthServer test ([e11923e](https://github.com/forcedotcom/sfdx-core/commit/e11923e280386b43a959903066480a787e087912))
+
+
+
+## [9.1.12-qa.1](https://github.com/forcedotcom/sfdx-core/compare/9.1.12-qa.0...9.1.12-qa.1) (2026-09-17)
+
+
+### Bug Fixes
+
+* save fast before org enrichment ([e006ad8](https://github.com/forcedotcom/sfdx-core/commit/e006ad81ad0ea3631436b1c713e7dba82953a497))
+
+
+
+## [9.1.12-qa.0](https://github.com/forcedotcom/sfdx-core/compare/9.1.11...9.1.12-qa.0) (2026-09-16)
+
+
+### Bug Fixes
+
+* refresh routing and web auth hygiene ([f64faaa](https://github.com/forcedotcom/sfdx-core/commit/f64faaa27a0e28748e108e6ba3e56e1023489cbf))
+* rtr race condition handling ([21e7866](https://github.com/forcedotcom/sfdx-core/commit/21e7866b8ac52490148425a14f2d05ea0c6683ed))
+
+
+### Features
+
+* store new refresh token from server ([d0e7e30](https://github.com/forcedotcom/sfdx-core/commit/d0e7e302afb19fb2d87fd30adaf6327cd0efb3e1))
+
+
+
+## [9.1.11](https://github.com/forcedotcom/sfdx-core/compare/9.1.10...9.1.11) (2026-09-08)
+
+
+### Bug Fixes
+
+* speed up org login by optimizing identifyPossibleScratchOrgs @W-23969733@ ([#1336](https://github.com/forcedotcom/sfdx-core/issues/1336)) ([53d5fd0](https://github.com/forcedotcom/sfdx-core/commit/53d5fd01877cde3b3c0942e4e8de3d272f828b6e))
+
+
+
+## [9.1.10](https://github.com/forcedotcom/sfdx-core/compare/9.1.9...9.1.10) (2026-09-03)
+
+
+### Bug Fixes
+
+* add mocha types to tsconfig.json ([b3bfab8](https://github.com/forcedotcom/sfdx-core/commit/b3bfab83b2beaad1d2bf87d93aab5a99eed126b6))
+* fix type errors and transformer build for TS v6 ([4aca8c7](https://github.com/forcedotcom/sfdx-core/commit/4aca8c70a92292fce63b5ceca986737649843d29))
+* re-add tspc to the compile command ([4a76214](https://github.com/forcedotcom/sfdx-core/commit/4a76214c73360222b910aacf92d149ab1d97323e))
+
+
+
+## [9.1.9](https://github.com/forcedotcom/sfdx-core/compare/9.1.8...9.1.9) (2026-08-31)
+
+
+### Bug Fixes
+
+* add salesforce.mil to allowlisted Salesforce domains ([1cab4b9](https://github.com/forcedotcom/sfdx-core/commit/1cab4b98a91fb13c5fce0206a04e07d3e170bf3f))
+
+
+
+## [9.1.8](https://github.com/forcedotcom/sfdx-core/compare/9.1.7...9.1.8) (2026-08-27)
+
+
+### Bug Fixes
+
+* bump jsforce ([f677107](https://github.com/forcedotcom/sfdx-core/commit/f67710763077b77742b3e41802de504be6ff0668))
+
+
+
+## [9.1.7](https://github.com/forcedotcom/sfdx-core/compare/9.1.6...9.1.7) (2026-08-25)
+
+
+
+## [9.1.6](https://github.com/forcedotcom/sfdx-core/compare/9.1.5...9.1.6) (2026-08-24)
+
+
+### Bug Fixes
+
+* add mocha types to testSetup.ts ([b109e6e](https://github.com/forcedotcom/sfdx-core/commit/b109e6e9296af8e278a7c5d89cb37ed2de677ba2))
+
+
+
+## [9.1.5](https://github.com/forcedotcom/sfdx-core/compare/9.1.4...9.1.5) (2026-08-21)
+
+
+### Bug Fixes
+
+* mitigated SAST findings ([15dc4f8](https://github.com/forcedotcom/sfdx-core/commit/15dc4f822f00b49794a85d6e127513c81be403ce))
+* rejiggered eslint.config.mjs (W-23928423) ([b88b99f](https://github.com/forcedotcom/sfdx-core/commit/b88b99f534264b01b272652bb6da9b93d791f607))
+
+
+
+## [9.1.4](https://github.com/forcedotcom/sfdx-core/compare/9.1.3...9.1.4) (2026-08-18)
+
+
+### Bug Fixes
+
+* update to jsforce-node 3.10.22 to pick up bug fix ([c2f31a5](https://github.com/forcedotcom/sfdx-core/commit/c2f31a54c2a0d46b957118b78e30d7c0a1e77a83))
+
+
+
+## [9.1.3](https://github.com/forcedotcom/sfdx-core/compare/9.1.2...9.1.3) (2026-08-18)
+
+
+### Bug Fixes
+
+* testing the script for res ([bcfbf98](https://github.com/forcedotcom/sfdx-core/commit/bcfbf98c55bd0251702441131bc0e701a472b326))
+* update clear error ([89a374b](https://github.com/forcedotcom/sfdx-core/commit/89a374b0e7a734654b8261992adfd86f111c11ec))
+* update features ([ddad141](https://github.com/forcedotcom/sfdx-core/commit/ddad14102218d7f22f682674b2a9b65012b78c9a))
+* update the fetchJson ([43ccfb5](https://github.com/forcedotcom/sfdx-core/commit/43ccfb52d095c0c8c1ce3418b970b9a35108cb5a))
+
+
+
+## [9.1.2](https://github.com/forcedotcom/sfdx-core/compare/9.1.1...9.1.2) (2026-08-11)
+
+
+### Bug Fixes
+
+* tighten sfdcLoginUrl validation to prevent OAuth relay attacks @W-23791599@ ([#1325](https://github.com/forcedotcom/sfdx-core/issues/1325)) ([1e3c8fa](https://github.com/forcedotcom/sfdx-core/commit/1e3c8fa8364b592de32ef08435c30dd00c8ea453))
+
+
+
+## [9.1.1](https://github.com/forcedotcom/sfdx-core/compare/9.1.0...9.1.1) (2026-08-07)
+
+
+### Bug Fixes
+
+* resolve TS2694 pino.TransportSingleOptions type error in emitted .d.ts @W-23751214@ ([#1324](https://github.com/forcedotcom/sfdx-core/issues/1324)) ([19b05bc](https://github.com/forcedotcom/sfdx-core/commit/19b05bc6d485b63aca6d232fc2b724edcd4d3e8b))
+
+
+
+# [9.1.0](https://github.com/forcedotcom/sfdx-core/compare/9.0.0...9.1.0) (2026-07-31)
+
+
+### Features
+
+* env vars to override scratch org signup Connected App @W-23543471@ ([#1315](https://github.com/forcedotcom/sfdx-core/issues/1315)) ([78321c7](https://github.com/forcedotcom/sfdx-core/commit/78321c700c5a419da391f0596ed7337f7a5ec765))
+
+
+
+# [9.0.0](https://github.com/forcedotcom/sfdx-core/compare/8.32.6...9.0.0) (2026-07-29)
+
+
+* feat!: require Node >=22.0.0, drop EOL Node versions @W-00000000@ ([60d9fe6](https://github.com/forcedotcom/sfdx-core/commit/60d9fe61dcd0181e9c48270080fd68d7263c7c4d))
+
+
+### BREAKING CHANGES
+
+* raises minimum Node to >=22.0.0
+
+
+
+## [8.32.6](https://github.com/forcedotcom/sfdx-core/compare/8.32.5...8.32.6) (2026-07-24)
+
+
+### Bug Fixes
+
+* **deps:** bump fast-uri from 3.0.1 to 3.1.4 ([e0d01fb](https://github.com/forcedotcom/sfdx-core/commit/e0d01fb76b39b6003f88fc77fe080b6c7b4930a0))
+
+
+
+## [8.32.5](https://github.com/forcedotcom/sfdx-core/compare/8.32.4...8.32.5) (2026-07-21)
+
+
+### Bug Fixes
+
+* fall back to 1d for unrecognized SF_LOG_ROTATION_PERIOD values @W-23050508@ ([#1314](https://github.com/forcedotcom/sfdx-core/issues/1314)) ([26cfc6a](https://github.com/forcedotcom/sfdx-core/commit/26cfc6ae0046ee17d3e6e122cc9fbfec7c243419))
+
+
+
+## [8.32.4](https://github.com/forcedotcom/sfdx-core/compare/8.32.3...8.32.4) (2026-07-16)
+
+
+### Bug Fixes
+
+* **deps:** bump websocket-driver from 0.7.4 to 0.7.5 ([9fd28dd](https://github.com/forcedotcom/sfdx-core/commit/9fd28dd2046da06c54340868e34dc8cf589e7557))
+
+
+
+## [8.32.3](https://github.com/forcedotcom/sfdx-core/compare/8.32.2...8.32.3) (2026-07-13)
+
+
+### Bug Fixes
+
+* validate sfdcLoginUrl domain before use as OAuth endpoint @W-22835124@ ([652a692](https://github.com/forcedotcom/sfdx-core/commit/652a6920f5f2bd7d57d63321aebdf5bb48eea5a7))
+
+
+
+## [8.32.2](https://github.com/forcedotcom/sfdx-core/compare/8.32.1...8.32.2) (2026-07-06)
+
+
+### Bug Fixes
+
+* remove double slash in determineIfDevHub request URL @W-23299190@ ([#1310](https://github.com/forcedotcom/sfdx-core/issues/1310)) ([a62de2f](https://github.com/forcedotcom/sfdx-core/commit/a62de2f16a10375c1bb3eb7e111585afdd5a3833))
+
+
+
+## [8.32.1](https://github.com/forcedotcom/sfdx-core/compare/8.32.0...8.32.1) (2026-07-06)
+
+
+### Bug Fixes
+
+* validate cached instanceApiVersion before use @W-23157155@ ([#1307](https://github.com/forcedotcom/sfdx-core/issues/1307)) ([27bd8ef](https://github.com/forcedotcom/sfdx-core/commit/27bd8ef35702a60bb42616cb75310dee1f70853a))
+
+
+
+# [8.32.0](https://github.com/forcedotcom/sfdx-core/compare/8.31.5...8.32.0) (2026-07-06)
+
+
+### Features
+
+* add projectPath and skipCache options to AuthRemover @W-23271398@ ([#1309](https://github.com/forcedotcom/sfdx-core/issues/1309)) ([813aefd](https://github.com/forcedotcom/sfdx-core/commit/813aefd8bd5fb948ebac7103b960764dd98e120a))
+
+
+
+## [8.31.5](https://github.com/forcedotcom/sfdx-core/compare/8.31.4...8.31.5) (2026-06-30)
+
+
+### Bug Fixes
+
+* isWeb() no longer misdetects Bun as a browser environment @W-21890292@ ([59f6873](https://github.com/forcedotcom/sfdx-core/commit/59f6873ca2ebe916caa06e2d7ddb36486bcdf766))
+* keep FORCE_MEMFS scoped to fs layer, not global isWeb() ([2f1bacd](https://github.com/forcedotcom/sfdx-core/commit/2f1bacdcbe270debf718384c05a82bc7557b4790))
+* use Bun-specific detection instead of changing browser heuristic @W-21890292@ ([db119c3](https://github.com/forcedotcom/sfdx-core/commit/db119c3bed65ff20df960c3bfdb5890003d7c8f6))
+
+
+
+## [8.31.4](https://github.com/forcedotcom/sfdx-core/compare/8.31.3...8.31.4) (2026-06-25)
+
+
+### Bug Fixes
+
+* bumped jsforce to fixed version @W-23121570@ ([09dfab0](https://github.com/forcedotcom/sfdx-core/commit/09dfab076f90e3a507a8e8c12a275dc1cbe8ff64))
+* temporarily using different workflows @W-23121570@ ([240e162](https://github.com/forcedotcom/sfdx-core/commit/240e162ff9e9c5ce52248f72b8c3c7afe2eb3a9e))
+* undoing custom workflow ([bd7d018](https://github.com/forcedotcom/sfdx-core/commit/bd7d018dc1c8e03ea3a4f369278d3f768fa7d899))
+
+
+
+## [8.31.3](https://github.com/forcedotcom/sfdx-core/compare/8.31.2...8.31.3) (2026-06-24)
+
+
+### Bug Fixes
+
+* no edition warning when scratch org uses snapshot @W-22694430@ ([#1304](https://github.com/forcedotcom/sfdx-core/issues/1304)) ([2e0501d](https://github.com/forcedotcom/sfdx-core/commit/2e0501d3489797b45698c2c86c5edf85c7eef710))
+
+
+
+## [8.31.2](https://github.com/forcedotcom/sfdx-core/compare/8.31.1...8.31.2) (2026-06-16)
+
+
+### Bug Fixes
+
+* handling postcopyconfig sandboxinfo field for lower orgs too ([#1299](https://github.com/forcedotcom/sfdx-core/issues/1299)) ([521f256](https://github.com/forcedotcom/sfdx-core/commit/521f256b509a60fcc0fb8ef4cf7d6c7f7eed27a2))
+
+
+
+## [8.31.1](https://github.com/forcedotcom/sfdx-core/compare/8.31.0...8.31.1) (2026-06-10)
+
+
+### Bug Fixes
+
+* use correct Lead business process picklist value for Developer edition ([deb7efa](https://github.com/forcedotcom/sfdx-core/commit/deb7efa03664abe5a179eba80d504eb842a4ee1f))
+
+
+
+# [8.31.0](https://github.com/forcedotcom/sfdx-core/compare/8.30.4...8.31.0) (2026-05-21)
+
+
+### Features
+
+* persist orgEdition during Org.create for all org types - W-22583951 ([#1290](https://github.com/forcedotcom/sfdx-core/issues/1290)) ([1684b60](https://github.com/forcedotcom/sfdx-core/commit/1684b606d3510d44511e602336beac6fd9290eab))
+
+
+
+## [8.30.4](https://github.com/forcedotcom/sfdx-core/compare/8.30.3...8.30.4) (2026-05-17)
+
+
+### Bug Fixes
+
+* **deps:** bump form-data from 4.0.4 to 4.0.5 ([a502227](https://github.com/forcedotcom/sfdx-core/commit/a502227698a8e683ee1c76f61bd5a7d766212cd1))
+
+
+
+## [8.30.3](https://github.com/forcedotcom/sfdx-core/compare/8.30.2...8.30.3) (2026-05-16)
+
+
+### Bug Fixes
+
+* **deps:** bump semver and @types/semver ([8566551](https://github.com/forcedotcom/sfdx-core/commit/856655170288fb735b1c31d5f3b77bbe9cf4bf51))
+
+
+
+## [8.30.2](https://github.com/forcedotcom/sfdx-core/compare/8.30.1...8.30.2) (2026-05-16)
+
+
+### Bug Fixes
+
+* **deps:** bump form-data from 4.0.0 to 4.0.5 in /examples ([1a6d9ea](https://github.com/forcedotcom/sfdx-core/commit/1a6d9eaa1cc852589acf6a72c4a6f3fca1f1dcad))
+
+
+
+## [8.30.1](https://github.com/forcedotcom/sfdx-core/compare/8.30.0...8.30.1) (2026-05-15)
+
+
+### Bug Fixes
+
+* **deps:** bump flatted from 3.3.1 to 3.4.2 ([adf63d6](https://github.com/forcedotcom/sfdx-core/commit/adf63d621ca00990727abfefa29bedd809745990))
+
+
+
+# [8.30.0](https://github.com/forcedotcom/sfdx-core/compare/8.29.1...8.30.0) (2026-05-11)
+
+
+### Features
+
+* add org edition (OrganizationType) to auth info fields ([#1285](https://github.com/forcedotcom/sfdx-core/issues/1285)) ([c19f05f](https://github.com/forcedotcom/sfdx-core/commit/c19f05f5188680290a26fc7a84e8a6f612d58e87))
+
+
+
+## [8.29.1](https://github.com/forcedotcom/sfdx-core/compare/8.29.0...8.29.1) (2026-05-09)
+
+
+### Bug Fixes
+
+* **deps:** bump fast-uri from 3.0.6 to 3.1.2 in /examples ([a5ae777](https://github.com/forcedotcom/sfdx-core/commit/a5ae777781e72dedfc37f33a523ba7b73da15eed))
+
+
+
+# [8.29.0](https://github.com/forcedotcom/sfdx-core/compare/8.28.4...8.29.0) (2026-04-29)
+
+
+### Features
+
+* update settings live doc ([#1282](https://github.com/forcedotcom/sfdx-core/issues/1282)) ([be77e82](https://github.com/forcedotcom/sfdx-core/commit/be77e82070a69fcd251814f717b00515d017a45f))
+
+
+
+## [8.28.4](https://github.com/forcedotcom/sfdx-core/compare/8.28.3...8.28.4) (2026-04-24)
+
+
+### Bug Fixes
+
+* remove the response ([67ab727](https://github.com/forcedotcom/sfdx-core/commit/67ab727054ae195bf1c3c71b016121f461f244d9))
+* update response in catch block sandbox ([0ac5ba8](https://github.com/forcedotcom/sfdx-core/commit/0ac5ba874a68fa8b5a14062bcfaaba95690aea3c))
+* update the md file and test ([c453813](https://github.com/forcedotcom/sfdx-core/commit/c453813622ec98954d7a58a346eb5448f1cb3808))
+
+
+
+## [8.28.3](https://github.com/forcedotcom/sfdx-core/compare/8.28.2...8.28.3) (2026-04-15)
+
+
+### Bug Fixes
+
+* **deps:** bump lodash from 4.17.21 to 4.18.1 ([a044a1c](https://github.com/forcedotcom/sfdx-core/commit/a044a1c318a49963866b27832924a1c8a949ad11))
+
+
+
+## [8.28.2](https://github.com/forcedotcom/sfdx-core/compare/8.28.1...8.28.2) (2026-04-14)
+
+
+### Bug Fixes
+
+* add .meta to generate schema-W-21858759 ([#1275](https://github.com/forcedotcom/sfdx-core/issues/1275)) ([bb3aee1](https://github.com/forcedotcom/sfdx-core/commit/bb3aee12b405bdf2ca5d729ebbf8c2aab715a7b6))
+
+
+
+## [8.28.1](https://github.com/forcedotcom/sfdx-core/compare/8.28.0...8.28.1) (2026-03-31)
+
+
+### Bug Fixes
+
+* update edition schema-W-21773402 ([#1271](https://github.com/forcedotcom/sfdx-core/issues/1271)) ([3361202](https://github.com/forcedotcom/sfdx-core/commit/336120257db584ea87a601eb9cbf9b47ddc7fb50))
+
+
+
+# [8.28.0](https://github.com/forcedotcom/sfdx-core/compare/8.27.1...8.28.0) (2026-03-30)
+
+
+### Bug Fixes
+
+* rename defaultLWCLanguage to defaultLwcLanguage @W-21523324@ ([cb1fede](https://github.com/forcedotcom/sfdx-core/commit/cb1fede2f0022cec98ec39ad1c18999812cd60b1)), closes [#758](https://github.com/forcedotcom/sfdx-core/issues/758)
+
+
+### Features
+
+* **schema:** add defaultLWCLanguage property to sfdx-project.json schema ([39aecce](https://github.com/forcedotcom/sfdx-core/commit/39aeccebdacb92dd8719f38e2f1af01050ba6cbf)), closes [#758](https://github.com/forcedotcom/sfdx-core/issues/758)
+
+
+
+## [8.27.1](https://github.com/forcedotcom/sfdx-core/compare/8.27.0...8.27.1) (2026-03-19)
+
+
+### Bug Fixes
+
+* password complexity 4 behavior matches documentation @W-21055675@ ([#1268](https://github.com/forcedotcom/sfdx-core/issues/1268)) ([c90db97](https://github.com/forcedotcom/sfdx-core/commit/c90db9774f3eea56f73b68c7275e514ae5be76ff))
+
+
+
+# [8.27.0](https://github.com/forcedotcom/sfdx-core/compare/8.26.3...8.27.0) (2026-03-09)
+
+
+### Features
+
+* **fs:** add globSync and promises.glob to VirtualFs; bump memfs to 4.38.1 ([#1267](https://github.com/forcedotcom/sfdx-core/issues/1267)) ([8b0850f](https://github.com/forcedotcom/sfdx-core/commit/8b0850f06ffe9c1e2369390b4693bcc541b0bf7f))
+
+
+
+## [8.26.3](https://github.com/forcedotcom/sfdx-core/compare/8.26.2...8.26.3) (2026-02-25)
+
+
+### Bug Fixes
+
+* **auth:** add default oauth redirect uri for code builder ([685101b](https://github.com/forcedotcom/sfdx-core/commit/685101be13c2f7049397c3eb5ec969f7b3e50748))
+
+
+
+## [8.26.2](https://github.com/forcedotcom/sfdx-core/compare/8.26.1...8.26.2) (2026-02-17)
+
+
+### Bug Fixes
+
+* package.json & yarn.lock to reduce vulnerabilities ([01e5af1](https://github.com/forcedotcom/sfdx-core/commit/01e5af1d748009a595293960f038dc2c4b2d5f26))
+
+
+
+## [8.26.1](https://github.com/forcedotcom/sfdx-core/compare/8.26.0...8.26.1) (2026-02-17)
+
+
+### Bug Fixes
+
+* remove if-statement case-sensitive ([f1b5d8a](https://github.com/forcedotcom/sfdx-core/commit/f1b5d8a1c4e3ba7921ee0b228829b4c829e16d92))
+* update the schema to accept lowercase ([3701782](https://github.com/forcedotcom/sfdx-core/commit/37017828d33e858e93e1df72a140b68a5c1d0b6b))
+* validate all schema before merge ([3a6a170](https://github.com/forcedotcom/sfdx-core/commit/3a6a17032c429eba0139a3655ba82f98eaa8aa7a))
+
+
+
+# [8.26.0](https://github.com/forcedotcom/sfdx-core/compare/8.25.1...8.26.0) (2026-02-11)
+
+
+### Bug Fixes
+
+* logger redacts jwt tokens @W-20036916@ ([6dd27ab](https://github.com/forcedotcom/sfdx-core/commit/6dd27ab5ea0807cc04a682f0c85382b70aab250e))
+
+
+### Features
+
+* added JWT validation logic @W-20036916@ ([66100a6](https://github.com/forcedotcom/sfdx-core/commit/66100a6dc21cb5b39463ab262e36b9383b41ad48))
+* existing code now expects opaque tokense explicitly @W-20036916@ ([f7a2ed4](https://github.com/forcedotcom/sfdx-core/commit/f7a2ed4207e71bb751539b2b93396866385c73a2))
+* feedback on JWT validation @W-20036916@ ([ea6dd1a](https://github.com/forcedotcom/sfdx-core/commit/ea6dd1a1325dc33158dfad5b7812adac8ac2a7bc))
+* fixed JWT redaction @W-20036916@ ([fc0934c](https://github.com/forcedotcom/sfdx-core/commit/fc0934c48c89b59462db3de28b356b6cf2f71344))
+* jwt detection regex strictened @W-20036916@ ([fb739c9](https://github.com/forcedotcom/sfdx-core/commit/fb739c91f2d5a0cc43c7b5330068e123d02a48a0))
+* jwt redaction fixed further @W-20036916@ ([496fa99](https://github.com/forcedotcom/sfdx-core/commit/496fa99e6360ff8e0393dc1d89d57532f383fa5a))
+* jwt validation rejects expired tokens @W-20036916@ ([e6c72ae](https://github.com/forcedotcom/sfdx-core/commit/e6c72ae314f0e43d0914528daaa995454d3f384d))
+* laxed validation rules for JWT token @W-20036916@ ([f6214c8](https://github.com/forcedotcom/sfdx-core/commit/f6214c8005fe2a996b328a1a074a6c91f5af83d4))
+* rerunning CI ([8faa184](https://github.com/forcedotcom/sfdx-core/commit/8faa1845e983c143505cd5ed9d3c09a0a15f5371))
+
+
+
+## [8.25.1](https://github.com/forcedotcom/sfdx-core/compare/8.25.0...8.25.1) (2026-02-02)
+
+
+### Bug Fixes
+
+* correctly handles empty deploy-cache.json file @W-19727166@ ([#1260](https://github.com/forcedotcom/sfdx-core/issues/1260)) ([4f9768b](https://github.com/forcedotcom/sfdx-core/commit/4f9768b388651d14d5f4d66f65cb86d1f9bda1a8))
+
+
+
+# [8.25.0](https://github.com/forcedotcom/sfdx-core/compare/8.24.3...8.25.0) (2026-01-21)
+
+
+### Features
+
+* add scratch feature to schema ([a1dc7ef](https://github.com/forcedotcom/sfdx-core/commit/a1dc7ef4029dc93c85caa65c9ed7fe17b0be2aad))
+
+
+
+## [8.24.3](https://github.com/forcedotcom/sfdx-core/compare/8.24.2...8.24.3) (2026-01-15)
+
+
+### Bug Fixes
+
+* bump jsforce-node ([#1256](https://github.com/forcedotcom/sfdx-core/issues/1256)) ([12f9396](https://github.com/forcedotcom/sfdx-core/commit/12f9396665a61342ba9d1875598cf6ccd185a27b))
+
+
+
+## [8.24.2](https://github.com/forcedotcom/sfdx-core/compare/8.24.1...8.24.2) (2026-01-14)
+
+
+### Bug Fixes
+
+* avoid unnecessary config writes and add a test ([ab3ee5d](https://github.com/forcedotcom/sfdx-core/commit/ab3ee5d96dae63a211706fd0042bc5f0d568cdb5))
+
+
+
+## [8.24.1](https://github.com/forcedotcom/sfdx-core/compare/8.24.0...8.24.1) (2026-01-13)
+
+
+### Bug Fixes
+
+* support sandbox features as array or string ([#1254](https://github.com/forcedotcom/sfdx-core/issues/1254)) ([0d62ff7](https://github.com/forcedotcom/sfdx-core/commit/0d62ff7645a445f55b1f1a0bbcb95a2143be22c3))
+
+
+
+# [8.24.0](https://github.com/forcedotcom/sfdx-core/compare/8.23.7...8.24.0) (2025-12-05)
+
+
+### Features
+
+* add sfdx-project/scratch-def schemas W-20268457 ([#1249](https://github.com/forcedotcom/sfdx-core/issues/1249)) ([82a26a0](https://github.com/forcedotcom/sfdx-core/commit/82a26a0215e11809c6fd76ae6ee45d5407640c05)), closes [#1250](https://github.com/forcedotcom/sfdx-core/issues/1250)
+
+
+
+## [8.23.7](https://github.com/forcedotcom/sfdx-core/compare/8.23.6...8.23.7) (2025-12-04)
+
+
+### Bug Fixes
+
+* bump jsonwebtoken for security fix ([f049410](https://github.com/forcedotcom/sfdx-core/commit/f0494102b08cfc33695a09459c285c4f2882e5c0))
+
+
+
+## [8.23.6](https://github.com/forcedotcom/sfdx-core/compare/8.23.5...8.23.6) (2025-12-03)
+
+
+### Bug Fixes
+
+* `refreshAuth` does a `GET` request W-19992404 ([#1248](https://github.com/forcedotcom/sfdx-core/issues/1248)) ([e245a66](https://github.com/forcedotcom/sfdx-core/commit/e245a66fca535d2c3e81a937063d540d5a879465)), closes [#1252](https://github.com/forcedotcom/sfdx-core/issues/1252)
+
+
+
+## [8.23.5](https://github.com/forcedotcom/sfdx-core/compare/8.23.4...8.23.5) (2025-12-02)
+
+
+### Bug Fixes
+
+* **auth:** log scopes associated to the access token ([7ec3bea](https://github.com/forcedotcom/sfdx-core/commit/7ec3bea7dc8778aaef5925876244f03d8534c1b9))
+
+
+
+## [8.23.4](https://github.com/forcedotcom/sfdx-core/compare/8.23.3...8.23.4) (2025-10-28)
+
+
+### Bug Fixes
+
+* add OAuth server default timeout W-19549750 ([#1245](https://github.com/forcedotcom/sfdx-core/issues/1245)) ([7889fda](https://github.com/forcedotcom/sfdx-core/commit/7889fda9b134c17e33543794bdc47195b3bb4e8c))
+* make oauth server timeout configurable ([#1246](https://github.com/forcedotcom/sfdx-core/issues/1246)) ([3a4658e](https://github.com/forcedotcom/sfdx-core/commit/3a4658e98fc81bf1db36864cba68a41d9aa16402))
+
+
+
+## [8.23.3](https://github.com/forcedotcom/sfdx-core/compare/8.23.2...8.23.3) (2025-10-21)
+
+
+### Bug Fixes
+
+* bump salesforce/schemas ([cf6aaf3](https://github.com/forcedotcom/sfdx-core/commit/cf6aaf3b5f4567326644c61dda70700f993b2f48))
+* bump ts-types ([6ad56a9](https://github.com/forcedotcom/sfdx-core/commit/6ad56a9705989cd465e513cfd4c95fa6c2e774f7))
+* bump versions ([9920c39](https://github.com/forcedotcom/sfdx-core/commit/9920c394a3d1eb3368979b40b6764c1263ecdc11))
+* handle options object in readFile/readFileSync for isomorphic-git compatibility ([6239350](https://github.com/forcedotcom/sfdx-core/commit/623935073ffec748eb3e6472e374ebc0b673f130))
+* writefile api consistency ([fc8a88d](https://github.com/forcedotcom/sfdx-core/commit/fc8a88d352eac3f1fc2f0524c8c48cf2a0a89649))
+
+
+### Performance Improvements
+
+* only instantiate stateAggregator if no connection passed in ([6636048](https://github.com/forcedotcom/sfdx-core/commit/66360482aaf86101eb34361245a041216f616c71))
+
+
+
+## [8.23.2](https://github.com/forcedotcom/sfdx-core/compare/8.23.1...8.23.2) (2025-10-05)
+
+
+### Bug Fixes
+
+* **deps:** bump @jsforce/jsforce-node from 3.10.4 to 3.10.8 ([cab85fd](https://github.com/forcedotcom/sfdx-core/commit/cab85fdde6929833c3ebb657586385fd25c66280))
+
+
+
+## [8.23.1](https://github.com/forcedotcom/sfdx-core/compare/8.23.0...8.23.1) (2025-09-07)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/kit from 3.2.2 to 3.2.4 ([8766f50](https://github.com/forcedotcom/sfdx-core/commit/8766f502acfe6d56146905f4bb34a47f753cbc28))
+
+
+
+# [8.23.0](https://github.com/forcedotcom/sfdx-core/compare/8.22.0...8.23.0) (2025-09-02)
+
+
+### Features
+
+* added commands for bundles ([ab33004](https://github.com/forcedotcom/sfdx-core/commit/ab330042a724d098d983335e0d364ab1a45f1a85))
+
+
+
 # [8.22.0](https://github.com/forcedotcom/sfdx-core/compare/8.21.3...8.22.0) (2025-08-25)
 
 

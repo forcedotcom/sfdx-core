@@ -1,10 +1,18 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import { Duration, sleep } from '@salesforce/kit/lib/duration';
 import { spyMethod } from '@salesforce/ts-sinon';
@@ -199,7 +207,6 @@ describe('lifecycleEvents', () => {
 
   it('getListeners works, including uniqueListeners', async () => {
     const x = async (result: Record<string, unknown>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       fake.bar('test6', result);
     };
     Lifecycle.getInstance().on('test6', x);
@@ -212,7 +219,6 @@ describe('lifecycleEvents', () => {
 
   it('getListeners works (unique Listeners)', async () => {
     const x = async (result: Record<string, unknown>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       fake.bar('test6', result);
     };
     Lifecycle.getInstance().on('test6', x, 'id000');
@@ -226,7 +232,6 @@ describe('lifecycleEvents', () => {
 
   it('getListeners works (mixed unique and non-unique)', async () => {
     const x = async (result: Record<string, unknown>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       fake.bar('test6', result);
     };
     Lifecycle.getInstance().on('test6', x);

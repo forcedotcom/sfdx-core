@@ -1,15 +1,24 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 import * as os from 'node:os';
 import * as path from 'node:path';
 
-import { type Logger as PinoLogger, pino } from 'pino';
+import { type Logger as PinoLogger, type TransportSingleOptions, pino, levels as pinoLevels } from 'pino';
 import { Env } from '@salesforce/kit';
-import { ensureString, isKeyOf, isString } from '@salesforce/ts-types';
+import { isKeyOf, isString } from '@salesforce/ts-types';
 import { Global, Mode } from '../global';
 import { SfError } from '../sfError';
 import { unwrapArray } from '../util/unwrapArray';
@@ -401,7 +410,7 @@ export class Logger {
    *
    * @param cb A callback that returns on array objects to be logged.
    */
-  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
+  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
   public debugCallback(cb: () => unknown[] | string): void {}
 
   /**
@@ -451,7 +460,7 @@ export class Logger {
 }
 
 /** return various streams that the logger could send data to, depending on the options and env  */
-const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
+export const getWriteStream = (level = 'warn'): TransportSingleOptions => {
   const env = new Env();
   // used when debug mode, writes to stdout (colorized)
   if (process.env.DEBUG) {
@@ -474,14 +483,17 @@ const getWriteStream = (level = 'warn'): pino.TransportSingleOptions => {
   ]);
   const logRotationPeriod = env.getString('SF_LOG_ROTATION_PERIOD') ?? '1d';
 
+  if (logRotationPeriod && !rotator.has(logRotationPeriod)) {
+    process.stderr.write(
+      `Warning: Unrecognized SF_LOG_ROTATION_PERIOD value "${logRotationPeriod}". Expected 1m, 1h, or 1d. Falling back to 1d.\n`
+    );
+  }
+
   return {
     // write to a rotating file
     target: 'pino/file',
     options: {
-      destination: path.join(
-        Global.SF_DIR,
-        `sf-${ensureString(rotator.get(logRotationPeriod)) ?? rotator.get('1d')}.log`
-      ),
+      destination: path.join(Global.SF_DIR, `sf-${rotator.get(logRotationPeriod) ?? rotator.get('1d')!}.log`),
       mkdir: true,
       level,
     },
@@ -507,14 +519,12 @@ const levelFromOption = (value?: string | number): string => {
     case 'string':
       return value;
     default:
-      return pino.levels.labels[Logger.DEFAULT_LEVEL];
+      return pinoLevels.labels[Logger.DEFAULT_LEVEL];
   }
 };
 // /** match a number to a pino level, or if a match isn't found, the next highest level */
 const numberToLevel = (level: number): string =>
-  pino.levels.labels[level] ??
-  Object.entries(pino.levels.labels).find(([value]) => Number(value) > level)?.[1] ??
-  'warn';
+  pinoLevels.labels[level] ?? Object.entries(pinoLevels.labels).find(([value]) => Number(value) > level)?.[1] ?? 'warn';
 
 const getDefaultLevel = (): LoggerLevel => {
   const logLevelFromEnvVar = new Env().getString('SF_LOG_LEVEL');

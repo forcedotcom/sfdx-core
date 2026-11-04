@@ -1,0 +1,10 @@
+{
+  "orgName": "Dreamhouse",
+  "edition": "developer",
+  "hasSampleData": false,
+  "settings": {
+    "foo": {
+      "fdafds": true
+    }
+  }
+}

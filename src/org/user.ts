@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 import { EOL } from 'node:os';
@@ -14,7 +23,7 @@ import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { SecureBuffer } from '../crypto/secureBuffer';
 import { SfError } from '../sfError';
-import { matchesAccessToken, validateSalesforceId } from '../util/sfdc';
+import { matchesOpaqueAccessToken, validateSalesforceId } from '../util/sfdc';
 import { Connection } from './connection';
 import { PermissionSetAssignment } from './permissionSetAssignment';
 import { Org } from './org';
@@ -42,7 +51,7 @@ const PASSWORD_COMPLEXITY: { [index: number]: Complexity } = {
   '1': { LOWER: true, NUMBERS: true },
   '2': { LOWER: true, SYMBOLS: true },
   '3': { LOWER: true, UPPER: true, NUMBERS: true },
-  '4': { LOWER: true, NUMBERS: true, SYMBOLS: true },
+  '4': { LOWER: true, UPPER: true, SYMBOLS: true },
   '5': { LOWER: true, UPPER: true, NUMBERS: true, SYMBOLS: true },
 };
 
@@ -510,8 +519,7 @@ export class User extends AsyncCreatable<User.Options> {
   // eslint-disable-next-line class-methods-use-this
   private async rawRequest(conn: Connection, options: HttpRequest): Promise<HttpResponse> {
     return new Promise<HttpResponse>((resolve, reject) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-      const httpApi = new HttpApi(conn as any, options);
+      const httpApi = new HttpApi(conn, options);
       httpApi.on('response', (response: HttpResponse) => resolve(response));
       httpApi.request(options).catch(reject);
     });
@@ -551,7 +559,7 @@ const resolveUsernameFromAccessToken =
   (logger: Logger) =>
   (conn: Connection) =>
   async (usernameOrAccessToken: string): Promise<string> => {
-    if (matchesAccessToken(usernameOrAccessToken)) {
+    if (matchesOpaqueAccessToken(usernameOrAccessToken)) {
       logger.debug('received an accessToken for the username.  Converting...');
       const username = (await conn.identity()).username;
       logger.debug(`accessToken converted to ${username}`);

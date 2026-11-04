@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 import { join as pathJoin } from 'node:path';
 import { Dictionary, Nullable } from '@salesforce/ts-types';
@@ -80,6 +89,7 @@ export enum EnvironmentVariable {
   'SF_MDAPI_TEMP_DIR' = 'SF_MDAPI_TEMP_DIR',
   'SF_NPM_REGISTRY' = 'SF_NPM_REGISTRY',
   'SF_PRECOMPILE_ENABLE' = 'SF_PRECOMPILE_ENABLE',
+  'SF_PROPAGATORS' = 'SF_PROPAGATORS',
   'SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_CREATE' = 'SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_CREATE',
   'SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_VERSION_CREATE' = 'SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_VERSION_CREATE',
   'SF_SOURCE_MEMBER_POLLING_TIMEOUT' = 'SF_SOURCE_MEMBER_POLLING_TIMEOUT',
@@ -92,6 +102,7 @@ export enum EnvironmentVariable {
   'SF_INSTALLER' = 'SF_INSTALLER',
   'SF_ENV' = 'SF_ENV',
   'SF_CAPITALIZE_RECORD_TYPES' = 'SF_CAPITALIZE_RECORD_TYPES',
+  'SF_SKIP_SCRATCH_ORG_CHECK' = 'SF_SKIP_SCRATCH_ORG_CHECK',
 }
 type EnvMetaData = {
   description: string;
@@ -376,6 +387,10 @@ export const SUPPORTED_ENV_VARS: EnvType = {
     description: getMessage(EnvironmentVariable.SF_PRECOMPILE_ENABLE),
     synonymOf: null,
   },
+  [EnvironmentVariable.SF_PROPAGATORS]: {
+    description: getMessage(EnvironmentVariable.SF_PROPAGATORS),
+    synonymOf: null,
+  },
   [EnvironmentVariable.SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_CREATE]: {
     description: getMessage(EnvironmentVariable.SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_CREATE),
     synonymOf: null,
@@ -420,6 +435,10 @@ export const SUPPORTED_ENV_VARS: EnvType = {
   },
   [EnvironmentVariable.SF_CAPITALIZE_RECORD_TYPES]: {
     description: getMessage(EnvironmentVariable.SF_CAPITALIZE_RECORD_TYPES),
+    synonymOf: null,
+  },
+  [EnvironmentVariable.SF_SKIP_SCRATCH_ORG_CHECK]: {
+    description: getMessage(EnvironmentVariable.SF_SKIP_SCRATCH_ORG_CHECK),
     synonymOf: null,
   },
 };

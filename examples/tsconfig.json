@@ -4,7 +4,9 @@
     "outDir": "./lib",
     "rootDirs": ["./examples"],
     "skipLibCheck": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext"
   },
-  "include": ["./examples/**/*.ts"],
+  "include": ["./examples/**/*.ts"]
 }

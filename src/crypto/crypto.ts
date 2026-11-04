@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 /* eslint-disable @typescript-eslint/ban-types */
 
@@ -37,6 +46,10 @@ const KEY_SIZE = {
 const ALGO = 'aes-256-gcm';
 
 const AUTH_TAG_LENGTH = 32;
+// The GCM authentication tag length in bytes. AUTH_TAG_LENGTH is the hex-encoded
+// string length, so the byte length is half of that. Pinning this on decryption
+// prevents forged ciphertexts that use shorter-than-expected tags.
+const AUTH_TAG_BYTE_LENGTH = AUTH_TAG_LENGTH / 2;
 const ENCRYPTED_CHARS = /[a-f0-9]/;
 
 const KEY_NAME = 'sfdx';
@@ -209,7 +222,7 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
   }
 
   // @ts-expect-error only for test access
-  // eslint-disable-next-line class-methods-use-this
+
   private static unsetCryptoVersion(): void {
     cryptoVersion = undefined;
   }
@@ -381,7 +394,9 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     const secret = tokens[0].substring(IV_BYTES.v1 * 2, tokens[0].length);
 
     return this.key.value((buffer: Buffer) => {
-      const decipher = crypto.createDecipheriv(ALGO, buffer.toString('utf8'), iv);
+      const decipher = crypto.createDecipheriv(ALGO, buffer.toString('utf8'), iv, {
+        authTagLength: AUTH_TAG_BYTE_LENGTH,
+      });
 
       try {
         decipher.setAuthTag(Buffer.from(tag, 'hex'));
@@ -404,7 +419,9 @@ export class Crypto extends AsyncOptionalCreatable<CryptoOptions> {
     const secret = tokens[0].substring(IV_BYTES.v2 * 2, tokens[0].length);
 
     return this.key.value((buffer: Buffer) => {
-      const decipher = crypto.createDecipheriv(ALGO, buffer, Buffer.from(iv, 'hex'));
+      const decipher = crypto.createDecipheriv(ALGO, buffer, Buffer.from(iv, 'hex'), {
+        authTagLength: AUTH_TAG_BYTE_LENGTH,
+      });
 
       try {
         decipher.setAuthTag(Buffer.from(tag, 'hex'));

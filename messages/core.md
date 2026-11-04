@@ -34,6 +34,14 @@ Errors encountered:
 
 Error authenticating with the refresh token due to: %s
 
+# refreshTokenAuthError.actions
+
+- The stored refresh token is no longer valid (it may have expired, been revoked, or been rotated). Re-authenticate to the org, then try again.
+
+# refreshTokenRotationTimeoutError
+
+Timed out waiting for another process to finish rotating the refresh token for %s. Another process held the rotation lock for the entire wait without completing. Try again. If it persists, another process is likely stuck mid-refresh: stop any other processes using this org's authentication, then try again.
+
 # invalidSfdxAuthUrlError
 
 Invalid SFDX authorization URL. Must be in the format "force://<clientId>:<clientSecret>:<refreshToken>@<instanceUrl>". Note that the "instanceUrl" inside the SFDX authorization URL doesn\'t include the protocol ("https://"). Run "org display --target-org" on an org to see an example of an SFDX authorization URL.

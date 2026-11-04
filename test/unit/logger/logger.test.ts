@@ -1,16 +1,24 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 
 import { expect, config as chaiConfig } from 'chai';
 import { isString } from '@salesforce/ts-types';
-import { Logger, LoggerLevel, computeLevel } from '../../../src/logger/logger';
+import { Logger, LoggerLevel, computeLevel, getWriteStream } from '../../../src/logger/logger';
 import { shouldThrowSync, TestContext } from '../../../src/testSetup';
 
 // NOTE: These tests still use 'await' which is how it use to work and were left to make
@@ -234,6 +242,61 @@ describe('Logger', () => {
       expect(records[0]).to.have.property('level', LoggerLevel.DEBUG);
       expect(records[1]).to.have.property('level', LoggerLevel.ERROR);
       expect(records[2]).to.have.property('level', LoggerLevel.INFO);
+    });
+  });
+
+  describe('getWriteStream', () => {
+    let stderrOutput: string;
+    let originalWrite: typeof process.stderr.write;
+
+    beforeEach(() => {
+      stderrOutput = '';
+      originalWrite = process.stderr.write;
+      process.stderr.write = (chunk: string) => {
+        stderrOutput += chunk;
+        return true;
+      };
+    });
+
+    afterEach(() => {
+      process.stderr.write = originalWrite;
+    });
+
+    it('should not throw for unrecognized SF_LOG_ROTATION_PERIOD values and emit a warning', () => {
+      process.env.SF_LOG_ROTATION_PERIOD = '2d';
+      const result = getWriteStream();
+      expect(result).to.have.property('target', 'pino/file');
+      // falls back to 1d rotation format (YYYY-MM-DD)
+      const expected1dSuffix = new Date().toISOString().split('T')[0];
+      expect((result.options as { destination: string }).destination).to.include(`sf-${expected1dSuffix}.log`);
+      expect(stderrOutput).to.include('Unrecognized SF_LOG_ROTATION_PERIOD');
+      expect(stderrOutput).to.include('2d');
+      expect(stderrOutput).to.include('Falling back to 1d');
+    });
+
+    it('should treat empty string as unset and not warn', () => {
+      process.env.SF_LOG_ROTATION_PERIOD = '';
+      const result = getWriteStream();
+      expect(result).to.have.property('target', 'pino/file');
+      const expected1dSuffix = new Date().toISOString().split('T')[0];
+      expect((result.options as { destination: string }).destination).to.include(`sf-${expected1dSuffix}.log`);
+      expect(stderrOutput).to.equal('');
+    });
+
+    it('should use the recognized period when valid and not warn', () => {
+      process.env.SF_LOG_ROTATION_PERIOD = '1h';
+      const result = getWriteStream();
+      expect(result).to.have.property('target', 'pino/file');
+      expect((result.options as { destination: string }).destination).to.include('.log');
+      expect(stderrOutput).to.equal('');
+    });
+
+    it('should default to 1d when SF_LOG_ROTATION_PERIOD is not set', () => {
+      delete process.env.SF_LOG_ROTATION_PERIOD;
+      const result = getWriteStream();
+      expect(result).to.have.property('target', 'pino/file');
+      expect((result.options as { destination: string }).destination).to.include('.log');
+      expect(stderrOutput).to.equal('');
     });
   });
 });

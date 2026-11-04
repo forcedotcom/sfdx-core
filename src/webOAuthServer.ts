@@ -1,11 +1,19 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 /* eslint-disable class-methods-use-this */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
 import * as http from 'node:http';
 import { parse as parseQueryString } from 'node:querystring';
@@ -28,7 +36,9 @@ const messages = Messages.loadMessages('@salesforce/core', 'auth');
 // Server ignores requests for site icons
 const iconPaths = ['/favicon.ico', '/apple-touch-icon-precomposed.png'];
 
-const CODE_BUILDER_REDIRECT_URI = 'https://api.code-builder.platform.salesforce.com/api/auth/salesforce/callback';
+/** Default OAuth redirect URI for Code Builder; used when CODE_BUILDER_REDIRECT_URI env is not set. */
+export const DEFAULT_CODE_BUILDER_REDIRECT_URI =
+  'https://api.code-builder.platform.salesforce.com/api/auth/salesforce/callback';
 
 /**
  * Handles the creation of a web server for web based login flows.
@@ -48,6 +58,7 @@ const CODE_BUILDER_REDIRECT_URI = 'https://api.code-builder.platform.salesforce.
  */
 export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   public static DEFAULT_PORT = 1717;
+  public static DEFAULT_AUTH_TIMEOUT = 120_000; // 2 minutes
   private authUrl!: string;
   private logger!: Logger;
   private webServer!: WebServer;
@@ -89,6 +100,17 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
   }
 
   /**
+   * Gets the authentication timeout from environment variable or returns default value
+   *
+   * @returns {number} - represents the auth timeout in ms
+   */
+  public static getAuthTimeout(): number {
+    const env = new Env();
+    const authTimeout = toNumber(env.getNumber('SF_WEB_OAUTH_SERVER_TIMEOUT', WebOAuthServer.DEFAULT_AUTH_TIMEOUT));
+    return Number.isInteger(authTimeout) && authTimeout > 0 ? authTimeout : WebOAuthServer.DEFAULT_AUTH_TIMEOUT;
+  }
+
+  /**
    * Returns the authorization url that's used for the login flow
    *
    * @returns {string}
@@ -106,6 +128,12 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
     if (!this.webServer.server) await this.start();
 
     return new Promise((resolve, reject) => {
+      // We have to reject the promise on server timeout or the consumer will get an unresolved promise when calling `this.authorizeAndSave`.
+      this.webServer.setTimeoutCallback(() => {
+        const timeoutError = messages.createError('authTimeout');
+        reject(timeoutError);
+      });
+
       const handler = (): void => {
         this.logger.debug(`OAuth web login service listening on port: ${this.webServer.port}`);
         this.executeOauthRequest()
@@ -211,7 +239,7 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
         PORT: port,
         CODE_BUILDER_STATE: cbStateSha,
       });
-      this.oauthConfig.redirectUri = CODE_BUILDER_REDIRECT_URI;
+      this.oauthConfig.redirectUri = env.getString('CODE_BUILDER_REDIRECT_URI') ?? DEFAULT_CODE_BUILDER_REDIRECT_URI;
     } else {
       this.oauthConfig.clientId ??= DEFAULT_CONNECTED_APP_INFO.clientId;
       this.oauthConfig.redirectUri ??= `http://localhost:${port}/OauthRedirect`;
@@ -241,7 +269,6 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
           this.logger.debug(`processing request for uri: ${url.pathname ?? 'null'}`);
           if (request.method === 'GET') {
             if (url.pathname?.startsWith('/OauthRedirect') && url.query) {
-              // eslint-disable-next-line no-param-reassign
               request.query = parseQueryString(url.query) as {
                 code: string;
                 state: string;
@@ -398,6 +425,8 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
   private logger!: Logger;
   private sockets: Socket[] = [];
   private redirectStatus = new EventEmitter();
+  private authTimeout?: NodeJS.Timeout;
+  private timeoutCallback?: () => void;
 
   public constructor(options: WebServer.Options) {
     super(options);
@@ -420,6 +449,15 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
         this.sockets.push(socket);
       });
       this.server.listen(this.port, this.host);
+
+      const authTimeoutMs = WebOAuthServer.getAuthTimeout();
+      this.authTimeout = setTimeout(() => {
+        this.logger.debug(`Authentication timeout reached (${authTimeoutMs} ms), closing server...`);
+        if (this.timeoutCallback) {
+          this.timeoutCallback();
+        }
+        this.close();
+      }, authTimeoutMs);
     } catch (err) {
       if ((err as Error).name === 'EADDRINUSE') {
         throw messages.createError('portInUse', [this.port], [this.port]);
@@ -430,9 +468,21 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
   }
 
   /**
+   * Sets a callback to be executed when the authentication timeout occurs
+   */
+  public setTimeoutCallback(callback: () => void): void {
+    this.timeoutCallback = callback;
+  }
+
+  /**
    * Closes the http server and all open sockets
    */
   public close(): void {
+    if (this.authTimeout) {
+      clearTimeout(this.authTimeout);
+      this.authTimeout = undefined;
+    }
+
     this.sockets.forEach((socket) => {
       socket.end();
       socket.destroy();
@@ -453,9 +503,8 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
    * @param response the response to write the error to.
    */
   public sendError(status: number, message: string, response: http.ServerResponse): void {
-    // eslint-disable-next-line no-param-reassign
     response.statusMessage = message;
-    // eslint-disable-next-line no-param-reassign
+
     response.statusCode = status;
     response.end();
   }
@@ -520,7 +569,7 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
     // We don't validate the origin here because:
     // 1. The default login URL (login.salesforce.com) will not match after a redirect or if user choose a custom domain in login.
     // 2. There's no fixed list of auth URLs we could check against.
-    // eslint-disable-next-line no-param-reassign
+
     response.statusCode = 204; // No Content response
     response.setHeader('Access-Control-Allow-Methods', 'GET');
     response.setHeader('Access-Control-Request-Headers', 'GET');
@@ -579,7 +628,6 @@ export class WebServer extends AsyncCreatable<WebServer.Options> {
 
       // An error means that no existing connection exists, which is what we want
       socket.on('error', () => {
-        // eslint-disable-next-line no-console
         socket.destroy();
         resolve(this.port);
       });

@@ -1,13 +1,22 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 import { homedir as osHomedir } from 'node:os';
 import { join as pathJoin } from 'node:path';
-import { constants as fsConstants, Stats as fsStats } from 'node:fs';
+import { constants as fsConstants, Stats as fsStats, BigIntStats as fsBigIntStats } from 'node:fs';
 import { parseJsonMap } from '@salesforce/kit';
 import { fs } from '../fs/fs';
 import { Global } from '../global';
@@ -182,6 +191,10 @@ export class ConfigFile<
           this.setContentsFromFileContents({} as P);
           return this.getContents();
         }
+      } else if ((err as Error).name === 'JsonParseError') {
+        this.logger.debug(`Contents of ${this.getPath()} could not be parsed as JSON. Using empty object instead.`);
+        this.setContentsFromObject({} as P);
+        return this.getContents();
       }
       // Necessarily set this even when an error happens to avoid infinite re-reading.
       // To attempt another read, pass `force=true`.
@@ -397,6 +410,8 @@ export class ConfigFile<
   private handleWriteError(err: unknown): void {
     if (err instanceof Error && err.message.includes('ENOENT')) {
       this.logger.debug(`No file found at ${this.getPath()}.  Write will create it.`);
+    } else if (err instanceof Error && err.name === 'JsonParseError') {
+      this.logger.debug(`Could not parse ${this.getPath()} as JSON. Existing contents will be replaced.`);
     } else {
       throw err;
     }
@@ -446,5 +461,5 @@ const getNsTimeStampSync = (filePath: string): bigint =>
   getNsTimeStampFromStatus(fs.statSync(filePath, { bigint: true }));
 
 /** in browser environment, memfs is missing the bigInt ns timestamp, so we generate it from the ms */
-const getNsTimeStampFromStatus = (stats: Awaited<ReturnType<typeof fs.promises.stat>>): bigint =>
+const getNsTimeStampFromStatus = (stats: fsStats | fsBigIntStats): bigint =>
   'mtimeNs' in stats ? stats.mtimeNs : BigInt(stats.mtimeMs) * BigInt(1_000_000);

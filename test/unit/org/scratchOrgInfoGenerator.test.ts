@@ -1,8 +1,17 @@
 /*
- * Copyright (c) 2021, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ * Copyright 2026, Salesforce, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 import * as fs from 'node:fs';
@@ -236,7 +245,7 @@ describe('scratchOrgInfoGenerator', () => {
           );
         } catch (err) {
           expect(err).to.exist;
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
           expect((err as Error).message).to.equal(messages.getMessage('Package2AncestorsIdsKeyNotSupportedError'));
         }
       });
@@ -363,7 +372,7 @@ describe('scratchOrgInfoGenerator', () => {
           );
         } catch (err) {
           expect(err).to.exist;
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
           expect((err as Error).message).to.equal(messages.getMessage('InvalidAncestorVersionFormatError', ['5.0']));
         }
       });
@@ -734,6 +743,99 @@ describe('scratchOrgInfoGenerator', () => {
     });
   });
 
+  describe('SF_SCRATCH_SIGNUP_CONNECTED_APP env var', () => {
+    const sandbox = sinon.createSandbox();
+    beforeEach(() => {
+      stubMethod(sandbox, Org, 'create').resolves(Org.prototype);
+      stubMethod(sandbox, Org.prototype, 'getConnection').returns(Connection.prototype);
+      stubMethod(sandbox, Connection.prototype, 'getAuthInfoFields').returns({
+        clientId: 'eca-client-id',
+      });
+      stubMethod(sandbox, SfProjectJson, 'create').rejects();
+    });
+
+    afterEach(() => {
+      delete process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP;
+      delete process.env.SF_SCRATCH_SIGNUP_CALLBACK_URL;
+      sandbox.restore();
+    });
+
+    after(() => {
+      sandbox.restore();
+    });
+
+    it('uses SF_SCRATCH_SIGNUP_CONNECTED_APP over hub clientId', async () => {
+      process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP = 'PlatformCLI';
+      expect(
+        await generateScratchOrgInfo({
+          hubOrg: await Org.create({}),
+          scratchOrgInfoPayload: {} as ScratchOrgInfoPayload,
+          nonamespace: false,
+          ignoreAncestorIds: false,
+        })
+      ).to.deep.equal({
+        orgName: 'Company',
+        package2AncestorIds: '',
+        connectedAppConsumerKey: 'PlatformCLI',
+        connectedAppCallbackUrl: 'http://localhost:1717/OauthRedirect',
+      });
+    });
+
+    it('uses SF_SCRATCH_SIGNUP_CALLBACK_URL over default callback', async () => {
+      process.env.SF_SCRATCH_SIGNUP_CALLBACK_URL = 'http://localhost:9999/OauthRedirect';
+      expect(
+        await generateScratchOrgInfo({
+          hubOrg: await Org.create({}),
+          scratchOrgInfoPayload: {} as ScratchOrgInfoPayload,
+          nonamespace: false,
+          ignoreAncestorIds: false,
+        })
+      ).to.deep.equal({
+        orgName: 'Company',
+        package2AncestorIds: '',
+        connectedAppConsumerKey: 'eca-client-id',
+        connectedAppCallbackUrl: 'http://localhost:9999/OauthRedirect',
+      });
+    });
+
+    it('explicit --client-id flag takes priority over env var', async () => {
+      process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP = 'PlatformCLI';
+      expect(
+        await generateScratchOrgInfo({
+          hubOrg: await Org.create({}),
+          scratchOrgInfoPayload: {
+            connectedAppConsumerKey: 'explicit-flag-value',
+          } as ScratchOrgInfoPayload,
+          nonamespace: false,
+          ignoreAncestorIds: false,
+        })
+      ).to.deep.equal({
+        orgName: 'Company',
+        package2AncestorIds: '',
+        connectedAppConsumerKey: 'explicit-flag-value',
+        connectedAppCallbackUrl: 'http://localhost:1717/OauthRedirect',
+      });
+    });
+
+    it('uses both env vars together for ECA workaround', async () => {
+      process.env.SF_SCRATCH_SIGNUP_CONNECTED_APP = 'PlatformCLI';
+      process.env.SF_SCRATCH_SIGNUP_CALLBACK_URL = 'http://localhost:1717/OauthRedirect';
+      expect(
+        await generateScratchOrgInfo({
+          hubOrg: await Org.create({}),
+          scratchOrgInfoPayload: {} as ScratchOrgInfoPayload,
+          nonamespace: false,
+          ignoreAncestorIds: false,
+        })
+      ).to.deep.equal({
+        orgName: 'Company',
+        package2AncestorIds: '',
+        connectedAppConsumerKey: 'PlatformCLI',
+        connectedAppCallbackUrl: 'http://localhost:1717/OauthRedirect',
+      });
+    });
+  });
+
   describe('generateScratchOrgInfo with nonamespace', () => {
     const sandbox = sinon.createSandbox();
     beforeEach(() => {
@@ -942,6 +1044,7 @@ describe('scratchOrgInfoGenerator', () => {
           })
         ).to.deep.equal({
           scratchOrgInfoPayload: {
+            hasSampleData: false,
             snapshot: 1,
             durationDays: 1,
           },
