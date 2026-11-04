@@ -42,7 +42,9 @@ import { validateApiVersion } from '../util/sfdc';
 import { Messages } from '../messages';
 import { Lifecycle } from '../lifecycleEvents';
 import { Global } from '../global';
+import { loadSessionDpopKey } from '../crypto/dpop';
 import { AuthFields, AuthInfo } from './authInfo';
+import { DpopSession, DpopTransport } from './dpopTransport';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
@@ -144,6 +146,9 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
 
     const conn = new this({ ...options, connectionOptions });
     await conn.init();
+    if (!options.clientApp) {
+      await conn.bindDpopKeyIfPresent(options.authInfo);
+    }
 
     try {
       // No version passed in or in the config, so load one.
@@ -343,6 +348,22 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   }
 
   /**
+   * Returns the HTTP headers that authorize a request this connection doesn't send itself, such as a download with
+   * `fetch`: `Authorization`, plus a `DPoP` proof when the session is bound to a DPoP key. A proof is single-use and
+   * bound to the method and URL, so get new headers for every request. The session isn't refreshed.
+   *
+   * @param method The HTTP method of the request.
+   * @param url The request URL.
+   */
+  public getAuthHeaders(method: string, url: string | URL): { [name: string]: string } {
+    if (!this.accessToken) return {};
+    // eslint-disable-next-line no-underscore-dangle
+    const transport = this._transport;
+    if (!(transport instanceof DpopTransport)) return { Authorization: `Bearer ${this.accessToken}` };
+    return transport.authHeaders(method, url, this.accessToken);
+  }
+
+  /**
    * Getter for the username of the Salesforce Org.
    */
   public getUsername(): Optional<string> {
@@ -500,6 +521,29 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
         this.logger.debug('API version cache expired. Re-fetching latest.');
       }
     }
+  }
+
+  /**
+   * Binds REST and SOAP requests to the authorization's DPoP key, if it has one.
+   */
+  private async bindDpopKeyIfPresent(authInfo: AuthInfo): Promise<void> {
+    const { dpopKeyReference, dpopNonce } = authInfo.getFields(true);
+    if (!dpopKeyReference) return;
+    const key = await loadSessionDpopKey(dpopKeyReference, authInfo.getUsername());
+    // eslint-disable-next-line no-underscore-dangle
+    this._transport = new DpopTransport(key, {
+      nonce: dpopNonce,
+      // Read on every request, since a refresh stores whatever token type the server returns (which only changes if
+      // the app's DPoP setting does). A refresh also stores the new token before jsforce sends it, so this is always
+      // the token the key is bound to.
+      session: (): DpopSession => {
+        const { accessToken, tokenType } = authInfo.getFields(true);
+        return { accessToken, tokenType };
+      },
+      onNonce: (nonce): void => {
+        authInfo.update({ dpopNonce: nonce });
+      },
+    });
   }
 }
 

@@ -44,6 +44,7 @@ import { ConfigFile } from './config/configFile';
 import { ConfigContents } from './config/configStackTypes';
 import { Connection } from './org/connection';
 import { Crypto } from './crypto/crypto';
+import { DpopKeyStore, SecretReference } from './crypto/dpopKeyStore';
 import { Logger } from './logger/logger';
 import { Messages } from './messages';
 import { SfError } from './sfError';
@@ -602,6 +603,26 @@ export const stubContext = (testContext: TestContext): Record<string, SinonStub>
         cb(undefined, '12345678901234567890123456789012'),
     })
   );
+
+  // Keep DPoP private keys out of the real OS keychain.
+  const dpopSecrets = new Map<string, string>();
+  const dpopSecretKey = (ref: SecretReference): string => `${ref.service}:${ref.account}`;
+  // @ts-expect-error: defaultOptions is private
+  testContext.SANDBOXES.CRYPTO.stub(DpopKeyStore, 'defaultOptions').resolves({
+    keychain: {
+      setSecret: (ref: SecretReference, secret: string) => {
+        dpopSecrets.set(dpopSecretKey(ref), secret);
+        return Promise.resolve();
+      },
+      getSecret: (ref: SecretReference) => {
+        const secret = dpopSecrets.get(dpopSecretKey(ref));
+        return secret === undefined ? Promise.reject(new Error('Secret not found')) : Promise.resolve(secret);
+      },
+      deleteSecret: (ref: SecretReference) =>
+        dpopSecrets.delete(dpopSecretKey(ref)) ? Promise.resolve() : Promise.reject(new Error('Secret not found')),
+    },
+    directory: pathJoin(osTmpdir(), testContext.id, 'global'),
+  });
 
   testContext.SANDBOXES.CONNECTION.stub(Connection.prototype, 'isResolvable').resolves(true);
 

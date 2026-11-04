@@ -96,3 +96,15 @@ SF_CRYPTO_V2 was set to "true" but a v1 crypto key was detected. v2 crypto can o
 2. Delete the sfdx keychain entry (account: local, service: sfdx). If `SF_USE_GENERIC_UNIX_KEYCHAIN=true` env var is set, you can delete the `key.json` file.
 3. Set `SF_CRYPTO_V2=true` env var.
 4. Re-Authenticate with your orgs using the CLI org login commands.
+
+# secretNotFoundError
+
+The OS secret store has no secret for service "%s" and account "%s".
+
+# secretCommandError
+
+The OS secret store could not %s the secret for service "%s" and account "%s" (exit code %s).
+
+# secretStoreUnsupported
+
+This OS keychain implementation can't store named secrets.

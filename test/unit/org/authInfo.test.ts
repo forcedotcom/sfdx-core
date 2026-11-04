@@ -606,8 +606,12 @@ describe('AuthInfo', () => {
           loginUrl: jwtConfig.loginUrl,
           privateKey: jwtConfig.privateKey,
           isDevHub: false,
+          // A new JWT login uses DPoP by default; the server returned a Bearer token type.
+          tokenType: 'Bearer',
         };
-        expect(authInfoStubs.update.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
+        const { dpopKeyReference, ...authConfig } = authInfoStubs.update.firstCall.args[0] as AuthFields;
+        expect(dpopKeyReference).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+        expect(authConfig).to.deep.equal(expectedAuthConfig);
       });
 
       it('should return a JWT AuthInfo instance when passed a username from an auth file', async () => {
@@ -741,8 +745,12 @@ describe('AuthInfo', () => {
           loginUrl: jwtConfig.loginUrl,
           privateKey: jwtConfig.privateKey,
           isDevHub: false,
+          // A new JWT login uses DPoP by default; the server returned a Bearer token type.
+          tokenType: 'Bearer',
         };
-        expect(authInfoStubs.update.firstCall.args[0]).to.deep.equal(expectedAuthConfig);
+        const { dpopKeyReference, ...authConfig } = authInfoStubs.update.firstCall.args[0] as AuthFields;
+        expect(dpopKeyReference).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+        expect(authConfig).to.deep.equal(expectedAuthConfig);
       });
     });
 

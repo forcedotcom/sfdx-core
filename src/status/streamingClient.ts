@@ -178,6 +178,10 @@ export class StreamingClient extends AsyncOptionalCreatable<StreamingClient.Opti
   public async init(): Promise<void> {
     // get the apiVersion from the connection if not already an option
     const conn = this.options.org.getConnection();
+    // The Streaming API denies every handshake from a DPoP-bound session, and faye would retry until the timeout.
+    if (conn.getAuthInfo().getFields(true).tokenType === 'DPoP') {
+      throw messages.createError('dpopStreamingUnsupported', [conn.getUsername()]);
+    }
     this.options.apiVersion = this.options.apiVersion || conn.getApiVersion();
 
     this.logger = await Logger.child(this.constructor.name);

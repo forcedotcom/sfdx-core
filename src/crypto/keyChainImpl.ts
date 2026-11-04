@@ -30,6 +30,27 @@ const messages = Messages.loadMessages('@salesforce/core', 'encryption');
 
 export type FsIfc = Pick<typeof fs, 'statSync'>;
 
+/**
+ * Identifies a secret, such as a DPoP private key, in the OS secret store.
+ */
+export type SecretReference = {
+  service: string;
+  account: string;
+};
+
+type SecretOperation = 'store' | 'retrieve' | 'delete';
+
+/**
+ * A native command that operates on a secret. Secret values only ever travel over stdin.
+ */
+type SecretCommand = {
+  program: string;
+  args: string[];
+  stdin?: string;
+};
+
+const BASE64_PATTERN = /^[A-Za-z0-9+/]+={0,2}$/;
+
 const GET_PASSWORD_RETRY_COUNT = 3;
 
 /**
@@ -253,6 +274,65 @@ export class KeychainAccess implements PasswordStore {
       credManager.stdin.end();
     }
   }
+
+  /**
+   * Stores a secret in the OS secret store. The value is base64 encoded and passed over stdin, never as an argument.
+   *
+   * @param ref Identifies the secret.
+   * @param secret The secret value.
+   */
+  public async setSecret(ref: SecretReference, secret: string): Promise<void> {
+    await this.runSecretCommand('store', ref, Buffer.from(secret).toString('base64'));
+  }
+
+  /**
+   * Retrieves a secret from the OS secret store.
+   *
+   * @param ref Identifies the secret.
+   */
+  public async getSecret(ref: SecretReference): Promise<string> {
+    const output = await this.runSecretCommand('retrieve', ref);
+    if (!BASE64_PATTERN.test(output)) {
+      throw messages.createError('secretNotFoundError', [ref.service, ref.account]);
+    }
+    return Buffer.from(output, 'base64').toString('utf8');
+  }
+
+  /**
+   * Deletes a secret from the OS secret store.
+   *
+   * @param ref Identifies the secret.
+   */
+  public async deleteSecret(ref: SecretReference): Promise<void> {
+    await this.runSecretCommand('delete', ref);
+  }
+
+  private async runSecretCommand(operation: SecretOperation, ref: SecretReference, encoded?: string): Promise<string> {
+    if (!this.osImpl.secretCommand) {
+      throw messages.createError('secretStoreUnsupported');
+    }
+    const command = this.osImpl.secretCommand(operation, ref, encoded);
+    await _validateProgram(command.program, this.fsIfc, isExe);
+    const child = childProcess.spawn(command.program, command.args);
+
+    return new Promise((resolve, reject) => {
+      let stdout = '';
+      child.stdout?.on('data', (data: Buffer | string) => {
+        stdout += data.toString();
+      });
+      child.on('error', reject);
+      child.on('close', (code: number) => {
+        const output = stdout.trim();
+        if (code !== 0 || output.startsWith('error:')) {
+          // Never include stdout in the error; on success it would be the secret.
+          reject(messages.createError('secretCommandError', [operation, ref.service, ref.account, code]));
+        } else {
+          resolve(output);
+        }
+      });
+      child.stdin?.end(command.stdin ?? '');
+    });
+  }
 }
 
 type ProgramOpts = {
@@ -287,6 +367,10 @@ type OsImpl = {
     opts: ProgramOpts,
     fn: (err: Nullable<Error>) => void
   ): Promise<void>;
+  /**
+   * Builds the command for a secret operation. `encoded` is the base64 secret value for `store`.
+   */
+  secretCommand?(operation: SecretOperation, ref: SecretReference, encoded?: string): SecretCommand;
 };
 
 /**
@@ -351,7 +435,84 @@ const linuxImpl: OsImpl = {
       fn(null);
     }
   },
+
+  secretCommand(operation, ref, encoded) {
+    const attributes = ['service', ref.service, 'account', ref.account];
+    switch (operation) {
+      case 'store':
+        return {
+          program: linuxImpl.getProgram(),
+          args: ['store', '--label=Salesforce DPoP key', ...attributes],
+          stdin: encoded,
+        };
+      case 'retrieve':
+        return { program: linuxImpl.getProgram(), args: ['lookup', ...attributes] };
+      case 'delete':
+        return { program: linuxImpl.getProgram(), args: ['clear', ...attributes] };
+    }
+  },
 };
+
+/**
+ * Swift helper for macOS Keychain secrets. `/usr/bin/security` only accepts secrets as arguments, so this reads a JSON
+ * request (with a base64 value) from stdin and prints `ok` or the base64 secret.
+ */
+const MAC_KEYCHAIN_SCRIPT = `
+import Foundation
+import Security
+import Darwin
+
+struct Request: Decodable {
+  let operation: String
+  let service: String
+  let account: String
+  let value: String?
+}
+
+func fail(_ message: String) -> Never {
+  print("error: " + message)
+  exit(1)
+}
+
+let request: Request
+do {
+  request = try JSONDecoder().decode(Request.self, from: FileHandle.standardInput.readDataToEndOfFile())
+} catch {
+  fail("invalid keychain request")
+}
+
+let query: [String: Any] = [
+  kSecClass as String: kSecClassGenericPassword,
+  kSecAttrService as String: request.service,
+  kSecAttrAccount as String: request.account,
+  kSecAttrSynchronizable as String: false
+]
+
+switch request.operation {
+case "store":
+  guard let encoded = request.value, let value = Data(base64Encoded: encoded) else { fail("missing keychain value") }
+  var status = SecItemAdd(query.merging([kSecValueData as String: value]) { _, new in new } as CFDictionary, nil)
+  if status == errSecDuplicateItem {
+    status = SecItemUpdate(query as CFDictionary, [kSecValueData as String: value] as CFDictionary)
+  }
+  guard status == errSecSuccess else { fail("keychain store failed: \\(status)") }
+  print("ok")
+case "retrieve":
+  var lookup = query
+  lookup[kSecReturnData as String] = true
+  lookup[kSecMatchLimit as String] = kSecMatchLimitOne
+  var result: CFTypeRef?
+  let status = SecItemCopyMatching(lookup as CFDictionary, &result)
+  guard status == errSecSuccess, let data = result as? Data else { fail("keychain lookup failed: \\(status)") }
+  print(data.base64EncodedString())
+case "delete":
+  let status = SecItemDelete(query as CFDictionary)
+  guard status == errSecSuccess || status == errSecItemNotFound else { fail("keychain delete failed: \\(status)") }
+  print("ok")
+default:
+  fail("unknown keychain operation")
+}
+`;
 
 /**
  * OSX implementation.
@@ -425,6 +586,15 @@ const darwinImpl: OsImpl = {
     } else {
       fn(null);
     }
+  },
+
+  secretCommand(operation, ref, encoded) {
+    const request = { operation, service: ref.service, account: ref.account, ...(encoded ? { value: encoded } : {}) };
+    return {
+      program: path.join(path.sep, 'usr', 'bin', 'swift'),
+      args: ['-e', MAC_KEYCHAIN_SCRIPT],
+      stdin: JSON.stringify(request),
+    };
   },
 };
 
