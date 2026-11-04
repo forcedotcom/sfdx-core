@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793395151157,
+  "lastUpdate": 1793817158585,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -48900,6 +48900,72 @@ window.BENCHMARK_DATA = {
             "range": "±13.36%",
             "unit": "ops/sec",
             "extra": "55 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "committer": {
+            "email": "willieruemmele@gmail.com",
+            "name": "Willie Ruemmele",
+            "username": "WillieRuemmele"
+          },
+          "distinct": true,
+          "id": "fd5096ebb199355be129170dbe67213cc8f78cfd",
+          "message": "Merge branch 'main' into wr/eliminateTsIgnorePragmas\n\n# Conflicts:\n#\tsrc/org/connection.ts\n#\tsrc/org/org.ts\n#\tsrc/status/streamingClient.ts\n#\tsrc/testSetup.ts",
+          "timestamp": "2026-11-04T11:25:32-07:00",
+          "tree_id": "2513bdcd16cc081087afc5f404eb5c8d9427327d",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/fd5096ebb199355be129170dbe67213cc8f78cfd"
+        },
+        "date": 1793817147847,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 537438,
+            "range": "±0.48%",
+            "unit": "ops/sec",
+            "extra": "96 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1105744,
+            "range": "±13.32%",
+            "unit": "ops/sec",
+            "extra": "48 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 36418,
+            "range": "±185.53%",
+            "unit": "ops/sec",
+            "extra": "33 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 535087,
+            "range": "±6.34%",
+            "unit": "ops/sec",
+            "extra": "50 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 340506,
+            "range": "±14.24%",
+            "unit": "ops/sec",
+            "extra": "61 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 324354,
+            "range": "±16.22%",
+            "unit": "ops/sec",
+            "extra": "56 samples"
           }
         ]
       }
