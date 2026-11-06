@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793817158585,
+  "lastUpdate": 1793971714609,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -48966,6 +48966,72 @@ window.BENCHMARK_DATA = {
             "range": "±16.22%",
             "unit": "ops/sec",
             "extra": "56 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e2abcdd05041205fd8eb5ca48ac9b1e74cfb6b5d",
+          "message": "fix(deps): bump @salesforce/kit from 4.0.0 to 4.0.9\n\nBumps [@salesforce/kit](https://github.com/forcedotcom/kit) from 4.0.0 to 4.0.9.\n- [Release notes](https://github.com/forcedotcom/kit/releases)\n- [Changelog](https://github.com/forcedotcom/kit/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/forcedotcom/kit/compare/4.0.0...4.0.9)\n\n---\nupdated-dependencies:\n- dependency-name: \"@salesforce/kit\"\n  dependency-version: 3.2.6\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2026-11-06T13:23:29Z",
+          "tree_id": "c020c92bc44659a8e59be56746685a7979c05c5b",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/e2abcdd05041205fd8eb5ca48ac9b1e74cfb6b5d"
+        },
+        "date": 1793971704054,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 528353,
+            "range": "±1.66%",
+            "unit": "ops/sec",
+            "extra": "92 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1186061,
+            "range": "±15.21%",
+            "unit": "ops/sec",
+            "extra": "51 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 31085,
+            "range": "±194.47%",
+            "unit": "ops/sec",
+            "extra": "29 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 512964,
+            "range": "±6.53%",
+            "unit": "ops/sec",
+            "extra": "50 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 375631,
+            "range": "±11.53%",
+            "unit": "ops/sec",
+            "extra": "58 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 307453,
+            "range": "±12.91%",
+            "unit": "ops/sec",
+            "extra": "59 samples"
           }
         ]
       }
