@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793971724102,
+  "lastUpdate": 1793972253956,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -48108,6 +48108,72 @@ window.BENCHMARK_DATA = {
             "range": "±198.37%",
             "unit": "ops/sec",
             "extra": "20 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0a452c9977a6647e40cd1d1daefa2b20865caa18",
+          "message": "fix(deps): bump memfs from 4.38.1 to 4.80.0\n\nBumps [memfs](https://github.com/streamich/memfs) from 4.38.1 to 4.80.0.\n- [Release notes](https://github.com/streamich/memfs/releases)\n- [Changelog](https://github.com/streamich/memfs/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/streamich/memfs/compare/v4.38.1...v4.80.0)\n\n---\nupdated-dependencies:\n- dependency-name: memfs\n  dependency-version: 4.54.0\n  dependency-type: direct:production\n  update-type: version-update:semver-minor\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>",
+          "timestamp": "2026-11-06T13:33:14Z",
+          "tree_id": "40d7f29f46eb1c5ff98ee1deb1cabdb5907f0406",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/0a452c9977a6647e40cd1d1daefa2b20865caa18"
+        },
+        "date": 1793972239061,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 433586,
+            "range": "±2.09%",
+            "unit": "ops/sec",
+            "extra": "89 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1078451,
+            "range": "±9.15%",
+            "unit": "ops/sec",
+            "extra": "33 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 26581,
+            "range": "±207.21%",
+            "unit": "ops/sec",
+            "extra": "15 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 667261,
+            "range": "±11.25%",
+            "unit": "ops/sec",
+            "extra": "72 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 369853,
+            "range": "±9.60%",
+            "unit": "ops/sec",
+            "extra": "59 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 19830,
+            "range": "±184.56%",
+            "unit": "ops/sec",
+            "extra": "39 samples"
           }
         ]
       }
