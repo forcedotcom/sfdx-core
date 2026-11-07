@@ -1130,7 +1130,7 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     }
 
     const username = authInfo.getFields().username;
-    if (username) {
+    if (username && !usernames.includes(username)) {
       usernames.push(username);
       shouldUpdate = true;
     }
