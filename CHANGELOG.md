@@ -1,3 +1,12 @@
+## [9.4.5](https://github.com/forcedotcom/sfdx-core/compare/9.4.4...9.4.5) (2026-11-07)
+
+
+### Bug Fixes
+
+* **deps:** bump memfs from 4.38.1 to 4.80.0 ([0a452c9](https://github.com/forcedotcom/sfdx-core/commit/0a452c9977a6647e40cd1d1daefa2b20865caa18))
+
+
+
 ## [9.4.4](https://github.com/forcedotcom/sfdx-core/compare/9.4.3...9.4.4) (2026-10-30)
 
 
