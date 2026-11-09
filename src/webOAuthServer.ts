@@ -87,8 +87,9 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
       this.clientApp = options.clientApp;
       this.username = options.username;
     }
-    // Client app tokens are stored without a DPoP key, so they aren't bound.
-    this.dpop = !('clientApp' in options) && options.dpop !== false;
+    // Client app tokens are stored without a DPoP key, so they aren't bound. Callers may pass `clientApp: undefined`
+    // for a plain login, so test the value rather than the key.
+    this.dpop = !this.clientApp && ('dpop' in options ? options.dpop !== false : true);
   }
 
   /**
@@ -137,6 +138,8 @@ export class WebOAuthServer extends AsyncCreatable<WebOAuthServer.Options> {
       // We have to reject the promise on server timeout or the consumer will get an unresolved promise when calling `this.authorizeAndSave`.
       this.webServer.setTimeoutCallback(() => {
         const timeoutError = messages.createError('authTimeout');
+        // An app that requires DPoP shows its error on the authorize page without redirecting, so we only see a timeout.
+        if (!this.dpop) timeoutError.actions = dpopMessages.getMessages('authTimeoutWithoutDpop.actions');
         reject(timeoutError);
       });
 

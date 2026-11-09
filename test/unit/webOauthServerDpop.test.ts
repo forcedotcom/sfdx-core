@@ -21,6 +21,7 @@ import { MockTestOrgData, shouldThrow, TestContext } from '../../src/testSetup';
 import { WebOAuthServer, WebServer } from '../../src/webOAuthServer';
 import { AuthInfo } from '../../src/org/authInfo';
 import { DpopKey } from '../../src/crypto/dpop';
+import { SfError } from '../../src/sfError';
 import { stubDpopKeyStore } from './dpopTestHelpers';
 
 describe('WebOauthServer DPoP', () => {
@@ -52,6 +53,30 @@ describe('WebOauthServer DPoP', () => {
       expect(generateSpy.called).to.be.false;
       expect(opened.searchParams.has('dpop_jkt')).to.be.false;
       expect(opened.searchParams.get('code_challenge')).to.be.a('string').and.not.be.empty;
+    });
+
+    it('binds a login that passes clientApp: undefined, as login commands do', async () => {
+      const oauthServer = await WebOAuthServer.create({
+        oauthConfig: {},
+        clientApp: undefined,
+        username: undefined,
+      });
+      const opened = new URL(oauthServer.getAuthorizationUrl());
+
+      expect(generateSpy.calledOnce).to.be.true;
+      expect(opened.searchParams.get('dpop_jkt')).to.be.a('string').and.not.be.empty;
+    });
+
+    it('does not generate a key for a client app', async () => {
+      const oauthServer = await WebOAuthServer.create({
+        oauthConfig: {},
+        clientApp: 'myApp',
+        username: 'user@example.com',
+      });
+      const opened = new URL(oauthServer.getAuthorizationUrl());
+
+      expect(generateSpy.called).to.be.false;
+      expect(opened.searchParams.has('dpop_jkt')).to.be.false;
     });
 
     it('fails closed when DPoP is enabled but no key can be created', async () => {
@@ -104,6 +129,42 @@ describe('WebOauthServer DPoP', () => {
       const authCreateOptions = await authorize({ dpop: false });
 
       expect(authCreateOptions.dpopKey).to.be.undefined;
+    });
+  });
+
+  describe('authorization timeout', () => {
+    /** Times out the login, and returns what authorizeAndSave rejects with. */
+    const timeOut = async (options: { dpop?: boolean } = {}): Promise<SfError> => {
+      const oauthServer = await WebOAuthServer.create({ oauthConfig: {}, ...options });
+      await oauthServer.start();
+      // @ts-expect-error because private member
+      const webServer = oauthServer.webServer;
+      // Fire the timeout right away, and close the server as a real timeout does.
+      stubMethod($$.SANDBOX, webServer, 'setTimeoutCallback').callsFake((callback: () => void) => {
+        callback();
+        webServer.close();
+      });
+      try {
+        await shouldThrow(oauthServer.authorizeAndSave());
+      } catch (e) {
+        return e as SfError;
+      }
+      throw new Error('unreachable');
+    };
+
+    it('hints that the app may require DPoP when a login without DPoP times out', async () => {
+      const error = await timeOut({ dpop: false });
+
+      expect(error).to.have.property('name', 'AuthTimeoutError');
+      expect(error.actions).to.have.length(1);
+      expect(error.actions?.[0]).to.include('dpop_jkt');
+    });
+
+    it('does not hint at DPoP when a DPoP login times out', async () => {
+      const error = await timeOut();
+
+      expect(error).to.have.property('name', 'AuthTimeoutError');
+      expect(error.actions).to.be.undefined;
     });
   });
 
