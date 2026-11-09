@@ -15,7 +15,6 @@
  */
 // mutate ALL the THINGS!
 /// <reference types="mocha" />
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
@@ -677,7 +676,7 @@ export const restoreContext = (testContext: TestContext): void => {
   StateAggregator.clearInstance();
   SfProject.clearInstances();
   // Allow each test to have their own config aggregator
-  // @ts-ignore clear for testing.
+  // @ts-expect-error: synchronous access to protected map for test isolation
   ConfigAggregator.instances.clear();
 };
 
