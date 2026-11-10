@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794246446190,
+  "lastUpdate": 1794339506324,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -49164,6 +49164,72 @@ window.BENCHMARK_DATA = {
             "range": "±10.81%",
             "unit": "ops/sec",
             "extra": "55 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jfeingold@salesforce.com",
+            "name": "Jamie Feingold",
+            "username": "jfeingold35"
+          },
+          "committer": {
+            "email": "jfeingold@salesforce.com",
+            "name": "Jamie Feingold",
+            "username": "jfeingold35"
+          },
+          "distinct": true,
+          "id": "30be657fdc47f295f2f867f5a48d49b97f6ed228",
+          "message": "fix: send the stored DPoP nonce on a refresh-token refresh\n\nA refresh-token refresh loaded the DPoP key but dropped the stored\nnonce, so its first token request always went without one. A JWT\nre-mint already passed the nonce, and the code comment there says the\ntwo match.\n\nThe refresh now starts with the stored nonce. If the token endpoint\nwants a different one, the existing use_dpop_nonce retry still covers\nit. Salesforce issues no nonces today, so this saves no round trip yet.\n\nCo-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-11-10T13:31:46-06:00",
+          "tree_id": "c04eb24afde0862ea1438bcb0bb2257791f4ce20",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/30be657fdc47f295f2f867f5a48d49b97f6ed228"
+        },
+        "date": 1794339497122,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 691609,
+            "range": "±0.36%",
+            "unit": "ops/sec",
+            "extra": "92 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1241375,
+            "range": "±9.20%",
+            "unit": "ops/sec",
+            "extra": "48 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 22711,
+            "range": "±210.96%",
+            "unit": "ops/sec",
+            "extra": "13 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 226308,
+            "range": "±128.55%",
+            "unit": "ops/sec",
+            "extra": "52 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 473756,
+            "range": "±13.27%",
+            "unit": "ops/sec",
+            "extra": "55 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 14717,
+            "range": "±199.98%",
+            "unit": "ops/sec",
+            "extra": "22 samples"
           }
         ]
       }
