@@ -21,3 +21,12 @@ Invalid value was specified for wait. Please provide a wait value greater than %
 # invalidApiVersion
 
 Invalid api version is being reported by config (apiVersion=%s).
+
+# dpopStreamingUnsupported
+
+The Streaming API doesn't accept DPoP-bound sessions, and the session for %s is DPoP-bound.
+
+# dpopStreamingUnsupported.actions
+
+- Run the command without streaming, if it has an option to poll instead.
+- Or log in to the org again without DPoP, for example with "sf org login web --no-dpop", to get a bearer session.
