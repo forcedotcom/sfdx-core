@@ -316,7 +316,7 @@ describe('Connection DPoP', () => {
         expect(proofOf(request).payload).to.not.have.property('ath');
         expect(proofOf(request).payload.htm).to.equal('POST');
       }
-      expect(proofOf(tokenRequests[0]).payload).to.not.have.property('nonce');
+      expect(proofOf(tokenRequests[0]).payload.nonce, 'the stored nonce').to.equal('initial-resource-nonce');
       expect(proofOf(tokenRequests[1]).payload.nonce).to.equal('token-nonce');
 
       const resources = requests.filter(isTo(SOBJECTS_PATH));
@@ -333,6 +333,29 @@ describe('Connection DPoP', () => {
       expect(fields.refreshToken).to.equal(ROTATED_RT);
       expect(fields.tokenType).to.equal('DPoP');
       expect(fields.dpopKeyReference).to.equal(dpopKey.keyReference);
+    });
+
+    it('refreshes with the stored nonce in one token request when the server accepts it', async () => {
+      const org = dpopOrg('stored-nonce');
+      const { requests } = stubTransport($$.SANDBOX, [
+        urlIncludes(TOKEN_PATH, () =>
+          ok({
+            access_token: FRESH_TOKEN,
+            instance_url: org.instanceUrl,
+            id: `${org.loginUrl}/id/${org.orgId}/${org.userId}`,
+            token_type: 'DPoP',
+          })
+        ),
+        urlIncludes(SOBJECTS_PATH, sequence(invalidSession(), ok())),
+      ]);
+      const { conn, authInfo } = await connect(org);
+
+      await conn.request(`${org.instanceUrl}${SOBJECTS_PATH}`);
+
+      const tokenRequests = requests.filter(isTo(TOKEN_PATH));
+      expect(tokenRequests).to.have.length(1);
+      expect(proofOf(tokenRequests[0]).payload.nonce).to.equal('stored-nonce');
+      expect(authInfo.getFields(true).dpopNonce).to.equal('stored-nonce');
     });
 
     it('re-mints a JWT session with the persisted DPoP signing key and nonce', async () => {

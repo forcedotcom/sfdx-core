@@ -1549,10 +1549,10 @@ export class AuthInfo extends AsyncOptionalCreatable<AuthInfo.Options> {
 
     const oauth2 = new OAuth2(fullOptions);
     // A DPoP-bound refresh token is only accepted with a proof from the key it was issued to.
-    const { dpopKeyReference } = options;
+    const { dpopKeyReference, dpopNonce: storedNonce } = options;
     if (dpopKeyReference) {
       // eslint-disable-next-line no-underscore-dangle
-      oauth2._transport = this.useDpop(await loadSessionDpopKey(dpopKeyReference, this.getUsername()));
+      oauth2._transport = this.useDpop(await loadSessionDpopKey(dpopKeyReference, this.getUsername()), storedNonce);
     }
     let authFieldsBuilder: TokenResponse;
     try {
