@@ -179,6 +179,12 @@ export type SandboxRequest = {
   ActivationUserGroupId?: string;
   Features?: string[] | string;
   PostCopyConfig?: PostCopyConfigEntry[] | string;
+  /**
+   * Per-extension sandbox config keyed by extension, e.g. { "marketing_cloud": { ... } }. Optional, and only applies
+   * to the operation it is sent with. Requires API version 69.0 or later. Not in the sandbox query field lists: older
+   * orgs reject queries that name it, and refresh must not send back config stored by an earlier operation.
+   */
+  ExtensionConfig?: Record<string, JsonMap> | string;
 };
 
 export type ResumeSandboxRequest = {
@@ -207,6 +213,12 @@ export type SandboxInfo = {
   CopyArchivedActivities?: boolean; // only for full sandboxes; depends if a license was purchased
   Features?: string[];
   PostCopyConfig?: PostCopyConfigEntry[] | string;
+  /**
+   * Per-extension sandbox config keyed by extension, e.g. { "marketing_cloud": { ... } }. Optional, and only applies
+   * to the operation it is sent with. Requires API version 69.0 or later. Not in the sandbox query field lists: older
+   * orgs reject queries that name it, and refresh must not send back config stored by an earlier operation.
+   */
+  ExtensionConfig?: Record<string, JsonMap> | string;
 };
 
 export type ScratchOrgRequest = Omit<ScratchOrgCreateOptions, 'hubOrg'>;
@@ -442,6 +454,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     if (sandboxReq.PostCopyConfig && Array.isArray(sandboxReq.PostCopyConfig)) {
       sandboxReq.PostCopyConfig = JSON.stringify(sandboxReq.PostCopyConfig);
     }
+    if (sandboxReq.ExtensionConfig && typeof sandboxReq.ExtensionConfig === 'object') {
+      sandboxReq.ExtensionConfig = JSON.stringify(sandboxReq.ExtensionConfig);
+    }
     const createResult = await this.connection.tooling.create('SandboxInfo', sandboxReq);
     this.logger.debug(createResult, 'Return from calling tooling.create');
 
@@ -489,6 +504,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
     this.logger.debug(sandboxInfo, 'RefreshSandbox called with SandboxInfo');
     if (sandboxInfo.PostCopyConfig && Array.isArray(sandboxInfo.PostCopyConfig)) {
       sandboxInfo.PostCopyConfig = JSON.stringify(sandboxInfo.PostCopyConfig);
+    }
+    if (sandboxInfo.ExtensionConfig && typeof sandboxInfo.ExtensionConfig === 'object') {
+      sandboxInfo.ExtensionConfig = JSON.stringify(sandboxInfo.ExtensionConfig);
     }
     const refreshResult = await this.connection.tooling.update('SandboxInfo', sandboxInfo);
     this.logger.debug(refreshResult, 'Return from calling tooling.update');
@@ -1015,6 +1033,39 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       throw err;
     }
     return result[0];
+  }
+
+  /**
+   * Query the ExtensionConfig used by the latest create, clone or refresh of a sandbox.
+   * Read-only: returns the config, not a SandboxInfo, so it isn't sent back by a later refresh.
+   *
+   * @param sandboxName The name of the sandbox
+   * @returns The config keyed by extension, or undefined when none was sent or the org or
+   * API version doesn't have the field (before 69.0)
+   * @throws {SfError} `NoRecords` when no SandboxProcess is found for the sandbox
+   */
+  public async querySandboxExtensionConfig(sandboxName: string): Promise<Record<string, JsonMap> | undefined> {
+    const soql = `SELECT ExtensionConfig FROM SandboxProcess WHERE SandboxName='${sandboxName}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;
+    let records: Array<{ ExtensionConfig?: string | null }>;
+    try {
+      records = (await this.connection.tooling.query<{ ExtensionConfig?: string | null }>(soql)).records;
+    } catch (err) {
+      // Orgs and API versions before 69.0 reject the SOQL with INVALID_FIELD ("No such column ...").
+      const message = err instanceof Error ? err.message : String(err);
+      const isInvalidField =
+        (err instanceof Error && err.name === 'INVALID_FIELD') || message.includes('No such column');
+      if (isInvalidField && message.includes('ExtensionConfig')) {
+        this.logger.debug('ExtensionConfig not supported on this org');
+        return undefined;
+      }
+      throw err;
+    }
+
+    if (records.length === 0) {
+      throw new SfError(`No record found for ${soql}`, SingleRecordQueryErrors.NoRecords);
+    }
+    const extensionConfig = records[0].ExtensionConfig;
+    return extensionConfig ? (JSON.parse(extensionConfig) as Record<string, JsonMap>) : undefined;
   }
 
   /**
