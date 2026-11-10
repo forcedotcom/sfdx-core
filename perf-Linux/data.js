@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794339506324,
+  "lastUpdate": 1794340510365,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - ubuntu-latest": [
@@ -49230,6 +49230,72 @@ window.BENCHMARK_DATA = {
             "range": "±199.98%",
             "unit": "ops/sec",
             "extra": "22 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jfeingold@salesforce.com",
+            "name": "Jamie Feingold",
+            "username": "jfeingold35"
+          },
+          "committer": {
+            "email": "jfeingold@salesforce.com",
+            "name": "Jamie Feingold",
+            "username": "jfeingold35"
+          },
+          "distinct": true,
+          "id": "1276fae3582cbc772863ddc6b208fe4e9a16428d",
+          "message": "test: expect the macOS security path with platform separators\n\nThe macOS keychain implementation builds /usr/bin/security with\npath.join, which gives \\usr\\bin\\security on Windows, but the test\nexpected the POSIX string, so it failed on Windows. Build the expected\npath the same way.\n\nCo-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>",
+          "timestamp": "2026-11-10T13:50:10-06:00",
+          "tree_id": "57f93ae667c3248bd2a492e6dc4d82248920ec18",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/1276fae3582cbc772863ddc6b208fe4e9a16428d"
+        },
+        "date": 1794340500426,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 685443,
+            "range": "±0.34%",
+            "unit": "ops/sec",
+            "extra": "95 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1207981,
+            "range": "±9.46%",
+            "unit": "ops/sec",
+            "extra": "62 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 31360,
+            "range": "±200.62%",
+            "unit": "ops/sec",
+            "extra": "22 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 379004,
+            "range": "±90.35%",
+            "unit": "ops/sec",
+            "extra": "52 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 461122,
+            "range": "±12.97%",
+            "unit": "ops/sec",
+            "extra": "43 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 13078,
+            "range": "±205.00%",
+            "unit": "ops/sec",
+            "extra": "17 samples"
           }
         ]
       }
