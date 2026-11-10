@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-
 import { URL } from 'node:url';
 import { AsyncResult, DeployOptions, DeployResultLocator } from '@jsforce/jsforce-node/lib/api/metadata';
 import { Duration, env, maxBy } from '@salesforce/kit';
@@ -28,9 +26,12 @@ import {
   QueryResult,
   Record,
   Schema,
+  TracePropagator,
 } from '@jsforce/jsforce-node';
 import { Tooling as JSForceTooling } from '@jsforce/jsforce-node/lib/api/tooling';
 import { StreamPromise } from '@jsforce/jsforce-node/lib/util/promise';
+import { SfConfigProperties } from '../config/config';
+import { EnvironmentVariable } from '../config/envVars';
 import { MyDomainResolver } from '../status/myDomainResolver';
 import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';
@@ -54,6 +55,11 @@ export const SFDX_HTTP_HEADERS = {
 
 export const DNS_ERROR_NAME = 'DomainNotFoundError';
 export type DeployOptionsWithRest = Partial<DeployOptions> & { rest?: boolean };
+const TRACE_PROPAGATORS: TracePropagator[] = ['tracecontext', 'b3', 'b3multi', 'none'];
+const warnedUnsupportedTracePropagators =
+  ((globalThis as { [key: string]: unknown }).sfCoreUnsupportedTracePropagators as Set<string> | undefined) ??
+  new Set<string>();
+(globalThis as { [key: string]: unknown }).sfCoreUnsupportedTracePropagators = warnedUnsupportedTracePropagators;
 
 // preserving interface since it extends a class
 
@@ -126,6 +132,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     // Get connection options from auth info and create a new jsForce connection
     const connectionOptions: ConnectionConfig<S> = {
       version: await getOptionsVersion<S>(options),
+      propagators: await getPropagators(options.configAggregator),
       callOptions: {
         client: clientId,
       },
@@ -245,7 +252,7 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       instanceApiVersion: this.maxApiVersion,
       // This will get messed up if the user changes their local time on their machine.
       // Not a big deal since it will just get updated sooner/later.
-      instanceApiVersionLastRetrieved: new Date().toLocaleString(),
+      instanceApiVersionLastRetrieved: new Date().toISOString(),
     });
 
     return this.maxApiVersion;
@@ -471,12 +478,14 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
     // Check if the cache has expired
     if (lastChecked) {
       const now = new Date();
-      const has24HoursPastSinceLastCheck = now.getTime() - lastChecked > Duration.hours(24).milliseconds;
+      const timeSinceLastCheck = now.getTime() - lastChecked;
+      // To be considered fresh, the cache must be from a date within the past 24 hours, as opposed to older (or from the future)
+      const cacheOutsideValidWindow = timeSinceLastCheck < 0 || timeSinceLastCheck > Duration.hours(24).milliseconds;
       this.logger.debug(
         `API version cache last checked on ${lastCheckedDateString ?? '<undefined>'} (now is ${now.toLocaleString()})`
       );
 
-      if (!has24HoursPastSinceLastCheck && version) {
+      if (!cacheOutsideValidWindow && version) {
         if (!validateApiVersion(version)) {
           this.logger.warn(
             `Cached instanceApiVersion "${version}" is invalid (expected format: "XX.0"). Ignoring cache and re-fetching.`
@@ -535,9 +544,32 @@ const getOptionsVersion = async <S extends Schema>(options: Connection.Options<S
   return asString(configAggregator.getInfo('org-api-version').value);
 };
 
+const getPropagators = async (configAggregator?: ConfigAggregator): Promise<TracePropagator[]> => {
+  const aggregator = configAggregator ?? (await ConfigAggregator.create());
+  const disabled = aggregator.getPropertyValue<boolean | string>(SfConfigProperties.DISABLE_TELEMETRY);
+  if (disabled === true || disabled === 'true') return ['none'];
+
+  const propagators = (env.getString(EnvironmentVariable.SF_PROPAGATORS) ?? 'none')
+    .split(',')
+    .map((propagator) => propagator.trim().toLowerCase())
+    .filter(Boolean);
+  const validatedPropagators = propagators.flatMap((propagator): TracePropagator[] => {
+    if (!TRACE_PROPAGATORS.includes(propagator as TracePropagator)) {
+      if (!warnedUnsupportedTracePropagators.has(propagator)) {
+        warnedUnsupportedTracePropagators.add(propagator);
+        void Lifecycle.getInstance().emitWarning(
+          `Unsupported trace propagator: ${propagator}. Supported values: ${TRACE_PROPAGATORS.join(', ')}`
+        );
+      }
+      return [];
+    }
+    return [propagator as TracePropagator];
+  });
+  return validatedPropagators.includes('none') ? ['none'] : validatedPropagators;
+};
+
 // jsforce does some interesting proxy loading on lib classes.
 // Setting this in the Connection.tooling getter will not work, it
 // must be set on the prototype.
-
-// @ts-ignore
-JSForceTooling.prototype.autoFetchQuery = Connection.prototype.autoFetchQuery; // eslint-disable-line @typescript-eslint/unbound-method
+(JSForceTooling.prototype as unknown as { autoFetchQuery: Connection['autoFetchQuery'] }).autoFetchQuery =
+  Connection.prototype.autoFetchQuery; // eslint-disable-line @typescript-eslint/unbound-method

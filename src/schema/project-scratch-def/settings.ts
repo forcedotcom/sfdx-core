@@ -573,6 +573,12 @@ export const SettingsSchema = z
       .describe(
         'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_mfgserviceconsolesettings_metadata_api.htm'
       ),
+    mktPlanningOpsSettings: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe(
+        'For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_mktplanningopssettings.htm'
+      ),
     mobileSettings: z
       .record(z.string(), z.unknown())
       .optional()

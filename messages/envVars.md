@@ -266,6 +266,10 @@ URL to a private npm server, where all packages that you publish are private.
 
 Set to true to enable Apex pre-compile before the tests are run with the Apex test run command. Default is false.
 
+# sfPropagators
+
+Comma-separated list of context propagators used for outbound API requests. Trace-context forwarding is disabled unless this variable is set. Supported values are `tracecontext`, `b3`, `b3multi`, and `none`. Set to `none` to disable all trace-context forwarding.
+
 # sfProjectAutoupdateDisableForPackageCreate
 
 Set to true to disable automatic updates to sfdx-project.json when running the package create command.

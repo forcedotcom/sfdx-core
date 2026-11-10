@@ -1,3 +1,159 @@
+## [9.4.5](https://github.com/forcedotcom/sfdx-core/compare/9.4.4...9.4.5) (2026-11-07)
+
+
+### Bug Fixes
+
+* **deps:** bump memfs from 4.38.1 to 4.80.0 ([0a452c9](https://github.com/forcedotcom/sfdx-core/commit/0a452c9977a6647e40cd1d1daefa2b20865caa18))
+
+
+
+## [9.4.4](https://github.com/forcedotcom/sfdx-core/compare/9.4.3...9.4.4) (2026-10-30)
+
+
+### Bug Fixes
+
+* **deps:** bump undici from 8.11.2 to 8.12.3 ([f811046](https://github.com/forcedotcom/sfdx-core/commit/f8110461f3ef444c744582a49d0dd715e6577a75))
+
+
+
+## [9.4.3](https://github.com/forcedotcom/sfdx-core/compare/9.4.2...9.4.3) (2026-10-29)
+
+
+### Bug Fixes
+
+* api version access date cached as ISO string @W-24685191@ ([05ce0fd](https://github.com/forcedotcom/sfdx-core/commit/05ce0fdee993963f6af7fd8d37359f0065976cc2))
+
+
+
+## [9.4.2](https://github.com/forcedotcom/sfdx-core/compare/9.4.1...9.4.2) (2026-10-22)
+
+
+### Bug Fixes
+
+* **deps:** bump markdown-it from 14.3.1 to 14.3.3 ([bd5dc6f](https://github.com/forcedotcom/sfdx-core/commit/bd5dc6f5f95ec4da8db2a25eb1cf7ed562ec10a0))
+
+
+
+## [9.4.1](https://github.com/forcedotcom/sfdx-core/compare/9.4.0...9.4.1) (2026-10-21)
+
+
+### Bug Fixes
+
+* use wall-clock time for config CRDT timestamps ([9ea5908](https://github.com/forcedotcom/sfdx-core/commit/9ea5908154221dee34f17a888c7c6c62ffe5fd8c))
+
+
+
+# [9.4.0](https://github.com/forcedotcom/sfdx-core/compare/9.3.7...9.4.0) (2026-10-16)
+
+
+### Bug Fixes
+
+* deduplicate propagator warnings ([433c13e](https://github.com/forcedotcom/sfdx-core/commit/433c13e57fee3ebf52ef6e98d23a4d078172e201))
+* forward trace context through jsforce ([4bb74ee](https://github.com/forcedotcom/sfdx-core/commit/4bb74eeca4eea49a58ec4532db363ad13d275a8a))
+* harden W3C trace context validation per spec ([c2f77da](https://github.com/forcedotcom/sfdx-core/commit/c2f77dab367029ccf6d0c485eb5095bd53df1e29))
+* make trace propagation opt-in ([6e7688a](https://github.com/forcedotcom/sfdx-core/commit/6e7688a074684c49ab5b36cfa645d3c1f1f24641))
+* validate configured propagators ([ccc46dd](https://github.com/forcedotcom/sfdx-core/commit/ccc46dd728b9758722c70af6649910098c13409e))
+* validate trace propagator settings ([8257856](https://github.com/forcedotcom/sfdx-core/commit/8257856f8039fe46413363cc77b0ea27ca92db71))
+
+
+### Features
+
+* configure jsforce propagators ([f352b6f](https://github.com/forcedotcom/sfdx-core/commit/f352b6fc0ac482691620352ad59f3a0fb4f2fea6))
+* configure trace context propagators ([4f8b341](https://github.com/forcedotcom/sfdx-core/commit/4f8b3412c09d71c788ad6f7462b7e150fba486ad))
+* forward W3C trace context headers on outbound API requests ([e039aea](https://github.com/forcedotcom/sfdx-core/commit/e039aea866fcbda4af7ccbb2b44dd7179482b718))
+
+
+
+## [9.3.7](https://github.com/forcedotcom/sfdx-core/compare/9.3.6...9.3.7) (2026-10-16)
+
+
+### Bug Fixes
+
+* **project:** guard traversal for invalid cwd - W-24534219 ([#1358](https://github.com/forcedotcom/sfdx-core/issues/1358)) ([e5c67fc](https://github.com/forcedotcom/sfdx-core/commit/e5c67fc0c4f90c8789949a3eb400ecc8aae3f77b))
+
+
+
+## [9.3.6](https://github.com/forcedotcom/sfdx-core/compare/9.3.5...9.3.6) (2026-10-09)
+
+
+### Bug Fixes
+
+* **deps:** bump fast-copy from 3.0.2 to 3.1.0 ([de68662](https://github.com/forcedotcom/sfdx-core/commit/de68662767d536e2ae129977f617c4d0705d9da1))
+
+
+
+## [9.3.5](https://github.com/forcedotcom/sfdx-core/compare/9.3.4...9.3.5) (2026-10-09)
+
+
+### Bug Fixes
+
+* **deps:** bump fast-copy from 3.0.2 to 3.1.0 in /examples ([e630515](https://github.com/forcedotcom/sfdx-core/commit/e630515ae655ff0346232ea327663345b84f78c8))
+
+
+
+## [9.3.4](https://github.com/forcedotcom/sfdx-core/compare/9.3.3...9.3.4) (2026-10-09)
+
+
+### Bug Fixes
+
+* **deps:** bump source-map-js from 1.2.1 to 1.2.2 ([cd2ae75](https://github.com/forcedotcom/sfdx-core/commit/cd2ae75dba7de76baef3c530be9d11c22efcac9f))
+
+
+
+## [9.3.3](https://github.com/forcedotcom/sfdx-core/compare/9.3.2...9.3.3) (2026-10-08)
+
+
+### Bug Fixes
+
+* **deps:** bump jsforce-node to 3.10.29 ([89b2d1a](https://github.com/forcedotcom/sfdx-core/commit/89b2d1acff5d88929fa58c80b3c7eb986cba39d9))
+
+
+
+## [9.3.2](https://github.com/forcedotcom/sfdx-core/compare/9.3.1...9.3.2) (2026-10-07)
+
+
+### Bug Fixes
+
+* **deps:** bump fast-uri from 3.1.7 to 3.1.8 ([d1f64e3](https://github.com/forcedotcom/sfdx-core/commit/d1f64e3051e74f235598419793220a88d37fa783))
+
+
+
+## [9.3.1](https://github.com/forcedotcom/sfdx-core/compare/9.3.0...9.3.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **deps:** bump undici from 8.5.0 to 8.11.2 ([21b26a0](https://github.com/forcedotcom/sfdx-core/commit/21b26a0fc888c42f0bc79943d505d1fee090fd1f))
+
+
+
+# [9.3.0](https://github.com/forcedotcom/sfdx-core/compare/9.2.2...9.3.0) (2026-10-01)
+
+
+### Features
+
+* **auth:** skip token-path HTTP when AccessTokenOptions already has the fields - W-24349622 ([#1346](https://github.com/forcedotcom/sfdx-core/issues/1346)) ([2772f41](https://github.com/forcedotcom/sfdx-core/commit/2772f41f6aa4196d6813d7e0b4f2111a067a983c))
+
+
+
+## [9.2.2](https://github.com/forcedotcom/sfdx-core/compare/9.2.1...9.2.2) (2026-09-28)
+
+
+### Bug Fixes
+
+* **deps:** bump fast-uri from 3.1.4 to 3.1.7 ([df419d4](https://github.com/forcedotcom/sfdx-core/commit/df419d481876eb6393a6175b1959b814405795b3))
+
+
+
+## [9.2.1](https://github.com/forcedotcom/sfdx-core/compare/9.2.0...9.2.1) (2026-09-28)
+
+
+### Bug Fixes
+
+* remove stale TS/eslint suppressions ([#1341](https://github.com/forcedotcom/sfdx-core/issues/1341)) ([e11f56e](https://github.com/forcedotcom/sfdx-core/commit/e11f56ee5d3c8df8938ba7531cb6d6c5f9924db5))
+
+
+
 # [9.2.0](https://github.com/forcedotcom/sfdx-core/compare/9.1.12-qa.1...9.2.0) (2026-09-17)
 
 

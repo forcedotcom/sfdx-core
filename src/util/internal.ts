@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { join, resolve } from 'node:path';
+import * as path from 'node:path';
 import { Optional } from '@salesforce/ts-types';
 import { fs } from '../fs/fs';
 import { Messages } from '../messages';
@@ -85,22 +85,8 @@ export const traverse = {
    * @param dir The directory path in which to start the upward search.
    * @param file The file name to look for.
    */
-  forFile: async (dir: string, file: string): Promise<Optional<string>> => {
-    let foundProjectDir: Optional<string>;
-    try {
-      fs.statSync(join(dir, file));
-      foundProjectDir = dir;
-    } catch (err) {
-      if (err && (err as SfError).code === 'ENOENT') {
-        const nextDir = resolve(dir, '..');
-        if (nextDir !== dir) {
-          // stop at root
-          foundProjectDir = await traverse.forFile(nextDir, file);
-        }
-      }
-    }
-    return foundProjectDir;
-  },
+  forFile: (dir: string, file: string): Promise<Optional<string>> =>
+    Promise.resolve(findFileInParentDirectories(dir, file)),
 
   /**
    * Searches a file path synchronously in an ascending manner (until reaching the filesystem root) for the first occurrence a
@@ -110,20 +96,47 @@ export const traverse = {
    * @param dir The directory path in which to start the upward search.
    * @param file The file name to look for.
    */
-  forFileSync: (dir: string, file: string): Optional<string> => {
-    let foundProjectDir: Optional<string>;
+  forFileSync: (dir: string, file: string): Optional<string> => findFileInParentDirectories(dir, file),
+};
+
+const findFileInParentDirectories = (dir: string, file: string): Optional<string> => {
+  const normalizedDir = path.normalize(dir);
+  let startDir: Optional<string>;
+  if (path.isAbsolute(normalizedDir)) {
+    startDir = normalizedDir;
+  } else {
+    const cwd = process.cwd();
+    if (path.isAbsolute(cwd)) {
+      startDir = path.normalize(path.join(cwd, normalizedDir));
+    }
+  }
+
+  // A relative path is only meaningful when the active runtime supplies an absolute cwd.
+  // In web builds process.cwd() may be empty; do not probe a relative path or ascend from it.
+  if (!startDir || !path.isAbsolute(startDir)) {
+    return undefined;
+  }
+
+  const visitedDirs = new Set<string>();
+  let currentDir: Optional<string> = startDir;
+
+  while (currentDir && !visitedDirs.has(currentDir)) {
+    visitedDirs.add(currentDir);
     try {
-      fs.statSync(join(dir, file));
-      foundProjectDir = dir;
+      fs.statSync(path.join(currentDir, file));
+      return currentDir;
     } catch (err) {
-      if (err && (err as SfError).code === 'ENOENT') {
-        const nextDir = resolve(dir, '..');
-        if (nextDir !== dir) {
-          // stop at root
-          foundProjectDir = traverse.forFileSync(nextDir, file);
-        }
+      if (!err || (err as SfError).code !== 'ENOENT') {
+        return undefined;
       }
     }
-    return foundProjectDir;
-  },
+
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) {
+      return undefined;
+    }
+    currentDir = parentDir;
+  }
+
+  return undefined;
 };

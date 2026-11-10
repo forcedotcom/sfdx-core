@@ -90,8 +90,8 @@ describe('LWWMap', () => {
       });
       it('all are updated', () => {
         const remoteState = {
-          foo: { value: 'bar2', timestamp: nowBigInt() },
-          baz: { value: 'qux2', timestamp: nowBigInt() },
+          foo: { value: 'bar2', timestamp: nowBigInt() + TIMESTAMP_OFFSET },
+          baz: { value: 'qux2', timestamp: nowBigInt() + TIMESTAMP_OFFSET },
         } satisfies LWWState<TestType>;
         lwwMap.merge(remoteState);
         expect(lwwMap.state).to.deep.equal(remoteState);
@@ -99,8 +99,8 @@ describe('LWWMap', () => {
       });
       it('all are deleted', () => {
         const remoteState = {
-          foo: { value: SYMBOL_FOR_DELETED, timestamp: nowBigInt() },
-          baz: { value: SYMBOL_FOR_DELETED, timestamp: nowBigInt() },
+          foo: { value: SYMBOL_FOR_DELETED, timestamp: nowBigInt() + TIMESTAMP_OFFSET },
+          baz: { value: SYMBOL_FOR_DELETED, timestamp: nowBigInt() + TIMESTAMP_OFFSET },
         } satisfies LWWState<TestType>;
         lwwMap.merge(remoteState);
         expect(lwwMap.state).to.deep.equal(remoteState);
@@ -118,7 +118,7 @@ describe('LWWMap', () => {
       it('one is update, one is added, one is deleted', () => {
         lwwMap.set('opt', 4);
         const remoteState = {
-          foo: { value: 'bar2', timestamp: nowBigInt() },
+          foo: { value: 'bar2', timestamp: nowBigInt() + TIMESTAMP_OFFSET },
           baz: { value: 'qux2', timestamp: nowBigInt() - TIMESTAMP_OFFSET },
           opt: { value: SYMBOL_FOR_DELETED, timestamp: nowBigInt() + TIMESTAMP_OFFSET },
           optNull: { value: null, timestamp: nowBigInt() },
