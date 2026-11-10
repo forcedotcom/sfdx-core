@@ -41,6 +41,16 @@ export type DpopTransportOptions = {
   onNonce?: (nonce: string) => void;
 };
 
+/**
+ * The parts of a response {@link DpopTransport.sendWithAuth} reads: a `fetch` `Response`, a Node `IncomingMessage`,
+ * or an axios-style response.
+ */
+export type AuthResponse = {
+  status?: number;
+  statusCode?: number;
+  headers?: HeadersLike | { [name: string]: string | string[] | undefined };
+};
+
 /** A request after binding; it always carries headers, since binding writes the authorization and proof there. */
 type PreparedRequest = HttpRequest & { headers: Record<string, string> };
 
@@ -111,6 +121,45 @@ export class DpopTransport extends Transport {
     });
     // Spreading reads the signing getter once.
     return { ...headers };
+  }
+
+  /**
+   * Sends a request outside this transport the way this transport sends its own: `send` gets new authorization
+   * headers for each attempt, any `DPoP-Nonce` in the response is recorded, and a `use_dpop_nonce` challenge is
+   * retried once with the new nonce. A challenge is recognized from the `WWW-Authenticate` header, since `send`'s
+   * response body may not be readable twice.
+   *
+   * @param method The HTTP method of the request.
+   * @param url The request URL.
+   * @param accessToken The access token sent with the request.
+   * @param send Sends the request with the given headers.
+   */
+  public async sendWithAuth<R extends AuthResponse>(
+    method: string,
+    url: string | URL,
+    accessToken: string,
+    send: (headers: Record<string, string>) => Promise<R>
+  ): Promise<R> {
+    const response = await send(this.authHeaders(method, url, accessToken));
+    const nonce = responseHeader(response, 'dpop-nonce');
+    if (!nonce) return response;
+    this.recordNonce(nonce);
+    const status = response.status ?? response.statusCode;
+    const challenged =
+      (status === 400 || status === 401) &&
+      (responseHeader(response, 'www-authenticate') ?? '').toLowerCase().includes('use_dpop_nonce');
+    return challenged ? send(this.authHeaders(method, url, accessToken)) : response;
+  }
+
+  /**
+   * Records a `DPoP-Nonce` the server sent on a response this transport didn't receive itself, so later proofs use it.
+   *
+   * @param nonce The nonce.
+   */
+  public recordNonce(nonce: string): void {
+    if (nonce === this.nonce) return;
+    this.nonce = nonce;
+    this.options.onNonce?.(nonce);
   }
 
   private async send(req: HttpRequest, options: HttpRequestOptions): Promise<HttpResponse> {
@@ -184,10 +233,7 @@ export class DpopTransport extends Transport {
   private observe(response: HttpResponse): boolean {
     const nonce = getHeader(response.headers, 'dpop-nonce');
     if (!nonce) return false;
-    if (nonce !== this.nonce) {
-      this.nonce = nonce;
-      this.options.onNonce?.(nonce);
-    }
+    this.recordNonce(nonce);
     if (response.statusCode !== 400 && response.statusCode !== 401) return false;
     const challenge = `${getHeader(response.headers, 'www-authenticate') ?? ''} ${response.body ?? ''}`;
     return challenge.toLowerCase().includes('use_dpop_nonce');
@@ -204,6 +250,21 @@ const isSoap = (req: HttpRequest): boolean =>
 
 const getHeader = (headers: { [name: string]: string } | undefined, name: string): string | undefined =>
   Object.entries(headers ?? {}).find(([key]) => key.toLowerCase() === name.toLowerCase())?.[1];
+
+type HeadersLike = { get(name: string): string | null };
+
+/** A `fetch` `Headers`, rather than a plain object. */
+const isHeadersLike = (headers: NonNullable<AuthResponse['headers']>): headers is HeadersLike =>
+  typeof (headers as Partial<HeadersLike>).get === 'function';
+
+/** A header from a {@link AuthResponse}, whichever way its headers are held. */
+const responseHeader = (response: AuthResponse, name: string): string | undefined => {
+  const { headers } = response;
+  if (!headers) return undefined;
+  if (isHeadersLike(headers)) return headers.get(name) ?? undefined;
+  const value = Object.entries(headers).find(([key]) => key.toLowerCase() === name)?.[1];
+  return Array.isArray(value) ? value[0] : value;
+};
 
 const unescapeXml = (value: string): string =>
   value

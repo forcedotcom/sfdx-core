@@ -42,7 +42,7 @@ import { Lifecycle } from '../lifecycleEvents';
 import { Global } from '../global';
 import { loadSessionDpopKey } from '../crypto/dpop';
 import { AuthFields, AuthInfo } from './authInfo';
-import { DpopSession, DpopTransport } from './dpopTransport';
+import { AuthResponse, DpopSession, DpopTransport } from './dpopTransport';
 import { OrgConfigProperties } from './orgConfigProperties';
 
 Messages.importMessagesDirectory(__dirname);
@@ -348,17 +348,57 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
   /**
    * Returns the HTTP headers that authorize a request this connection doesn't send itself, such as a download with
    * `fetch`: `Authorization`, plus a `DPoP` proof when the session is bound to a DPoP key. A proof is single-use and
-   * bound to the method and URL, so get new headers for every request. The session isn't refreshed.
+   * bound to the method and URL, so get new headers for every request, including retries. The session isn't
+   * refreshed.
+   *
+   * Prefer {@link Connection.sendWithAuth}, which does this and answers nonce challenges. Callers that send requests
+   * themselves must pass any `DPoP-Nonce` response header to {@link Connection.recordDpopNonce} before getting
+   * headers for the next request; a 400 or 401 whose `WWW-Authenticate` includes `use_dpop_nonce` is a challenge
+   * to retry once with new headers.
    *
    * @param method The HTTP method of the request.
    * @param url The request URL.
    */
   public getAuthHeaders(method: string, url: string | URL): { [name: string]: string } {
     if (!this.accessToken) return {};
-    // eslint-disable-next-line no-underscore-dangle
-    const transport = this._transport;
-    if (!(transport instanceof DpopTransport)) return { Authorization: `Bearer ${this.accessToken}` };
+    const transport = this.getDpopTransport();
+    if (!transport) return { Authorization: `Bearer ${this.accessToken}` };
     return transport.authHeaders(method, url, this.accessToken);
+  }
+
+  /**
+   * Sends a request this connection doesn't send itself, such as a download with `fetch`, with the headers from
+   * {@link Connection.getAuthHeaders}. `send` is called with new headers for each attempt. For a DPoP session, any
+   * `DPoP-Nonce` in the response is recorded, and a `use_dpop_nonce` challenge is retried once. The session isn't
+   * refreshed.
+   *
+   * ```
+   * const response = await conn.sendWithAuth('GET', url, (headers) => fetch(url, { headers }));
+   * ```
+   *
+   * @param method The HTTP method of the request.
+   * @param url The request URL.
+   * @param send Sends the request with the given headers and returns the response.
+   */
+  public async sendWithAuth<R extends AuthResponse>(
+    method: string,
+    url: string | URL,
+    send: (headers: { [name: string]: string }) => Promise<R>
+  ): Promise<R> {
+    const transport = this.getDpopTransport();
+    if (!transport || !this.accessToken) return send(this.getAuthHeaders(method, url));
+    return transport.sendWithAuth(method, url, this.accessToken, send);
+  }
+
+  /**
+   * Records a `DPoP-Nonce` response header from a request this connection didn't send itself, so later proofs,
+   * from {@link Connection.getAuthHeaders} and this connection's own requests, use it. The nonce is saved with the
+   * auth info. Does nothing when the session isn't bound to a DPoP key.
+   *
+   * @param nonce The `DPoP-Nonce` header value.
+   */
+  public recordDpopNonce(nonce: string): void {
+    if (nonce) this.getDpopTransport()?.recordNonce(nonce);
   }
 
   /**
@@ -473,6 +513,12 @@ export class Connection<S extends Schema = Schema> extends JSForceConnection<S> 
       method: 'GET',
     };
     await this.request(requestInfo);
+  }
+
+  private getDpopTransport(): DpopTransport | undefined {
+    // eslint-disable-next-line no-underscore-dangle
+    const transport = this._transport;
+    return transport instanceof DpopTransport ? transport : undefined;
   }
 
   private getCachedApiVersion(): Optional<string> {

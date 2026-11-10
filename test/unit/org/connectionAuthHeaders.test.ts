@@ -80,4 +80,141 @@ describe('Connection.getAuthHeaders', () => {
       Authorization: `Bearer ${org.accessToken}`,
     });
   });
+
+  it('sends a bearer session once with Bearer headers, ignoring DPoP nonces', async () => {
+    const org = new MockTestOrgData();
+    const conn = await connect(org);
+    const url = `${org.instanceUrl}/services/data`;
+    const sent: Array<Record<string, string>> = [];
+
+    await conn.sendWithAuth('GET', url, async (headers) => {
+      sent.push(headers);
+      return new Response('', {
+        status: 401,
+        headers: { 'DPoP-Nonce': 'n', 'WWW-Authenticate': 'DPoP error="use_dpop_nonce"' },
+      });
+    });
+    conn.recordDpopNonce('n');
+
+    expect(sent).to.deep.equal([{ Authorization: `Bearer ${org.accessToken}` }]);
+    expect(conn.getAuthInfo().getFields(true).dpopNonce).to.be.undefined;
+  });
+});
+
+describe('Connection.sendWithAuth and recordDpopNonce', () => {
+  const $$ = new TestContext();
+  const NEW_NONCE = 'rotated-nonce';
+  let dpopKey: DpopKey;
+  let org: DpopMockOrg;
+  let serverNonce: string;
+  let salesforce: FakeSalesforce;
+  let conn: Connection;
+  let url: string;
+
+  beforeEach(async () => {
+    $$.SANDBOXES.CONNECTION.restore();
+    $$.SANDBOX.stub(MyDomainResolver.prototype, 'resolve').resolves('1.1.1.1');
+    stubMethod($$.SANDBOX, AuthInfo.prototype, 'determineIfDevHub').resolves(false);
+    stubMethod($$.SANDBOX, determineOrgModule, 'determineOrg').resolves();
+    stubDpopKeyStore($$.SANDBOX);
+    dpopKey = await DpopKey.generate();
+    org = new DpopMockOrg({
+      tokenType: 'DPoP',
+      dpopKeyReference: dpopKey.keyReference,
+      dpopNonce: NONCE,
+      instanceApiVersion: API_VERSION,
+    });
+    serverNonce = NONCE;
+    salesforce = new FakeSalesforce({
+      publicJwk: dpopKey.publicJwk,
+      accessToken: () => org.accessToken,
+      nonce: () => serverNonce,
+    });
+    await $$.stubAuths(org);
+    const authInfo = await AuthInfo.create({ username: org.username });
+    conn = await Connection.create({ authInfo, connectionOptions: { version: API_VERSION } });
+    url = `${org.instanceUrl}/services/data/v${API_VERSION}/jobs/query/750xx0000000001/results`;
+  });
+
+  /** A fake `fetch` against FakeSalesforce that challenges a stale nonce, as Salesforce does. */
+  const fakeFetch =
+    (sent: Array<Record<string, string>>) =>
+    async (headers: Record<string, string>): Promise<Response> => {
+      sent.push(headers);
+      const rejected = salesforce.check({ method: 'GET', url, headers });
+      if (rejected?.includes('nonce')) {
+        return new Response('', {
+          status: 401,
+          headers: { 'DPoP-Nonce': serverNonce, 'WWW-Authenticate': 'DPoP error="use_dpop_nonce"' },
+        });
+      }
+      return new Response(rejected ?? 'ok', { status: rejected ? 401 : 200 });
+    };
+
+  it('answers a use_dpop_nonce challenge with new headers and saves the nonce', async () => {
+    serverNonce = NEW_NONCE;
+    const sent: Array<Record<string, string>> = [];
+
+    const response = await conn.sendWithAuth('GET', url, fakeFetch(sent));
+
+    expect(response.status).to.equal(200);
+    expect(sent).to.have.length(2);
+    expect(sent[1].DPoP).to.not.equal(sent[0].DPoP);
+    expect(conn.getAuthInfo().getFields(true).dpopNonce).to.equal(NEW_NONCE);
+    expect(salesforce.check({ method: 'GET', url, headers: conn.getAuthHeaders('GET', url) })).to.be.undefined;
+  });
+
+  it('records a nonce from a successful response without retrying', async () => {
+    const sent: Array<Record<string, string>> = [];
+
+    const response = await conn.sendWithAuth('GET', url, async (headers) => {
+      sent.push(headers);
+      return new Response('ok', { status: 200, headers: { 'DPoP-Nonce': NEW_NONCE } });
+    });
+
+    expect(response.status).to.equal(200);
+    expect(sent).to.have.length(1);
+    expect(conn.getAuthInfo().getFields(true).dpopNonce).to.equal(NEW_NONCE);
+  });
+
+  it('reads Node-style responses with plain header objects', async () => {
+    serverNonce = NEW_NONCE;
+    let attempts = 0;
+
+    const response = await conn.sendWithAuth('GET', url, async (headers) => {
+      attempts += 1;
+      const rejected = salesforce.check({ method: 'GET', url, headers });
+      return rejected
+        ? { statusCode: 401, headers: { 'dpop-nonce': serverNonce, 'www-authenticate': 'DPoP error="use_dpop_nonce"' } }
+        : { statusCode: 200, headers: {} };
+    });
+
+    expect(response.statusCode).to.equal(200);
+    expect(attempts).to.equal(2);
+  });
+
+  it('retries a challenge only once', async () => {
+    let attempts = 0;
+
+    const response = await conn.sendWithAuth('GET', url, async () => {
+      attempts += 1;
+      return new Response('', {
+        status: 401,
+        headers: { 'DPoP-Nonce': `nonce-${attempts}`, 'WWW-Authenticate': 'DPoP error="use_dpop_nonce"' },
+      });
+    });
+
+    expect(response.status).to.equal(401);
+    expect(attempts).to.equal(2);
+  });
+
+  it('records a nonce for callers that send requests themselves', async () => {
+    serverNonce = NEW_NONCE;
+    expect(salesforce.check({ method: 'GET', url, headers: conn.getAuthHeaders('GET', url) })).to.include('nonce');
+
+    conn.recordDpopNonce(NEW_NONCE);
+
+    expect(salesforce.check({ method: 'GET', url, headers: conn.getAuthHeaders('GET', url) })).to.be.undefined;
+    expect(conn.getAuthInfo().getFields(true).dpopNonce).to.equal(NEW_NONCE);
+  });
 });
