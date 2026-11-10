@@ -77,7 +77,8 @@ export const isDpopRequiredError = (error: unknown): boolean =>
  * signed each time it is read, so jsforce's own transport retries never replay a proof.
  * - SOAP requests, including envelopes callers build themselves, get the proof in a `DpopProofHeader` envelope
  * header in the `SessionHeader`'s namespace instead of HTTP headers, which SOAP endpoints ignore.
- * - A `use_dpop_nonce` challenge is retried once with the challenged nonce and a fresh proof.
+ * - A `use_dpop_nonce` challenge is retried once with the challenged nonce and a fresh proof. On SOAP, which reports
+ * auth failures as HTTP 500 faults, a 500 can be a challenge too.
  *
  * A `DPoP` header supplied by the caller is sent unchanged, and never retried, since it can't be re-signed.
  */
@@ -167,7 +168,7 @@ export class DpopTransport extends Transport {
       return super.httpRequest(req, { ...options, retry: { ...options.retry, maxRetries: 0 } });
     }
     const response = await super.httpRequest(this.prepare(req), options);
-    if (!this.observe(response)) {
+    if (!this.observe(response, isSoap(req))) {
       return response;
     }
     return super.httpRequest(this.prepare(req), options);
@@ -228,13 +229,16 @@ export class DpopTransport extends Transport {
   /**
    * Records any nonce the server sent.
    *
+   * @param soap Whether the request was SOAP. SOAP endpoints report auth failures as HTTP 500 faults, so a
+   * challenge may arrive as a 500 there.
    * @returns Whether the response is a nonce challenge that should be retried.
    */
-  private observe(response: HttpResponse): boolean {
+  private observe(response: HttpResponse, soap: boolean): boolean {
     const nonce = getHeader(response.headers, 'dpop-nonce');
     if (!nonce) return false;
     this.recordNonce(nonce);
-    if (response.statusCode !== 400 && response.statusCode !== 401) return false;
+    const challengeStatuses = soap ? [400, 401, 500] : [400, 401];
+    if (!challengeStatuses.includes(response.statusCode)) return false;
     const challenge = `${getHeader(response.headers, 'www-authenticate') ?? ''} ${response.body ?? ''}`;
     return challenge.toLowerCase().includes('use_dpop_nonce');
   }

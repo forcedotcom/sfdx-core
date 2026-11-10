@@ -58,6 +58,12 @@ const DESCRIBE_METADATA_RESPONSE =
   '<organizationNamespace></organizationNamespace><partialSaveAllowed>true</partialSaveAllowed><testRequired>false</testRequired>' +
   '</result></describeMetadataResponse></soapenv:Body></soapenv:Envelope>';
 
+const SOAP_AUTH_FAULT =
+  '<?xml version="1.0" encoding="UTF-8"?>' +
+  '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sf="http://soap.sforce.com/2006/04/metadata">' +
+  '<soapenv:Body><soapenv:Fault><faultcode>sf:INVALID_AUTH_HEADER</faultcode>' +
+  '<faultstring>INVALID_AUTH_HEADER: INVALID_AUTH_HEADER</faultstring></soapenv:Fault></soapenv:Body></soapenv:Envelope>';
+
 const soapOk = (): FakeResponse => ({
   statusCode: 200,
   headers: { 'content-type': 'text/xml' },
@@ -214,6 +220,52 @@ describe('Connection DPoP', () => {
       expect(decodeProof(proofs[0]).payload.nonce).to.equal('reference-resource-nonce');
       expect(decodeProof(proofs[1]).payload.nonce).to.equal('soap-resource-nonce');
       expect(requests[1].body).to.include(`<sessionId>${org.accessToken}</sessionId>`);
+    });
+
+    it('retries a nonce challenge sent as a SOAP fault', async () => {
+      const org = dpopOrg();
+      const { requests } = stubTransport($$.SANDBOX, [
+        urlIncludes(SOAP_PATH, sequence(nonceChallenge('soap-resource-nonce', 500), soapOk())),
+      ]);
+      const { conn } = await connect(org);
+
+      await conn.metadata.describe(API_VERSION);
+
+      expect(requests).to.have.length(2);
+      expect(decodeProof(soapProofOf(requests[1])).payload.nonce).to.equal('soap-resource-nonce');
+    });
+
+    it('does not retry a SOAP auth fault that is not a nonce challenge', async () => {
+      const org = dpopOrg();
+      // What a live Require-DPoP org sends for a rejected proof: a 500 fault, with no nonce or challenge.
+      const { requests } = stubTransport($$.SANDBOX, [
+        urlIncludes(SOAP_PATH, () => ({
+          statusCode: 500,
+          headers: { 'content-type': 'text/xml' },
+          body: SOAP_AUTH_FAULT,
+        })),
+      ]);
+      const { conn } = await connect(org);
+
+      try {
+        await conn.metadata.describe(API_VERSION);
+        expect.fail('expected the fault to reject');
+      } catch (error) {
+        expect((error as { errorCode?: string }).errorCode).to.equal('sf:INVALID_AUTH_HEADER');
+      }
+      expect(requests).to.have.length(1);
+    });
+
+    it('does not retry a REST 500 that carries a nonce challenge', async () => {
+      const org = dpopOrg();
+      const { requests } = stubTransport($$.SANDBOX, [
+        urlIncludes('/limits', sequence(nonceChallenge('rest-resource-nonce', 500), ok())),
+      ]);
+      const { conn } = await connect(org);
+
+      await conn.request(`/services/data/v${API_VERSION}/limits`).catch(() => undefined);
+
+      expect(requests.filter((request) => request.url.includes('/limits'))).to.have.length(1);
     });
 
     it('leaves Bearer SOAP envelopes unchanged', async () => {
