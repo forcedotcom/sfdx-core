@@ -47,6 +47,8 @@ type SecretCommand = {
   program: string;
   args: string[];
   stdin?: string;
+  /** Turns the program's output into the base64 secret, for programs that don't print it directly. */
+  parseSecret?: (stdout: string, stderr: string) => string;
 };
 
 const BASE64_PATTERN = /^[A-Za-z0-9+/]+={0,2}$/;
@@ -315,17 +317,21 @@ export class KeychainAccess implements PasswordStore {
 
     return new Promise((resolve, reject) => {
       let stdout = '';
+      let stderr = '';
       child.stdout?.on('data', (data: Buffer | string) => {
         stdout += data.toString();
+      });
+      child.stderr?.on('data', (data: Buffer | string) => {
+        stderr += data.toString();
       });
       child.on('error', reject);
       child.on('close', (code: number) => {
         const output = stdout.trim();
         if (code !== 0 || output.startsWith('error:')) {
-          // Never include stdout in the error; on success it would be the secret.
+          // Never include the output in the error; on success it would be the secret.
           reject(messages.createError('secretCommandError', [operation, ref.service, ref.account, code]));
         } else {
-          resolve(output);
+          resolve(command.parseSecret ? command.parseSecret(stdout, stderr) : output);
         }
       });
       child.stdin?.end(command.stdin ?? '');
@@ -450,65 +456,26 @@ const linuxImpl: OsImpl = {
 };
 
 /**
- * Swift helper for macOS Keychain secrets. `/usr/bin/security` only accepts secrets as arguments, so this reads a JSON
- * request (with a base64 value) from stdin and prints `ok` or the base64 secret.
+ * A safe length for one `security -i` command line. On macOS 26 a 4065-character line works and a 4145-character line
+ * is cut off, with the rest run as a separate command. A P-256 DPoP key needs about 600 characters.
  */
-const MAC_KEYCHAIN_SCRIPT = `
-import Foundation
-import Security
-import Darwin
+const SECURITY_INTERACTIVE_LINE_LIMIT = 4000;
 
-struct Request: Decodable {
-  let operation: String
-  let service: String
-  let account: String
-  let value: String?
-}
+/** Characters `security -i` reads as part of one argument without quoting. */
+const SECURITY_SAFE_ARGUMENT = /^[\w.@-]+$/;
 
-func fail(_ message: String) -> Never {
-  print("error: " + message)
-  exit(1)
-}
-
-let request: Request
-do {
-  request = try JSONDecoder().decode(Request.self, from: FileHandle.standardInput.readDataToEndOfFile())
-} catch {
-  fail("invalid keychain request")
-}
-
-let query: [String: Any] = [
-  kSecClass as String: kSecClassGenericPassword,
-  kSecAttrService as String: request.service,
-  kSecAttrAccount as String: request.account,
-  kSecAttrSynchronizable as String: false
-]
-
-switch request.operation {
-case "store":
-  guard let encoded = request.value, let value = Data(base64Encoded: encoded) else { fail("missing keychain value") }
-  var status = SecItemAdd(query.merging([kSecValueData as String: value]) { _, new in new } as CFDictionary, nil)
-  if status == errSecDuplicateItem {
-    status = SecItemUpdate(query as CFDictionary, [kSecValueData as String: value] as CFDictionary)
-  }
-  guard status == errSecSuccess else { fail("keychain store failed: \\(status)") }
-  print("ok")
-case "retrieve":
-  var lookup = query
-  lookup[kSecReturnData as String] = true
-  lookup[kSecMatchLimit as String] = kSecMatchLimitOne
-  var result: CFTypeRef?
-  let status = SecItemCopyMatching(lookup as CFDictionary, &result)
-  guard status == errSecSuccess, let data = result as? Data else { fail("keychain lookup failed: \\(status)") }
-  print(data.base64EncodedString())
-case "delete":
-  let status = SecItemDelete(query as CFDictionary)
-  guard status == errSecSuccess || status == errSecItemNotFound else { fail("keychain delete failed: \\(status)") }
-  print("ok")
-default:
-  fail("unknown keychain operation")
-}
-`;
+/**
+ * The base64 secret from `security find-generic-password -g`, which writes the value to stderr. A printable value is
+ * written as `password: "<text>"` and any other value as `password: 0x<hex>  "<text>"`. `-w` writes only the value
+ * to stdout, but its output can't tell a printable value from one that's written as hex.
+ */
+const parseSecurityPassword = (stdout: string, stderr: string): string => {
+  const line = stderr.split('\n').find((l) => l.startsWith('password: ')) ?? '';
+  const hex = /^password: 0x([0-9A-F]+)\b/.exec(line);
+  if (hex) return Buffer.from(hex[1], 'hex').toString('base64');
+  const text = /^password: "(.*)"$/.exec(line);
+  return text ? Buffer.from(text[1]).toString('base64') : '';
+};
 
 /**
  * OSX implementation.
@@ -585,12 +552,27 @@ const darwinImpl: OsImpl = {
   },
 
   secretCommand(operation, ref, encoded) {
-    const request = { operation, service: ref.service, account: ref.account, ...(encoded ? { value: encoded } : {}) };
-    return {
-      program: path.join(path.sep, 'usr', 'bin', 'swift'),
-      args: ['-e', MAC_KEYCHAIN_SCRIPT],
-      stdin: JSON.stringify(request),
-    };
+    const program = darwinImpl.getProgram();
+    const attributes = ['-a', ref.account, '-s', ref.service];
+    switch (operation) {
+      case 'store': {
+        // `security add-generic-password` only takes the value as an argument, so the command is sent to
+        // `security -i` over stdin to keep the value out of the process list. `-X` stores the raw bytes.
+        if (!SECURITY_SAFE_ARGUMENT.test(ref.account) || !SECURITY_SAFE_ARGUMENT.test(ref.service)) {
+          throw messages.createError('secretCommandError', [operation, ref.service, ref.account, 'none']);
+        }
+        const hex = Buffer.from(encoded ?? '', 'base64').toString('hex');
+        const line = ['add-generic-password', '-U', ...attributes, '-X', hex].join(' ');
+        if (line.length > SECURITY_INTERACTIVE_LINE_LIMIT) {
+          throw messages.createError('secretCommandError', [operation, ref.service, ref.account, 'none']);
+        }
+        return { program, args: ['-i'], stdin: `${line}\n` };
+      }
+      case 'retrieve':
+        return { program, args: ['find-generic-password', ...attributes, '-g'], parseSecret: parseSecurityPassword };
+      case 'delete':
+        return { program, args: ['delete-generic-password', ...attributes] };
+    }
   },
 };
 
