@@ -15,6 +15,7 @@
  */
 import childProcess, { ChildProcess } from 'node:child_process';
 import { EventEmitter } from 'node:events';
+import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { expect } from 'chai';
 import { KeychainAccess, keyChainImpl } from '../../../src/crypto/keyChainImpl';
@@ -92,7 +93,8 @@ describe('KeychainAccess DPoP secrets', () => {
   });
 
   describe('macOS', () => {
-    const SECURITY = '/usr/bin/security';
+    // /usr/bin/security, with the platform's separators, since the tests also run on Windows.
+    const SECURITY = path.join(path.sep, 'usr', 'bin', 'security');
     const PEM = '-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49\n-----END PRIVATE KEY-----\n';
     const hexOf = (value: string): string => Buffer.from(value).toString('hex');
     const darwin = (): KeychainAccess => new KeychainAccess(osImplOf(keyChainImpl.darwin), executableFs);
