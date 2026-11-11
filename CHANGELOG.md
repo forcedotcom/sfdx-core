@@ -1,3 +1,12 @@
+## [9.4.6](https://github.com/forcedotcom/sfdx-core/compare/9.4.5...9.4.6) (2026-11-11)
+
+
+### Bug Fixes
+
+* **deps:** bump zod from 4.1.13 to 4.6.6 ([1ab35f5](https://github.com/forcedotcom/sfdx-core/commit/1ab35f56f655e84223613d648a6557786cb6d11b))
+
+
+
 ## [9.4.5](https://github.com/forcedotcom/sfdx-core/compare/9.4.4...9.4.5) (2026-11-07)
 
 
