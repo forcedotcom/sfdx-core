@@ -1852,7 +1852,7 @@ describe('Org Tests', () => {
 
       it('returns the parsed ExtensionConfig of the latest SandboxProcess', async () => {
         const extensionConfig = { ['marketing_cloud']: { businessUnit: 'BU1' } };
-        queryStub.resolves({ records: [{ ExtensionConfig: JSON.stringify(extensionConfig) }] });
+        queryStub.resolves({ totalSize: 1, records: [{ ExtensionConfig: JSON.stringify(extensionConfig) }] });
 
         const result = await prod.querySandboxExtensionConfig('mySbx');
 
@@ -1862,14 +1862,24 @@ describe('Org Tests', () => {
         expect(result).to.deep.equal(extensionConfig);
       });
 
+      it('returns the config for every extension in the ExtensionConfig', async () => {
+        const extensionConfig = {
+          ['marketing_cloud']: { businessUnit: 'BU1' },
+          ['commerce_cloud']: { acknowledged: true },
+        };
+        queryStub.resolves({ totalSize: 1, records: [{ ExtensionConfig: JSON.stringify(extensionConfig) }] });
+
+        expect(await prod.querySandboxExtensionConfig('mySbx')).to.deep.equal(extensionConfig);
+      });
+
       it('returns undefined when no config was sent', async () => {
-        queryStub.resolves({ records: [{ ExtensionConfig: null }] });
+        queryStub.resolves({ totalSize: 1, records: [{ ExtensionConfig: null }] });
 
         expect(await prod.querySandboxExtensionConfig('mySbx')).to.be.undefined;
       });
 
       it('throws NoRecords when no SandboxProcess is found', async () => {
-        queryStub.resolves({ records: [] });
+        queryStub.resolves({ totalSize: 0, records: [] });
 
         try {
           await shouldThrow(prod.querySandboxExtensionConfig('mySbx'));

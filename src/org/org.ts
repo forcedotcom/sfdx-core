@@ -1046,9 +1046,9 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
    */
   public async querySandboxExtensionConfig(sandboxName: string): Promise<Record<string, JsonMap> | undefined> {
     const soql = `SELECT ExtensionConfig FROM SandboxProcess WHERE SandboxName='${sandboxName}' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1`;
-    let records: Array<{ ExtensionConfig?: string | null }>;
+    let record: { ExtensionConfig?: string | null };
     try {
-      records = (await this.connection.tooling.query<{ ExtensionConfig?: string | null }>(soql)).records;
+      record = await this.connection.singleRecordQuery<{ ExtensionConfig?: string | null }>(soql, { tooling: true });
     } catch (err) {
       // Orgs and API versions before 69.0 reject the SOQL with INVALID_FIELD ("No such column ...").
       const message = err instanceof Error ? err.message : String(err);
@@ -1061,11 +1061,8 @@ export class Org extends AsyncOptionalCreatable<Org.Options> {
       throw err;
     }
 
-    if (records.length === 0) {
-      throw new SfError(`No record found for ${soql}`, SingleRecordQueryErrors.NoRecords);
-    }
-    const extensionConfig = records[0].ExtensionConfig;
-    return extensionConfig ? (JSON.parse(extensionConfig) as Record<string, JsonMap>) : undefined;
+    // ExtensionConfig is a text field, so the API returns the JSON as a string.
+    return record.ExtensionConfig ? (JSON.parse(record.ExtensionConfig) as Record<string, JsonMap>) : undefined;
   }
 
   /**
