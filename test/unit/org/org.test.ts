@@ -1234,6 +1234,38 @@ describe('Org Tests', () => {
         });
       });
 
+      it('will create the SandboxInfo sObject correctly with ExtensionConfig as an object', async () => {
+        const extensionConfig = { ['marketing_cloud']: { businessUnit: 'BU1' } };
+        await prod.createSandbox(
+          { SandboxName: 'testSandbox', ExtensionConfig: extensionConfig },
+          { wait: Duration.seconds(30) }
+        );
+        expect(createStub.calledOnce).to.be.true;
+        expect(createStub.firstCall.args[1]).to.deep.include({
+          SandboxName: 'testSandbox',
+          ExtensionConfig: JSON.stringify(extensionConfig),
+        });
+      });
+
+      it('will create the SandboxInfo sObject correctly with ExtensionConfig as a string', async () => {
+        const extensionConfig = '{"marketing_cloud":{"businessUnit":"BU1"}}';
+        await prod.createSandbox(
+          { SandboxName: 'testSandbox', ExtensionConfig: extensionConfig },
+          { wait: Duration.seconds(30) }
+        );
+        expect(createStub.calledOnce).to.be.true;
+        expect(createStub.firstCall.args[1]).to.deep.include({
+          SandboxName: 'testSandbox',
+          ExtensionConfig: extensionConfig,
+        });
+      });
+
+      it('will not send ExtensionConfig on create when it is not provided', async () => {
+        await prod.createSandbox({ SandboxName: 'testSandbox' }, { wait: Duration.seconds(30) });
+        expect(createStub.calledOnce).to.be.true;
+        expect(createStub.firstCall.args[1]).to.not.have.property('ExtensionConfig');
+      });
+
       it('will throw an error if it fails to create SandboxInfo', async () => {
         createStub.restore();
         createStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'create').resolves({
@@ -1430,6 +1462,29 @@ describe('Org Tests', () => {
           SandboxName: sbxInfo.SandboxName,
           PostCopyConfig: postCopyConfig,
         });
+      });
+
+      it('will refresh the SandboxInfo sObject correctly with ExtensionConfig as an object', async () => {
+        querySandboxProcessStub.resolves({ records: [sbxProcess] });
+        const extensionConfig = { ['commerce_cloud']: { acknowledged: true } };
+
+        await prod.refreshSandbox({ ...sbxInfo, ExtensionConfig: extensionConfig }, { async: true });
+
+        expect(updateStub.calledOnce).to.be.true;
+        expect(updateStub.firstCall.args[1]).to.deep.include({
+          SandboxName: sbxInfo.SandboxName,
+          ExtensionConfig: JSON.stringify(extensionConfig),
+        });
+      });
+
+      it('will not send ExtensionConfig on refresh when it is not provided', async () => {
+        querySandboxProcessStub.resolves({ records: [sbxProcess] });
+
+        await prod.refreshSandbox(sbxInfo, { async: true });
+
+        expect(updateStub.calledOnce).to.be.true;
+        expect(updateStub.firstCall.args[1]).to.not.have.property('ExtensionConfig');
+        expect(querySandboxProcessStub.firstCall.firstArg).to.not.include('ExtensionConfig');
       });
     });
 
@@ -1788,6 +1843,72 @@ describe('Org Tests', () => {
       });
     });
 
+    describe('querySandboxExtensionConfig', () => {
+      let queryStub: SinonStub;
+
+      beforeEach(() => {
+        queryStub = stubMethod($$.SANDBOX, prod.getConnection().tooling, 'query');
+      });
+
+      it('returns the parsed ExtensionConfig of the latest SandboxProcess', async () => {
+        const extensionConfig = { ['marketing_cloud']: { businessUnit: 'BU1' } };
+        queryStub.resolves({ totalSize: 1, records: [{ ExtensionConfig: JSON.stringify(extensionConfig) }] });
+
+        const result = await prod.querySandboxExtensionConfig('mySbx');
+
+        expect(queryStub.firstCall.firstArg).to.equal(
+          "SELECT ExtensionConfig FROM SandboxProcess WHERE SandboxName='mySbx' AND Status != 'D' ORDER BY CreatedDate DESC LIMIT 1"
+        );
+        expect(result).to.deep.equal(extensionConfig);
+      });
+
+      it('returns the config for every extension in the ExtensionConfig', async () => {
+        const extensionConfig = {
+          ['marketing_cloud']: { businessUnit: 'BU1' },
+          ['commerce_cloud']: { acknowledged: true },
+        };
+        queryStub.resolves({ totalSize: 1, records: [{ ExtensionConfig: JSON.stringify(extensionConfig) }] });
+
+        expect(await prod.querySandboxExtensionConfig('mySbx')).to.deep.equal(extensionConfig);
+      });
+
+      it('returns undefined when no config was sent', async () => {
+        queryStub.resolves({ totalSize: 1, records: [{ ExtensionConfig: null }] });
+
+        expect(await prod.querySandboxExtensionConfig('mySbx')).to.be.undefined;
+      });
+
+      it('throws NoRecords when no SandboxProcess is found', async () => {
+        queryStub.resolves({ totalSize: 0, records: [] });
+
+        try {
+          await shouldThrow(prod.querySandboxExtensionConfig('mySbx'));
+        } catch (e) {
+          expect((e as Error).name).to.equal(SingleRecordQueryErrors.NoRecords);
+        }
+      });
+
+      it('returns undefined when the org rejects the field with INVALID_FIELD', async () => {
+        queryStub.rejects(
+          Object.assign(new Error("No such column 'ExtensionConfig' on entity 'SandboxProcess'."), {
+            name: 'INVALID_FIELD',
+          })
+        );
+
+        expect(await prod.querySandboxExtensionConfig('mySbx')).to.be.undefined;
+      });
+
+      it('rethrows other errors', async () => {
+        queryStub.rejects(Object.assign(new Error('Session expired or invalid'), { name: 'INVALID_SESSION_ID' }));
+
+        try {
+          await shouldThrow(prod.querySandboxExtensionConfig('mySbx'));
+        } catch (e) {
+          expect((e as Error).name).to.equal('INVALID_SESSION_ID');
+        }
+      });
+    });
+
     describe('querySandboxInfo', () => {
       const sandboxInfoRecord: SandboxInfo = {
         Id: '0GQB0000000TVobOAG',
@@ -1818,6 +1939,14 @@ describe('Org Tests', () => {
         expect(queryStub.firstCall.firstArg).to.include('PostCopyConfig');
         expect(queryStub.firstCall.firstArg).to.include("SandboxName='mySbx'");
         expect(result).to.deep.equal(sandboxInfoRecord);
+      });
+
+      it('does not query ExtensionConfig, so older orgs and refresh are unaffected', async () => {
+        queryStub.resolves({ records: [sandboxInfoRecord] });
+
+        await prod.querySandboxInfo({ name: 'mySbx' });
+
+        expect(queryStub.firstCall.firstArg).to.not.include('ExtensionConfig');
       });
 
       it('retries without PostCopyConfig when the org rejects the field with INVALID_FIELD', async () => {
