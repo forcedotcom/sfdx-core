@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794340625369,
+  "lastUpdate": 1794932408234,
   "repoUrl": "https://github.com/forcedotcom/sfdx-core",
   "entries": {
     "Logger Benchmarks - windows-latest": [
@@ -48372,6 +48372,72 @@ window.BENCHMARK_DATA = {
             "range": "±7.09%",
             "unit": "ops/sec",
             "extra": "69 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "apanwar@salesforce.com",
+            "name": "Abhimanyu Panwar",
+            "username": "apanwar-sf"
+          },
+          "committer": {
+            "email": "apanwar@salesforce.com",
+            "name": "Abhimanyu Panwar",
+            "username": "apanwar-sf"
+          },
+          "distinct": true,
+          "id": "98532e9c4d49a492f6d205396d64abe44c306c08",
+          "message": "refactor: use singleRecordQuery in querySandboxExtensionConfig @W-23860697@\n\nUses connection.singleRecordQuery with tooling, so NoRecords comes from\nthere instead of a manual check. Notes that the API returns\nExtensionConfig as a JSON string, and adds a test with config for more\nthan one extension.",
+          "timestamp": "2026-11-13T13:47:56Z",
+          "tree_id": "f67678fb3808ce55436ba6440353f3bbd15475b0",
+          "url": "https://github.com/forcedotcom/sfdx-core/commit/98532e9c4d49a492f6d205396d64abe44c306c08"
+        },
+        "date": 1794932396297,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "Child logger creation",
+            "value": 595884,
+            "range": "±0.67%",
+            "unit": "ops/sec",
+            "extra": "98 samples"
+          },
+          {
+            "name": "Logging a string on root logger",
+            "value": 1350679,
+            "range": "±8.08%",
+            "unit": "ops/sec",
+            "extra": "71 samples"
+          },
+          {
+            "name": "Logging an object on root logger",
+            "value": 19887,
+            "range": "±226.14%",
+            "unit": "ops/sec",
+            "extra": "9 samples"
+          },
+          {
+            "name": "Logging an object with a message on root logger",
+            "value": 734011,
+            "range": "±6.25%",
+            "unit": "ops/sec",
+            "extra": "65 samples"
+          },
+          {
+            "name": "Logging an object with a redacted prop on root logger",
+            "value": 491885,
+            "range": "±6.69%",
+            "unit": "ops/sec",
+            "extra": "63 samples"
+          },
+          {
+            "name": "Logging a nested 3-level object on root logger",
+            "value": 10265,
+            "range": "±221.26%",
+            "unit": "ops/sec",
+            "extra": "10 samples"
           }
         ]
       }
