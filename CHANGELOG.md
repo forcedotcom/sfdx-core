@@ -1,3 +1,12 @@
+# [9.5.0](https://github.com/forcedotcom/sfdx-core/compare/9.4.6...9.5.0) (2026-11-17)
+
+
+### Features
+
+* add ExtensionConfig to sandbox create and refresh @W-23860697@ ([910ed6f](https://github.com/forcedotcom/sfdx-core/commit/910ed6f58f8158f7b37e250820e14aa747ad899d))
+
+
+
 ## [9.4.6](https://github.com/forcedotcom/sfdx-core/compare/9.4.5...9.4.6) (2026-11-11)
 
 
