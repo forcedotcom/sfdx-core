@@ -281,4 +281,19 @@ describe('getHumanErrorMessage', () => {
       expect(err.actions![1]).to.include('SF_SCRATCH_SIGNUP_CONNECTED_APP');
     }
   });
+
+  it('C-1038 maps to a specific message with only the docs action', async () => {
+    const ErrorCode = 'C-1038';
+    try {
+      await shouldThrow(checkScratchOrgInfoForErrors({ ...baseOrgInfo, ErrorCode }, testUsername));
+    } catch (err) {
+      if (!(err instanceof SfError)) {
+        expect.fail('should have thrown SfError');
+      }
+      expect(err.name).to.equal('RemoteOrgSignupFailed');
+      expect(err.message).to.include('External Client App');
+      expect(err.actions).to.have.lengthOf(1);
+      expect(err.actions![0]).to.include('information on error code');
+    }
+  });
 });
