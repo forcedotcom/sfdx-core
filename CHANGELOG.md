@@ -1,3 +1,12 @@
+# [9.6.0](https://github.com/forcedotcom/sfdx-core/compare/9.5.0...9.6.0) (2026-11-20)
+
+
+### Features
+
+* add scratch org error code C-1038 for External Client App trust failure ([99dd425](https://github.com/forcedotcom/sfdx-core/commit/99dd42556598cb9f45fd5fd11a1844a862ce2bad))
+
+
+
 # [9.5.0](https://github.com/forcedotcom/sfdx-core/compare/9.4.6...9.5.0) (2026-11-17)
 
 
