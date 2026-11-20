@@ -42,6 +42,11 @@ const FILTERED_KEYS: FilteredKeyDefinition[] = [
   { name: 'sid' },
   { name: 'jwt' },
   { name: 'Authorization' },
+  // DPoP proofs and nonces, including the DPoP-Nonce header and the persisted dpopNonce field
+  { name: 'DPoP' },
+  // Cookie and Set-Cookie
+  { name: 'Cookie' },
+  { name: 'X-SFDC-Session' },
   // Any json attribute that contains the words "refresh" and "token" will have the attribute/value hidden
   { name: 'refresh_token', regex: 'refresh[^\'"]*token' },
   { name: 'clientsecret' },

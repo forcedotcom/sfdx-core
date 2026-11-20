@@ -30,6 +30,29 @@ const messages = Messages.loadMessages('@salesforce/core', 'encryption');
 
 export type FsIfc = Pick<typeof fs, 'statSync'>;
 
+/**
+ * Identifies a secret, such as a DPoP private key, in the OS secret store.
+ */
+export type SecretReference = {
+  service: string;
+  account: string;
+};
+
+type SecretOperation = 'store' | 'retrieve' | 'delete';
+
+/**
+ * A native command that operates on a secret. Secret values only ever travel over stdin.
+ */
+type SecretCommand = {
+  program: string;
+  args: string[];
+  stdin?: string;
+  /** Turns the program's output into the base64 secret, for programs that don't print it directly. */
+  parseSecret?: (stdout: string, stderr: string) => string;
+};
+
+const BASE64_PATTERN = /^[A-Za-z0-9+/]+={0,2}$/;
+
 const GET_PASSWORD_RETRY_COUNT = 3;
 
 /**
@@ -251,6 +274,69 @@ export class KeychainAccess implements PasswordStore {
       credManager.stdin.end();
     }
   }
+
+  /**
+   * Stores a secret in the OS secret store. The value is base64 encoded and passed over stdin, never as an argument.
+   *
+   * @param ref Identifies the secret.
+   * @param secret The secret value.
+   */
+  public async setSecret(ref: SecretReference, secret: string): Promise<void> {
+    await this.runSecretCommand('store', ref, Buffer.from(secret).toString('base64'));
+  }
+
+  /**
+   * Retrieves a secret from the OS secret store.
+   *
+   * @param ref Identifies the secret.
+   */
+  public async getSecret(ref: SecretReference): Promise<string> {
+    const output = await this.runSecretCommand('retrieve', ref);
+    if (!BASE64_PATTERN.test(output)) {
+      throw messages.createError('secretNotFoundError', [ref.service, ref.account]);
+    }
+    return Buffer.from(output, 'base64').toString('utf8');
+  }
+
+  /**
+   * Deletes a secret from the OS secret store.
+   *
+   * @param ref Identifies the secret.
+   */
+  public async deleteSecret(ref: SecretReference): Promise<void> {
+    await this.runSecretCommand('delete', ref);
+  }
+
+  private async runSecretCommand(operation: SecretOperation, ref: SecretReference, encoded?: string): Promise<string> {
+    if (!this.osImpl.secretCommand) {
+      throw messages.createError('secretStoreUnsupported');
+    }
+    const command = this.osImpl.secretCommand(operation, ref, encoded);
+    await _validateProgram(command.program, this.fsIfc, isExe);
+    const child = childProcess.spawn(command.program, command.args);
+
+    return new Promise((resolve, reject) => {
+      let stdout = '';
+      let stderr = '';
+      child.stdout?.on('data', (data: Buffer | string) => {
+        stdout += data.toString();
+      });
+      child.stderr?.on('data', (data: Buffer | string) => {
+        stderr += data.toString();
+      });
+      child.on('error', reject);
+      child.on('close', (code: number) => {
+        const output = stdout.trim();
+        if (code !== 0 || output.startsWith('error:')) {
+          // Never include the output in the error; on success it would be the secret.
+          reject(messages.createError('secretCommandError', [operation, ref.service, ref.account, code]));
+        } else {
+          resolve(command.parseSecret ? command.parseSecret(stdout, stderr) : output);
+        }
+      });
+      child.stdin?.end(command.stdin ?? '');
+    });
+  }
 }
 
 type ProgramOpts = {
@@ -285,6 +371,10 @@ type OsImpl = {
     opts: ProgramOpts,
     fn: (err: Nullable<Error>) => void
   ): Promise<void>;
+  /**
+   * Builds the command for a secret operation. `encoded` is the base64 secret value for `store`.
+   */
+  secretCommand?(operation: SecretOperation, ref: SecretReference, encoded?: string): SecretCommand;
 };
 
 /**
@@ -347,6 +437,44 @@ const linuxImpl: OsImpl = {
       fn(null);
     }
   },
+
+  secretCommand(operation, ref, encoded) {
+    const attributes = ['service', ref.service, 'account', ref.account];
+    switch (operation) {
+      case 'store':
+        return {
+          program: linuxImpl.getProgram(),
+          args: ['store', '--label=Salesforce DPoP key', ...attributes],
+          stdin: encoded,
+        };
+      case 'retrieve':
+        return { program: linuxImpl.getProgram(), args: ['lookup', ...attributes] };
+      case 'delete':
+        return { program: linuxImpl.getProgram(), args: ['clear', ...attributes] };
+    }
+  },
+};
+
+/**
+ * A safe length for one `security -i` command line. On macOS 26 a 4065-character line works and a 4145-character line
+ * is cut off, with the rest run as a separate command. A P-256 DPoP key needs about 600 characters.
+ */
+const SECURITY_INTERACTIVE_LINE_LIMIT = 4000;
+
+/** Characters `security -i` reads as part of one argument without quoting. */
+const SECURITY_SAFE_ARGUMENT = /^[\w.@-]+$/;
+
+/**
+ * The base64 secret from `security find-generic-password -g`, which writes the value to stderr. A printable value is
+ * written as `password: "<text>"` and any other value as `password: 0x<hex>  "<text>"`. `-w` writes only the value
+ * to stdout, but its output can't tell a printable value from one that's written as hex.
+ */
+const parseSecurityPassword = (stdout: string, stderr: string): string => {
+  const line = stderr.split('\n').find((l) => l.startsWith('password: ')) ?? '';
+  const hex = /^password: 0x([0-9A-F]+)\b/.exec(line);
+  if (hex) return Buffer.from(hex[1], 'hex').toString('base64');
+  const text = /^password: "(.*)"$/.exec(line);
+  return text ? Buffer.from(text[1]).toString('base64') : '';
 };
 
 /**
@@ -420,6 +548,30 @@ const darwinImpl: OsImpl = {
       fn(messages.createError('setCredentialError', [`${stdout} - ${stderr}`], [os.userInfo().username, command]));
     } else {
       fn(null);
+    }
+  },
+
+  secretCommand(operation, ref, encoded) {
+    const program = darwinImpl.getProgram();
+    const attributes = ['-a', ref.account, '-s', ref.service];
+    switch (operation) {
+      case 'store': {
+        // `security add-generic-password` only takes the value as an argument, so the command is sent to
+        // `security -i` over stdin to keep the value out of the process list. `-X` stores the raw bytes.
+        if (!SECURITY_SAFE_ARGUMENT.test(ref.account) || !SECURITY_SAFE_ARGUMENT.test(ref.service)) {
+          throw messages.createError('secretCommandError', [operation, ref.service, ref.account, 'none']);
+        }
+        const hex = Buffer.from(encoded ?? '', 'base64').toString('hex');
+        const line = ['add-generic-password', '-U', ...attributes, '-X', hex].join(' ');
+        if (line.length > SECURITY_INTERACTIVE_LINE_LIMIT) {
+          throw messages.createError('secretCommandError', [operation, ref.service, ref.account, 'none']);
+        }
+        return { program, args: ['-i'], stdin: `${line}\n` };
+      }
+      case 'retrieve':
+        return { program, args: ['find-generic-password', ...attributes, '-g'], parseSecret: parseSecurityPassword };
+      case 'delete':
+        return { program, args: ['delete-generic-password', ...attributes] };
     }
   },
 };

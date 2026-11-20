@@ -20,6 +20,7 @@ import { ConfigAggregator } from '../config/configAggregator';
 import { Logger } from '../logger/logger';
 import { Messages } from '../messages';
 import { StateAggregator } from '../stateAggregator/stateAggregator';
+import { DpopKey } from '../crypto/dpop';
 import { OrgConfigProperties } from './orgConfigProperties';
 import { AuthFields } from './authInfo';
 
@@ -80,6 +81,7 @@ export class AuthRemover extends AsyncOptionalCreatable<AuthRemoverOptions> {
     this.logger.debug(`Removing authorization for user ${username}`);
     await this.unsetConfigValues(username);
     await this.unsetAliases(username);
+    await this.removeDpopKey(username);
     await this.stateAggregator.orgs.remove(username);
   }
 
@@ -213,6 +215,28 @@ export class AuthRemover extends AsyncOptionalCreatable<AuthRemoverOptions> {
     for (const alias of existingAliases) {
       // eslint-disable-next-line no-await-in-loop
       await this.stateAggregator.aliases.unsetAndSave(alias);
+    }
+  }
+
+  /**
+   * Deletes the authorization's DPoP key, before its auth file, so the key's reference is never lost.
+   * A key that another authorization also references is kept, since deleting it would break that authorization.
+   */
+  private async removeDpopKey(username: string): Promise<void> {
+    const dpopKeyReference = this.stateAggregator.orgs.get(username)?.dpopKeyReference;
+    if (!dpopKeyReference) return;
+    const sharedWith = this.stateAggregator.orgs
+      .getAll()
+      .filter((org) => org.username !== username && org.dpopKeyReference === dpopKeyReference)
+      .map((org) => org.username);
+    if (sharedWith.length > 0) {
+      this.logger.warn(`Keeping the DPoP key for ${username}, since ${sharedWith.join(', ')} also uses it`);
+      return;
+    }
+    try {
+      await DpopKey.delete(dpopKeyReference);
+    } catch (e) {
+      this.logger.warn(`Unable to delete the DPoP key for ${username}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
 }
